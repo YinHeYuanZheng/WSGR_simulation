@@ -18,7 +18,18 @@ class Equipment(Time):
         self.master = master  # 该装备载体
         self.enum = enum  # 该装备所在栏位
         self.status = {}  # 装备属性
-        self.buff = []  # 加成（包括自身的 如穿甲弹；以及受到的 如驻岛舰队）
+        self.common_buff = []  # 永久面板加成(如驻岛舰队)
+        self.temper_buff = []  # 临时buff(如命运的五分钟)
+
+    def add_buff(self, buff):
+        """添加增益"""
+        buff.set_master(self)
+        if buff.is_common():
+            self.common_buff.append(buff)
+        else:
+            self.temper_buff.append(buff)
+        if buff.is_event():
+            self.timer.queue.append(buff)
 
     def get_final_status(self, name):
         """根据属性名称获取最终属性"""

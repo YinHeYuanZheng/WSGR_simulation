@@ -143,17 +143,20 @@ class Ship(Time):
 
     def get_buff(self, name):
         """根据增益名称获取全部属性增益"""
-        scale = 0
+        scale_add = 0
+        scale_mult = 1
         bias = 0
         for tmp_buff in self.temper_buff:
             if tmp_buff.name == name and tmp_buff.in_phase():
                 if tmp_buff.bias_or_weight == 0:
                     bias += tmp_buff.value
                 elif tmp_buff.bias_or_weight == 1:
-                    scale += tmp_buff.value  # TODO scale *= (1 + tmp_buff.value)
+                    scale_add += tmp_buff.value
+                elif tmp_buff.bias_or_weight == 2:
+                    scale_mult *= (1 + tmp_buff.value)
                 else:
                     pass
-        return scale, bias  # 先scale后bias
+        return (1 + scale_add) * scale_mult - 1, bias  # 先scale后bias
 
     def get_special_buff(self):
         """查询机制增益"""
