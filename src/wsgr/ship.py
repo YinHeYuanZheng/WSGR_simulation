@@ -259,6 +259,14 @@ class CV(Aircraft, LargeShip, MainShip):
         return True
 
 
+class CVL(Aircraft, MidShip, CoverShip):
+    pass
+
+
+class AV(Aircraft, LargeShip, MainShip):
+    pass
+
+
 class Fleet(Time):
     def __init__(self):
         super().__init__()
