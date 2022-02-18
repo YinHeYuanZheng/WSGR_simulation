@@ -6,26 +6,28 @@
 from ..wsgr.skill import *
 from ..wsgr.ship import *
 from ..wsgr.phase import *
-
+"""战队直卫(3级)：炮击战阶段自身受到航母、装母攻击的概率增加20%。降低敌方队伍内全部轻巡、重巡20点防空值、12点闪避值和12点命中值。
+"""
 
 class Skill_110241(Skill):
     def __init__(self, master):
         super().__init__(master)
+        self.master = master
         self.target = TypeTarget(side=0, shiptype=('CL', 'CA'))
         self.buff = [StatusBuff(
             name='antiair',
             phase=('AllPhase',),
-            value=20,
+            value=-20,
             bias_or_weight=0,
         ), StatusBuff(
             name='evasion',
             phase=('AllPhase',),
-            value=12,
+            value=-12,
             bias_or_weight=0,
         ), StatusBuff(
             name='accuracy',
             phase=('AllPhase',),
-            value=12,
+            value=-12,
             bias_or_weight=0,
         ), ]
 

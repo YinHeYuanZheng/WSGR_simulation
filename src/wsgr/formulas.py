@@ -167,6 +167,8 @@ class AirBombAtk(AirAtk):
         # 技能系数
         skill_scale, _ = self.atk_body.get_buff('air_atk_buff')
         self.coef['skill_coef'] = 1 + skill_scale
+        skill_scale, _ = self.atk_body.get_buff('air_bomb_atk_buff')
+        self.coef['skill_coef'] *= (1 + skill_scale)
 
         # 船损系数
         self.coef['dmg_coef'] = self.get_dmg_coef()
@@ -242,6 +244,8 @@ class AirDiveAtk(AirAtk):
         # 技能系数
         skill_scale, _ = self.atk_body.get_buff('air_atk_buff')
         self.coef['skill_coef'] = 1 + skill_scale
+        skill_scale, _ = self.atk_body.get_buff('air_dive_atk_buff')
+        self.coef['skill_coef'] *= (1 + skill_scale)
 
         # 船损系数
         self.coef['dmg_coef'] = self.get_dmg_coef()

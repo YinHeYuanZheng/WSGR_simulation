@@ -11,7 +11,7 @@ class Skill(Time):
         super().__init__()
         self.master = master
 
-        self._request = None  # Request
+        self.request = None  # list of Request, not initialised
         self.target = None  # Target
         self.buff = None  # list of Buff
 
@@ -21,6 +21,7 @@ class Skill(Time):
         return True
 
     def activate(self, friend, enemy):
+        """技能生效时, 给所有满足条件的目标套上所有buff"""
         target = self.target.get_target(friend, enemy)
         for tmp_ship in target:
             for tmp_buff in self.buff:
@@ -68,7 +69,7 @@ class Target:
 
 class SelfTarget(Target):
     """自身buff"""
-    def __init__(self, side, master):
+    def __init__(self, master, side=1):
         super().__init__(side)
         self.master = master
 
@@ -105,15 +106,35 @@ class ValueTarget(Target):
     pass
 
 
+class EquipTarget(Target):
+    """装备"""
+    def __init__(self, side, target: Target, equiptype: tuple):
+        super().__init__(side)
+        self.target = target  # Target, 描述目标装备的携带者
+        self.equiptype = equiptype  # tuple, 目标装备类型
+
+    def get_target(self, friend, enemy):
+        """返回目标对象所携带的满足条件的装备对象"""
+        ship_target = self.target.get_target(friend, enemy)
+        equip_target = []
+        for tmp_ship in ship_target:
+            for tmp_equip in tmp_ship.equipment:
+                if isinstance(tmp_equip, self.equiptype):
+                    equip_target.append(tmp_equip)
+        return equip_target
+
+
 class Buff(Time):
     """增益总类"""
-    def __init__(self, name, phase: tuple, bias_or_weight=2):
+    def __init__(self, name, phase: tuple, bias_or_weight=3):
         super().__init__()
         self.master = None
         self.name = name  # 检索用名称
         self.phase = phase  # 发动阶段, tuple
         # self.content = None  # 增益内容
-        self.bias_or_weight = bias_or_weight  # flag, 0: bias; 1: weight; 2: not available
+
+        # flag, 0: bias; 1: weight add; 2: weight mult; 3: not available
+        self.bias_or_weight = bias_or_weight
 
     def set_master(self, master):
         self.master = master
@@ -151,6 +172,11 @@ class CoeffBuff(Buff):
 
 class SpecialBuff(Buff):
     """机制增益"""
+    pass
+
+
+class AtkCoefProcess(SpecialBuff):
+    """直接修改攻击属性(船损、航向、制空系数等)"""
     pass
 
 

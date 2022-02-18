@@ -9,8 +9,12 @@ from ..wsgr.phase import *
 
 
 class Skill_110231(Skill):
+    """此技能在舰队舰船数大于等于4时生效。
+    当队伍的平均航速大于加贺自身航速时，提升自身装甲值12点、对空值12点；
+    当队伍的平均航速等于加贺自身航速时，两种效果皆生效。"""
     def __init__(self, master):
         super().__init__(master)
+        self.master = master
         self.target = SelfTarget(master)
         self.buff = [StatusBuff(
             name='armor',
@@ -30,14 +34,16 @@ class Skill_110231(Skill):
 
 
 class Skill_110231_1(Skill):
+    """此技能在舰队舰船数大于等于4时生效。
+    当队伍平均航速小于加贺自身航速时，提升自身轰炸机20%的威力；"""
     def __init__(self, master):
         super().__init__(master)
+        self.master = master
         self.target = SelfTarget(master)
-        # todo 应仅为轰炸机系数
         self.buff = [CoeffBuff(
-            name='skill_coef',
-            phase=('AllPhase',),
-            value=20,
+            name='air_bomb_atk_buff',
+            phase=('AirPhase',),
+            value=0.2,
             bias_or_weight=2,
         )]
 
