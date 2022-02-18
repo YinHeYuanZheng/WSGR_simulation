@@ -6,9 +6,10 @@
 from ..wsgr.skill import *
 from ..wsgr.ship import *
 from ..wsgr.phase import *
-
 """直卫空母(3级)：降低敌方全体战列、战巡的对空值15点、命中值9点。
 """
+
+
 class Skill_110251(Skill):
     def __init__(self, master):
         super().__init__(master)

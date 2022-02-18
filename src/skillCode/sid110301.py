@@ -1,14 +1,14 @@
 # -*- coding:utf-8 -*-
 # Author:zzhh225
 # env:py38
-# 列克星敦（cv-2)改-1
+# 萨拉托加改-1
 
 from ..wsgr.skill import *
 from ..wsgr.ship import *
 from ..wsgr.phase import *
 
 
-class Skill_110291(Skill):
+class Skill_110301(Skill):
     def __init__(self, master):
         super().__init__(master)
         self.master = master
@@ -26,4 +26,4 @@ class Skill_110291(Skill):
         return True
 
 
-skill = [Skill_110291]
+skill = [Skill_110301]

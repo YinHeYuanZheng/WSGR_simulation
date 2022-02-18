@@ -9,6 +9,7 @@ from ..wsgr.phase import *
 
 """突击猛进(3级)：提升自身4点航速和12点火力值，降低自身4点装甲值和5点对空值
 """
+
 class Skill_112212(CommonSkill):
     def __init__(self, master):
         super().__init__(master)
