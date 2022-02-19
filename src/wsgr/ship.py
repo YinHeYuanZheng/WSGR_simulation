@@ -112,7 +112,7 @@ class Ship(Time):
                 raise AttributeError(f"'status' should be dict, got {type(status)} instead.")
 
     def get_status(self, name):
-        """根据属性名称获取本体属性，包含常驻面板加成"""
+        """根据属性名称获取本体属性，todo 包含常驻面板加成"""
         return self.status.get(name, default=0)
 
     def get_equip_status(self, name):
@@ -230,7 +230,7 @@ class MidShip(Ship):
         self.type = 2  # 船型
 
 
-class SamllShip(Ship):
+class SmallShip(Ship):
     """小型船总类"""
     def __init__(self):
         super().__init__()
@@ -252,7 +252,7 @@ class CoverShip(Ship):
 
 
 class Aircraft(Ship):
-    """航系单位"""
+    """航系单位(所有可参与航空战攻击的单位)"""
     def __init__(self):
         super().__init__()
         self.flightparam = 0
@@ -279,10 +279,49 @@ class CV(Aircraft, LargeShip, MainShip):
 
 
 class CVL(Aircraft, MidShip, CoverShip):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.type = 'CVL'
+        self.flightparam = 5
 
 
 class AV(Aircraft, LargeShip, MainShip):
+    def __init__(self):
+        super().__init__()
+        self.type = 'AV'
+        self.flightparam = 5
+
+
+class BB(LargeShip, MainShip):
+    pass
+
+
+class BC(LargeShip, MainShip):
+    pass
+
+
+class CA(MidShip, CoverShip):
+    pass
+
+
+class CL(MidShip, CoverShip):
+    pass
+
+
+class DD(SmallShip, CoverShip):
+    pass
+
+
+class Submarine(Ship):
+    """水下单位"""
+    pass
+
+
+class SS(Submarine, SmallShip, CoverShip):
+    pass
+
+
+class SC(Submarine, SmallShip, CoverShip):
     pass
 
 

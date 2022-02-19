@@ -13,7 +13,7 @@ class Skill_110251(Skill):
     def __init__(self, master):
         super().__init__(master)
         self.master = master
-        self.target = TypeTarget(side=0, shiptype=('BB', 'BC'))
+        self.target = TypeTarget(side=0, shiptype=(BB, BC))
         self.buff = [StatusBuff(
             name='antiair',
             phase=(AllPhase,),

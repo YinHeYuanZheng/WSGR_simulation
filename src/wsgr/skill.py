@@ -4,7 +4,7 @@
 # 技能类
 
 from .wsgrTimer import Time
-from .ship import Fleet
+from .ship import Ship, Fleet
 
 
 class Skill(Time):
@@ -114,6 +114,110 @@ class LocTarget(Target):
     def __init__(self, side, loc):
         super().__init__(side)
         self.loc = loc
+
+    def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        target = [ship for ship in fleet
+                  if ship.loc in self.loc]
+        return target
+
+
+class NearestLocTarget(Target):
+    def __init__(self, side, master, radius, direction,
+                 master_include=False, expand=False, shiptype=(Ship,)):
+        """
+        距离最近的(上方/下方/相邻)，可指定船型
+        :param side:
+        :param master: 技能所有者
+        :param radius: 相邻半径
+        :param direction: 相邻方向, up, down, near
+        :param master_include: 技能是否包含所有者, default: False
+        :param expand: 是否可顺延, default: False
+        :param shiptype: 船型, default: all types i.e.(Ship,)
+        """
+        super().__init__(side)
+        self.master = master
+        self.radius = radius
+        self.direction = direction
+        self.master_include = master_include
+        self.expand = expand
+        self.shiptype = shiptype
+
+    def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        target = []
+
+        # 获取上方满足条件的目标
+        if self.direction == 'up' or self.direction == 'near':
+            target.extend(self.get_up_target(fleet))
+
+        # 技能涉及自身时增加自身
+        if self.master_include:
+            target.append(self.master)
+
+        # 获取下方满足条件的目标
+        if self.direction == 'down' or self.direction == 'near':
+            target.extend(self.get_down_target(fleet))
+
+        return target
+
+    def get_up_target(self, fleet):
+        target = []
+        count = self.radius
+        loc = self.master.loc - 1  # 技能所有者在list内的索引
+        while count > 0 and loc > 0:
+            loc -= 1  # 向前推进一位
+            tmp_ship = fleet[loc]
+
+            # 满足条件时加入返回列表，同时计数-1
+            if isinstance(tmp_ship, self.shiptype):
+                target.append(tmp_ship)
+                count -= 1
+                continue
+
+            # 不满足条件时，判断能否顺延，不能顺延时计数-1
+            if not self.expand:
+                count -= 1
+
+        return target
+
+    def get_down_target(self, fleet):
+        target = []
+        count = self.radius
+        loc = self.master.loc - 1  # 技能所有者在list内的索引
+        while count > 0 and loc < len(fleet):
+            loc += 1  # 向后推进一位
+            tmp_ship = fleet[loc]
+
+            # 满足条件时加入返回列表，同时计数-1
+            if isinstance(tmp_ship, self.shiptype):
+                target.append(tmp_ship)
+                count -= 1
+                continue
+
+            # 不满足条件时，判断能否顺延，不能顺延时计数-1
+            if not self.expand:
+                count -= 1
+
+        return target
 
 
 class TagTarget(Target):

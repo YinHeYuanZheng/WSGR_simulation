@@ -10,11 +10,10 @@ from ..wsgr.phase import *
 """
 
 
-class Skill_111201(Skill):
+class Skill_111201_1(CommonSkill):
+    """提升自身10点火力值"""
     def __init__(self, master):
-        # 提升自身10点火力值和航空战25点制空值
         super().__init__(master)
-        self.master = master
         self.target = SelfTarget(master)
         self.buff = [
             CommonBuff(
@@ -22,7 +21,17 @@ class Skill_111201(Skill):
                 phase=(AllPhase, ),
                 value=10,
                 bias_or_weight=0
-            ), CoeffBuff(
+            )
+        ]
+
+
+class Skill_111201_2(Skill):
+    """提升航空战25点制空值"""
+    def __init__(self, master):
+        super().__init__(master)
+        self.target = SelfTarget(master)
+        self.buff = [
+            CoeffBuff(
                 name='air_con_buff',
                 phase=(AirPhase, ),
                 value=25,
@@ -30,54 +39,36 @@ class Skill_111201(Skill):
             )
         ]
 
-    def is_active(self, friend, enemy):
-        return True
 
-
-class Skill_111201_1(Skill):
+class Skill_111201_3(Skill):
+    """todo 制空权劣势和丧失时不降低舰载机伤害，"""
     def __init__(self, master):
-        # todo 制空权劣势和丧失时不降低舰载机伤害，
         super().__init__(master)
-        self.master = master
         self.target = SelfTarget(master)
-        self.request = [Request_1]
         self.buff = [
 
         ]
 
     def is_active(self, friend, enemy):
-        return bool(self.request[0](self.master, friend, enemy))
-
-
-class Request_1(Request):
-    def __bool__(self):
         return self.timer.air_con_flag > 3
 
 
-class Skill_111201_2(Skill):
+class Skill_111201_4(Skill):
+    """制空权均势、优势和确保时增加舰载机15%伤害。"""
     def __init__(self, master):
-        # 制空权均势、优势和确保时增加舰载机15%伤害。
         super().__init__(master)
-        self.master = master
         self.target = SelfTarget(master)
-        self.request = [Request_2]
         self.buff = [
             CoeffBuff(
                 name='air_atk_buff',
-                phase=('AllPhase', ),
+                phase=(AllPhase, ),
                 value=0.15,
                 bias_or_weight=0
             )
         ]
 
     def is_active(self, friend, enemy):
-        return bool(self.request[0](self.master, friend, enemy))
-
-
-class Request_2(Request):
-    def __bool__(self):
         return self.timer.air_con_flag <= 3
 
 
-
-skill = [Skill_111201]
+skill = [Skill_111201_1, Skill_111201_2, Skill_111201_3, Skill_111201_4]

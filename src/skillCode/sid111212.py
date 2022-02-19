@@ -35,7 +35,7 @@ class Skill_111212_1(CommonSkill):
 
 
 class Skill_111212_2(Skill):
-    """增加自身暴击率20%"""  # CommonSkill只会处理一次，暴击率单独拉出来
+    """增加自身暴击率20%，首轮炮击必中"""
 
     def __init__(self, master):
         super().__init__(master)

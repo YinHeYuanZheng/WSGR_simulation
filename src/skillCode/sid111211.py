@@ -47,11 +47,13 @@ class Skill_111211_2(Skill):
 
 class Request_1(Request):
     def __bool__(self):
-        num = TypeTarget(
+        target = TypeTarget(
             side=1,
             shiptype=(CV, CVL, AV)
         ).get_target(self.friend, self.enemy)
-        return num == 1
+        target.remove(self.master)
+        num = len(target)
+        return num == 0
 
 
 skill = [Skill_111211_1, Skill_111211_2]

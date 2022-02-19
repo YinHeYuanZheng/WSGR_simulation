@@ -13,7 +13,7 @@ class Skill_110241_1(Skill):
     def __init__(self, master):
         super().__init__(master)
         self.master = master
-        self.target = TypeTarget(side=0, shiptype=('CL', 'CA'))
+        self.target = TypeTarget(side=0, shiptype=(CL, CA))
         self.buff = [StatusBuff(
             name='antiair',
             phase=(AllPhase,),
@@ -32,13 +32,9 @@ class Skill_110241_1(Skill):
         ), ]
 
 
-class Skill_110241_2(Skill):
-    """炮击战阶段自身受到航母、装母攻击的概率增加20%。"""
-    # todo 嘲讽
-    def __init__(self, master):
-        super().__init__(master)
-        self.target = TypeTarget(side=0, shiptype=('CL', 'CA'))
-        self.buff = []
+# class Skill_110241_2(Skill):
+#     """炮击战阶段自身受到航母、装母攻击的概率增加20%。"""
+#     pass
 
 
-skill = [Skill_110241_1, Skill_110241_2]
+skill = [Skill_110241_1]

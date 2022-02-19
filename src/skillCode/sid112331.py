@@ -9,11 +9,11 @@ from ..wsgr.phase import *
 """航空掩护(3级)：增加自身索敌值12点，提升我方全体命中值12点。提升我方中型船10%暴击率，如果是J国中型船提升双倍。
 """
 
+
 class Skill_112331_1(CommonSkill):
     """增加自身索敌值12点"""
     def __init__(self, master):
         super().__init__(master)
-        self.master = master
         self.target = SelfTarget(master)
         self.buff = [CommonBuff(
             name='recon',
@@ -23,13 +23,12 @@ class Skill_112331_1(CommonSkill):
         )]
 
 
-class Skill_112331_2(CommonSkill):
+class Skill_112331_2(Skill):
     """提升我方全体命中值12点"""
     def __init__(self, master):
         super().__init__(master)
-        self.master = master
         self.target = Target(side=1)
-        self.buff = [CommonBuff(
+        self.buff = [StatusBuff(
             name='accuracy',
             phase=(AllPhase,),
             value=12,
@@ -38,11 +37,10 @@ class Skill_112331_2(CommonSkill):
 
 
 class Skill_112331_3(Skill):
-    """提升我方中型船10%暴击率"""
+    """提升我方中型船10%暴击率，如果是J国中型船提升双倍暴击率"""
     def __init__(self, master):
         super().__init__(master)
-        self.master = master
-        self.target = TypeTarget(side=1, shiptype=('CL', CVL, 'CA', 'CAV', 'CLT'))
+        self.target = TypeTarget(side=1, shiptype=(MidShip,))
         self.buff = [CoeffBuff(
             name='crit',
             phase=(AllPhase,),
@@ -50,42 +48,25 @@ class Skill_112331_3(Skill):
             bias_or_weight=0
         )]
 
-
-class Skill_112331_4(Skill):
-    """如果是J国中型船提升双倍暴击率"""
-
-    def __init__(self, master):
-        super().__init__(master)
-        self.master = master
-        self.target = TargetCountry(side=1, shiptype=(MidShip, ))
-        self.buff = [CoeffBuff(
+    def activate(self, friend, enemy):
+        target = self.target.get_target(friend, enemy)
+        buff1 = CoeffBuff(
             name='crit',
             phase=(AllPhase,),
             value=0.1,
             bias_or_weight=0
-        )]
+        )
+        buff2 = CoeffBuff(
+            name='crit',
+            phase=(AllPhase,),
+            value=0.2,
+            bias_or_weight=0
+        )
+        for tmp_ship in target:
+            if tmp_ship.status['country'] == 'J':
+                tmp_ship.add_buff(buff2)
+            else:
+                tmp_ship.add_buff(buff1)
 
 
-class TargetCountry(TypeTarget):
-
-    def __init__(self, side, shiptype: tuple):
-        super().__init__(side, shiptype)
-
-    def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
-        target = [ship for ship in fleet if ship.status['country'] == 'J']
-        target = [ship for ship in target if isinstance(ship, self.shiptype)]
-
-        return target
-
-
-skill = [Skill_112331_1, Skill_112331_2, Skill_112331_3, Skill_112331_4]
+skill = [Skill_112331_1, Skill_112331_2, Skill_112331_3]
