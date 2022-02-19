@@ -45,6 +45,11 @@ class Skill_110231_2(Skill):
             phase=('AirPhase',),
             value=0.2,
             bias_or_weight=2,
+        ), CoeffBuff(
+            name='air_atk_buff',
+            phase=('AirPhase',),
+            value=0.2,
+            bias_or_weight=2,
         )]
 
     def is_active(self, friend, enemy):
