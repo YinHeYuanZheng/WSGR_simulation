@@ -38,7 +38,7 @@ class Skill_112481_2(Skill):
     def __init__(self, master):
         super().__init__(master)
         self.master = master
-        self.target = TypeTarget(shiptype=('DD', 'BM', 'SS', 'SC', 'AP', 'ASDG', 'AADG'))
+        self.target = TypeTarget(shiptype=(SamllShip,))
         self.buff = [
             CoeffBuff(
                 name='crit',

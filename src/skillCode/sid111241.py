@@ -20,13 +20,13 @@ class Skill_110241(Skill):
         self.buff = [
             StatusBuff(
                 name='accuracy',
-                phase=('AllPhase', ),
+                phase=(AllPhase, ),
                 value=-8,
                 bias_or_weight=0
             ),
             StatusBuff(
                 name='evasion',
-                phase=('AllPhase', ),
+                phase=(AllPhase, ),
                 value=-5,
                 bias_or_weight=0
             )

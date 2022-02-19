@@ -16,7 +16,7 @@ class Skill_111171(Skill):
         self.target = SelfTarget(master)
         self.buff = [StatusBuff(
             name='accuracy',
-            phase=('AllPhase', ),
+            phase=(AllPhase, ),
             value=6,
             bias_or_weight=0
         )]

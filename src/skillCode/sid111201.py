@@ -19,12 +19,12 @@ class Skill_111201(Skill):
         self.buff = [
             CommonBuff(
                 name='fire',
-                phase=('AllPhase', ),
+                phase=(AllPhase, ),
                 value=10,
                 bias_or_weight=0
             ), CoeffBuff(
                 name='air_con_buff',
-                phase=('AirPhase', ),
+                phase=(AirPhase, ),
                 value=25,
                 bias_or_weight=0
             )

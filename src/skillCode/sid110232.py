@@ -21,13 +21,13 @@ class Skill_110231_1(Skill):
         self.buff = [
             StatusBuff(
                 name='armor',
-                phase=('AllPhase',),
+                phase=(AllPhase,),
                 value=12,
                 bias_or_weight=0,
             ),
             StatusBuff(
                 name='antiair',
-                phase=('AllPhase',),
+                phase=(AllPhase,),
                 value=12,
                 bias_or_weight=0,
             )

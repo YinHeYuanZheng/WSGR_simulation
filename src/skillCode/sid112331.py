@@ -42,7 +42,7 @@ class Skill_112331_3(Skill):
     def __init__(self, master):
         super().__init__(master)
         self.master = master
-        self.target = TypeTarget(side=1, shiptype=('CL', 'CVL', 'CA', 'CAV', 'CLT'))
+        self.target = TypeTarget(side=1, shiptype=('CL', CVL, 'CA', 'CAV', 'CLT'))
         self.buff = [CoeffBuff(
             name='crit',
             phase=(AllPhase,),
@@ -52,19 +52,40 @@ class Skill_112331_3(Skill):
 
 
 class Skill_112331_4(Skill):
-    """如果是J国中型船提升双倍%暴击率"""
+    """如果是J国中型船提升双倍暴击率"""
 
     def __init__(self, master):
         super().__init__(master)
         self.master = master
-        # todo 国籍检测
-        self.target = TypeTarget(side=1, shiptype=('CL', 'CVL', 'CA', 'CAV', 'CLT'))
+        self.target = TargetCountry(side=1, shiptype=(MidShip, ))
         self.buff = [CoeffBuff(
             name='crit',
             phase=(AllPhase,),
             value=0.1,
             bias_or_weight=0
         )]
+
+
+class TargetCountry(TypeTarget):
+
+    def __init__(self, side, shiptype: tuple):
+        super().__init__(side, shiptype)
+
+    def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        target = [ship for ship in fleet if ship.status['country'] == 'J']
+        target = [ship for ship in target if isinstance(ship, self.shiptype)]
+
+        return target
 
 
 skill = [Skill_112331_1, Skill_112331_2, Skill_112331_3, Skill_112331_4]

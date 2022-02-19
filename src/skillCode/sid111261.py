@@ -19,7 +19,7 @@ class Skill_111261(Skill):
         self.target = SelfTarget(master)
         self.buff = [CoeffBuff(
             name='air_dive_atk_buff',
-            phase=('AirPhase', ),
+            phase=(AirPhase, ),
             value=0.15,
             bias_or_weight=2
         )]
