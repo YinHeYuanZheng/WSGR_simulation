@@ -134,6 +134,7 @@ class AirPhase(AllPhase):
                         equip=tmp_equip,
                         coef=coef
                     )
+                    atk.start()
                     anti_num = atk.get_coef('anti_num')
 
                 # 攻击机，发起鱼雷轰炸攻击
@@ -144,6 +145,7 @@ class AirPhase(AllPhase):
                         equip=tmp_equip,
                         coef=coef
                     )
+                    atk.start()
                     anti_num = atk.get_coef('anti_num')
 
     def get_air_coef(self, side):

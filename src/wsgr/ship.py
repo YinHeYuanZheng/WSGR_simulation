@@ -35,6 +35,7 @@ class Ship(Time):
             'range': 0,  # 射程, 1: 短; 2: 中; 3: 长; 4: 超长
             'luck': 0,  # 幸运
             'capacity': 0,  # 搭载
+            'tag': '',  # 标签(特驱、z系等)
         }
 
         self._skill = []  # 技能(未实例化)
@@ -182,11 +183,29 @@ class Ship(Time):
         """判断舰船是否可被某攻击类型指定"""
         pass
 
-    def give_damage(self, damage):
-        pass
+    def get_final_damage_buff(self, atk):
+        """根据攻击类型决定终伤加成"""
+        scale_mult = 1
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'final_damage_buff' \
+                    and tmp_buff.in_phase():
+                if tmp_buff.is_atk_type(atk):
+                    scale_mult *= (1 + tmp_buff.value)
+        return scale_mult
+
+    def get_final_damage_debuff(self, atk):
+        """根据攻击类型决定终伤减伤加成"""
+        scale_mult = 1
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'final_damage_debuff' \
+                    and tmp_buff.in_phase():
+                if tmp_buff.is_atk_type(atk):
+                    scale_mult *= (1 + tmp_buff.value)
+        return scale_mult
 
     def get_damage(self, damage):
-        pass
+        """受伤结算，过伤害保护，需要返回受伤与否"""
+        return bool(damage)
 
     def clear_buff(self):
         """清空临时buff"""

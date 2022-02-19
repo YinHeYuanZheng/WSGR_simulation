@@ -31,7 +31,7 @@ class ATK(Time):
         self.changeable = changeable
 
     def start(self):
-        """开始攻击，选定目标等"""
+        """攻击开始命令，结算到攻击结束"""
         pass
 
     def set_target(self):
@@ -109,12 +109,19 @@ class ATK(Time):
     def formula(self):
         pass
 
-    def damage(self, damage):
-        damage = self.atk_body.give_damage(damage)
-        self.target.get_damage(damage)
+    def final_damage(self, damage):
+        buff_scale = self.atk_body.get_final_damage_buff(self)
+        damage = np.ceil(damage * buff_scale)
+        debuff_scale = self.target.get_final_damage_debuff(self)
+        damage = np.ceil(damage * debuff_scale)
+        # todo 可能会增加战术终伤
+        return damage
 
-    def end_atk(self):
-        """攻击结束时点，进行反击判定等"""
+    def end_atk(self, damage_flag):
+        """
+        攻击结束时点，进行反击判定等
+        :param damage_flag: 是否受到了伤害
+        """
         pass
 
 
@@ -123,17 +130,25 @@ class AirAtk(ATK):
         super().__init__(atk_body, def_list, coef, changeable)
         self.equip = equip
 
-        self.start()
-
     def start(self):
         self.set_target()
         self.start_atk()
         self.process_coef()
-        damage = self.formula()
-        if damage == 0:
+
+        if not self.coef['hit']:
             return
-        self.damage(damage)
-        self.end_atk()
+        if self.coef['plane_rest'] == 0:
+            return
+
+        damage = self.formula()
+        damage = max(0, damage)
+        damage = self.final_damage(damage)
+        if damage == 0:
+            # todo 擦伤
+            pass
+
+        damage_flag = self.target.get_damage(damage)
+        self.end_atk(damage_flag)
 
     def get_anti_air_fall(self, anti_num):
         target_anti_air = self.target.get_final_status('anti_air', equip=False)  # 本体裸对空
@@ -178,7 +193,8 @@ class AirBombAtk(AirAtk):
 
         # 暴击系数
         if self.crit_verify():
-            self.coef['crit_coef'] = 1.5 + self.atk_body.get_buff('crit_coef')
+            crit_scale, _ = self.atk_body.get_buff('crit_coef')
+            self.coef['crit_coef'] = 1.5 + crit_scale
         else:
             self.coef['crit_coef'] = 1.
 
@@ -198,11 +214,6 @@ class AirBombAtk(AirAtk):
             self.coef['hit'] = False
 
     def formula(self):
-        if not self.coef['hit']:
-            return 0
-        if self.coef['plane_rest'] == 0:
-            return 0
-
         # 基础攻击力
         base_status = self.equip.get_final_status('bomb')
         base_atk = 2 * np.log(self.coef['plane_rest'] + 1) * base_status + 25
@@ -255,7 +266,8 @@ class AirDiveAtk(AirAtk):
 
         # 暴击系数
         if self.crit_verify():
-            self.coef['crit_coef'] = 1.5 + self.atk_body.get_buff('crit_coef')
+            crit_scale, _ = self.atk_body.get_buff('crit_coef')
+            self.coef['crit_coef'] = 1.5 + crit_scale
         else:
             self.coef['crit_coef'] = 1.
 
@@ -276,11 +288,6 @@ class AirDiveAtk(AirAtk):
             self.coef['hit'] = False
 
     def formula(self):
-        if not self.coef['hit']:
-            return 0
-        if self.coef['plane_rest'] == 0:
-            return 0
-
         # 基础攻击力
         base_status = self.equip.get_final_status('bomb')
         base_atk = 2 * np.log(self.coef['plane_rest'] + 1) * base_status + 25

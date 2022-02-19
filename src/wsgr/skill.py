@@ -4,6 +4,7 @@
 # 技能类
 
 from .wsgrTimer import Time
+from .ship import Fleet
 
 
 class Skill(Time):
@@ -50,6 +51,11 @@ class Request(Time):
         pass
 
 
+class ATKRequest(Request):
+    """判断攻击类型、攻击目标等，备用"""
+    pass
+
+
 class Target:
     def __init__(self, side):
         self.side = side  # 敌我识别; 1: 友方; 0: 敌方
@@ -61,10 +67,15 @@ class Target:
         :param enemy: class Fleet
         :return: list
         """
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
         if self.side:
-            return friend.ship
+            return friend
         else:
-            return enemy.ship
+            return enemy
 
 
 class SelfTarget(Target):
@@ -78,32 +89,82 @@ class SelfTarget(Target):
 
 
 class TypeTarget(Target):
+    """指定船型的目标"""
     def __init__(self, side, shiptype: tuple):
         super().__init__(side)
         self.shiptype = shiptype
 
     def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
         if self.side == 1:
-            fleet = friend.ship
+            fleet = friend
         else:
-            fleet = enemy.ship
+            fleet = enemy
 
         target = [ship for ship in fleet if isinstance(ship, self.shiptype)]
         return target
 
 
 class LocTarget(Target):
+    """指定站位的目标"""
     def __init__(self, side, loc):
         super().__init__(side)
         self.loc = loc
 
 
 class TagTarget(Target):
+    """指定标签的目标"""
     pass
 
 
-class ValueTarget(Target):
-    pass
+class StatusTarget(Target):
+    """指定属性的目标"""
+
+    def __init__(self, side, status_name, fun, value):
+        """
+        指定属性与给定的value比较，返回符合fun定义的目标
+        :param status_name: str
+        :param fun: str; 'eq': =, 'ge': >=, 'gt': >, 'le': <=, 'lt': <
+        :param value:
+        """
+        super().__init__(side)
+        self.status_name = status_name
+        self.fun = fun
+        self.value = value
+
+    def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        if self.fun == 'eq':
+            target = [ship for ship in fleet
+                      if ship.status[self.status_name] == self.value]
+        elif self.fun == 'ge':
+            target = [ship for ship in fleet
+                      if ship.status[self.status_name] >= self.value]
+        elif self.fun == 'gt':
+            target = [ship for ship in fleet
+                      if ship.status[self.status_name] > self.value]
+        elif self.fun == 'le':
+            target = [ship for ship in fleet
+                      if ship.status[self.status_name] <= self.value]
+        elif self.fun == 'lt':
+            target = [ship for ship in fleet
+                      if ship.status[self.status_name] < self.value]
+        else:
+            raise ValueError()
+        return target
 
 
 class EquipTarget(Target):
@@ -131,7 +192,6 @@ class Buff(Time):
         self.master = None
         self.name = name  # 检索用名称
         self.phase = phase  # 发动阶段, tuple
-        # self.content = None  # 增益内容
 
         # flag, 0: bias; 1: weight add; 2: weight mult; 3: not available
         self.bias_or_weight = bias_or_weight
@@ -178,6 +238,18 @@ class SpecialBuff(Buff):
 class AtkCoefProcess(SpecialBuff):
     """直接修改攻击属性(船损、航向、制空系数等)"""
     pass
+
+
+class FinalDamageBuff(Buff):
+    """终伤系数, 乘算, 需要判断攻击类型"""
+    def __init__(self, name, phase, value, atk_request: tuple, bias_or_weight=2):
+        super().__init__(name, phase, bias_or_weight)
+        self.value = value
+        self.atk_request = atk_request
+
+    def is_atk_type(self, atk):
+        # todo 更改成ATKRequest
+        return isinstance(atk, self.atk_request)
 
 
 class EventBuff(Buff):

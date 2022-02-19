@@ -39,6 +39,7 @@ class Dataset:
             'luck': int(ship.loc['幸运']),  # 幸运
             'equipnum': int(ship.loc['装备栏']),  # 装备栏
             'capacity': int(ship.loc['总搭载']),  # 总搭载
+            'tag': str(ship.loc['标签']).split(','),  # 标签
         }
 
         if status['capacity'] != 0:

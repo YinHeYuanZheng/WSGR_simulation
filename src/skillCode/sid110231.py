@@ -30,8 +30,5 @@ class Skill_110231(Skill):
             # )
         ]
 
-    def is_active(self, friend, enemy):
-        return True
-
 
 skill = [Skill_110231]
