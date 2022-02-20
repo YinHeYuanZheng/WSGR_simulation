@@ -10,10 +10,9 @@ from ..wsgr.phase import *
 
 
 class Skill_113392_1(Skill):
-    """队伍中如果有装母时增加帝国自身18点火力值；"""
+    """队伍中如果有装母时增加帝国自身18点火力值"""
     def __init__(self, master):
         super().__init__(master)
-        self.master = master
         self.target = SelfTarget(master)
         self.buff = [
             StatusBuff(
@@ -24,16 +23,15 @@ class Skill_113392_1(Skill):
             )
         ]
 
-
-class Skill_113392_2(Skill):
-    """todo 炮击战时有25%概率同时对2个单位造成伤害；"""
-    def __init__(self, master):
-        super().__init__(master)
-        self.master = master
-        self.target = SelfTarget(master)
-        self.buff = [
-
-        ]
+    def is_active(self, friend, enemy):
+        target_av = TypeTarget(
+            side=1,
+            shiptype=(AV,)
+        ).get_target(friend, enemy)
+        return len(target_av) >= 1
 
 
-skill = [Skill_113392_1, Skill_113392_2]
+# todo 炮击战时有25%概率同时对2个单位造成伤害"""
+
+
+skill = [Skill_113392_1]

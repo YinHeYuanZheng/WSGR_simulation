@@ -21,11 +21,11 @@ class Skill_112231(Skill):
             direction='up',
         )
         self.buff = [
-            FinalDamageBuff(  # todo 判断条件待定
+            FinalDamageBuff(
                 name='final_damage_debuff',
                 phase=(AllPhase,),
                 value=-0.35,
-                atk_request=(AirAtk,),
+                atk_request=[BuffRequest_1],
             ),
             StatusBuff(
                 name='antiair',
@@ -40,6 +40,11 @@ class Skill_112231(Skill):
                 bias_or_weight=0
             )
         ]
+
+
+class BuffRequest_1(ATKRequest):
+    def __bool__(self):
+        return isinstance(self.atk, AirAtk)
 
 
 skill = [Skill_112231]

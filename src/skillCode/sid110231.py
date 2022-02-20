@@ -13,7 +13,6 @@ class Skill_110231(Skill):
 
     def __init__(self, master):
         super().__init__(master)
-        self.master = master
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
@@ -22,12 +21,12 @@ class Skill_110231(Skill):
                 value=0.12,
                 bias_or_weight=0,
             ),
-            # CoeffBuff(
-            #     name='hit_rate',
-            #     phase=('',),  # todo 阶段为炮击战
-            #     value=0.12,
-            #     bias_or_weight=0,
-            # )
+            CoeffBuff(
+                name='hit_rate',
+                phase=(ShellingPhase,),
+                value=0.12,
+                bias_or_weight=0,
+            )
         ]
 
 

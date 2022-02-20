@@ -6,15 +6,13 @@
 from ..wsgr.skill import *
 from ..wsgr.ship import *
 from ..wsgr.phase import *
-"""反潜护航(3级)：降低敌方所有潜艇单位的命中值8点，回避值5点（多个单位携带此技能不重复生效）。
-"""
 
 
 class Skill_110231(Skill):
+    """降低敌方所有潜艇单位的命中值8点，回避值5点 todo（多个单位携带此技能不重复生效）。"""
     def __init__(self, master):
         # 降低敌方所有潜艇单位的命中值8点，回避值5点（多个单位携带此技能不重复生效）。
         super().__init__(master)
-        self.master = master
         self.target = TypeTarget(side=0, shiptype=('SS', 'SC'))
         self.buff = [
             StatusBuff(
@@ -30,9 +28,6 @@ class Skill_110231(Skill):
                 bias_or_weight=0
             )
         ]
-
-    def is_active(self, friend, enemy):
-        return True
 
 
 skill = [Skill_110231]

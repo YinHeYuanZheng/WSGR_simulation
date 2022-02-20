@@ -7,9 +7,6 @@ from ..wsgr.skill import *
 from ..wsgr.ship import *
 from ..wsgr.phase import *
 
-"""大E(3级)：炮击战阶段，优先攻击敌方耐久值最高的单位，被命中的单位降低装甲值10点与火力值10点。
-"""
-
 
 class Skill_111212_1(CommonSkill):
     """增加自身闪避值10点、火力值15点"""
@@ -52,5 +49,5 @@ class Skill_111212_2(Skill):
         ]
 
 
-# todo 炮击战锁头
+# todo 炮击战阶段，优先攻击敌方耐久值最高的单位，被命中的单位降低装甲值10点与火力值10点
 skill = [Skill_111212_1, Skill_111212_2]

@@ -9,27 +9,23 @@ from ..wsgr.phase import *
 
 
 class Skill_112281(Skill):
+    """对敌方航母，装甲航母，轻母造成的最终伤害增加25%。"""
     def __init__(self, master):
         super().__init__(master)
-        self.master = master
         self.target = SelfTarget(master)
-        self.request = [Request_1]
         self.buff = [
-            CoeffBuff(
-                name='',  # todo 终伤倍率
+            FinalDamageBuff(
+                name='final_damage_buff',
                 phase=(AllPhase,),
                 value=0.25,
-                bias_or_weight=2
+                atk_request=[BuffRequest_1],
             )
         ]
 
-    def is_active(self, friend, enemy):
-        return bool(self.request[0](self.master, friend, enemy))
 
-
-class Request_1(Request):
+class BuffRequest_1(ATKRequest):
     def __bool__(self):
-        # todo 查找攻击目标
-        pass
+        return isinstance(self.atk.target, (CV, AV, CVL))
+
 
 skill = [Skill_112281]

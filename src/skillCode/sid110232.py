@@ -16,7 +16,6 @@ class Skill_110231_1(Skill):
 
     def __init__(self, master):
         super().__init__(master)
-        self.master = master
         self.target = SelfTarget(master)
         self.buff = [
             StatusBuff(
@@ -46,7 +45,6 @@ class Skill_110231_2(Skill):
 
     def __init__(self, master):
         super().__init__(master)
-        self.master = master
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
@@ -55,11 +53,11 @@ class Skill_110231_2(Skill):
                 value=0.2,
                 bias_or_weight=2,
             ),
-            FinalDamageBuff(  # todo 判断条件待定
+            FinalDamageBuff(
                 name='final_damage_buff',
                 phase=(AirPhase,),
                 value=0.2,
-                atk_request=(AirAtk,),
+                atk_request=[BuffRequest_1],
             )
         ]
 
@@ -67,6 +65,11 @@ class Skill_110231_2(Skill):
         bool1 = len(friend.ship) >= 4
         bool2 = friend.status['speed'] <= self.master.status['speed']
         return bool1 and bool2
+
+
+class BuffRequest_1(ATKRequest):
+    def __bool__(self):
+        return isinstance(self.atk, AirAtk)
 
 
 skill = [Skill_110231_1, Skill_110231_2]

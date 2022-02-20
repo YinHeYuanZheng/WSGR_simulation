@@ -3,6 +3,8 @@
 # env:py38
 # 技能类
 
+import numpy as np
+
 from .wsgrTimer import Time
 from .ship import Ship, Fleet
 
@@ -24,9 +26,9 @@ class Skill(Time):
     def activate(self, friend, enemy):
         """技能生效时, 给所有满足条件的目标套上所有buff"""
         target = self.target.get_target(friend, enemy)
-        for tmp_ship in target:
-            for tmp_buff in self.buff:
-                tmp_ship.add_buff(tmp_buff)
+        for tmp_target in target:
+            for tmp_buff in self.buff[:]:
+                tmp_target.add_buff(tmp_buff)
 
     def is_common(self):
         return False
@@ -51,9 +53,15 @@ class Request(Time):
         pass
 
 
-class ATKRequest(Request):
-    """判断攻击类型、攻击目标等，备用"""
-    pass
+class ATKRequest(Time):
+    """判断攻击类型、攻击目标等"""
+
+    def __init__(self, atk):
+        super().__init__()
+        self.atk = atk
+
+    def __bool__(self):
+        pass
 
 
 class Target:
@@ -291,7 +299,7 @@ class EquipTarget(Target):
 
 class Buff(Time):
     """增益总类"""
-    def __init__(self, name, phase: tuple, bias_or_weight=3):
+    def __init__(self, name, phase: tuple, bias_or_weight=3, rate=1):
         super().__init__()
         self.master = None
         self.name = name  # 检索用名称
@@ -299,6 +307,7 @@ class Buff(Time):
 
         # flag, 0: bias; 1: weight add; 2: weight mult; 3: not available
         self.bias_or_weight = bias_or_weight
+        self.rate = rate
 
     def set_master(self, master):
         self.master = master
@@ -309,15 +318,23 @@ class Buff(Time):
     def is_event(self):
         return False
 
-    def in_phase(self):
+    def is_active(self, *args, **kwargs):
         """技能是否满足发动阶段"""
-        return isinstance(self.timer.phase, self.phase)
+        return self.rate_verify() and \
+               isinstance(self.timer.phase, self.phase)
+
+    def rate_verify(self):
+        if self.rate == 1:
+            return True
+        else:
+            tmp_rate = np.random.random()
+            return tmp_rate <= self.rate
 
 
 class StatusBuff(Buff):
     """属性增益"""
-    def __init__(self, name, phase, value, bias_or_weight):
-        super().__init__(name, phase, bias_or_weight)
+    def __init__(self, name, phase, value, bias_or_weight, rate=1):
+        super().__init__(name, phase, bias_or_weight, rate)
         self.value = value
 
 
@@ -329,8 +346,8 @@ class CommonBuff(StatusBuff):
 
 class CoeffBuff(Buff):
     """系数增益"""
-    def __init__(self, name, phase, value, bias_or_weight):
-        super().__init__(name, phase, bias_or_weight)
+    def __init__(self, name, phase, value, bias_or_weight, rate=1):
+        super().__init__(name, phase, bias_or_weight, rate)
         self.value = value
 
 
@@ -346,14 +363,17 @@ class AtkCoefProcess(SpecialBuff):
 
 class FinalDamageBuff(Buff):
     """终伤系数, 乘算, 需要判断攻击类型"""
-    def __init__(self, name, phase, value, atk_request: tuple, bias_or_weight=2):
-        super().__init__(name, phase, bias_or_weight)
+    def __init__(self, name, phase, value, atk_request,
+                 bias_or_weight=2, rate=1):
+        super().__init__(name, phase, bias_or_weight, rate)
         self.value = value
         self.atk_request = atk_request
 
-    def is_atk_type(self, atk):
-        # todo 更改成ATKRequest
-        return isinstance(atk, self.atk_request)
+    def is_active(self, *args, **kwargs):
+        atk = kwargs['atk']
+        return isinstance(self.timer.phase, self.phase) and \
+               bool(self.atk_request[0](atk)) and \
+               self.rate_verify()
 
 
 class EventBuff(Buff):

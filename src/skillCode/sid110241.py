@@ -12,7 +12,6 @@ class Skill_110241_1(Skill):
     """降低敌方队伍内全部轻巡、重巡20点防空值、12点闪避值和12点命中值。"""
     def __init__(self, master):
         super().__init__(master)
-        self.master = master
         self.target = TypeTarget(side=0, shiptype=(CL, CA))
         self.buff = [StatusBuff(
             name='antiair',

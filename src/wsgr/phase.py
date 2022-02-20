@@ -15,7 +15,12 @@ from .wsgrTimer import Time
 
 __all__ = ['AllPhase',
            'BuffPhase',
-           'AirPhase']
+           'AirPhase',
+
+           'ShellingPhase',
+           'FirstShellingPhase',
+           'SecondShellingPhase',
+           ]
 
 
 class AllPhase(Time):
@@ -171,3 +176,18 @@ class AirPhase(AllPhase):
             air_con_coef = .9
 
         return fall_coef, air_con_coef
+
+
+class ShellingPhase(AllPhase):
+    """炮击战"""
+    pass
+
+
+class FirstShellingPhase(AllPhase):
+    """首轮炮击"""
+    pass
+
+
+class SecondShellingPhase(AllPhase):
+    """次轮炮击"""
+    pass

@@ -33,13 +33,15 @@ class Skill_110231(Skill):
         num_craft = len(target_craft)
         num_e_craft = len(target_e_craft)
         buff_value = 0.07 * (num_craft + num_e_craft)
-        self.buff = CoeffBuff(
-                        name='air_atk_buff',
-                        phase=(AllPhase,),
-                        value=buff_value,
-                        bias_or_weight=2,
-                    )
-        self.master.add_buff(self.buff)
+
+        self.master.add_buff(
+            CoeffBuff(
+                name='air_atk_buff',
+                phase=(AllPhase,),
+                value=buff_value,
+                bias_or_weight=2,
+            )
+        )
 
 
 skill = [Skill_110231]

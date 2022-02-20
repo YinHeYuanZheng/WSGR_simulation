@@ -12,18 +12,20 @@ class Skill_113391(Skill):
     """增加开幕和炮击战阶段伤害20%。"""
     def __init__(self, master):
         super().__init__(master)
-        self.master = master
         self.target = SelfTarget(master)
         self.buff = [
-            CoeffBuff(
-                name='',  # todo 终伤倍率
-                phase=(AirPhase,),  # todo 还有炮击战
+            FinalDamageBuff(
+                name='final_damage_buff',
+                phase=(AirPhase, ShellingPhase),
                 value=0.2,
-                bias_or_weight=2
+                atk_request=[BuffRequest_1],
             )
         ]
 
 
+class BuffRequest_1(ATKRequest):
+    def __bool__(self):
+        return True
 
 
 skill = [Skill_113391]

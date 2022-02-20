@@ -77,7 +77,8 @@ class ATK(Time):
             return True
 
         crit = self.atk_body.get_final_status('crit') + \
-               self.atk_body.get_final_status('luck') * 0.16
+               self.atk_body.get_final_status('luck') * 0.16 + \
+               self.target.get_final_status('be_crit')
         crit = cap(crit)
         verify = random.random()
         if verify < crit:

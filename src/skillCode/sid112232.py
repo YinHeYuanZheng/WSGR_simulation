@@ -21,13 +21,18 @@ class Skill_112232_1(Skill):
             shiptype=(CV, AV, CVL)
         )
         self.buff = [
-            FinalDamageBuff(  # todo 判断条件待定
+            FinalDamageBuff(
                 name='final_damage_buff',
                 phase=(AirPhase,),
                 value=0.2,
-                atk_request=(AirAtk,),
+                atk_request=[BuffRequest_1],
             )
         ]
+
+
+class BuffRequest_1(ATKRequest):
+    def __bool__(self):
+        return isinstance(self.atk, AirAtk)
 
 
 class Skill_112232_2(Skill):

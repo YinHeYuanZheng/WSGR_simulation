@@ -12,29 +12,25 @@ class Skill_110231(Skill):
     """增加自身暴击率10%，被暴击率5%，自身攻击附带25%护甲穿透效果（不能和装备叠加）。"""
     def __init__(self, master):
         super().__init__(master)
-        self.master = master
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
                 name='crit',
                 phase=(AllPhase,),
                 value=0.10,
-                bias_or_weight=2
+                bias_or_weight=0
             ), CoeffBuff(
-                name='',  # todo 被暴击率
+                name='be_crit',
                 phase=(AllPhase,),
                 value=0.05,
-                bias_or_weight=2
-            ), CoeffBuff(
+                bias_or_weight=0
+            ), CoeffBuff(  # todo 不能和装备叠加
                 name='pierce_coef',
                 phase=(AllPhase,),
                 value=0.25,
-                bias_or_weight=2
+                bias_or_weight=0
             )
         ]
-
-    def is_active(self, friend, enemy):
-        return True
 
 
 skill = [Skill_110231]

@@ -12,7 +12,6 @@ class Skill_110281(Skill):
     """弹药整备(3级)：增加25%自身携带的轰炸机威力，降低50%自身携带的鱼雷机威力。"""
     def __init__(self, master):
         super().__init__(master)
-        self.master = master
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(

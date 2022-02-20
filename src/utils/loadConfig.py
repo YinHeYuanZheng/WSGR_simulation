@@ -30,7 +30,6 @@ def load_config(config, dataset):
 
 def load_fleet(node, dataset):
     fleet = Fleet()
-    fleet.set_side(int(node.getAttribute('side')))
     fleet.set_form(int(node.getAttribute('form')))
 
     shiplist = []
@@ -40,6 +39,7 @@ def load_fleet(node, dataset):
         shiplist.append(ship)
 
     fleet.set_ship(shiplist)
+    fleet.set_side(int(node.getAttribute('side')))
     return fleet
 
 

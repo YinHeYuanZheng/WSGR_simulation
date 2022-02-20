@@ -42,6 +42,7 @@ class Ship(Time):
         self.skill = []  # 技能
         self.equipment = []  # 装备
 
+        self.side = 0  # 敌我识别; 1: 友方; 0: 敌方
         self.loc = 0  # 站位, 1-6
         self.level = 110  # 等级
         self.affection = 200  # 好感
@@ -52,10 +53,14 @@ class Ship(Time):
         # self.target_list = []  # 优先攻击列表
 
     def __eq__(self, other):
-        return self.cid == other.cid and self.loc == other.loc
+        return self.cid == other.cid and \
+               self.loc == other.loc and \
+               self.side == other.side
 
     def __ne__(self, other):
-        return self.cid != other.cid or self.loc != other.loc
+        return self.cid != other.cid or \
+               self.loc != other.loc or \
+               self.side != other.side
 
     def __repr__(self):
         return f"Name: {self.status['name']}"
@@ -63,6 +68,10 @@ class Ship(Time):
     def set_cid(self, cid):
         """设置舰船编号"""
         self.cid = cid
+
+    def set_side(self, side):
+        """敌我判断"""
+        self.side = side
 
     def set_loc(self, loc):
         """设置舰船站位"""
@@ -148,7 +157,7 @@ class Ship(Time):
         scale_mult = 1
         bias = 0
         for tmp_buff in self.temper_buff:
-            if tmp_buff.name == name and tmp_buff.in_phase():
+            if tmp_buff.name == name and tmp_buff.is_active():
                 if tmp_buff.bias_or_weight == 0:
                     bias += tmp_buff.value
                 elif tmp_buff.bias_or_weight == 1:
@@ -188,9 +197,8 @@ class Ship(Time):
         scale_mult = 1
         for tmp_buff in self.temper_buff:
             if tmp_buff.name == 'final_damage_buff' \
-                    and tmp_buff.in_phase():
-                if tmp_buff.is_atk_type(atk):
-                    scale_mult *= (1 + tmp_buff.value)
+                    and tmp_buff.is_active(atk=atk):
+                scale_mult *= (1 + tmp_buff.value)
         return scale_mult
 
     def get_final_damage_debuff(self, atk):
@@ -198,9 +206,8 @@ class Ship(Time):
         scale_mult = 1
         for tmp_buff in self.temper_buff:
             if tmp_buff.name == 'final_damage_debuff' \
-                    and tmp_buff.in_phase():
-                if tmp_buff.is_atk_type(atk):
-                    scale_mult *= (1 + tmp_buff.value)
+                    and tmp_buff.is_active(atk=atk):
+                scale_mult *= (1 + tmp_buff.value)
         return scale_mult
 
     def get_damage(self, damage):
@@ -218,6 +225,7 @@ class Ship(Time):
 
 class LargeShip(Ship):
     """大型船总类"""
+
     def __init__(self):
         super().__init__()
         self.type = 3  # 船型
@@ -225,6 +233,7 @@ class LargeShip(Ship):
 
 class MidShip(Ship):
     """中型船总类"""
+
     def __init__(self):
         super().__init__()
         self.type = 2  # 船型
@@ -232,6 +241,7 @@ class MidShip(Ship):
 
 class SmallShip(Ship):
     """小型船总类"""
+
     def __init__(self):
         super().__init__()
         self.type = 1  # 船型
@@ -239,6 +249,7 @@ class SmallShip(Ship):
 
 class MainShip(Ship):
     """主力舰总类"""
+
     def __init__(self):
         super().__init__()
         self.function = 'main'
@@ -246,6 +257,7 @@ class MainShip(Ship):
 
 class CoverShip(Ship):
     """护卫舰总类"""
+
     def __init__(self):
         super().__init__()
         self.function = 'cover'
@@ -253,6 +265,7 @@ class CoverShip(Ship):
 
 class Aircraft(Ship):
     """航系单位(所有可参与航空战攻击的单位)"""
+
     def __init__(self):
         super().__init__()
         self.flightparam = 0
@@ -341,6 +354,8 @@ class Fleet(Time):
 
     def set_side(self, side):
         self.side = side
+        for tmp_ship in self.ship:
+            tmp_ship.set_side(side)
 
     def get_status(self):
         pass

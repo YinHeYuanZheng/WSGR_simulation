@@ -6,24 +6,26 @@
 from ..wsgr.skill import *
 from ..wsgr.ship import *
 from ..wsgr.phase import *
-"""特设空母(3级)：炮击战阶段造成的最终伤害增加30%。
-"""
+
 
 class Skill_112271(Skill):
+    """特设空母(3级)：炮击战阶段造成的最终伤害增加30%。"""
+
     def __init__(self, master):
         super().__init__(master)
-        self.master = master
         self.target = SelfTarget(master)
         self.buff = [
-            CoeffBuff(
-                name='',  # todo 终伤倍率
-                phase=(AllPhase, ),  # todo 应为炮击阶段
+            FinalDamageBuff(
+                name='final_damage_buff',
+                phase=(ShellingPhase,),
                 value=0.3,
-                bias_or_weight=2
+                atk_request=[BuffRequest_1],
             )
         ]
 
-    def is_active(self, friend, enemy):
+
+class BuffRequest_1(ATKRequest):
+    def __bool__(self):
         return True
 
 
