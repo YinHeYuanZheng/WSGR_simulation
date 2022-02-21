@@ -19,7 +19,7 @@ class Skill(Time):
         self.buff = None  # list of Buff
 
     def is_active(self, friend, enemy):
-        """技能是否满足发动条件, 默认True, 子类需要重新定义"""
+        """技能是否满足发动条件, 默认True, 子类根据需要重新定义"""
         # bool(request(self.master, friend, enemy))
         return True
 
@@ -98,7 +98,7 @@ class SelfTarget(Target):
 
 class TypeTarget(Target):
     """指定船型的目标"""
-    def __init__(self, side, shiptype: tuple):
+    def __init__(self, side, shiptype):
         super().__init__(side)
         self.shiptype = shiptype
 
@@ -141,7 +141,7 @@ class LocTarget(Target):
 
 class NearestLocTarget(Target):
     def __init__(self, side, master, radius, direction,
-                 master_include=False, expand=False, shiptype=(Ship,)):
+                 master_include=False, expand=False, shiptype=Ship):
         """
         距离最近的(上方/下方/相邻)，可指定船型
         :param side:
@@ -261,19 +261,19 @@ class StatusTarget(Target):
 
         if self.fun == 'eq':
             target = [ship for ship in fleet
-                      if ship.status[self.status_name] == self.value]
+                      if ship.get_status(self.status_name) == self.value]
         elif self.fun == 'ge':
             target = [ship for ship in fleet
-                      if ship.status[self.status_name] >= self.value]
+                      if ship.get_status(self.status_name) >= self.value]
         elif self.fun == 'gt':
             target = [ship for ship in fleet
-                      if ship.status[self.status_name] > self.value]
+                      if ship.get_status(self.status_name) > self.value]
         elif self.fun == 'le':
             target = [ship for ship in fleet
-                      if ship.status[self.status_name] <= self.value]
+                      if ship.get_status(self.status_name) <= self.value]
         elif self.fun == 'lt':
             target = [ship for ship in fleet
-                      if ship.status[self.status_name] < self.value]
+                      if ship.get_status(self.status_name) < self.value]
         else:
             raise ValueError()
         return target
@@ -281,7 +281,7 @@ class StatusTarget(Target):
 
 class EquipTarget(Target):
     """装备"""
-    def __init__(self, side, target, equiptype: tuple):
+    def __init__(self, side, target, equiptype):
         super().__init__(side)
         self.target = target  # Target, 描述目标装备的携带者
         self.equiptype = equiptype  # tuple, 目标装备类型
@@ -299,7 +299,7 @@ class EquipTarget(Target):
 
 class Buff(Time):
     """增益总类"""
-    def __init__(self, name, phase: tuple, bias_or_weight=3, rate=1):
+    def __init__(self, name, phase, bias_or_weight=3, rate=1):
         super().__init__()
         self.master = None
         self.name = name  # 检索用名称
@@ -356,24 +356,36 @@ class SpecialBuff(Buff):
     pass
 
 
-class AtkCoefProcess(SpecialBuff):
-    """直接修改攻击属性(船损、航向、制空系数等)"""
-    pass
+class AtkBuff(Buff):
+    """攻击公式增益"""
 
-
-class FinalDamageBuff(Buff):
-    """终伤系数, 乘算, 需要判断攻击类型"""
-    def __init__(self, name, phase, value, atk_request,
-                 bias_or_weight=2, rate=1):
+    def __init__(self, name, phase, value, bias_or_weight,
+                 atk_request=None, rate=1):
         super().__init__(name, phase, bias_or_weight, rate)
         self.value = value
         self.atk_request = atk_request
 
     def is_active(self, *args, **kwargs):
+        if self.atk_request is None:
+            return isinstance(self.timer.phase, self.phase) and \
+                   self.rate_verify()
+
         atk = kwargs['atk']
         return isinstance(self.timer.phase, self.phase) and \
                bool(self.atk_request[0](atk)) and \
                self.rate_verify()
+
+
+class AtkCoefProcess(SpecialBuff):
+    """直接修改攻击属性(船损、航向、制空系数等)"""
+    pass
+
+
+class FinalDamageBuff(AtkBuff):
+    """终伤系数, 乘算, 需要判断攻击类型"""
+    def __init__(self, name, phase, value,
+                 bias_or_weight=2, atk_request=None, rate=1):
+        super().__init__(name, phase, value, bias_or_weight, atk_request, rate)
 
 
 class EventBuff(Buff):

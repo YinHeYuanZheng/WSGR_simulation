@@ -123,6 +123,8 @@ class Ship(Time):
     def get_status(self, name):
         """根据属性名称获取本体属性，包含常驻面板加成"""
         status = self.status.get(name, default=0)
+        if isinstance(status, str):  # 国籍、名称、tag等，直接返回
+            return status
 
         scale_add = 0
         scale_mult = 1
@@ -210,21 +212,17 @@ class Ship(Time):
 
     def get_final_damage_buff(self, atk):
         """根据攻击类型决定终伤加成"""
-        scale_mult = 1
         for tmp_buff in self.temper_buff:
             if tmp_buff.name == 'final_damage_buff' \
                     and tmp_buff.is_active(atk=atk):
-                scale_mult *= (1 + tmp_buff.value)
-        return scale_mult
+                yield tmp_buff.value
 
     def get_final_damage_debuff(self, atk):
         """根据攻击类型决定终伤减伤加成"""
-        scale_mult = 1
         for tmp_buff in self.temper_buff:
             if tmp_buff.name == 'final_damage_debuff' \
                     and tmp_buff.is_active(atk=atk):
-                scale_mult *= (1 + tmp_buff.value)
-        return scale_mult
+                yield tmp_buff.value
 
     def get_damage(self, damage):
         """受伤结算，过伤害保护，需要返回受伤与否"""
@@ -351,6 +349,26 @@ class SS(Submarine, SmallShip, CoverShip):
 
 
 class SC(Submarine, SmallShip, CoverShip):
+    pass
+
+
+class LandUnit(LargeShip, MainShip):
+    """路基单位"""
+    pass
+
+
+class Fortness(LandUnit):
+    """要塞"""
+    pass
+
+
+class Airfield(LandUnit):
+    """机场"""
+    pass
+
+
+class Port(LandUnit):
+    """港口"""
     pass
 
 

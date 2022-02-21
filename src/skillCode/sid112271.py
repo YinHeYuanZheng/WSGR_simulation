@@ -19,14 +19,8 @@ class Skill_112271(Skill):
                 name='final_damage_buff',
                 phase=(ShellingPhase,),
                 value=0.3,
-                atk_request=[BuffRequest_1],
             )
         ]
-
-
-class BuffRequest_1(ATKRequest):
-    def __bool__(self):
-        return True
 
 
 skill = [Skill_112271]

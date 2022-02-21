@@ -111,16 +111,16 @@ class ATK(Time):
         pass
 
     def final_damage(self, damage):
-        buff_scale = self.atk_body.get_final_damage_buff(self)
-        damage = np.ceil(damage * buff_scale)
-        debuff_scale = self.target.get_final_damage_debuff(self)
-        damage = np.ceil(damage * debuff_scale)
+        for buff_scale in self.atk_body.get_final_damage_buff(self):
+            damage = np.ceil(damage * (1 + buff_scale))
+        for debuff_scale in self.target.get_final_damage_debuff(self):
+            damage = np.ceil(damage * (1 + debuff_scale))
         # todo 可能会增加战术终伤
-        return damage
+        return max(0, damage)
 
     def end_atk(self, damage_flag):
         """
-        攻击结束时点，进行反击判定等
+        攻击结束时点，进行受伤时点效果、反击等
         :param damage_flag: 是否受到了伤害
         """
         pass
@@ -136,18 +136,22 @@ class AirAtk(ATK):
         self.start_atk()
         self.process_coef()
 
+        damage_flag = False
         if not self.coef['hit']:
+            self.end_atk(damage_flag)
             return
         if self.coef['plane_rest'] == 0:
+            self.end_atk(damage_flag)
             return
 
         damage = self.formula()
-        damage = max(0, damage)
-        damage = self.final_damage(damage)
         if damage == 0:
-            # todo 擦伤
-            pass
+            self.end_atk(damage_flag)
+            return
+        else:
+            pass  # todo 固伤（额外伤害）
 
+        damage = self.final_damage(damage)
         damage_flag = self.target.get_damage(damage)
         self.end_atk(damage_flag)
 
@@ -168,13 +172,13 @@ class AirAtk(ATK):
 
     def final_damage(self, damage):
         """航空战终伤"""
-        buff_scale = self.atk_body.get_final_damage_buff(self)
-        damage = np.ceil(damage * buff_scale)
-        debuff_scale = self.target.get_final_damage_debuff(self)
-        damage = np.ceil(damage * debuff_scale)
+        for buff_scale in self.atk_body.get_final_damage_buff(self):
+            damage = np.ceil(damage * (1 + buff_scale))
+        for debuff_scale in self.target.get_final_damage_debuff(self):
+            damage = np.ceil(damage * (1 + debuff_scale))
         # todo 对空减伤
         # todo 可能会增加战术终伤
-        return damage
+        return max(0, damage)
 
 
 class AirBombAtk(AirAtk):
@@ -206,8 +210,8 @@ class AirBombAtk(AirAtk):
 
         # 暴击系数
         if self.crit_verify():
-            crit_scale, _ = self.atk_body.get_buff('crit_coef')
-            self.coef['crit_coef'] = 1.5 + crit_scale
+            _, crit_bias = self.atk_body.get_buff('crit_coef')
+            self.coef['crit_coef'] = 1.5 + crit_bias
         else:
             self.coef['crit_coef'] = 1.
 
@@ -247,6 +251,16 @@ class AirBombAtk(AirAtk):
         real_dmg = np.ceil(real_atk *
                            (1 - def_armor /
                             (0.5 * def_armor + self.coef['pierce_coef'] * real_atk)))
+
+        if real_dmg <= 0:
+            if np.random.random() < 0.5:  # 50% 跳弹
+                return 0
+            else:  # 50% 擦伤
+                real_dmg = np.ceil(
+                    min(real_atk,
+                        self.target.get_status('health')
+                        ) * 0.1
+                )
         return real_dmg
 
 
@@ -322,6 +336,16 @@ class AirDiveAtk(AirAtk):
         real_dmg = np.ceil(real_atk *
                            (1 - def_armor /
                             (0.5 * def_armor + self.coef['pierce_coef'] * real_atk)))
+
+        if real_dmg <= 0:
+            if np.random.random() < 0.5:  # 50% 跳弹
+                return 0
+            else:  # 50% 擦伤
+                real_dmg = np.ceil(
+                    min(real_atk,
+                        self.target.get_status('health')
+                        ) * 0.1
+                )
         return real_dmg
 
 

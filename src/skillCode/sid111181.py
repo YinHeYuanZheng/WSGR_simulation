@@ -18,12 +18,12 @@ class Skill_111181_1(Skill):
         self.buff = [
             CoeffBuff(
                 name='crit',
-                phase=(AllPhase, ),
+                phase=AllPhase,
                 value=0.09,
                 bias_or_weight=0
             ), StatusBuff(
                 name='accuracy',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=9,
                 bias_or_weight=0
             )
@@ -33,7 +33,7 @@ class Skill_111181_1(Skill):
         number = len(
             TypeTarget(
                 side=1,
-                shiptype=(BB,)
+                shiptype=BB
             ).get_target(friend, enemy)
         )
         return number > 2
@@ -47,12 +47,12 @@ class Skill_111181_2(Skill):
         self.buff = [
             CoeffBuff(
                 name='crit',
-                phase=(AllPhase, ),
+                phase=AllPhase,
                 value=0.25,
                 bias_or_weight=0
             ), StatusBuff(
                 name='armor',
-                phase=(AllPhase, ),
+                phase=AllPhase,
                 value=20,
                 bias_or_weight=0
             )
@@ -62,7 +62,7 @@ class Skill_111181_2(Skill):
         number = len(
             TypeTarget(
                 side=1,
-                shiptype=(BB,)
+                shiptype=BB
             ).get_target(friend, enemy)
         )
         return number == 0

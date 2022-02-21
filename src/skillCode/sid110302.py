@@ -23,12 +23,8 @@ class Skill_110231(Skill):
         target_craft.remove(self.master)
 
         # 获取E国航系
-        target_e_craft = StatusTarget(
-            side=1,
-            status_name='country',
-            fun='eq',
-            value='E'
-        ).get_target(target_craft, enemy)
+        target_e_craft = [ship for ship in target_craft
+                          if ship.status['country'] == 'E']
 
         num_craft = len(target_craft)
         num_e_craft = len(target_e_craft)
