@@ -69,7 +69,7 @@ def load_ship(node, dataset):
     skill_num = int(node.getAttribute('skill')) - 1
     sid = 'sid' + skill_list[skill_num]
     skill = getattr(skillCode, sid).skill  # 根据技能设置获取技能列表，未实例化
-    ship.set_skill(skill)
+    ship.add_skill(skill)
 
     # 读取装备属性并写入
     assert equip_num == len(node.getElementsByTagName('Equipment'))

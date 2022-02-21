@@ -69,7 +69,7 @@ class Skill_110231_2(Skill):
 
 class BuffRequest_1(ATKRequest):
     def __bool__(self):
-        return isinstance(self.atk, AirAtk)
+        return isinstance(self.atk, AirBombAtk)
 
 
 skill = [Skill_110231_1, Skill_110231_2]

@@ -18,8 +18,34 @@ class Equipment(Time):
         self.master = master  # 该装备载体
         self.enum = enum  # 该装备所在栏位
         self.status = {}  # 装备属性
-        self.common_buff = []  # 永久面板加成(如驻岛舰队)
-        self.temper_buff = []  # 临时buff(如命运的五分钟)
+        self.common_buff = []  # 永久面板加成(如驻岛舰队、巨像、汉考克)
+        self.temper_buff = []  # 临时buff
+
+    def get_status(self, name):
+        """根据属性名称获取装备属性，包含常驻面板加成"""
+        status = self.status.get(name, default=0)
+
+        scale_add = 0
+        scale_mult = 1
+        bias = 0
+        for tmp_buff in self.common_buff:
+            if tmp_buff.name == name and tmp_buff.is_active():
+                if tmp_buff.bias_or_weight == 0:
+                    bias += tmp_buff.value
+                elif tmp_buff.bias_or_weight == 1:
+                    scale_add += tmp_buff.value
+                elif tmp_buff.bias_or_weight == 2:
+                    scale_mult *= (1 + tmp_buff.value)
+                else:
+                    pass
+        status = status * (1 + scale_add) * scale_mult + bias
+        return max(0, status)
+
+    def get_final_status(self, name):
+        """根据属性名称获取最终属性"""
+        buff_scale, buff_bias = self.get_buff(name)
+        status = self.get_status(name) * (1 + buff_scale) + buff_bias
+        return max(0, status)
 
     def add_buff(self, buff):
         """添加增益"""
@@ -31,16 +57,22 @@ class Equipment(Time):
         if buff.is_event():
             self.timer.queue.append(buff)
 
-    def get_final_status(self, name):
-        """根据属性名称获取最终属性"""
-        buff_scale, buff_bias = self.get_buff(name)
-        return self.get_status(name) * (1 + buff_scale) + buff_bias
-
-    def get_status(self, name):
-        return self.status.get(name, default=0)
-
     def get_buff(self, name):
-        return 0, 0  # 先scale后bias
+        """根据增益名称获取全部属性增益"""
+        scale_add = 0
+        scale_mult = 1
+        bias = 0
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == name and tmp_buff.is_active():
+                if tmp_buff.bias_or_weight == 0:
+                    bias += tmp_buff.value
+                elif tmp_buff.bias_or_weight == 1:
+                    scale_add += tmp_buff.value
+                elif tmp_buff.bias_or_weight == 2:
+                    scale_mult *= (1 + tmp_buff.value)
+                else:
+                    pass
+        return (1 + scale_add) * scale_mult - 1, bias  # 先scale后bias
 
 
 class Plane(Equipment):

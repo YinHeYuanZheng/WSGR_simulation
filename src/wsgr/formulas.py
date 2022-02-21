@@ -35,7 +35,7 @@ class ATK(Time):
         pass
 
     def set_target(self):
-        # TODO
+        # TODO 优先攻击分为随机和按顺序
         prior = self.atk_body.get_prior_target()
         if prior is not None:
             self.target = prior[0]
@@ -152,9 +152,11 @@ class AirAtk(ATK):
         self.end_atk(damage_flag)
 
     def get_anti_air_fall(self, anti_num):
+        """计算防空击坠"""
         target_anti_air = self.target.get_final_status('anti_air', equip=False)  # 本体裸对空
         team_anti_air = get_team_anti_air(self.def_list)  # 全队对空补正
-        aa_value = target_anti_air + team_anti_air
+        equip_anti_air = self.target.get_equip_status('anti_air')  # 装备对空总和
+        aa_value = target_anti_air + team_anti_air + equip_anti_air
         alpha = random.random()
         bottom_a = 0.618
         aa_fall = np.floor(alpha * aa_value * bottom_a ** (anti_num - 1) / 10)
@@ -163,6 +165,16 @@ class AirAtk(ATK):
     def hit_verify(self):
         """TODO 航空攻击命中检定"""
         pass
+
+    def final_damage(self, damage):
+        """航空战终伤"""
+        buff_scale = self.atk_body.get_final_damage_buff(self)
+        damage = np.ceil(damage * buff_scale)
+        debuff_scale = self.target.get_final_damage_debuff(self)
+        damage = np.ceil(damage * debuff_scale)
+        # todo 对空减伤
+        # todo 可能会增加战术终伤
+        return damage
 
 
 class AirBombAtk(AirAtk):
@@ -290,7 +302,7 @@ class AirDiveAtk(AirAtk):
 
     def formula(self):
         # 基础攻击力
-        base_status = self.equip.get_final_status('bomb')
+        base_status = self.equip.get_final_status('dive')
         base_atk = 2 * np.log(self.coef['plane_rest'] + 1) * base_status + 25
 
         # 实际威力
@@ -315,10 +327,8 @@ class AirDiveAtk(AirAtk):
 
 def cap(x):
     """将暴击率、命中率等锁定在5%-95%区间"""
-    if x < .05:
-        x = .05
-    elif x > .95:
-        x = .95
+    x = max(0.05, x)
+    x = min(0.95, x)
     return x
 
 
@@ -387,8 +397,7 @@ def get_team_anti_air(team):
             if isinstance(tmp_equip, requip.AntiAirGun):
                 anti_air += tmp_equip.get_final_status('anti_air')
                 tmp_aa_coef = tmp_equip.get_final_status('aa_coef')
-                if aa_coef < tmp_aa_coef:
-                    aa_coef = tmp_aa_coef
+                aa_coef = max(tmp_aa_coef, aa_coef)
     return anti_air * aa_coef
 
 

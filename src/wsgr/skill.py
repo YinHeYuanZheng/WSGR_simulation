@@ -281,7 +281,7 @@ class StatusTarget(Target):
 
 class EquipTarget(Target):
     """装备"""
-    def __init__(self, side, target: Target, equiptype: tuple):
+    def __init__(self, side, target, equiptype: tuple):
         super().__init__(side)
         self.target = target  # Target, 描述目标装备的携带者
         self.equiptype = equiptype  # tuple, 目标装备类型

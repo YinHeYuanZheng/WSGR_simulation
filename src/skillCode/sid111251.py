@@ -6,21 +6,47 @@
 from ..wsgr.skill import *
 from ..wsgr.ship import *
 from ..wsgr.phase import *
-"""支援航母(3级)：增加自身鱼雷机8点对潜值，增加自身轰炸机8点轰炸值。"""
+from ..wsgr.equipment import *
 
 
-class Skill_110231(Skill):
+class Skill_110231_1(CommonSkill):
+    """增加自身鱼雷机8点对潜值"""
+
     def __init__(self, master):
-        # todo 增加自身鱼雷机8点对潜值，增加自身轰炸机8点轰炸值。
         super().__init__(master)
-        self.master = master
-        self.target = SelfTarget(master)
+        self.target = EquipTarget(
+            side=1,
+            target=SelfTarget(master),
+            equiptype=(DiveBomber,)
+        )
         self.buff = [
-
+            CommonBuff(
+                name='antisub',
+                phase=(AllPhase,),
+                value=8,
+                bias_or_weight=0
+            )
         ]
 
-    def is_active(self, friend, enemy):
-        return True
+
+class Skill_110231_2(CommonSkill):
+    """增加自身轰炸机8点轰炸值"""
+
+    def __init__(self, master):
+        super().__init__(master)
+        self.target = EquipTarget(
+            side=1,
+            target=SelfTarget(master),
+            equiptype=(Bomber,)
+        )
+        self.buff = [
+            CommonBuff(
+                name='bomb',
+                phase=(AllPhase,),
+                value=8,
+                bias_or_weight=0
+            )
+        ]
 
 
-skill = [Skill_110231]
+skill = [Skill_110231_1, Skill_110231_2]

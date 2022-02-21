@@ -85,9 +85,9 @@ class Ship(Time):
         """设置舰船好感度"""
         self.affection = affection
 
-    def set_skill(self, skill):
+    def add_skill(self, skill):
         """设置舰船技能(未实例化)"""
-        self._skill = skill
+        self._skill.extend(skill)
 
     def init_skill(self, friend, enemy):
         """舰船技能实例化"""
@@ -121,8 +121,24 @@ class Ship(Time):
                 raise AttributeError(f"'status' should be dict, got {type(status)} instead.")
 
     def get_status(self, name):
-        """根据属性名称获取本体属性，todo 包含常驻面板加成"""
-        return self.status.get(name, default=0)
+        """根据属性名称获取本体属性，包含常驻面板加成"""
+        status = self.status.get(name, default=0)
+
+        scale_add = 0
+        scale_mult = 1
+        bias = 0
+        for tmp_buff in self.common_buff:
+            if tmp_buff.name == name and tmp_buff.is_active():
+                if tmp_buff.bias_or_weight == 0:
+                    bias += tmp_buff.value
+                elif tmp_buff.bias_or_weight == 1:
+                    scale_add += tmp_buff.value
+                elif tmp_buff.bias_or_weight == 2:
+                    scale_mult *= (1 + tmp_buff.value)
+                else:
+                    pass
+        status = status * (1 + scale_add) * scale_mult + bias
+        return max(0, status)
 
     def get_equip_status(self, name):
         """根据属性名称获取装备属性"""
@@ -139,7 +155,7 @@ class Ship(Time):
         if equip:
             status += self.get_equip_status(name)
 
-        return status
+        return max(0, status)
 
     def add_buff(self, buff):
         """添加增益"""

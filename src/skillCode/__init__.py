@@ -22,8 +22,8 @@ from . import sid111201  # 约克城改-1
 from . import sid111211  # 企业改-1
 from . import sid111212  # 企业改-2
 # from . import sid111231  # 博格改-1、追赶者改-1
-# from . import sid111251  # 埃罗芒什（巨像改）-1
-# from . import sid111261  # 普林斯顿改-1
+from . import sid111251  # 埃罗芒什（巨像改）-1
+from . import sid111261  # 普林斯顿改-1
 # from . import sid112191  # 瑞鹤改-1
 # from . import sid112201  # 翔鹤改-1
 from . import sid112211  # 飞龙改-1
