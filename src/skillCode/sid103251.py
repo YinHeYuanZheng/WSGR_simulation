@@ -42,7 +42,7 @@ class Skill_103251_2(Skill):
 
 class Request_1(ATKRequest):
     def __bool__(self):
-        if isinstance(self.atk, (AirAtk,)) and True:  # 检测攻击对象是否为自己
+        if isinstance(self.atk, (AirAtk,)) and True:  # todo 检测攻击对象是否为自己
             if random.randam < 0.25:
                 return True
             else:
