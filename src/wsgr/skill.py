@@ -297,6 +297,23 @@ class EquipTarget(Target):
         return equip_target
 
 
+class RandomTarget(TypeTarget):
+    def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        target = [ship for ship in fleet if isinstance(ship, self.shiptype)]
+        target = np.random.choice(target)
+        return [target]
+
+
 class Buff(Time):
     """增益总类"""
     def __init__(self, name, phase, bias_or_weight=3, rate=1):
@@ -361,6 +378,9 @@ class AtkBuff(Buff):
 
     def __init__(self, name, phase, value, bias_or_weight,
                  atk_request=None, rate=1):
+        """
+        :param atk_request: ATKRequest, 攻击判断(攻击者、被攻击者、攻击类型)
+        """
         super().__init__(name, phase, bias_or_weight, rate)
         self.value = value
         self.atk_request = atk_request
@@ -370,13 +390,60 @@ class AtkBuff(Buff):
             return isinstance(self.timer.phase, self.phase) and \
                    self.rate_verify()
 
-        atk = kwargs['atk']
+        try:
+            atk = kwargs['atk']
+        except:
+            atk = args[0]
+
         return isinstance(self.timer.phase, self.phase) and \
                bool(self.atk_request[0](atk)) and \
                self.rate_verify()
 
 
-class AtkCoefProcess(SpecialBuff):
+class AtkHitBuff(Buff):
+    """命中后效果"""
+    def __init__(self, name, phase, buff, side,
+                 atk_request=None, bias_or_weight=3, rate=1):
+        """
+        :param buff: 施加效果内容
+        :param side: 给谁加, 0: 被攻击者; 1: 攻击者
+        :param atk_request: ATKRequest, 攻击判断(攻击者、被攻击者、攻击类型)
+        """
+        super().__init__(name, phase, bias_or_weight, rate)
+        self.buff = buff
+        self.side = side
+        self.atk_request = atk_request
+
+    def is_active(self, *args, **kwargs):
+        if self.atk_request is None:
+            return isinstance(self.timer.phase, self.phase) and \
+                   self.rate_verify()
+
+        try:
+            atk = kwargs['atk']
+        except:
+            atk = args[0]
+
+        return isinstance(self.timer.phase, self.phase) and \
+               bool(self.atk_request[0](atk)) and \
+               self.rate_verify()
+
+    def active(self, *args, **kwargs):
+        try:
+            atk = kwargs['atk']
+        except:
+            atk = args[0]
+
+        if self.side == 1:
+            target = atk.atk_body
+        else:
+            target = atk.target
+
+        for tmp_buff in self.buff[:]:
+            target.add_buff(tmp_buff)
+
+
+class AtkCoefProcess(AtkBuff):
     """直接修改攻击属性(船损、航向、制空系数等)"""
     pass
 
