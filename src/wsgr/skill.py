@@ -373,7 +373,7 @@ class SpecialBuff(Buff):
     pass
 
 
-class AtkBuff(Buff):
+class AtkBuff(CoeffBuff):
     """攻击公式增益"""
 
     def __init__(self, name, phase, value, bias_or_weight,
@@ -381,8 +381,7 @@ class AtkBuff(Buff):
         """
         :param atk_request: ATKRequest, 攻击判断(攻击者、被攻击者、攻击类型)
         """
-        super().__init__(name, phase, bias_or_weight, rate)
-        self.value = value
+        super().__init__(name, phase, value, bias_or_weight, rate)
         self.atk_request = atk_request
 
     def is_active(self, *args, **kwargs):

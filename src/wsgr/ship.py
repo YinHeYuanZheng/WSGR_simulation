@@ -169,13 +169,13 @@ class Ship(Time):
         if buff.is_event():
             self.timer.queue.append(buff)
 
-    def get_buff(self, name):
+    def get_buff(self, name, *args, **kwargs):
         """根据增益名称获取全部属性增益"""
         scale_add = 0
         scale_mult = 1
         bias = 0
         for tmp_buff in self.temper_buff:
-            if tmp_buff.name == name and tmp_buff.is_active():
+            if tmp_buff.name == name and tmp_buff.is_active(*args, **kwargs):
                 if tmp_buff.bias_or_weight == 0:
                     bias += tmp_buff.value
                 elif tmp_buff.bias_or_weight == 1:
@@ -185,6 +185,37 @@ class Ship(Time):
                 else:
                     pass
         return (1 + scale_add) * scale_mult - 1, bias  # 先scale后bias
+
+    def get_atk_buff(self, name, atk, *args, **kwargs):
+        """根据增益名称获取全部攻击系数增益(含攻击判断)"""
+        scale_add = 0
+        scale_mult = 1
+        bias = 0
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == name and tmp_buff.is_active(atk=atk, *args, **kwargs):
+                if tmp_buff.bias_or_weight == 0:
+                    bias += tmp_buff.value
+                elif tmp_buff.bias_or_weight == 1:
+                    scale_add += tmp_buff.value
+                elif tmp_buff.bias_or_weight == 2:
+                    scale_mult *= (1 + tmp_buff.value)
+                else:
+                    pass
+        return (1 + scale_add) * scale_mult - 1, bias  # 先scale后bias
+
+    def get_final_damage_buff(self, atk):
+        """根据攻击类型决定终伤加成"""
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'final_damage_buff' \
+                    and tmp_buff.is_active(atk=atk):
+                yield tmp_buff.value
+
+    def get_final_damage_debuff(self, atk):
+        """根据攻击类型决定终伤减伤加成"""
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'final_damage_debuff' \
+                    and tmp_buff.is_active(atk=atk):
+                yield tmp_buff.value
 
     def get_special_buff(self):
         """查询机制增益"""
@@ -209,20 +240,6 @@ class Ship(Time):
     def can_be_atk(self, atk):
         """判断舰船是否可被某攻击类型指定"""
         pass
-
-    def get_final_damage_buff(self, atk):
-        """根据攻击类型决定终伤加成"""
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'final_damage_buff' \
-                    and tmp_buff.is_active(atk=atk):
-                yield tmp_buff.value
-
-    def get_final_damage_debuff(self, atk):
-        """根据攻击类型决定终伤减伤加成"""
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'final_damage_debuff' \
-                    and tmp_buff.is_active(atk=atk):
-                yield tmp_buff.value
 
     def get_damage(self, damage):
         """受伤结算，过伤害保护，需要返回受伤与否"""

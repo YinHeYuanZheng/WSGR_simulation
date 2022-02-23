@@ -57,13 +57,13 @@ class Equipment(Time):
         if buff.is_event():
             self.timer.queue.append(buff)
 
-    def get_buff(self, name):
+    def get_buff(self, name, *args, **kwargs):
         """根据增益名称获取全部属性增益"""
         scale_add = 0
         scale_mult = 1
         bias = 0
         for tmp_buff in self.temper_buff:
-            if tmp_buff.name == name and tmp_buff.is_active():
+            if tmp_buff.name == name and tmp_buff.is_active(*args, **kwargs):
                 if tmp_buff.bias_or_weight == 0:
                     bias += tmp_buff.value
                 elif tmp_buff.bias_or_weight == 1:

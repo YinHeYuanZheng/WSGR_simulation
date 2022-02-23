@@ -197,9 +197,9 @@ class AirBombAtk(AirAtk):
         self.coef['plane_rest'] = self.coef['actual_flight'] - actual_fall
 
         # 技能系数
-        skill_scale, _ = self.atk_body.get_buff('air_atk_buff')
+        skill_scale, _ = self.atk_body.get_atk_buff('air_atk_buff', self)
         self.coef['skill_coef'] = 1 + skill_scale
-        skill_scale, _ = self.atk_body.get_buff('air_bomb_atk_buff')
+        skill_scale, _ = self.atk_body.get_atk_buff('air_bomb_atk_buff', self)
         self.coef['skill_coef'] *= (1 + skill_scale)
 
         # 船损系数
@@ -210,7 +210,7 @@ class AirBombAtk(AirAtk):
 
         # 暴击系数
         if self.crit_verify():
-            _, crit_bias = self.atk_body.get_buff('crit_coef')
+            _, crit_bias = self.atk_body.get_atk_buff('crit_coef', self)
             self.coef['crit_coef'] = 1.5 + crit_bias
         else:
             self.coef['crit_coef'] = 1.
@@ -219,7 +219,7 @@ class AirBombAtk(AirAtk):
         self.coef['random_coef'] = random.uniform(.89, 1.22)
 
         # 穿甲系数
-        pierce_scale, _ = self.atk_body.get_buff('pierce_coef')
+        pierce_scale, _ = self.atk_body.get_atk_buff('pierce_coef', self)
         self.coef['pierce_coef'] = 0.6 + pierce_scale
 
         # TODO 对空预警
@@ -245,7 +245,7 @@ class AirBombAtk(AirAtk):
                     self.coef['random_coef'])
 
         # 实际伤害
-        ignore_scale, ignore_bias = self.atk_body.get_buff('ignore_armor')  # 无视装甲
+        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_armor', self)  # 无视装甲
         def_armor = self.target.get_final_status('armor') * \
                     (1 + ignore_scale) + ignore_bias
         real_dmg = np.ceil(real_atk *
@@ -280,9 +280,9 @@ class AirDiveAtk(AirAtk):
         self.coef['plane_rest'] = self.coef['actual_flight'] - actual_fall
 
         # 技能系数
-        skill_scale, _ = self.atk_body.get_buff('air_atk_buff')
+        skill_scale, _ = self.atk_body.get_atk_buff('air_atk_buff', self)
         self.coef['skill_coef'] = 1 + skill_scale
-        skill_scale, _ = self.atk_body.get_buff('air_dive_atk_buff')
+        skill_scale, _ = self.atk_body.get_atk_buff('air_dive_atk_buff', self)
         self.coef['skill_coef'] *= (1 + skill_scale)
 
         # 船损系数
@@ -293,7 +293,7 @@ class AirDiveAtk(AirAtk):
 
         # 暴击系数
         if self.crit_verify():
-            crit_scale, _ = self.atk_body.get_buff('crit_coef')
+            crit_scale, _ = self.atk_body.get_atk_buff('crit_coef', self)
             self.coef['crit_coef'] = 1.5 + crit_scale
         else:
             self.coef['crit_coef'] = 1.
@@ -305,7 +305,7 @@ class AirDiveAtk(AirAtk):
         self.coef['dive_random_coef'] = random.uniform(.5, 1.)
 
         # 穿甲系数
-        pierce_scale, _ = self.atk_body.get_buff('pierce_coef')
+        pierce_scale, _ = self.atk_body.get_atk_buff('pierce_coef', self)
         self.coef['pierce_coef'] = 0.6 + pierce_scale
 
         # 闪避检定
@@ -330,7 +330,7 @@ class AirDiveAtk(AirAtk):
                     self.coef['dive_random_coef'])
 
         # 实际伤害
-        ignore_scale, ignore_bias = self.atk_body.get_buff('ignore_armor')
+        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_armor', self)
         def_armor = self.target.get_final_status('armor') * \
                     (1 + ignore_scale) + ignore_bias
         real_dmg = np.ceil(real_atk *
