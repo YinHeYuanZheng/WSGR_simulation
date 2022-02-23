@@ -6,7 +6,9 @@
 from ..wsgr.skill import *
 from ..wsgr.ship import *
 from ..wsgr.phase import *
-"""萨奇剪(3级)：提升自身10点火力值和航空战25点制空值；制空权劣势和丧失时不降低舰载机伤害，制空权均势、优势和确保时增加舰载机15%伤害。
+"""萨奇剪(3级)：提升自身10点火力值和航空战25点制空值；
+制空权劣势和丧失时不降低舰载机伤害，
+制空权均势、优势和确保时增加舰载机15%伤害。
 """
 
 
@@ -41,15 +43,22 @@ class Skill_111201_2(Skill):
 
 
 class Skill_111201_3(Skill):
-    """todo 制空权劣势和丧失时不降低舰载机伤害，"""
+    """制空权劣势和丧失时不降低舰载机伤害"""
     def __init__(self, master):
         super().__init__(master)
         self.target = SelfTarget(master)
         self.buff = [
-
+            AtkCoefProcess(
+                name='air_con_coef',
+                phase=(AllPhase,),
+                value=1.,
+                atk_request=[BuffRequest_1]
+            )
         ]
 
-    def is_active(self, friend, enemy):
+
+class BuffRequest_1(ATKRequest):
+    def __bool__(self):
         return self.timer.air_con_flag > 3
 
 
@@ -59,15 +68,18 @@ class Skill_111201_4(Skill):
         super().__init__(master)
         self.target = SelfTarget(master)
         self.buff = [
-            CoeffBuff(
+            AtkBuff(
                 name='air_atk_buff',
                 phase=(AllPhase, ),
                 value=0.15,
-                bias_or_weight=0
+                bias_or_weight=0,
+                atk_request=[BuffRequest_2]
             )
         ]
 
-    def is_active(self, friend, enemy):
+
+class BuffRequest_2(ATKRequest):
+    def __bool__(self):
         return self.timer.air_con_flag <= 3
 
 

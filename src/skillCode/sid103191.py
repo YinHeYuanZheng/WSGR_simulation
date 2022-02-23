@@ -34,19 +34,32 @@ class Skill_103191_1(CommonSkill):
 
 
 class Skill_103191_2(Skill):
-    """自身血量降低时不会对自身属性造成影响，"""
+    """自身血量降低时不会对自身属性造成影响，
+    且同时减少30%自身因战斗造成的载机量损失（大破时除外）。"""
 
     def __init__(self, master):
         super().__init__(master)
         self.target = SelfTarget(master)
-        # self.buff = [SpecialBuff(
-        #     name='ignore_dmg',
-        #     phase=(AllPhase, ),
-        #     bias_or_weight=0
-        # )]
+        self.buff = [
+            AtkCoefProcess(
+                name='dmg_coef',
+                phase=(AllPhase,),
+                value=1,
+                atk_request=[BuffRequest_1]
+            ),
+            AtkBuff(
+                name='fall_rest',
+                phase=(AirPhase,),
+                value=-0.3,
+                bias_or_weight=1,
+                atk_request=[BuffRequest_1]
+            )
+        ]
 
 
-# todo 且同时减少30%自身因战斗造成的载机量损失（大破时除外）。
+class BuffRequest_1(ATKRequest):
+    def __bool__(self):
+        return self.atk.atk_body.damaged < 3
 
 
-skill = [Skill_103191_1]
+skill = [Skill_103191_1, Skill_103191_2]

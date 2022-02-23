@@ -132,14 +132,17 @@ class AirAtk(ATK):
         self.equip = equip
 
     def start(self):
+        damage_flag = False
         self.set_target()
         self.start_atk()
-        self.process_coef()
 
-        damage_flag = False
+        self.hit_verify()  # 闪避检定
         if not self.coef['hit']:
             self.end_atk(damage_flag)
             return
+
+        self.crit_verify()
+        self.process_coef()
         if self.coef['plane_rest'] == 0:
             self.end_atk(damage_flag)
             return
@@ -157,7 +160,11 @@ class AirAtk(ATK):
 
     def get_anti_air_fall(self, anti_num):
         """计算防空击坠"""
-        target_anti_air = self.target.get_final_status('anti_air', equip=False)  # 本体裸对空
+        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_antiair', self)  # 无视对空
+        target_anti_air = self.target.get_final_status('anti_air', equip=False) * \
+                          (1 + ignore_scale) + ignore_bias  # 本体裸对空
+        target_anti_air = max(0, target_anti_air)
+
         team_anti_air = get_team_anti_air(self.def_list)  # 全队对空补正
         equip_anti_air = self.target.get_equip_status('anti_air')  # 装备对空总和
         aa_value = target_anti_air + team_anti_air + equip_anti_air
@@ -167,7 +174,7 @@ class AirAtk(ATK):
         return aa_fall
 
     def hit_verify(self):
-        """TODO 航空攻击命中检定"""
+        """TODO 航空攻击命中检定，含对空预警"""
         pass
 
     def final_damage(self, damage):
@@ -178,6 +185,7 @@ class AirAtk(ATK):
             damage = np.ceil(damage * (1 + debuff_scale))
         # todo 对空减伤
         # todo 可能会增加战术终伤
+        # todo 装母对轰炸减伤25%
         return max(0, damage)
 
 
@@ -191,6 +199,11 @@ class AirBombAtk(AirAtk):
         # 最大击坠量不超过实际放飞量
         actual_fall = min(self.coef['actual_flight'],
                           self.coef['air_con_fall'] + aa_fall)
+
+        # 减少击坠技能
+        fall_scale, fall_bias = self.atk_body.get_atk_buff('fall_rest', self)
+        actual_fall = np.ceil(actual_fall * (1 + fall_scale) + fall_bias)
+        actual_fall = max(0, actual_fall)  # 不会减到负数
 
         # 击坠结算与本次剩余载机量计算
         self.equip.fall(actual_fall)
@@ -209,7 +222,7 @@ class AirBombAtk(AirAtk):
         self.coef['supply_coef'] = self.get_supply_coef()
 
         # 暴击系数
-        if self.crit_verify():
+        if self.coef['crit']:
             _, crit_bias = self.atk_body.get_atk_buff('crit_coef', self)
             self.coef['crit_coef'] = 1.5 + crit_bias
         else:
@@ -222,13 +235,8 @@ class AirBombAtk(AirAtk):
         pierce_scale, _ = self.atk_body.get_atk_buff('pierce_coef', self)
         self.coef['pierce_coef'] = 0.6 + pierce_scale
 
-        # TODO 对空预警
-
-        # 闪避检定
-        if self.hit_verify():
-            self.coef['hit'] = True
-        else:
-            self.coef['hit'] = False
+        # 攻击者对系数进行最终修正（最高优先级）
+        self.atk_body.atk_coef_process(self)
 
     def formula(self):
         # 基础攻击力
@@ -248,6 +256,8 @@ class AirBombAtk(AirAtk):
         ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_armor', self)  # 无视装甲
         def_armor = self.target.get_final_status('armor') * \
                     (1 + ignore_scale) + ignore_bias
+        def_armor = max(0, def_armor)
+
         real_dmg = np.ceil(real_atk *
                            (1 - def_armor /
                             (0.5 * def_armor + self.coef['pierce_coef'] * real_atk)))
@@ -274,6 +284,11 @@ class AirDiveAtk(AirAtk):
         # 最大击坠量不超过实际放飞量
         actual_fall = min(self.coef['actual_flight'],
                           self.coef['air_con_fall'] + aa_fall)
+
+        # 减少击坠技能
+        fall_scale, fall_bias = self.atk_body.get_atk_buff('fall_rest', self)
+        actual_fall = np.ceil(actual_fall * (1 + fall_scale) + fall_bias)
+        actual_fall = max(0, actual_fall)  # 不会减到负数
 
         # 击坠结算与本次剩余载机量计算
         self.equip.fall(actual_fall)
@@ -333,6 +348,8 @@ class AirDiveAtk(AirAtk):
         ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_armor', self)
         def_armor = self.target.get_final_status('armor') * \
                     (1 + ignore_scale) + ignore_bias
+        def_armor = max(0, def_armor)
+
         real_dmg = np.ceil(real_atk *
                            (1 - def_armor /
                             (0.5 * def_armor + self.coef['pierce_coef'] * real_atk)))

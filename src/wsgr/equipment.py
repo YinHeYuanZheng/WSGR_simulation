@@ -82,8 +82,7 @@ class Plane(Equipment):
         self.load = self.master.load[self.enum]
 
     def fall(self, fall_num):
-        buff_scale, buff_bias = self.master.get_buff('fall_rest')
-        fall_num = np.ceil(fall_num * (1 + buff_scale) + buff_bias)
+        fall_num = min(self.load, fall_num)
         self.load -= int(fall_num)
 
 
@@ -97,10 +96,7 @@ class DiveBomber(Plane):
 
 class Fighter(Plane):
     """战斗机"""
-    def fall(self, fall_num):
-        if self.load < fall_num:
-            fall_num = self.load
-        self.load -= int(fall_num)
+    pass
 
 
 class ScoutPLane(Plane):

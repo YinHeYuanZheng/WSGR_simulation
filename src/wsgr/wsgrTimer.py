@@ -9,8 +9,8 @@ class timer:
 
     def __init__(self):
         self.recon_flag = None      # 索敌
-        self.direction_flag = None  # 航向
-        self.air_con_flag = None    # 制空结果
+        self.direction_flag = None  # 航向, 优同反劣分别为1-4
+        self.air_con_flag = None    # 制空结果, 从空确到空丧分别为1-5
         self.phase = None           # 阶段
         self.queue = []             # 有时点依赖的技能 TODO 战斗结束记得清空
 

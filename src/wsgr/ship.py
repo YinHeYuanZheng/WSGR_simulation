@@ -203,6 +203,20 @@ class Ship(Time):
                     pass
         return (1 + scale_add) * scale_mult - 1, bias  # 先scale后bias
 
+    def atk_coef_process(self, atk):
+        for tmp_buff in self.temper_buff:
+            if not tmp_buff.is_coef_process():
+                continue
+            if tmp_buff.is_active(atk=atk):
+                atk.set_coef(tmp_buff.name, tmp_buff.value)
+
+    def get_special_buff(self, name, *args, **kwargs):
+        """查询机制增益"""
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == name:
+                if tmp_buff.is_active(*args, **kwargs):
+                    return True
+
     def get_final_damage_buff(self, atk):
         """根据攻击类型决定终伤加成"""
         for tmp_buff in self.temper_buff:
@@ -216,10 +230,6 @@ class Ship(Time):
             if tmp_buff.name == 'final_damage_debuff' \
                     and tmp_buff.is_active(atk=atk):
                 yield tmp_buff.value
-
-    def get_special_buff(self):
-        """查询机制增益"""
-        pass
 
     def act_in_phase(self):
         """判断舰船在指定阶段内能否行动"""

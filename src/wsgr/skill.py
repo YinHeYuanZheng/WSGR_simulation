@@ -335,6 +335,9 @@ class Buff(Time):
     def is_event(self):
         return False
 
+    def is_coef_process(self):
+        return False
+
     def is_active(self, *args, **kwargs):
         """技能是否满足发动阶段"""
         return self.rate_verify() and \
@@ -444,7 +447,12 @@ class AtkHitBuff(Buff):
 
 class AtkCoefProcess(AtkBuff):
     """直接修改攻击属性(船损、航向、制空系数等)"""
-    pass
+    def __init__(self, name, phase, value,
+                 bias_or_weight=3, atk_request=None, rate=1):
+        super().__init__(name, phase, value, bias_or_weight, atk_request, rate)
+
+    def is_coef_process(self):
+        return True
 
 
 class FinalDamageBuff(AtkBuff):
