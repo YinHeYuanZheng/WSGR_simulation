@@ -76,8 +76,8 @@ class AirPhase(AllPhase):
         self.timer.set_air_con(air_con_flag)
 
         # 航空轰炸阶段
-        self.air_strike(atk_friend, def_enemy, aerial_enemy, side=0)
-        self.air_strike(atk_enemy, def_friend, aerial_friend, side=1)
+        self.air_strike(atk_friend, def_enemy, aerial_enemy, side=1)
+        self.air_strike(atk_enemy, def_friend, aerial_friend, side=0)
 
     def air_strike(self, attack, defend, aerial, side):
         """
@@ -85,7 +85,7 @@ class AirPhase(AllPhase):
         :param attack: 攻击方对象
         :param defend: 被攻击对象
         :param aerial: 被攻击方制空
-        :param side: 0: friend; 1: enemy
+        :param side: 1: friend; 0: enemy
         :return:
         """
         fall_coef, air_con_coef = self.get_air_coef(side)  # 制空击坠系数，航空战系数
@@ -137,7 +137,9 @@ class AirPhase(AllPhase):
                         atk_body=tmp_ship,
                         def_list=defend,
                         equip=tmp_equip,
-                        coef=coef
+                        coef=coef,
+                        atk_form=self.friend.form if side == 1 else self.enemy.form,
+                        def_form=self.enemy.form if side == 1 else self.friend.form
                     )
                     atk.start()
                     anti_num = atk.get_coef('anti_num')
@@ -148,13 +150,15 @@ class AirPhase(AllPhase):
                         atk_body=tmp_ship,
                         def_list=defend,
                         equip=tmp_equip,
-                        coef=coef
+                        coef=coef,
+                        atk_form=self.friend.form if side == 1 else self.enemy.form,
+                        def_form=self.enemy.form if side == 1 else self.friend.form
                     )
                     atk.start()
                     anti_num = atk.get_coef('anti_num')
 
     def get_air_coef(self, side):
-        if side == 0:
+        if side == 1:
             air_con_flag = self.timer.air_con_flag
         else:
             air_con_flag = 6 - self.timer.air_con_flag

@@ -63,6 +63,10 @@ def load_ship(node, dataset):
         ship.set_load(load)
     equip_num = status.pop('equipnum')
     skill_list = status.pop('skill')
+
+    if node.getAttribute('affection') >= 100:  # 婚舰幸运+5
+        status['luck'] += 5
+
     ship.set_status(status=status)
 
     # 调用技能并写入

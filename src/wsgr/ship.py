@@ -142,11 +142,12 @@ class Ship(Time):
         status = status * (1 + scale_add) * scale_mult + bias
         return max(0, status)
 
-    def get_equip_status(self, name):
+    def get_equip_status(self, name, equiptype=None):
         """根据属性名称获取装备属性"""
         status = 0
         for tmp_equip in self.equipment:
-            status += tmp_equip.get_final_status(name)
+            if (equiptype is None) or isinstance(tmp_equip, equiptype):
+                status += tmp_equip.get_final_status(name)
         return status
 
     def get_final_status(self, name, equip=True):

@@ -15,7 +15,6 @@ class BattleUtil(Time):
         self.enemy = enemy
 
         self.battle_init()
-        self.battle_start()
 
     def battle_init(self):
         """战斗初始化"""

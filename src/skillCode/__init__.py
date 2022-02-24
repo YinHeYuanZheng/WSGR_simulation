@@ -2,9 +2,25 @@
 # Author:银河远征
 # env:py38
 
-# from . import sid110021  # 扶桑改-1
-# from . import sid110041  # 伊势改-1
-# from . import sid110051  # 日向改-1
+# 未改船
+from . import sid101191  # 皇家方舟-1
+from . import sid102241  # 可畏-1
+from . import sid102261  # 埃塞克斯-1
+from . import sid103191  # 不挠-1
+from . import sid103251  # 列克星敦(cv-16)-1
+from . import sid103381  # 天鹰-1
+from . import sid103701  # 光辉-1
+from . import sid103741  # 汉考克-1
+from . import sid104041  # 怨仇-1
+from . import sid104261  # 彼得·施特拉塞尔-1
+from . import sid104331  # 提康德罗加-1
+from . import sid104551  # 皇家方舟(R09)-1
+from . import sid104691  # 本宁顿-1
+
+# 改造船
+from . import sid110021  # 扶桑改-1
+from . import sid110041  # 伊势改-1
+from . import sid110051  # 日向改-1
 from . import sid110221  # 赤城改-1
 from . import sid110222  # 赤城改-2
 from . import sid110231  # 加贺改-1

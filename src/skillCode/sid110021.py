@@ -2,10 +2,11 @@
 # Author:zzhh225
 # env:py38
 # 扶桑改-1
-from ..wsgr.equipment import MainGun
+
 from ..wsgr.skill import *
 from ..wsgr.ship import *
 from ..wsgr.phase import *
+from ..wsgr.equipment import *
 
 
 class Skill_110021_1(CommonSkill):
@@ -22,15 +23,11 @@ class Skill_110021_1(CommonSkill):
             bias_or_weight=0
         )]
 
-    def is_active(self, friend, enemy):
-        return True
-
 
 class Skill_110021_2(Skill):
     # 单纵或者梯形阵时增加自身火力5点和命中15点。
     def __init__(self, master):
         super().__init__(master)
-        self.request = [Request_1]
         self.target = SelfTarget(master)
         self.buff = [
             StatusBuff(
@@ -47,13 +44,7 @@ class Skill_110021_2(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return bool(self.request[0](self.master, friend, enemy))
+        return friend.form == 1 or friend.form == 4
 
 
-class Request_1(Request):
-    def __bool__(self):
-        # todo 检索阵型
-        pass
-
-
-skill = [Skill_110021_2]
+skill = [Skill_110021_1, Skill_110021_2]
