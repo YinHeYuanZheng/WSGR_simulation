@@ -72,7 +72,7 @@ class Skill_111201_4(Skill):
                 name='air_atk_buff',
                 phase=(AllPhase, ),
                 value=0.15,
-                bias_or_weight=0,
+                bias_or_weight=2,
                 atk_request=[BuffRequest_2]
             )
         ]

@@ -123,7 +123,11 @@ class ATK(Time):
         攻击结束时点，进行受伤时点效果、反击等
         :param damage_flag: 是否受到了伤害
         """
-        pass
+        if not damage_flag:
+            return
+        else:
+            self.atk_body.atk_hit('atk_hit', self)
+            self.target.atk_hit('be_atk_hit', self)
 
 
 class AirAtk(ATK):

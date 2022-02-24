@@ -30,7 +30,7 @@ class Skill_102261_2(CommonSkill):
 
     def __init__(self, master):
         super().__init__(master)
-        self.target = RandomTarget(side=0, shiptype=(AV, CV, CVL))
+        self.target = RandomTypeTarget(side=0, shiptype=(AV, CV, CVL))
 
         self.buff = [StatusBuff(
             name='fire',

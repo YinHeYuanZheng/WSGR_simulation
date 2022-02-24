@@ -203,11 +203,11 @@ class Ship(Time):
                     pass
         return (1 + scale_add) * scale_mult - 1, bias  # 先scale后bias
 
-    def atk_coef_process(self, atk):
+    def atk_coef_process(self, atk, *args, **kwargs):
         for tmp_buff in self.temper_buff:
             if not tmp_buff.is_coef_process():
                 continue
-            if tmp_buff.is_active(atk=atk):
+            if tmp_buff.is_active(atk=atk, *args, **kwargs):
                 atk.set_coef(tmp_buff.name, tmp_buff.value)
 
     def get_special_buff(self, name, *args, **kwargs):
@@ -230,6 +230,12 @@ class Ship(Time):
             if tmp_buff.name == 'final_damage_debuff' \
                     and tmp_buff.is_active(atk=atk):
                 yield tmp_buff.value
+
+    def atk_hit(self, name, atk, *args, **kwargs):
+        """处理命中后、被命中后添加buff效果（不处理反击）"""
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == name and tmp_buff.is_active(atk=atk, *args, **kwargs):
+                tmp_buff.active(atk=atk, *args, **kwargs)
 
     def act_in_phase(self):
         """判断舰船在指定阶段内能否行动"""

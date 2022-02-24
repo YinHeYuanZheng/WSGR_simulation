@@ -14,19 +14,15 @@ class Skill_103741_1(Skill):
 
     def __init__(self, master):
         super().__init__(master)
-        self.request = [Request_1]
         self.target = EquipTarget(side=1,
                                   target=SelfTarget(master),
                                   equiptype=(Bomber,))
-        self.buff = [StatusBuff(
+        self.buff = [CommonBuff(
             name='bomb',
             phase=(AllPhase,),
             value=4,
             bias_or_weight=0
         )]
-
-    def is_active(self, friend, enemy):
-        return True
 
 
 class Skill_103741_2(Skill):
@@ -44,7 +40,7 @@ class Skill_103741_2(Skill):
         )]
 
     def is_active(self, friend, enemy):
-        return bool(self.request[0](master=self.master, friend=friend, enemy=enemy))
+        return bool(self.request[0](self.master, friend, enemy))
 
 
 class Skill_103741_3(Skill):
@@ -67,14 +63,16 @@ class Skill_103741_3(Skill):
         )]
 
     def is_active(self, friend, enemy):
-        if bool(self.request[0](master=self.master, friend=friend, enemy=enemy)):
-            return False
-        return True
+        return not bool(self.request[0](self.master, friend, enemy))
 
 
 class Request_1(Request):
     def __bool__(self):
-        return len(TypeTarget(side=1, shiptype=(CV, AV)).get_target(self.friend, self.enemy)) < 3
+        target = TypeTarget(
+            side=1,
+            shiptype=(CV, AV)
+        ).get_target(self.friend, self.enemy)
+        return len(target) < 3
 
 
 skill = [Skill_103741_1, Skill_103741_2, Skill_103741_3]

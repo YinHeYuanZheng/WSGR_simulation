@@ -117,6 +117,41 @@ class TypeTarget(Target):
         return target
 
 
+class AntiTypeTarget(TypeTarget):
+    """指定船型以外的目标"""
+    def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        target = [ship for ship in fleet if not isinstance(ship, self.shiptype)]
+        return target
+
+
+class RandomTypeTarget(TypeTarget):
+    """指定船型内随机选择一个目标"""
+    def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        target = [ship for ship in fleet if isinstance(ship, self.shiptype)]
+        target = np.random.choice(target)
+        return [target]
+
+
 class LocTarget(Target):
     """指定站位的目标"""
     def __init__(self, side, loc):
@@ -297,23 +332,6 @@ class EquipTarget(Target):
         return equip_target
 
 
-class RandomTarget(TypeTarget):
-    def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
-        target = [ship for ship in fleet if isinstance(ship, self.shiptype)]
-        target = np.random.choice(target)
-        return [target]
-
-
 class Buff(Time):
     """增益总类"""
     def __init__(self, name, phase, bias_or_weight=3, rate=1):
@@ -436,7 +454,8 @@ class AtkHitBuff(Buff):
         except:
             atk = args[0]
 
-        if self.side == 1:
+        if (self.name == 'atk_hit' and self.side == 1) or \
+                (self.name == 'be_atk_hit' and self.side == 0):
             target = atk.atk_body
         else:
             target = atk.target
