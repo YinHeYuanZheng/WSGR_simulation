@@ -12,7 +12,9 @@ class timer:
         self.direction_flag = None  # 航向, 优同反劣分别为1-4
         self.air_con_flag = None    # 制空结果, 从空确到空丧分别为1-5
         self.phase = None           # 阶段
+        self.atk = None
         self.queue = []             # 有时点依赖的技能 TODO 战斗结束记得清空
+        self.log = []
 
     def set_recon(self, recon_flag):
         self.recon_flag = recon_flag
@@ -26,8 +28,14 @@ class timer:
     def set_phase(self, phase):
         self.phase = phase
 
+    def set_atk(self, atk):
+        self.atk = atk
+
     def phase_start(self):
         self.phase.start()
+
+    def report(self, damage_value):
+        pass
 
 
 class Time:

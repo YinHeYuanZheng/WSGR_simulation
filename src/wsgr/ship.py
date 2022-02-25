@@ -5,7 +5,7 @@
 
 # import sys
 # sys.path.append(r'.\wsgr')
-
+import numpy as np
 from .wsgrTimer import Time
 
 
@@ -47,6 +47,7 @@ class Ship(Time):
         self.level = 110  # 等级
         self.affection = 200  # 好感
         self.damaged = 1  # 耐久状态, 1: 正常; 2: 中破; 3: 大破; 4: 撤退
+        self.damage_protect = True  # 耐久保护，todo 大破进击时消失
         self.supply = 1.  # 补给状态
         self.common_buff = []  # 永久面板加成
         self.temper_buff = []  # 临时buff
@@ -260,6 +261,40 @@ class Ship(Time):
 
     def get_damage(self, damage):
         """受伤结算，过伤害保护，需要返回受伤与否"""
+
+        # 敌方没有伤害保护，大破进击没有伤害保护
+        if self.side == 0 or \
+                not self.damage_protect or \
+                self.damaged == 4:
+            pass
+
+        # 友方大破时受伤, 非大破进击
+        elif self.damaged == 3:
+            if self.status['health'] == 1:  # 剩余血量为1，强制miss
+                damage = 0
+            else:
+                damage = np.ceil(self.status['health'] * 0.1)
+
+        # 友方非大破状态下，受到足以大破的伤害
+        elif self.status['health'] - damage < self.status['total_health'] * 0.25:
+            if self.status['health'] == self.status['total_health']:
+                damage = np.ceil(self.status['total_health'] * np.random.uniform(0.5, 0.75))
+            else:
+                damage = np.ceil(self.status['health'] - self.status['total_health'] * 0.25)
+
+        self.status['health'] -= damage
+        # 受伤状态结算
+        if self.damaged < 2 and \
+                self.status['health'] < self.status['total_health'] * 0.5:
+            self.damaged = 2
+        if self.damaged < 3 and \
+                self.status['health'] < self.status['total_health'] * 0.25:
+            self.damaged = 3
+        if self.damaged < 4 and \
+                self.status['health'] <= 0:
+            self.status['health'] = 0
+            self.damaged = 4
+
         return bool(damage)
 
     def clear_buff(self):

@@ -60,7 +60,11 @@ class Skill_104331_2(Skill):
 
 class BuffRequest_2(ATKRequest):
     def __bool__(self):
-        return self.timer.air_con_flag <= 3
+        if self.atk.atk_body.side == 1:
+            air_con_flag = self.timer.air_con_flag
+        else:
+            air_con_flag = 6 - self.timer.air_con_flag
+        return air_con_flag <= 3
 
 
 skill = [Skill_104331_1, Skill_104331_2]

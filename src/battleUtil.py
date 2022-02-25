@@ -19,11 +19,15 @@ class BattleUtil(Time):
     def battle_init(self):
         """战斗初始化"""
         for tmp_ship in self.friend:
-            tmp_ship.init_skill(self.friend.ship, self.enemy.ship)
+            tmp_ship.init_skill(self.friend, self.enemy)
+        for tmp_ship in self.enemy:
+            tmp_ship.init_skill(self.enemy, self.friend)
 
     def battle_start(self):
         """进行阵型选择和战斗流程"""
-        pass
+        self.recon_phase()
+        self.buff_phase()
+        self.air_phase()
 
     def recon_phase(self):
         recon_flag = True  # 暂时默认索敌成功

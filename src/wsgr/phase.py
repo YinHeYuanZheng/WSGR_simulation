@@ -43,6 +43,10 @@ class BuffPhase(AllPhase):
             for tmp_skill in tmp_ship.skill:
                 if tmp_skill.is_active(self.friend, self.enemy):
                     tmp_skill.activate(self.friend, self.enemy)
+        for tmp_ship in self.enemy.ship:
+            for tmp_skill in tmp_ship.skill:
+                if tmp_skill.is_active(self.enemy, self.friend):
+                    tmp_skill.activate(self.enemy, self.friend)
 
 
 class AirPhase(AllPhase):

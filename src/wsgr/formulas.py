@@ -24,6 +24,7 @@ class ATK(Time):
 
     def __init__(self, atk_body, def_list, coef, atk_form, def_form, changeable=True):
         super().__init__()
+        self.timer.set_atk(self)
         self.atk_body = atk_body
         self.def_list = def_list  # 可被攻击目标列表
         self.target = None  # 攻击目标，可被更改
@@ -179,8 +180,6 @@ class AirAtk(ATK):
         if damage == 0:
             self.end_atk(damage_flag)
             return
-        else:
-            pass  # todo 固伤（额外伤害）
 
         damage = self.final_damage(damage)
         damage_flag = self.target.get_damage(damage)
@@ -203,7 +202,12 @@ class AirAtk(ATK):
 
     def hit_verify(self):
         """TODO 航空攻击命中检定，含对空预警，含飞机装备命中率buff"""
-        pass
+        if self.target.size == 3:
+            aa_base = 150
+        elif self.target.size == 2:
+            aa_base = 375
+        else:
+            aa_base = 1500
 
     def final_damage(self, damage):
         """航空战终伤"""
