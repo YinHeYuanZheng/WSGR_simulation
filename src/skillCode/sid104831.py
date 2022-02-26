@@ -6,19 +6,17 @@
 from ..wsgr.skill import *
 from ..wsgr.ship import *
 from ..wsgr.phase import *
-from ..wsgr.equipment import *
 
-"""自身对战列舰、战列巡洋舰造成的伤害提高10%/20%/30%。
-自身与相邻上方舰船舰载机威力提高5%/10%/15%，
-如果相邻上方为E国或U国舰船，则其舰载机威力额外提高4%/7%/10%。"""
+"""自身对战列舰、战列巡洋舰造成的伤害提高30%。
+自身与相邻上方舰船舰载机威力提高15%，
+如果相邻上方为E国或U国舰船，则其舰载机威力额外提高10%。"""
 
 
 class Skill_104831_1(Skill):
-    """自身对战列舰、战列巡洋舰造成的伤害提高10%/20%/30%。"""
+    """自身对战列舰、战列巡洋舰造成的伤害提高30%。"""
 
     def __init__(self, master):
         super().__init__(master)
-        self.request = [Request_1]
         self.target = SelfTarget(master)
         self.buff = [
             FinalDamageBuff(
@@ -29,16 +27,17 @@ class Skill_104831_1(Skill):
             )
         ]
 
-    def is_active(self, friend, enemy):
-        return True
+
+class BuffRequest_1(ATKRequest):
+    def __bool__(self):
+        return isinstance(self.atk.target, (BB, BC))
 
 
 class Skill_104831_2(Skill):
-    """自身与相邻上方舰船舰载机威力提高5%/10%/15%，"""
+    """自身与相邻上方舰船舰载机威力提高15%，"""
 
     def __init__(self, master):
         super().__init__(master)
-        self.request = [Request_1]
         self.target = NearestLocTarget(
             side=1,
             master=master,
@@ -61,7 +60,6 @@ class Skill_104831_3(Skill):
     """如果相邻上方为E国或U国舰船，则其舰载机威力额外提高4%/7%/10%。"""
     def __init__(self, master):
         super().__init__(master)
-        self.request = [Request_1]
         self.target = NearestLocTarget(
             side=1,
             master=master,
@@ -78,26 +76,12 @@ class Skill_104831_3(Skill):
             )
         ]
 
-    def is_active(self, friend, enemy):
-        return bool(self.request[0](self.master, friend, enemy))
-
-
-class Request_1(Request):
-    def __bool__(self):
-        target = NearestLocTarget(
-            side=1,
-            master=self.master,
-            radius=1,
-            direction='up',
-            shiptype=(CV, CVL, AV)
-        )
-        country = target.get_target(self.friend, self.enemy).get_status(name='country')
-        return country == 'E' or country == 'U'
-
-
-class BuffRequest_1(ATKRequest):
-    def __bool__(self):
-        return isinstance(self.atk.target, (BB, BC))
+    def activate(self, friend, enemy):
+        target = self.target.get_target(friend, enemy)
+        for tmp_target in target:
+            if target.status['country'] in ['U', 'E']:
+                for tmp_buff in self.buff[:]:
+                    tmp_target.add_buff(tmp_buff)
 
 
 skill = [Skill_104831_1, Skill_104831_2, Skill_104831_3]

@@ -12,26 +12,21 @@ from ..wsgr.equipment import *
 
 class Skill_104981(Skill):
     def activate(self, friend, enemy):
-        # todo 获取饺子型
-        target_craft = TagTarget(
+        # 获取埃塞克斯级
+        target_essex = TagTarget(
             side=1,
-            value='essex'
+            tag='essex'
         ).get_target(friend, enemy)
 
-        value = 0.08 * len(TagTarget)
+        buff_value = 0.08 * len(target_essex)
         self.master.add_buff(
             CoeffBuff(
                 name='air_atk_buff',
                 phase=(AllPhase,),
-                value=value,
+                value=buff_value,
                 bias_or_weight=2,
             )
         )
-
-
-class Request_1(Request):
-    def __bool__(self):
-        pass
 
 
 skill = [Skill_104981]

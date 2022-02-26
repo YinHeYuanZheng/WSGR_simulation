@@ -89,29 +89,56 @@ class ATK(Time):
 
     def crit_verify(self):
         """暴击检定"""
-        if self.get_coef('must_crit'):
-            return True
+        if self.get_coef('must_crit') or \
+                self.atk_body.get_special_buff('must_crit', self):
+            self.coef['crit'] = True
+            return
 
-        crit = self.atk_body.affection * 0.001 + \
+        if self.get_coef('must_not_crit') or \
+                self.target.get_special_buff('must_not_crit', self):
+            self.coef['crit'] = False
+            return
+
+        # 基础暴击率
+        crit = 0.05 + (self.atk_body.affection - 50) * 0.001 + \
                self.atk_body.get_atk_buff('crit', self) + \
                self.atk_body.get_final_status('luck') * 0.16 + \
                self.target.get_atk_buff('be_crit', self)
+
+        # 阵型暴击率补正
         crit += self.get_form_coef('crit', self.atk_form) + \
-                self.get_form_coef('be_crit', self.def_form)  # 阵型暴击率补正
+                self.get_form_coef('be_crit', self.def_form)
+
         crit = cap(crit)
         verify = random.random()
         if verify < crit:
-            return True
+            self.coef['crit'] = True
+            return
         else:
-            return False
+            self.coef['crit'] = False
+            return
 
     def hit_verify(self):
         """命中检定"""
-        if self.get_coef('must_hit'):
-            return True
+        if self.target.get_special_buff('shield', self):
+            self.coef['hit'] = False
+            return
 
-        hit_rate = self.atk_body.get_final_status('accuracy') / \
-                   self.atk_body.get_final_status('evasion') / 2
+        if self.get_coef('must_hit') or \
+                self.atk_body.get_special_buff('must_hit', self):
+            self.coef['hit'] = True
+            return
+
+        if self.get_coef('must_not_hit') or \
+                self.target.get_special_buff('must_not_hit', self):
+            self.coef['hit'] = False
+            return
+
+        accuracy = self.atk_body.get_final_status('accuracy')
+        evasion = self.atk_body.get_final_status('evasion')
+        if evasion == 0:
+            evasion = 1
+        hit_rate = accuracy / evasion / 2
 
     def get_dmg_coef(self):
         if self.atk_body.damaged == 1:
@@ -158,6 +185,7 @@ class AirAtk(ATK):
             'miss': [.8, 1., 1.2, .8, .9],
             'crit': [0, 0, 0, .25, 0],
             'be_crit': [0, 0, 0, .25, -.1],
+            'anti_def': [1, 1.2, 1.6, 1, 1],
         }  # 阵型系数
 
     def start(self):
@@ -166,12 +194,13 @@ class AirAtk(ATK):
         self.start_atk()
 
         self.hit_verify()  # 闪避检定
+        self.crit_verify()  # 暴击检定
+        self.process_coef()  # 生成公式相关系数
+
         if not self.coef['hit']:
             self.end_atk(damage_flag)
             return
 
-        self.crit_verify()  # 暴击检定
-        self.process_coef()  # 生成公式相关系数
         if self.coef['plane_rest'] == 0:
             self.end_atk(damage_flag)
             return
@@ -195,33 +224,106 @@ class AirAtk(ATK):
         team_anti_air = get_team_anti_air(self.def_list)  # 全队对空补正
         equip_anti_air = self.target.get_equip_status('anti_air')  # 装备对空总和
         aa_value = target_anti_air + team_anti_air + equip_anti_air
+        aa_value *= self.get_form_coef('anti_def', self.def_form)  # todo 未明确
+
         alpha = random.random()
         bottom_a = 0.618
         aa_fall = np.floor(alpha * aa_value * bottom_a ** (anti_num - 1) / 10)
         return aa_fall
 
+    def get_anti_air_def(self):
+        """减伤对空"""
+        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_antiair', self)  # 无视对空
+        target_anti_air = self.target.get_final_status('anti_air', equip=False) * \
+                          (1 + ignore_scale) + ignore_bias  # 本体裸对空
+        target_anti_air = max(0, target_anti_air)
+        aa_value = target_anti_air + get_scaled_anti_air(self.target)
+        return aa_value
+
     def hit_verify(self):
-        """TODO 航空攻击命中检定，含对空预警，含飞机装备命中率buff"""
+        """航空攻击命中检定，含对空预警，含飞机装备命中率buff"""
+        # 护盾
+        if self.target.get_special_buff('shield', self):
+            self.coef['hit'] = False
+            return
+
+        # todo 对空预警
+
+        # 技能必中
+        if self.get_coef('must_hit') or \
+                self.atk_body.get_special_buff('must_hit', self):
+            self.coef['hit'] = True
+            return
+
+        # 技能必不中
+        if self.get_coef('must_not_hit') or \
+                self.target.get_special_buff('must_not_hit', self):
+            self.coef['hit'] = False
+            return
+
+        # 基础命中率
+        accuracy = self.atk_body.get_final_status('accuracy')
+        evasion = self.atk_body.get_final_status('evasion')
+        if evasion < 1:
+            evasion = 1
+        hit_rate = accuracy / evasion / 2
+
+        # 阵型命中率补正
+        hit_rate *= self.get_form_coef('hit', self.atk_form) / \
+                    self.get_form_coef('miss', self.def_form)
+
+        # 索敌补正
+        if self.atk_body.side == 1 and self.timer.recon_flag:
+            hit_rate += 0.05
+        if self.target.side == 1 and self.timer.recon_flag:
+            hit_rate += 0.05
+
+        # 制空补正
+        hit_rate += get_air_hit_coef(self.timer.air_con_flag,
+                                     self.atk_body.side)
+
+        # 船型补正
+        aa_value = self.get_anti_air_def()
         if self.target.size == 3:
-            aa_base = 150
+            aa_base = 1500
         elif self.target.size == 2:
             aa_base = 375
         else:
-            aa_base = 1500
+            aa_base = 150
+        aa_hit_coef = aa_base / (aa_base + aa_value)
+        hit_rate *= aa_hit_coef
+
+        # 装备补正
+        hit_rate += self.equip.get_atk_buff('hit_rate', self)
+
+        # 技能补正
+        hit_rate += self.atk_body.get_atk_buff('hit_rate', self)
+        hit_rate -= self.target.get_atk_buff('miss_rate', self)
+
+        hit_rate = cap(hit_rate)
+        verify = random.random()
+        if verify < hit_rate:
+            self.coef['hit'] = True
+            return
+        else:
+            self.coef['hit'] = False
+            return
 
     def final_damage(self, damage):
         """航空战终伤"""
+
+        # 额外伤害
+        _, extra_damage = self.atk_body.get_atk_buff('extra_damage', self)
+        damage += extra_damage
+
+        # 终伤系数
         for buff_scale in self.atk_body.get_final_damage_buff(self):
             damage = np.ceil(damage * (1 + buff_scale))
         for debuff_scale in self.target.get_final_damage_debuff(self):
             damage = np.ceil(damage * (1 + debuff_scale))
 
         # 对空减伤
-        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_antiair', self)  # 无视对空
-        target_anti_air = self.target.get_final_status('anti_air', equip=False) * \
-                          (1 + ignore_scale) + ignore_bias  # 本体裸对空
-        target_anti_air = max(0, target_anti_air)
-        aa_value = target_anti_air + get_scaled_anti_air(self.target)
+        aa_value = self.get_anti_air_def()
         if self.target.size == 3:
             aa_base = 150
         elif self.target.size == 2:
@@ -236,6 +338,10 @@ class AirAtk(ATK):
         # 装母对轰炸减伤75%
         if isinstance(self.target, AV) and isinstance(self, AirBombAtk):
             damage = np.ceil(damage * .25)
+
+        # 技能伤害减免
+        _, reduce_damage = self.target.get_atk_buff('reduce_damage', self)
+        damage -= reduce_damage
 
         return max(0, damage)
 
@@ -452,6 +558,47 @@ def compare_aerial(aerial_friend, aerial_enemy):
         return 4  # 劣势
     else:
         return 5  # 丧失
+
+
+def get_air_coef(air_con_flag, side):
+    if side == 0:
+        air_con_flag = 6 - air_con_flag
+
+    if air_con_flag == 1:
+        fall_coef = [0, 0.1]
+        air_con_coef = 1.1
+    elif air_con_flag == 2:
+        fall_coef = [0.1, 0.3]
+        air_con_coef = 1.05
+    elif air_con_flag == 3:
+        fall_coef = [0.3, 0.7]
+        air_con_coef = 1.
+    elif air_con_flag == 4:
+        fall_coef = [0.7, 0.9]
+        air_con_coef = .95
+    else:
+        fall_coef = [0.9, 1]
+        air_con_coef = .9
+
+    return fall_coef, air_con_coef
+
+
+def get_air_hit_coef(air_con_flag, side):
+    if side == 0:
+        air_con_flag = 6 - air_con_flag
+
+    if air_con_flag == 1:
+        hit_rate = 0.1
+    elif air_con_flag == 2:
+        hit_rate = 0.05
+    elif air_con_flag == 3:
+        hit_rate = 0
+    elif air_con_flag == 4:
+        hit_rate = -0.05
+    else:
+        hit_rate = -0.1
+
+    return hit_rate
 
 
 def get_total_plane_rest(shiplist):

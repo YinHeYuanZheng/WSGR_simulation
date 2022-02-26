@@ -12,9 +12,9 @@ from ..wsgr.equipment import *
 
 class Skill_104711_1(Skill):
     def __init__(self, master):
-        """增加自身护甲穿透30%，"""
+        """增加自身护甲穿透30%，
+        根据总出征数增加自身最多15点命中值"""
         super().__init__(master)
-        self.request = [Request_1]
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
@@ -22,25 +22,29 @@ class Skill_104711_1(Skill):
                 phase=(AllPhase,),
                 value=0.3,
                 bias_or_weight=0
+            ),
+            StatusBuff(
+                name='accuracy',
+                phase=(AllPhase,),
+                value=15,
+                bias_or_weight=0
             )
         ]
 
 
-class Skill_104711_2(Skill):
-    # todo 根据总出征数(上限30000次)增加自身最多15点火力值和命中值
+class Skill_104711_2(CommonSkill):
+    """根据总出征数(上限30000次)增加自身最多15点火力值"""
     def __init__(self, master):
         super().__init__(master)
-        self.request = [Request_1]
         self.target = SelfTarget(master)
-        self.buff = []
-
-    def is_active(self, friend, enemy):
-        return True
-
-
-class Request_1(Request):
-    def __bool__(self):
-        pass
+        self.buff = [
+            CommonBuff(
+                name='fire',
+                phase=(AllPhase,),
+                value=15,
+                bias_or_weight=0
+            )
+        ]
 
 
 skill = [Skill_104711_1, Skill_104711_2]

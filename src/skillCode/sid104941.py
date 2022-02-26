@@ -2,12 +2,11 @@
 # Author:zzhh225
 # env:py38
 # G6-1
-import random
 
+import numpy as np
 from ..wsgr.skill import *
 from ..wsgr.ship import *
 from ..wsgr.phase import *
-from ..wsgr.equipment import *
 """航空战阶段增加自身40点制空值。
 全阶段队伍中随机3艘J国舰船增加10点火力值，对敌方造成的伤害提高15%"""
 
@@ -16,7 +15,6 @@ class Skill_104941_1(Skill):
     """航空战阶段增加自身40点制空值。"""
     def __init__(self, master):
         super().__init__(master)
-        self.request = [Request_1]
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
@@ -32,10 +30,10 @@ class Skill_104941_2(Skill):
     """全阶段队伍中随机3艘J国舰船增加10点火力值，对敌方造成的伤害提高15%"""
     def __init__(self, master):
         super().__init__(master)
-        self.request = [Request_1]
-        self.target = RandomStatusTarget(
+        self.target = StatusTarget(
             side=1,
             status_name='country',
+            fun='eq',
             value='J',
         )
         self.buff = [
@@ -52,36 +50,13 @@ class Skill_104941_2(Skill):
             )
         ]
 
-
-# 仅限g6
-class RandomStatusTarget(StatusTarget):
-    def __init__(self, side, status_name, value):
-        super().__init__(side)
-        self.status_name = status_name
-        self.value = value
-
-    def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
-        target = [ship for ship in fleet
-                  if ship.get_status(self.status_name) == self.value]
-
-        while len(target) > 3:
-            del target[random.randint(0, len(target))]
-        return target
+    def activate(self, friend, enemy):
+        target = self.target.get_target(friend, enemy)
+        if len(target) > 3:
+            target = np.random.choice(target, 3, replace=False)
+        for tmp_target in target:
+            for tmp_buff in self.buff[:]:
+                tmp_target.add_buff(tmp_buff)
 
 
-class Request_1(Request):
-    def __bool__(self):
-        pass
-
-
-skill = [Skill_104941_1]
+skill = [Skill_104941_1, Skill_104941_2]

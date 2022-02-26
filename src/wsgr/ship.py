@@ -217,6 +217,7 @@ class Ship(Time):
         for tmp_buff in self.temper_buff:
             if tmp_buff.name == name:
                 if tmp_buff.is_active(*args, **kwargs):
+                    tmp_buff.active(*args, **kwargs)
                     return True
 
     def get_final_damage_buff(self, atk):

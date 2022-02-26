@@ -265,7 +265,26 @@ class NearestLocTarget(Target):
 
 class TagTarget(Target):
     """指定标签的目标"""
-    pass
+
+    def __init__(self, side, tag, tag_name='tag'):
+        super().__init__(side)
+        self.tag = tag
+        self.tag_name = tag_name
+
+    def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        target = [ship for ship in fleet
+                  if ship.status[self.tag_name] == self.tag]
+        return target
 
 
 class StatusTarget(Target):
@@ -389,11 +408,6 @@ class CoeffBuff(Buff):
         self.value = value
 
 
-class SpecialBuff(Buff):
-    """机制增益"""
-    pass
-
-
 class AtkBuff(CoeffBuff):
     """攻击公式增益"""
 
@@ -479,6 +493,33 @@ class FinalDamageBuff(AtkBuff):
     def __init__(self, name, phase, value,
                  bias_or_weight=2, atk_request=None, rate=1):
         super().__init__(name, phase, value, bias_or_weight, atk_request, rate)
+
+
+class SpecialBuff(Buff):
+    """机制增益"""
+    def __init__(self, name, phase,
+                 exhaust=None, atk_request=None, bias_or_weight=3, rate=1):
+        super().__init__(name, phase, bias_or_weight, rate)
+        self.exhaust = exhaust
+        self.atk_request = atk_request
+
+    def is_active(self, *args, **kwargs):
+        if self.atk_request is None:
+            return isinstance(self.timer.phase, self.phase) and \
+                   self.rate_verify() and (not self.exhaust)
+
+        try:
+            atk = kwargs['atk']
+        except:
+            atk = args[0]
+
+        return isinstance(self.timer.phase, self.phase) and \
+               bool(self.atk_request[0](atk)) and \
+               self.rate_verify() and (not self.exhaust)
+
+    def active(self, *args, **kwargs):
+        if self.exhaust is not None:
+            self.exhaust -= 1
 
 
 class EventBuff(Buff):

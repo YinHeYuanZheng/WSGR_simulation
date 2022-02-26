@@ -74,6 +74,23 @@ class Equipment(Time):
                     pass
         return (1 + scale_add) * scale_mult - 1, bias  # 先scale后bias
 
+    def get_atk_buff(self, name, atk, *args, **kwargs):
+        """根据增益名称获取全部攻击系数增益(含攻击判断)"""
+        scale_add = 0
+        scale_mult = 1
+        bias = 0
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == name and tmp_buff.is_active(atk=atk, *args, **kwargs):
+                if tmp_buff.bias_or_weight == 0:
+                    bias += tmp_buff.value
+                elif tmp_buff.bias_or_weight == 1:
+                    scale_add += tmp_buff.value
+                elif tmp_buff.bias_or_weight == 2:
+                    scale_mult *= (1 + tmp_buff.value)
+                else:
+                    pass
+        return (1 + scale_add) * scale_mult - 1, bias  # 先scale后bias
+
 
 class Plane(Equipment):
     """飞机"""

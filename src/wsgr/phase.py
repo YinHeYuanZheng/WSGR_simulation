@@ -92,7 +92,8 @@ class AirPhase(AllPhase):
         :param side: 1: friend; 0: enemy
         :return:
         """
-        fall_coef, air_con_coef = self.get_air_coef(side)  # 制空击坠系数，航空战系数
+        fall_coef, air_con_coef = rform.get_air_coef(self.timer.air_con_flag,
+                                                     side)  # 制空击坠系数，航空战系数
 
         anti_num = [0] * len(defend)  # 迎击序数
         total_plane_rest = rform.get_total_plane_rest(attack)  # 总剩余载机量
@@ -160,30 +161,6 @@ class AirPhase(AllPhase):
                     )
                     atk.start()
                     anti_num = atk.get_coef('anti_num')
-
-    def get_air_coef(self, side):
-        if side == 1:
-            air_con_flag = self.timer.air_con_flag
-        else:
-            air_con_flag = 6 - self.timer.air_con_flag
-
-        if air_con_flag == 1:
-            fall_coef = [0, 0.1]
-            air_con_coef = 1.1
-        elif air_con_flag == 2:
-            fall_coef = [0.1, 0.3]
-            air_con_coef = 1.05
-        elif air_con_flag == 3:
-            fall_coef = [0.3, 0.7]
-            air_con_coef = 1.
-        elif air_con_flag == 4:
-            fall_coef = [0.7, 0.9]
-            air_con_coef = .95
-        else:
-            fall_coef = [0.9, 1]
-            air_con_coef = .9
-
-        return fall_coef, air_con_coef
 
 
 class ShellingPhase(AllPhase):

@@ -6,7 +6,7 @@
 from ..wsgr.skill import *
 from ..wsgr.ship import *
 from ..wsgr.phase import *
-from ..wsgr.equipment import *
+
 """增加自身15点火力值，航空战阶段优先攻击对位敌人，命中过的对位敌人在炮击战阶段无法攻击。"""
 
 
@@ -14,7 +14,6 @@ class Skill_101471_1(CommonSkill):
     """增加自身15点火力值"""
     def __init__(self, master):
         super().__init__(master)
-        self.request = [Request_1]
         self.target = SelfTarget(master)
         self.buff = [
             CommonBuff(
@@ -24,9 +23,6 @@ class Skill_101471_1(CommonSkill):
                 bias_or_weight=0
             )
         ]
-
-    def is_active(self, friend, enemy):
-        return True
 
 
 class Skill_101471_2(Skill):
