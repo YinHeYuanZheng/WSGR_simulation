@@ -169,7 +169,7 @@ class Ship(Time):
         else:
             self.temper_buff.append(buff)
         if buff.is_event():
-            self.timer.queue.append(buff)
+            self.timer.queue_append(buff)
 
     def get_buff(self, name, *args, **kwargs):
         """根据增益名称获取全部属性增益"""
@@ -217,28 +217,29 @@ class Ship(Time):
         for tmp_buff in self.temper_buff:
             if tmp_buff.name == name:
                 if tmp_buff.is_active(*args, **kwargs):
-                    tmp_buff.active(*args, **kwargs)
+                    tmp_buff.activate(*args, **kwargs)
                     return True
 
     def get_final_damage_buff(self, atk):
         """根据攻击类型决定终伤加成"""
         for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'final_damage_buff' \
-                    and tmp_buff.is_active(atk=atk):
+            if tmp_buff.name == 'final_damage_buff' and \
+                    tmp_buff.is_active(atk=atk):
                 yield tmp_buff.value
 
     def get_final_damage_debuff(self, atk):
         """根据攻击类型决定终伤减伤加成"""
         for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'final_damage_debuff' \
-                    and tmp_buff.is_active(atk=atk):
+            if tmp_buff.name == 'final_damage_debuff' and \
+                    tmp_buff.is_active(atk=atk):
                 yield tmp_buff.value
 
     def atk_hit(self, name, atk, *args, **kwargs):
         """处理命中后、被命中后添加buff效果（不处理反击）"""
         for tmp_buff in self.temper_buff:
-            if tmp_buff.name == name and tmp_buff.is_active(atk=atk, *args, **kwargs):
-                tmp_buff.active(atk=atk, *args, **kwargs)
+            if tmp_buff.name == name and \
+                    tmp_buff.is_active(atk=atk, *args, **kwargs):
+                tmp_buff.activate(atk=atk, *args, **kwargs)
 
     def act_in_phase(self):
         """判断舰船在指定阶段内能否行动"""
@@ -248,9 +249,14 @@ class Ship(Time):
         """判断指定阶段内可以攻击什么目标"""
         pass
 
-    def get_prior_target(self):
-        """获取指定阶段内优先攻击的目标"""
-        pass
+    def get_prior_target(self, fleet, *args, **kwargs):
+        """获取指定列表可被自身优先攻击的目标"""
+        if isinstance(fleet, Fleet):
+            fleet = fleet.ship
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'prior_target' and \
+                    tmp_buff.is_active(*args, **kwargs):
+                return tmp_buff.activate(fleet)
 
     def get_atk_type(self, target):
         """判断攻击该对象时使用什么攻击类型"""

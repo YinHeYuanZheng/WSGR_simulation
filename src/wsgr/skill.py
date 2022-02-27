@@ -152,6 +152,28 @@ class RandomTypeTarget(TypeTarget):
         return [target]
 
 
+class OrderedTypeTarget(TypeTarget):
+    """按照指定船型的顺序+站位顺序选择目标"""
+    def __init__(self, shiptype, side=0):
+        super().__init__(side, shiptype)
+
+    def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        target = []
+        for tmp_type in self.shiptype:
+            target.extend([ship for ship in fleet if isinstance(ship, tmp_type)])
+        return target
+
+
 class LocTarget(Target):
     """指定站位的目标"""
     def __init__(self, side, loc):
@@ -223,15 +245,25 @@ class NearestLocTarget(Target):
         return target
 
     def get_up_target(self, fleet):
+        if isinstance(fleet, Fleet):
+            fleet = fleet.ship
+
         target = []
         count = self.radius
-        loc = self.master.loc - 1  # 技能所有者在list内的索引
-        while count > 0 and loc > 0:
-            loc -= 1  # 向前推进一位
-            tmp_ship = fleet[loc]
+        index = fleet.index(self.master)  # 技能所有者在list内的索引
+        loc = self.master.loc  # 技能所有者的实际站位
+        gap = loc - index  # 实际列表索引与编队索引的差距
+        while count > 0 and index > 0:
+            index -= 1  # 向前推进一位
+            tmp_ship = fleet[index]
+
+            # 站位检测，不等说明中间跳过了单位
+            if tmp_ship.loc != index + gap:
+                gap -= 1
+                index += 1
 
             # 满足条件时加入返回列表，同时计数-1
-            if isinstance(tmp_ship, self.shiptype):
+            elif isinstance(tmp_ship, self.shiptype):
                 target.append(tmp_ship)
                 count -= 1
                 continue
@@ -243,15 +275,25 @@ class NearestLocTarget(Target):
         return target
 
     def get_down_target(self, fleet):
+        if isinstance(fleet, Fleet):
+            fleet = fleet.ship
+
         target = []
         count = self.radius
-        loc = self.master.loc - 1  # 技能所有者在list内的索引
-        while count > 0 and loc < len(fleet):
-            loc += 1  # 向后推进一位
-            tmp_ship = fleet[loc]
+        index = fleet.index(self.master)  # 技能所有者在list内的索引
+        loc = self.master.loc  # 技能所有者的实际站位
+        gap = loc - index  # 实际列表索引与编队索引的差距
+        while count > 0 and index < len(fleet):
+            index += 1  # 向后推进一位
+            tmp_ship = fleet[index]
+
+            # 站位检测，不等说明中间跳过了单位
+            if tmp_ship.loc != index + gap:
+                gap += 1
+                index -= 1
 
             # 满足条件时加入返回列表，同时计数-1
-            if isinstance(tmp_ship, self.shiptype):
+            elif isinstance(tmp_ship, self.shiptype):
                 target.append(tmp_ship)
                 count -= 1
                 continue
@@ -462,7 +504,7 @@ class AtkHitBuff(Buff):
                bool(self.atk_request[0](atk)) and \
                self.rate_verify()
 
-    def active(self, *args, **kwargs):
+    def activate(self, *args, **kwargs):
         try:
             atk = kwargs['atk']
         except:
@@ -517,11 +559,82 @@ class SpecialBuff(Buff):
                bool(self.atk_request[0](atk)) and \
                self.rate_verify() and (not self.exhaust)
 
-    def active(self, *args, **kwargs):
+    def activate(self, *args, **kwargs):
         if self.exhaust is not None:
             self.exhaust -= 1
+
+
+class PriorTargetBuff(Buff):
+    """优先攻击目标"""
+    def __init__(self, name, phase, target, ordered):
+        super().__init__(name, phase)
+        self.target = target
+        self.ordered = ordered
+
+    def activate(self, fleet, *args, **kwargs):
+        prior = self.target.get_target(None, fleet)
+        if not len(prior):
+            return None
+        elif self.ordered:
+            return prior[0]
+        else:
+            return np.random.choice(prior)
 
 
 class EventBuff(Buff):
     def is_event(self):
         return True
+
+
+class MagnetBuff(EventBuff):
+    """嘲讽技能"""
+    def __init__(self, phase, master, rate,
+                 name='magnet', atk_request=None, bias_or_weight=3):
+        super().__init__(name, phase, bias_or_weight, rate)
+        self.master = master
+        self.atk_request = atk_request
+
+    def is_active(self, atk, *args, **kwargs):
+        if self.atk_request is None:
+            return isinstance(self.timer.phase, self.phase) and \
+                   self.master != atk.target and \
+                   self.master in atk.def_list and \
+                   self.rate_verify()
+
+        return isinstance(self.timer.phase, self.phase) and \
+               bool(self.atk_request[0](atk)) and \
+               self.master != atk.target and \
+               self.master in atk.def_list and \
+               self.rate_verify()
+
+    def activate(self, atk, *args, **kwargs):
+        atk.set_target(self.master)
+
+
+class UnMagnetBuff(EventBuff):
+    """负嘲讽技能"""
+    def __init__(self, phase, master, name='un_magnet',
+                 atk_request=None, bias_or_weight=3, rate=1):
+        super().__init__(name, phase, bias_or_weight, rate)
+        self.master = master
+        self.atk_request = atk_request
+
+    def is_active(self, atk, *args, **kwargs):
+        if self.atk_request is None:
+            return isinstance(self.timer.phase, self.phase) and \
+                   self.master == atk.target and \
+                   self.rate_verify()
+
+        return isinstance(self.timer.phase, self.phase) and \
+               bool(self.atk_request[0](atk)) and \
+               self.master == atk.target and \
+               self.rate_verify()
+
+    def activate(self, atk, *args, **kwargs):
+        target = np.random.choice(atk.def_list)
+        atk.set_target(target)
+
+
+class TankBuff(EventBuff):
+    """挡枪技能"""
+    pass

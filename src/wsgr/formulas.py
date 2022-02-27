@@ -22,12 +22,12 @@ __all__ = ['ATK',
 class ATK(Time):
     """攻击总类"""
 
-    def __init__(self, atk_body, def_list, coef, atk_form, def_form, changeable=True):
+    def __init__(self, atk_body, def_list, coef, atk_form, def_form, target=None):
         super().__init__()
         self.timer.set_atk(self)
         self.atk_body = atk_body
         self.def_list = def_list  # 可被攻击目标列表
-        self.target = None  # 攻击目标，可被更改
+        self.target = target  # 攻击目标，可被更改
         self.coef = coef  # 伤害计算相关参数
         self.atk_form = atk_form  # 攻击方阵型
         self.def_form = def_form  # 防御方阵型
@@ -39,38 +39,30 @@ class ATK(Time):
             'crit': [],
             'be_crit': [],
         }  # 阵型系数
-        self.changeable = changeable
 
     def start(self):
         """攻击开始命令，结算到攻击结束"""
         pass
 
-    def set_target(self):
-        # TODO 优先攻击分为随机和按顺序
-        prior = self.atk_body.get_prior_target()
+    def target_init(self):
+        """决定攻击目标，技能可以影响优先目标"""
+        prior = self.atk_body.get_prior_target(self.def_list)
         if prior is not None:
-            self.target = prior[0]
+            assert not isinstance(prior, list)
+            self.target = prior
         else:
             self.target = random.choice(self.def_list)
 
-    def get_target_num(self):
-        # 遍历目标列表，查询目标所在位置
-        for i in range(len(self.def_list)):
-            if self.target == self.def_list[i]:
-                return i
-
-        # 遍历结束仍未查询到，报错
-        raise AttributeError('target not in list!')
+    def set_target(self, target):
+        self.target = target
 
     def start_atk(self):
         """攻击开始时点，进行嘲讽判定等"""
-        if not self.changeable:
-            return
         if len(self.timer.queue):
-            pass
-            # for tmp_buff in self.timer.queue:
-            #     if tmp_buff.is_active(self):
-            #         tmp_buff.activate(self)
+            for tmp_buff in self.timer.queue:
+                if tmp_buff.is_active(self):
+                    tmp_buff.activate(self)
+                    break
 
     def set_coef(self, name, value):
         self.coef[name] = value
@@ -175,8 +167,8 @@ class ATK(Time):
 
 
 class AirAtk(ATK):
-    def __init__(self, atk_body, def_list, equip, coef, atk_form, def_form, changeable=True):
-        super().__init__(atk_body, def_list, coef, atk_form, def_form, changeable)
+    def __init__(self, atk_body, def_list, equip, coef, atk_form, def_form):
+        super().__init__(atk_body, def_list, coef, atk_form, def_form)
         self.equip = equip
 
         self.form_coef = {
@@ -190,7 +182,7 @@ class AirAtk(ATK):
 
     def start(self):
         damage_flag = False
-        self.set_target()
+        self.target_init()
         self.start_atk()
 
         self.hit_verify()  # 闪避检定
@@ -322,6 +314,11 @@ class AirAtk(ATK):
         for debuff_scale in self.target.get_final_damage_debuff(self):
             damage = np.ceil(damage * (1 + debuff_scale))
 
+        # 挡枪减伤
+        # tank_damage_debuff = self.get_coef('tank_damage_debuff')
+        # if tank_damage_debuff is not None:
+        #     damage = np.ceil(damage * (1 + tank_damage_debuff))
+
         # 对空减伤
         aa_value = self.get_anti_air_def()
         if self.target.size == 3:
@@ -340,15 +337,19 @@ class AirAtk(ATK):
             damage = np.ceil(damage * .25)
 
         # 技能伤害减免
-        _, reduce_damage = self.target.get_atk_buff('reduce_damage', self)
+        _, reduce_damage = self.target.get_atk_buff(name='reduce_damage',
+                                                    atk=self,
+                                                    damage=damage)
         damage -= reduce_damage
+
+        # todo 可能增加挡枪减伤
 
         return max(0, damage)
 
 
 class AirBombAtk(AirAtk):
     def process_coef(self):
-        target_num = self.get_target_num()
+        target_num = self.def_list.index(self.target)
         self.coef['anti_num'][target_num] += 1
         anti_num = self.coef['anti_num'][target_num]
         aa_fall = self.get_anti_air_fall(anti_num)  # 防空击坠
@@ -431,7 +432,7 @@ class AirBombAtk(AirAtk):
 
 class AirDiveAtk(AirAtk):
     def process_coef(self):
-        target_num = self.get_target_num()
+        target_num = self.def_list.index(self.target)
         self.coef['anti_num'][target_num] += 1
         anti_num = self.coef['anti_num'][target_num]
         aa_fall = self.get_anti_air_fall(anti_num)  # 防空击坠

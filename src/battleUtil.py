@@ -44,6 +44,9 @@ class BattleUtil(Time):
         self.timer.set_phase(AirPhase(self.friend, self.enemy))
         self.timer.phase_start()
 
+    def end_phase(self):
+        pass
+
     def report(self):
         pass
 

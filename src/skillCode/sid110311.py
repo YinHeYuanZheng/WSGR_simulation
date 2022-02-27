@@ -11,7 +11,7 @@ from ..wsgr.phase import *
 class Skill_110311_1(Skill):
     """自身航空战阶段自身攻击命中后必定暴击
     炮击战阶段自身伤害降低10%
-    todo 炮击战阶段,优先攻击要塞、机场、港口、航母
+    炮击战阶段,优先攻击要塞、机场、港口、航母
     自身全阶段攻击要塞、机场、港口、航母时降低敌方100%对空值（不包括装备）"""
 
     def __init__(self, master):
@@ -27,7 +27,14 @@ class Skill_110311_1(Skill):
                 phase=ShellingPhase,
                 value=-0.1,
             ),
-
+            PriorTargetBuff(
+                name='prior_target',
+                phase=(ShellingPhase,),
+                target=OrderedTypeTarget(
+                    shiptype=(Fortness, Airfield, Port, CV)
+                ),
+                ordered=False
+            ),
             AtkBuff(
                 name='ignore_antiair',
                 phase=AllPhase,

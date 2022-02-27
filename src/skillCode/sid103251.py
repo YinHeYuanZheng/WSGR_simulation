@@ -34,10 +34,9 @@ class Skill_103251_2(Skill):
         super().__init__(master)
         self.target = SelfTarget(master)
         self.buff = [
-            FinalDamageBuff(
-                name='final_damage_debuff',
+            SpecialBuff(
+                name='shield',
                 phase=(AllPhase,),
-                value=-1,
                 atk_request=[BuffRequest_1],
                 rate=0.25
             )

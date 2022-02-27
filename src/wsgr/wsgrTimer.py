@@ -31,6 +31,10 @@ class timer:
     def set_atk(self, atk):
         self.atk = atk
 
+    def queue_append(self, buff):
+        self.queue.append(buff)
+        self.queue.sort(key=lambda x: (-x.rate, x.master.loc))
+
     def phase_start(self):
         self.phase.start()
 

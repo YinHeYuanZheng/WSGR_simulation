@@ -33,19 +33,16 @@ class Skill_104861_1(CommonSkill):
 
 
 class Skill_104861_2(Skill):
-    # todo 航空战嘲讽
-    def __init__(self, master):
-        super().__init__(master)
-        self.target = SelfTarget(master)
-        self.buff = []
-
-
-class Skill_104861_3(Skill):
-    """航空战阶段自身受到伤害减少15点"""
+    """航空战阶段自身被攻击概率提高40%，受到伤害减少15点。"""
     def __init__(self, master):
         super().__init__(master)
         self.target = SelfTarget(master)
         self.buff = [
+            MagnetBuff(
+                phase=(AirPhase,),
+                master=master,
+                rate=0.4
+            ),
             CoeffBuff(
                 name='reduce_damage',
                 phase=(AirPhase,),
@@ -55,4 +52,4 @@ class Skill_104861_3(Skill):
         ]
 
 
-skill = [Skill_104861_1, Skill_104861_3]
+skill = [Skill_104861_1, Skill_104861_2]

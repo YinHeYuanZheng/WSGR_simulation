@@ -17,9 +17,9 @@ from . import sid104331  # 提康德罗加-1
 from . import sid104551  # 皇家方舟(R09)-1
 from . import sid104691  # 本宁顿-1
 from . import sid104711  # 欧罗巴-1
-# from . import sid104741  # 72工程-1
+from . import sid104741  # 72工程-1
 from . import sid104831  # 胜利-1
-# from . import sid104861  # G15-1
+from . import sid104861  # G15-1
 from . import sid104941  # G6-1
 from . import sid104981  # 复仇-1
 from . import sid105101  # G14-1

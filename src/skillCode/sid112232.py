@@ -42,13 +42,18 @@ class Skill_112232_2(Skill):
                 phase=(AllPhase, ),
                 value=35,
                 bias_or_weight=0
-            ), StatusBuff(
+            ),
+            StatusBuff(
                 name='recon',
                 phase=(AllPhase, ),
                 value=25,
                 bias_or_weight=0
             ),
-            # todo 炮击战嘲讽
+            MagnetBuff(
+                phase=(ShellingPhase,),
+                master=master,
+                rate=0.35
+            )
         ]
 
     def is_active(self, friend, enemy):
