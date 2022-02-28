@@ -24,8 +24,8 @@ class Ship(Time):
             'total_health': 0,  # 总耐久
             'health': 0,  # 当前耐久
             'fire': 0,  # 火力
-            'armor': 0,  # 装甲
             'torpedo': 0,  # 鱼雷
+            'armor': 0,  # 装甲
             'antiair': 0,  # 对空
             'antisub': 0,  # 对潜
             'accuracy': 0,  # 命中
@@ -64,7 +64,7 @@ class Ship(Time):
                self.side != other.side
 
     def __repr__(self):
-        return f"Name: {self.status['name']}"
+        return f"{type(self).__name__}: {self.status['name']}"
 
     def set_cid(self, cid):
         """设置舰船编号"""
@@ -101,12 +101,26 @@ class Ship(Time):
             else:
                 self.skill.append(tmp_skill)
 
+    def get_raw_skill(self):
+        """获取技能，让巴尔可调用"""
+        return self._skill[:]
+
     def set_equipment(self, equipment):
         """设置舰船装备"""
         if isinstance(equipment, list):
             self.equipment = equipment
         else:
             self.equipment.append(equipment)
+
+    def init_health(self):
+        """初始化血量"""
+        # standard_health 血量战损状态计算标准
+        self.status['standard_health'] = self.status['total_health']
+        for tmp_buff in self.common_buff:
+            if tmp_buff.name == 'health':
+                self.status['standard_health'] += tmp_buff.value
+        self.status['standard_health'] += self.get_equip_status('health')
+        self.status['health'] = self.status['standard_health']
 
     def set_status(self, name=None, value=None, status=None):
         """根据属性名称设置本体属性"""
@@ -268,6 +282,7 @@ class Ship(Time):
 
     def get_damage(self, damage):
         """受伤结算，过伤害保护，需要返回受伤与否"""
+        standard_health = self.status['standard_health']
 
         # 敌方没有伤害保护，大破进击没有伤害保护
         if self.side == 0 or \
@@ -283,19 +298,19 @@ class Ship(Time):
                 damage = np.ceil(self.status['health'] * 0.1)
 
         # 友方非大破状态下，受到足以大破的伤害
-        elif self.status['health'] - damage < self.status['total_health'] * 0.25:
-            if self.status['health'] == self.status['total_health']:
-                damage = np.ceil(self.status['total_health'] * np.random.uniform(0.5, 0.75))
+        elif self.status['health'] - damage < standard_health * 0.25:
+            if self.status['health'] == standard_health:
+                damage = np.ceil(standard_health * np.random.uniform(0.5, 0.75))
             else:
-                damage = np.ceil(self.status['health'] - self.status['total_health'] * 0.25)
+                damage = np.ceil(self.status['health'] - standard_health * 0.25)
 
         self.status['health'] -= damage
         # 受伤状态结算
         if self.damaged < 2 and \
-                self.status['health'] < self.status['total_health'] * 0.5:
+                self.status['health'] < standard_health * 0.5:
             self.damaged = 2
         if self.damaged < 3 and \
-                self.status['health'] < self.status['total_health'] * 0.25:
+                self.status['health'] < standard_health * 0.25:
             self.damaged = 3
         if self.damaged < 4 and \
                 self.status['health'] <= 0:
@@ -455,6 +470,14 @@ class Fleet(Time):
         self.status = {}  # 舰队属性
         self.form = 0  # 阵型; 1: 单纵; 2: 复纵; 3: 轮形; 4: 梯形; 5: 单横
         self.side = 0  # 敌我识别; 1: 友方; 0: 敌方
+
+    def __repr__(self):
+        if self.side == 1:
+            fleet_name = '友方舰队'
+        else:
+            fleet_name = '敌方舰队'
+        form_list = ['单纵阵', '复纵阵', '轮形阵', '梯形阵', '单横阵']
+        return f"{fleet_name}-{form_list[self.form - 1]}"
 
     def set_ship(self, shiplist):
         self.ship = shiplist

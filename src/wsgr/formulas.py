@@ -639,7 +639,7 @@ def get_scaled_anti_air(ship):
     anti_air = 0
     for tmp_equip in ship.equipment:
         equip_aa = tmp_equip.get_final_status('anti_air')
-        equip_aa_scale = tmp_equip.get_final_status('anti_air_scale')
+        equip_aa_scale = tmp_equip.get_final_status('aa_scale')
         anti_air += 2.5 * equip_aa * equip_aa_scale
     return anti_air
 

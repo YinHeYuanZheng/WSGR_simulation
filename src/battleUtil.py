@@ -14,17 +14,19 @@ class BattleUtil(Time):
         self.friend = friend
         self.enemy = enemy
 
-        self.battle_init()
-
     def battle_init(self):
         """战斗初始化"""
+        self.timer.set_phase(AllPhase)
         for tmp_ship in self.friend:
             tmp_ship.init_skill(self.friend, self.enemy)
+            tmp_ship.init_health()
         for tmp_ship in self.enemy:
             tmp_ship.init_skill(self.enemy, self.friend)
+            tmp_ship.init_health()
 
     def battle_start(self):
         """进行阵型选择和战斗流程"""
+        self.battle_init()
         self.recon_phase()
         self.buff_phase()
         self.air_phase()

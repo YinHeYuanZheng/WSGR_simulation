@@ -21,6 +21,22 @@ class Equipment(Time):
         self.common_buff = []  # 永久面板加成(如驻岛舰队、巨像、汉考克)
         self.temper_buff = []  # 临时buff
 
+    def __repr__(self):
+        return f"{type(self).__name__}: {self.status['name']}"
+
+    def set_status(self, name=None, value=None, status=None):
+        """根据属性名称设置本体属性"""
+        if status is None:
+            if (name is not None) and (value is not None):
+                self.status[name] = value
+            else:
+                raise ValueError("'name', 'value' and 'status' should not be all None!")
+        else:
+            if isinstance(status, dict):
+                self.status = status
+            else:
+                raise AttributeError(f"'status' should be dict, got {type(status)} instead.")
+
     def get_status(self, name):
         """根据属性名称获取装备属性，包含常驻面板加成"""
         status = self.status.get(name, default=0)
@@ -75,7 +91,7 @@ class Equipment(Time):
         return (1 + scale_add) * scale_mult - 1, bias  # 先scale后bias
 
     def get_atk_buff(self, name, atk, *args, **kwargs):
-        """根据增益名称获取全部攻击系数增益(含攻击判断)"""
+        """根据增益名称获取全部攻击系数增益(含攻击判断)(目前只有命中调用)"""
         scale_add = 0
         scale_mult = 1
         bias = 0
@@ -96,7 +112,7 @@ class Plane(Equipment):
     """飞机"""
     def __init__(self, master, enum):
         super().__init__(master, enum)
-        self.load = self.master.load[self.enum]
+        self.load = self.master.load[self.enum - 1]
 
     def fall(self, fall_num):
         fall_num = min(self.load, fall_num)
