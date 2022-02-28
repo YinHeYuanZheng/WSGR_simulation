@@ -17,10 +17,10 @@ class BattleUtil(Time):
     def battle_init(self):
         """战斗初始化"""
         self.timer.set_phase(AllPhase)
-        for tmp_ship in self.friend:
+        for tmp_ship in self.friend.ship:
             tmp_ship.init_skill(self.friend, self.enemy)
             tmp_ship.init_health()
-        for tmp_ship in self.enemy:
+        for tmp_ship in self.enemy.ship:
             tmp_ship.init_skill(self.enemy, self.friend)
             tmp_ship.init_health()
 

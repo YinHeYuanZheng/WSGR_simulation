@@ -72,7 +72,7 @@ class ATK(Time):
 
     def get_coef(self, name):
         """获取指定名称的参数"""
-        return self.coef.get(name, default=None)
+        return self.coef.get(name, None)
 
     def get_form_coef(self, name, form_num):
         """获取阵型系数"""
@@ -627,9 +627,9 @@ def get_team_anti_air(team):
     aa_coef = 0
     for tmp_ship in team:
         for tmp_equip in tmp_ship.equipment:
-            if isinstance(tmp_equip, requip.AntiAirGun):
+            equip_aa_coef = tmp_equip.get_final_status('aa_coef')
+            if equip_aa_coef != 0:
                 anti_air += tmp_equip.get_final_status('anti_air')
-                equip_aa_coef = tmp_equip.get_final_status('aa_coef')
                 aa_coef = max(equip_aa_coef, aa_coef)
     return anti_air * aa_coef
 

@@ -137,7 +137,7 @@ class Ship(Time):
 
     def get_status(self, name):
         """根据属性名称获取本体属性，包含常驻面板加成"""
-        status = self.status.get(name, default=0)
+        status = self.status.get(name, 0)
         if isinstance(status, str):  # 国籍、名称、tag等，直接返回
             return status
 

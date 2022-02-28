@@ -67,8 +67,7 @@ def load_friend_ship(node, dataset):
     ship.set_level(int(node.getAttribute('level')))
     ship.set_affection(int(node.getAttribute('affection')))
 
-    if isinstance(ship, Aircraft):
-        assert status['capacity'] != 0
+    if status['capacity'] != 0:
         load = status.pop('load')
         ship.set_load(load)
     equip_num = status.pop('equipnum')
@@ -102,12 +101,70 @@ def load_friend_ship(node, dataset):
         eskill_list.append(e_skill)
 
     # todo 同类装备效果不叠加
+    if len(eskill_list):
+        ship.add_skill(eskill_list[0])
 
     return ship
 
 
 def load_enemy_ship(node, dataset):
-    pass
+    # 读取舰船属性
+    cid = node.getAttribute('cid')
+    status = dataset.get_enemy_ship_status(cid)
+
+    # 舰船对象实例化
+    ship_type = status.pop('type')
+    ship = getattr(rship, ship_type)()  # 根据船型获取类，并实例化
+    ship.set_cid(cid)
+
+    # 写入节点属性
+    ship.set_loc(int(node.getAttribute('loc')))
+    ship.set_level(int(node.getAttribute('level')))
+    ship.set_affection(int(node.getAttribute('affection')))
+
+    if status['capacity'] != 0:
+        load = status.pop('load')
+        ship.set_load(load)
+    eid_list = status.pop('equip')
+    skill_list = status.pop('skill')
+
+    # 写入舰船属性
+    ship.set_status(status=status)
+    del status
+
+    # 调用技能并写入
+    skill_num = int(node.getAttribute('skill')) - 1
+    sid = skill_list[skill_num]
+    if sid != '':
+        sid = 'sid' + sid
+        skill = getattr(skillCode, sid).skill  # 根据技能设置获取技能列表，未实例化
+        ship.add_skill(skill)
+        del skill
+
+    # 读取装备属性并写入
+    eskill_list = []
+    for i, eid in enumerate(eid_list):
+        if eid != '':
+            estatus = dataset.get_equip_status(eid)
+            equip_type = estatus.pop('type')
+            equip = getattr(requip, equip_type)(ship, i + 1)  # 根据装备类型获取类，并实例化
+
+            # 如果装备也存在特殊效果，当作技能写入舰船skill内
+            esid = estatus.pop('skill')
+            if esid != '':
+                esid = 'eid' + esid
+                eskill = getattr(skillCode, esid).skill  # 根据技能设置获取技能列表，未实例化
+                eskill_list.append(eskill)
+
+            # 写入装备属性
+            equip.set_status(status=estatus)
+            ship.set_equipment(equip)
+
+    # todo 同类装备效果不叠加
+    if len(eskill_list):
+        ship.add_skill(eskill_list[0])
+
+    return ship
 
 
 def load_equip(node, dataset, master):
@@ -122,10 +179,10 @@ def load_equip(node, dataset, master):
 
     # 如果装备也存在特殊效果，当作技能写入舰船skill内
     skill = []
-    # esid = status.pop('skill')
-    # if esid != '':
-    #     esid = 'eid' + esid
-    #     skill = getattr(skillCode, esid).skill  # 根据技能设置获取技能列表，未实例化
+    esid = status.pop('skill')
+    if esid != '':
+        esid = 'eid' + esid
+        skill = getattr(skillCode, esid).skill  # 根据技能设置获取技能列表，未实例化
 
     # 写入装备属性
     equip.set_status(status=status)

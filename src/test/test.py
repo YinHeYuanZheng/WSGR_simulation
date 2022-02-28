@@ -21,4 +21,5 @@ if __name__ == '__main__':
     dependDir = os.path.join(os.path.dirname(srcDir), 'depend')
     data_file = os.path.join(dependDir, r'ship\database.xlsx')
     ds = Dataset(data_file)
-    load_config(xml_file, ds)
+    battle = load_config(xml_file, ds)
+    battle.battle_start()

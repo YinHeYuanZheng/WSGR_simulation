@@ -39,7 +39,7 @@ class Equipment(Time):
 
     def get_status(self, name):
         """根据属性名称获取装备属性，包含常驻面板加成"""
-        status = self.status.get(name, default=0)
+        status = self.status.get(name, 0)
 
         scale_add = 0
         scale_mult = 1
@@ -148,7 +148,32 @@ class SecondaryGun(Equipment):
 
 class AntiAirGun(Equipment):
     """防空炮"""
-    def __init__(self, master, enum):
-        super().__init__(master, enum)
-        # self.status['aa_scale'] = 1.  # 防空倍率
-        # self.status['aa_coef'] = 0.  # 补正倍率
+    pass
+
+
+class Radar(Equipment):
+    pass
+
+
+class Torpedo(Equipment):
+    """鱼雷"""
+    pass
+
+
+class DepthMine(Equipment):
+    """深投"""
+    pass
+
+
+class Sonar(Equipment):
+    pass
+
+
+class Shell(Equipment):
+    """炮弹"""
+    pass
+
+
+class Accessory(Equipment):
+    """强化部件"""
+    pass
