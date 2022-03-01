@@ -12,11 +12,12 @@ from src.wsgr.phase import *
 
 class Skill_101471_1(CommonSkill):
     """增加自身15点火力值"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CommonBuff(
+                timer=timer,
                 name='fire',
                 phase=(AllPhase,),
                 value=15,
@@ -28,11 +29,12 @@ class Skill_101471_1(CommonSkill):
 class Skill_101471_2(Skill):
     """航空战阶段优先攻击对位敌人,
     todo 命中过的对位敌人在炮击战阶段无法攻击"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             PriorTargetBuff(
+                timer=timer,
                 name='prior_target',
                 phase=(AirPhase,),
                 target=LocTarget(

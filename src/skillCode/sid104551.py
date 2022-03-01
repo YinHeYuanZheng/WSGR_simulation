@@ -14,10 +14,11 @@ from src.wsgr.phase import *
 class Skill_104551_1(CommonSkill):
     """提升自身12点火力值。"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [CommonBuff(
+            timer=timer,
             name='fire',
             phase=(AllPhase,),
             value=12,
@@ -28,16 +29,16 @@ class Skill_104551_1(CommonSkill):
 class Skill_104551_2(Skill):
     """炮击战阶段，自身可以参与次轮炮击战，火力为首轮炮击120%。"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             StatusBuff(
+                timer=timer,
                 name='fire',
                 phase=(SecondShellingPhase,),
                 value=0.2,
-                bias_or_weight=1
-            ),
+                bias_or_weight=1),
             # todo 可参与次轮炮击
         ]
 

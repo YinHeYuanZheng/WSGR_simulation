@@ -16,16 +16,19 @@ from src.wsgr.equipment import *
 class Skill_104331_1(Skill):
     """自身受到航母单位攻击时降低20%的伤害（限开幕与炮击战阶段）"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
-        self.buff = [FinalDamageBuff(
-            name='final_damage_debuff',
-            phase=(AirPhase, ShellingPhase),
-            value=-0.2,
-            atk_request=[BuffRequest_1],
-            bias_or_weight=2
-        )]
+        self.buff = [
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_debuff',
+                phase=(AirPhase, ShellingPhase),
+                value=-0.2,
+                bias_or_weight=2,
+                atk_request=[BuffRequest_1]
+            )
+        ]
 
 
 class BuffRequest_1(ATKRequest):
@@ -36,8 +39,8 @@ class BuffRequest_1(ATKRequest):
 class Skill_104331_2(Skill):
     """自身和其上方最近的一艘航母，装母，轻母单位在制空权均势，优势，确保时舰载机伤害增加10%。"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = NearestLocTarget(
             side=1,
             master=master,
@@ -50,6 +53,7 @@ class Skill_104331_2(Skill):
 
         self.buff = [
             AtkBuff(
+                timer=timer,
                 name='air_atk_buff',
                 phase=(AllPhase,),
                 value=0.1,

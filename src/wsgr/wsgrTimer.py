@@ -16,6 +16,9 @@ class timer:
         self.queue = []             # 有时点依赖的技能 TODO 战斗结束记得清空
         self.log = []
 
+        self.hit = 0
+        self.miss = 0
+
     def set_recon(self, recon_flag):
         self.recon_flag = recon_flag
 
@@ -25,7 +28,7 @@ class timer:
     def set_air_con(self, air_con_flag):
         self.air_con_flag = air_con_flag
         air_con_info = ['空确', '空优', '均势', '劣势', '丧失']
-        print(f"制空结果：{air_con_info[air_con_flag - 1]}")
+        # print(f"制空结果：{air_con_info[air_con_flag - 1]}")
 
     def set_phase(self, phase):
         self.phase = phase
@@ -41,17 +44,18 @@ class timer:
         self.phase.start()
 
     def report(self, damage_value):
-        print(f"{self.atk.atk_body.status['name']} -> "
-              f"{self.atk.target.status['name']}: "
-              f"{str(damage_value)}")
-
-
-time = timer()
+        # print(f"{self.atk.atk_body.status['name']} -> "
+        #       f"{self.atk.target.status['name']}: "
+        #       f"{str(damage_value)}")
+        if isinstance(damage_value, str):
+            self.miss += 1
+        else:
+            self.hit +=1
 
 
 class Time:
-    def __init__(self):
-        self.timer = time
+    def __init__(self, timer):
+        self.timer = timer
 
     def set_timer(self, new_timer):
         self.timer = new_timer

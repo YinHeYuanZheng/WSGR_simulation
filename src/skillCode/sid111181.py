@@ -14,16 +14,19 @@ from src.wsgr.phase import *
 
 class Skill_111181_1(Skill):
     """当队伍中战列数量大于2时，增加全队战列舰9%暴击率，9点命中值"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = TypeTarget(side=1, shiptype=(BB,))
         self.buff = [
             CoeffBuff(
+                timer=timer,
                 name='crit',
                 phase=AllPhase,
                 value=0.09,
                 bias_or_weight=0
-            ), StatusBuff(
+            ),
+            StatusBuff(
+                timer=timer,
                 name='accuracy',
                 phase=AllPhase,
                 value=9,
@@ -43,16 +46,19 @@ class Skill_111181_1(Skill):
 
 class Skill_111181_2(Skill):
     """当队伍中没有战列时，增加自身25%暴击率，20点装甲值。"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
+                timer=timer,
                 name='crit',
                 phase=AllPhase,
                 value=0.25,
                 bias_or_weight=0
-            ), StatusBuff(
+            ),
+            StatusBuff(
+                timer=timer,
                 name='armor',
                 phase=AllPhase,
                 value=20,
@@ -72,8 +78,8 @@ class Skill_111181_2(Skill):
 
 # class Skill_111181_3(Skill):
 #     炮击战阶段，被齐柏林命中的非旗舰单位在炮击战阶段不再行动。
-#     def __init__(self, master):
-#         super().__init__(master)
+#     def __init__(self, timer, master):
+#         super().__init__(timer, master)
 #         self.target = SelfTarget(master)
 #         self.buff = []
 

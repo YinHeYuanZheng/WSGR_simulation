@@ -11,16 +11,18 @@ from src.wsgr.phase import *
 class Skill_112481_1(CommonSkill):
     """增加全队舰船5点索敌值和10点命中值。"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = Target(side=1)
         self.buff = [
             CommonBuff(
+                timer=timer,
                 name='recon',
                 phase=(AllPhase,),
                 value=5,
                 bias_or_weight=0
             ), CommonBuff(
+                timer=timer,
                 name='accuracy',
                 phase=(AllPhase,),
                 value=10,
@@ -32,11 +34,12 @@ class Skill_112481_1(CommonSkill):
 class Skill_112481_2(Skill):
     """增加我方小型船15%暴击率。"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = TypeTarget(side=1, shiptype=(SmallShip,))
         self.buff = [
             CoeffBuff(
+                timer,
                 name='crit',
                 phase=(AllPhase,),
                 value=0.15,

@@ -10,14 +10,15 @@ from src.wsgr.phase import *
 
 class Skill_113391(Skill):
     """增加开幕和炮击战阶段伤害20%。"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             FinalDamageBuff(
+                timer,
                 name='final_damage_buff',
                 phase=(AirPhase, ShellingPhase),
-                value=0.2,
+                value=0.2
             )
         ]
 

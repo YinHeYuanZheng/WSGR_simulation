@@ -11,13 +11,14 @@ from src.wsgr.phase import *
 
 
 class Skill_110221(Skill):
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
 
         self.target = Target(side=0)
 
         self.buff = [
             StatusBuff(
+                timer=timer,
                 name='antiair',
                 phase=(AllPhase,),
                 value=-0.3,

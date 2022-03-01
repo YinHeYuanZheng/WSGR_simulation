@@ -21,10 +21,11 @@ class Skill_104981(Skill):
         buff_value = 0.08 * len(target_essex)
         self.master.add_buff(
             CoeffBuff(
+                timer=self.timer,
                 name='air_atk_buff',
                 phase=(AllPhase,),
                 value=buff_value,
-                bias_or_weight=2,
+                bias_or_weight=2
             )
         )
 

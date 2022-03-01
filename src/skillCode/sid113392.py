@@ -13,11 +13,12 @@ from src.wsgr.phase import *
 
 class Skill_113392_1(Skill):
     """队伍中如果有装母时增加帝国自身18点火力值"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             StatusBuff(
+                timer,
                 name='fire',
                 phase=(AirPhase,),
                 value=18,

@@ -10,15 +10,16 @@ from src.wsgr.phase import *
 
 class Skill_112281(Skill):
     """对敌方航母，装甲航母，轻母造成的最终伤害增加25%。"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             FinalDamageBuff(
+                timer,
                 name='final_damage_buff',
                 phase=(AllPhase,),
                 value=0.25,
-                atk_request=[BuffRequest_1],
+                atk_request=[BuffRequest_1]
             )
         ]
 

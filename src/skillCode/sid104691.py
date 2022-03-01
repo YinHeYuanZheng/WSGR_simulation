@@ -14,28 +14,30 @@ from src.wsgr.equipment import *
 
 class Skill_104691_1(Skill):
     """航空战阶段，自身增加20%伤害"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             FinalDamageBuff(
+                timer=timer,
                 name='final_damage_buff',
-                phase=(AirPhase, ),
-                value=0.2,
+                phase=(AirPhase,),
+                value=0.2
             )
         ]
 
 
 class Skill_104691_2(Skill):
     """航空战阶段，队伍内其他航母类(航母、装母、轻母)单位增加14%伤害"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = TypeTarget(side=1, shiptype=(CV, CVL, AV))
         self.buff = [
             FinalDamageBuff(
+                timer=timer,
                 name='final_damage_buff',
-                phase=(AirPhase, ),
-                value=0.14,
+                phase=(AirPhase,),
+                value=0.14
             )
         ]
 
@@ -49,14 +51,15 @@ class Skill_104691_2(Skill):
 
 class Skill_104691_3(Skill):
     """炮击战阶段，队伍内非航母类单位增加18%伤害。"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = AntiTypeTarget(side=1, shiptype=(CV, CVL, AV))
         self.buff = [
             FinalDamageBuff(
+                timer=timer,
                 name='final_damage_buff',
-                phase=(ShellingPhase, ),
-                value=0.18,
+                phase=(ShellingPhase,),
+                value=0.18
             )
         ]
 

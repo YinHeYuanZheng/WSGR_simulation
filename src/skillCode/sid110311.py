@@ -14,28 +14,30 @@ class Skill_110311_1(Skill):
     炮击战阶段,优先攻击要塞、机场、港口、航母
     自身全阶段攻击要塞、机场、港口、航母时降低敌方100%对空值（不包括装备）"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             SpecialBuff(
+                timer=timer,
                 name='must_crit',
                 phase=(AirPhase,)
             ),
             FinalDamageBuff(
+                timer=timer,
                 name='final_damage_buff',
                 phase=ShellingPhase,
-                value=-0.1,
+                value=-0.1
             ),
             PriorTargetBuff(
+                timer=timer,
                 name='prior_target',
                 phase=(ShellingPhase,),
-                target=OrderedTypeTarget(
-                    shiptype=(Fortness, Airfield, Port, CV)
-                ),
+                target=OrderedTypeTarget(shiptype=(Fortness, Airfield, Port, CV)),
                 ordered=False
             ),
             AtkBuff(
+                timer=timer,
                 name='ignore_antiair',
                 phase=AllPhase,
                 value=-1,
@@ -54,11 +56,12 @@ class BuffRequest_1(ATKRequest):
 class Skill_110311_2(Skill):
     """当队伍中航母≥2时，增加自身30%暴击伤害"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
+                timer=timer,
                 name='crit_coef',
                 phase=AllPhase,
                 value=0.3,

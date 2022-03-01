@@ -12,8 +12,8 @@ from src.wsgr.equipment import *
 class Skill_110231_1(CommonSkill):
     """增加自身鱼雷机8点对潜值"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = EquipTarget(
             side=1,
             target=SelfTarget(master),
@@ -21,6 +21,7 @@ class Skill_110231_1(CommonSkill):
         )
         self.buff = [
             CommonBuff(
+                timer=timer,
                 name='antisub',
                 phase=(AllPhase,),
                 value=8,
@@ -32,8 +33,8 @@ class Skill_110231_1(CommonSkill):
 class Skill_110231_2(CommonSkill):
     """增加自身轰炸机8点轰炸值"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = EquipTarget(
             side=1,
             target=SelfTarget(master),
@@ -41,6 +42,7 @@ class Skill_110231_2(CommonSkill):
         )
         self.buff = [
             CommonBuff(
+                timer=timer,
                 name='bomb',
                 phase=(AllPhase,),
                 value=8,

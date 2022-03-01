@@ -9,8 +9,8 @@ from src.wsgr.phase import *
 class BattleUtil(Time):
     """调取全部战斗流程"""
 
-    def __init__(self, friend, enemy):
-        super().__init__()
+    def __init__(self, timer, friend, enemy):
+        super().__init__(timer)
         self.friend = friend
         self.enemy = enemy
 
@@ -40,18 +40,19 @@ class BattleUtil(Time):
         pass
 
     def buff_phase(self):
-        self.timer.set_phase(BuffPhase(self.friend, self.enemy))
+        self.timer.set_phase(BuffPhase(self.timer, self.friend, self.enemy))
         self.timer.phase_start()
 
     def air_phase(self):
-        self.timer.set_phase(AirPhase(self.friend, self.enemy))
+        self.timer.set_phase(AirPhase(self.timer, self.friend, self.enemy))
         self.timer.phase_start()
 
     def end_phase(self):
         pass
 
     def report(self):
-        pass
+        hit_rate = self.timer.hit / (self.timer.hit + self.timer.miss)
+        return hit_rate
 
 
 if __name__ == "__main__":

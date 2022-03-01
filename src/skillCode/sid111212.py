@@ -11,18 +11,20 @@ from src.wsgr.phase import *
 class Skill_111212_1(CommonSkill):
     """增加自身闪避值10点、火力值15点"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
 
         self.buff = [
             CommonBuff(
+                timer=timer,
                 name='evasion',
                 phase=(AllPhase,),
                 value=10,
                 bias_or_weight=0
             ),
             CommonBuff(
+                timer=timer,
                 name='fire',
                 phase=(AllPhase,),
                 value=15,
@@ -34,12 +36,13 @@ class Skill_111212_1(CommonSkill):
 class Skill_111212_2(Skill):
     """增加自身暴击率20%，首轮炮击必中"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
 
         self.buff = [
             CoeffBuff(
+                timer=timer,
                 name='crit',
                 phase=(AllPhase,),
                 value=0.20,

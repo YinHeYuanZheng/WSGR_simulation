@@ -10,10 +10,11 @@ from src.wsgr.phase import *
 
 class Skill_111211_1(CommonSkill):
     """增加自身回避20点"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [CommonBuff(
+            timer=timer,
             name='evasion',
             phase=(AllPhase,),
             value=20,
@@ -23,26 +24,29 @@ class Skill_111211_1(CommonSkill):
 
 class Skill_111211_2(Skill):
     """队伍中没有其余航母（航母，轻母，装母）存在时，自身射程变更为长,火力加成55点"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.request = [Request_1]
         self.buff = [
             StatusBuff(
+                timer,
                 name='range',
                 phase=(AllPhase,),
-                value=3,  # 射程逻辑：取所有buff中最高值
+                value=3,
                 bias_or_weight=0
             ),
             StatusBuff(
+                timer,
                 name='fire',
                 phase=(AllPhase,),
                 value=55,
                 bias_or_weight=0
-            )]
+            )
+        ]
 
     def is_active(self, friend, enemy):
-        return bool(self.request[0](self.master, friend, enemy))
+        return bool(self.request[0](self.timer, self.master, friend, enemy))
 
 
 class Request_1(Request):

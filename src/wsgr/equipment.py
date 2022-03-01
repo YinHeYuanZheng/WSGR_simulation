@@ -11,8 +11,8 @@ from src.wsgr.ship import *
 class Equipment(Time):
     """装备总类"""
 
-    def __init__(self, master, enum):
-        super().__init__()
+    def __init__(self, timer, master, enum):
+        super().__init__(timer)
         self.master = master  # 该装备载体
         self.enum = enum  # 该装备所在栏位
         self.status = {}  # 装备属性
@@ -108,8 +108,8 @@ class Equipment(Time):
 
 class Plane(Equipment):
     """飞机"""
-    def __init__(self, master, enum):
-        super().__init__(master, enum)
+    def __init__(self, timer, master, enum):
+        super().__init__(timer, master, enum)
         self.load = self.master.load[self.enum - 1]
 
     def __repr__(self):
@@ -122,8 +122,7 @@ class Plane(Equipment):
 
 
 class Bomber(Plane):
-    def __init__(self, master, enum):
-        super().__init__(master, enum)
+    pass
 
 
 class DiveBomber(Plane):

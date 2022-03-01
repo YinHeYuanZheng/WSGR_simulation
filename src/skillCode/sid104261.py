@@ -16,65 +16,71 @@ from src.wsgr.equipment import *
 class Skill_104261_1(Skill):
     """增加自身20%暴击率。"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
-        self.buff = [CoeffBuff(
-            name='crit',
-            phase=(AllPhase,),
-            value=0.2,
-            bias_or_weight=0
-        )]
+        self.buff = [
+            CoeffBuff(
+                timer=timer,
+                name='crit',
+                phase=(AllPhase,),
+                value=0.2,
+                bias_or_weight=0
+            )
+        ]
 
 
 class Skill_104261_2(Skill):
     """彼得·施特拉塞尔命中过的目标会降低10点闪避值与10点装甲值（限炮击战阶段）"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             AtkHitBuff(
+                timer=timer,
                 name='atk_hit',
                 phase=(AllPhase,),
-                side=0,
                 buff=[
                     StatusBuff(
+                        timer=timer,
                         name='evasion',
                         phase=(ShellingPhase,),
                         value=-10,
                         bias_or_weight=0
                     ),
                     StatusBuff(
+                        timer=timer,
                         name='armor',
                         phase=(ShellingPhase,),
                         value=-10,
                         bias_or_weight=0
                     )
-                ]
-            )
+                ],
+                side=0)
         ]
 
 
 class Skill_104261_3(Skill):
     """如果是航母装母轻母单位还会再额外降低10点命中值（限炮击战阶段）。"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             AtkHitBuff(
+                timer=timer,
                 name='atk_hit',
                 phase=(AllPhase,),
-                side=0,
                 buff=[
                     StatusBuff(
+                        timer=timer,
                         name='accurace',
                         phase=(ShellingPhase,),
                         value=-10,
-                        bias_or_weight=0
-                    )
+                        bias_or_weight=0)
                 ],
+                side=0,
                 atk_request=[BuffRequest_1]
             )
         ]

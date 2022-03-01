@@ -10,8 +10,8 @@ from src.wsgr.ship import Ship, Fleet
 
 
 class Skill(Time):
-    def __init__(self, master):
-        super().__init__()
+    def __init__(self, timer, master):
+        super().__init__(timer)
         self.master = master
 
         self.request = None  # list of Request, not initialised
@@ -43,8 +43,8 @@ class CommonSkill(Skill):
 class Request(Time):
     """技能发动条件"""
 
-    def __init__(self, master, friend, enemy):
-        super().__init__()
+    def __init__(self, timer, master, friend, enemy):
+        super().__init__(timer)
         self.master = master
         self.friend = friend
         self.enemy = enemy
@@ -56,8 +56,8 @@ class Request(Time):
 class ATKRequest(Time):
     """判断攻击类型、攻击目标等"""
 
-    def __init__(self, atk):
-        super().__init__()
+    def __init__(self, timer, atk):
+        super().__init__(timer)
         self.atk = atk
 
     def __bool__(self):
@@ -395,8 +395,8 @@ class EquipTarget(Target):
 
 class Buff(Time):
     """增益总类"""
-    def __init__(self, name, phase, bias_or_weight=3, rate=1):
-        super().__init__()
+    def __init__(self, timer, name, phase, bias_or_weight=3, rate=1):
+        super().__init__(timer)
         self.master = None
         self.name = name  # 检索用名称
         self.phase = phase  # 发动阶段, tuple
@@ -435,8 +435,8 @@ class Buff(Time):
 
 class StatusBuff(Buff):
     """属性增益"""
-    def __init__(self, name, phase, value, bias_or_weight, rate=1):
-        super().__init__(name, phase, bias_or_weight, rate)
+    def __init__(self, timer, name, phase, value, bias_or_weight, rate=1):
+        super().__init__(timer, name, phase, bias_or_weight, rate)
         self.value = value
 
     def __repr__(self):
@@ -451,8 +451,8 @@ class CommonBuff(StatusBuff):
 
 class CoeffBuff(Buff):
     """系数增益"""
-    def __init__(self, name, phase, value, bias_or_weight, rate=1):
-        super().__init__(name, phase, bias_or_weight, rate)
+    def __init__(self, timer, name, phase, value, bias_or_weight, rate=1):
+        super().__init__(timer, name, phase, bias_or_weight, rate)
         self.value = value
 
     def __repr__(self):
@@ -462,12 +462,12 @@ class CoeffBuff(Buff):
 class AtkBuff(CoeffBuff):
     """攻击公式增益"""
 
-    def __init__(self, name, phase, value, bias_or_weight,
+    def __init__(self, timer, name, phase, value, bias_or_weight,
                  atk_request=None, rate=1):
         """
         :param atk_request: ATKRequest, 攻击判断(攻击者、被攻击者、攻击类型)
         """
-        super().__init__(name, phase, value, bias_or_weight, rate)
+        super().__init__(timer, name, phase, value, bias_or_weight, rate)
         self.atk_request = atk_request
 
     def is_active(self, *args, **kwargs):
@@ -481,20 +481,20 @@ class AtkBuff(CoeffBuff):
             atk = args[0]
 
         return isinstance(self.timer.phase, self.phase) and \
-               bool(self.atk_request[0](atk)) and \
+               bool(self.atk_request[0](self.timer, atk)) and \
                self.rate_verify()
 
 
 class AtkHitBuff(Buff):
     """命中后效果"""
-    def __init__(self, name, phase, buff, side,
+    def __init__(self, timer, name, phase, buff, side,
                  atk_request=None, bias_or_weight=3, rate=1):
         """
         :param buff: 施加效果内容
         :param side: 给谁加, 0: 被攻击者; 1: 攻击者
         :param atk_request: ATKRequest, 攻击判断(攻击者、被攻击者、攻击类型)
         """
-        super().__init__(name, phase, bias_or_weight, rate)
+        super().__init__(timer, name, phase, bias_or_weight, rate)
         self.buff = buff
         self.side = side
         self.atk_request = atk_request
@@ -510,7 +510,7 @@ class AtkHitBuff(Buff):
             atk = args[0]
 
         return isinstance(self.timer.phase, self.phase) and \
-               bool(self.atk_request[0](atk)) and \
+               bool(self.atk_request[0](self.timer, atk)) and \
                self.rate_verify()
 
     def activate(self, *args, **kwargs):
@@ -531,9 +531,9 @@ class AtkHitBuff(Buff):
 
 class AtkCoefProcess(AtkBuff):
     """直接修改攻击属性(船损、航向、制空系数等)"""
-    def __init__(self, name, phase, value,
+    def __init__(self, timer, name, phase, value,
                  bias_or_weight=3, atk_request=None, rate=1):
-        super().__init__(name, phase, value, bias_or_weight, atk_request, rate)
+        super().__init__(timer, name, phase, value, bias_or_weight, atk_request, rate)
 
     def is_coef_process(self):
         return True
@@ -541,16 +541,16 @@ class AtkCoefProcess(AtkBuff):
 
 class FinalDamageBuff(AtkBuff):
     """终伤系数, 乘算, 需要判断攻击类型"""
-    def __init__(self, name, phase, value,
+    def __init__(self, timer, name, phase, value,
                  bias_or_weight=2, atk_request=None, rate=1):
-        super().__init__(name, phase, value, bias_or_weight, atk_request, rate)
+        super().__init__(timer, name, phase, value, bias_or_weight, atk_request, rate)
 
 
 class SpecialBuff(Buff):
     """机制增益"""
-    def __init__(self, name, phase,
+    def __init__(self, timer, name, phase,
                  exhaust=None, atk_request=None, bias_or_weight=3, rate=1):
-        super().__init__(name, phase, bias_or_weight, rate)
+        super().__init__(timer, name, phase, bias_or_weight, rate)
         self.exhaust = exhaust
         self.atk_request = atk_request
 
@@ -565,7 +565,7 @@ class SpecialBuff(Buff):
             atk = args[0]
 
         return isinstance(self.timer.phase, self.phase) and \
-               bool(self.atk_request[0](atk)) and \
+               bool(self.atk_request[0](self.timer, atk)) and \
                self.rate_verify() and (not self.exhaust)
 
     def activate(self, *args, **kwargs):
@@ -575,8 +575,8 @@ class SpecialBuff(Buff):
 
 class PriorTargetBuff(Buff):
     """优先攻击目标"""
-    def __init__(self, name, phase, target, ordered):
-        super().__init__(name, phase)
+    def __init__(self, timer, name, phase, target, ordered):
+        super().__init__(timer, name, phase)
         self.target = target
         self.ordered = ordered
 
@@ -597,9 +597,9 @@ class EventBuff(Buff):
 
 class MagnetBuff(EventBuff):
     """嘲讽技能"""
-    def __init__(self, phase, master, rate,
+    def __init__(self, timer, phase, master, rate,
                  name='magnet', atk_request=None, bias_or_weight=3):
-        super().__init__(name, phase, bias_or_weight, rate)
+        super().__init__(timer, name, phase, bias_or_weight, rate)
         self.master = master
         self.atk_request = atk_request
 
@@ -614,7 +614,7 @@ class MagnetBuff(EventBuff):
                    self.rate_verify()
 
         return isinstance(self.timer.phase, self.phase) and \
-               bool(self.atk_request[0](atk)) and \
+               bool(self.atk_request[0](self.timer, atk)) and \
                self.master != atk.target and \
                self.master in atk.def_list and \
                self.rate_verify()
@@ -625,9 +625,9 @@ class MagnetBuff(EventBuff):
 
 class UnMagnetBuff(EventBuff):
     """负嘲讽技能"""
-    def __init__(self, phase, master, rate,
+    def __init__(self, timer, phase, master, rate,
                  name='un_magnet', atk_request=None, bias_or_weight=3):
-        super().__init__(name, phase, bias_or_weight, rate)
+        super().__init__(timer, name, phase, bias_or_weight, rate)
         self.master = master
         self.atk_request = atk_request
 
@@ -641,7 +641,7 @@ class UnMagnetBuff(EventBuff):
                    self.rate_verify()
 
         return isinstance(self.timer.phase, self.phase) and \
-               bool(self.atk_request[0](atk)) and \
+               bool(self.atk_request[0](self.timer, atk)) and \
                self.master == atk.target and \
                self.rate_verify()
 

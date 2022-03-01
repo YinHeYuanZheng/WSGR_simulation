@@ -15,11 +15,12 @@ from src.wsgr.phase import *
 
 class Skill_111201_1(CommonSkill):
     """提升自身10点火力值"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CommonBuff(
+                timer=timer,
                 name='fire',
                 phase=(AllPhase, ),
                 value=10,
@@ -30,13 +31,14 @@ class Skill_111201_1(CommonSkill):
 
 class Skill_111201_2(Skill):
     """提升航空战25点制空值"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
+                timer=timer,
                 name='air_con_buff',
-                phase=(AirPhase, ),
+                phase=(AirPhase,),
                 value=25,
                 bias_or_weight=0
             )
@@ -45,16 +47,16 @@ class Skill_111201_2(Skill):
 
 class Skill_111201_3(Skill):
     """制空权劣势和丧失时不降低舰载机伤害"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             AtkCoefProcess(
+                timer=timer,
                 name='air_con_coef',
                 phase=(AllPhase,),
                 value=1.,
-                atk_request=[BuffRequest_1]
-            )
+                atk_request=[BuffRequest_1])
         ]
 
 
@@ -69,13 +71,14 @@ class BuffRequest_1(ATKRequest):
 
 class Skill_111201_4(Skill):
     """制空权均势、优势和确保时增加舰载机15%伤害。"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             AtkBuff(
+                timer=timer,
                 name='air_atk_buff',
-                phase=(AllPhase, ),
+                phase=(AllPhase,),
                 value=0.15,
                 bias_or_weight=2,
                 atk_request=[BuffRequest_2]

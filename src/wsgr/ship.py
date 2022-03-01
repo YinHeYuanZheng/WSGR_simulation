@@ -10,8 +10,8 @@ from src.wsgr.wsgrTimer import Time
 class Ship(Time):
     """舰船总类"""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, timer):
+        super().__init__(timer)
         self.cid = 0  # 编号
         self.type = None  # 船型
         self.size = None  # 量级，大中小型船
@@ -94,7 +94,7 @@ class Ship(Time):
         """舰船技能实例化"""
         self.skill = []
         for skill in self._skill[:]:
-            tmp_skill = skill(self)
+            tmp_skill = skill(self.timer, self)
             if tmp_skill.is_common():  # 常驻面板技能，仅初始化一次，后续不再处理
                 tmp_skill.activate(friend, enemy)
                 self._skill.remove(skill)
@@ -284,7 +284,7 @@ class Ship(Time):
 
     def can_be_atk(self, atk):
         """判断舰船是否可被某攻击类型指定"""
-        return True
+        return self.damaged <= 3
 
     def get_damage(self, damage):
         """受伤结算，过伤害保护，需要返回受伤与否"""
@@ -337,48 +337,48 @@ class Ship(Time):
 class LargeShip(Ship):
     """大型船总类"""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, timer):
+        super().__init__(timer)
         self.size = 3  # 船型
 
 
 class MidShip(Ship):
     """中型船总类"""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, timer):
+        super().__init__(timer)
         self.size = 2  # 船型
 
 
 class SmallShip(Ship):
     """小型船总类"""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, timer):
+        super().__init__(timer)
         self.size = 1  # 船型
 
 
 class MainShip(Ship):
     """主力舰总类"""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, timer):
+        super().__init__(timer)
         self.function = 'main'
 
 
 class CoverShip(Ship):
     """护卫舰总类"""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, timer):
+        super().__init__(timer)
         self.function = 'cover'
 
 
 class Aircraft(Ship):
     """航系单位(所有可参与航空战攻击的单位)"""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, timer):
+        super().__init__(timer)
         self.flightparam = 0
 
     def act_in_phase(self):
@@ -386,22 +386,22 @@ class Aircraft(Ship):
 
 
 class CV(Aircraft, LargeShip, MainShip):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, timer):
+        super().__init__(timer)
         self.type = 'CV'
         self.flightparam = 5
 
 
 class CVL(Aircraft, MidShip, CoverShip):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, timer):
+        super().__init__(timer)
         self.type = 'CVL'
         self.flightparam = 5
 
 
 class AV(Aircraft, LargeShip, MainShip):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, timer):
+        super().__init__(timer)
         self.type = 'AV'
         self.flightparam = 5
 
@@ -415,8 +415,8 @@ class BC(LargeShip, MainShip):
 
 
 class BBV(Aircraft, LargeShip, MainShip):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, timer):
+        super().__init__(timer)
         self.type = 'BBV'
         self.flightparam = 10
 
@@ -468,8 +468,8 @@ class Port(LandUnit):
 
 
 class Fleet(Time):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, timer):
+        super().__init__(timer)
         self.ship = []
         self.status = {}  # 舰队属性
         self.form = 0  # 阵型; 1: 单纵; 2: 复纵; 3: 轮形; 4: 梯形; 5: 单横
@@ -525,7 +525,3 @@ class Fleet(Time):
             if isinstance(tmp_ship, shiptype):
                 c += 1
         return c
-
-
-if __name__ == "__main__":
-    pass

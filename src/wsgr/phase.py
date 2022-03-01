@@ -30,8 +30,8 @@ class AllPhase(Time):
 class BuffPhase(AllPhase):
     """buff阶段"""
 
-    def __init__(self, friend, enemy):
-        super().__init__()
+    def __init__(self, timer, friend, enemy):
+        super().__init__(timer)
         self.friend = friend
         self.enemy = enemy
 
@@ -49,8 +49,8 @@ class BuffPhase(AllPhase):
 class AirPhase(AllPhase):
     """航空战阶段"""
 
-    def __init__(self, friend, enemy):
-        super().__init__()
+    def __init__(self, timer, friend, enemy):
+        super().__init__(timer)
         self.friend = friend
         self.enemy = enemy
 
@@ -150,6 +150,7 @@ class AirPhase(AllPhase):
                 # 轰炸机，发起轰炸攻击
                 elif isinstance(tmp_equip, Bomber):
                     atk = AirBombAtk(
+                        timer=self.timer,
                         atk_body=tmp_ship,
                         def_list=defend,
                         equip=tmp_equip,
@@ -163,6 +164,7 @@ class AirPhase(AllPhase):
                 # 攻击机，发起鱼雷轰炸攻击
                 elif isinstance(tmp_equip, DiveBomber):
                     atk = AirDiveAtk(
+                        timer=self.timer,
                         atk_body=tmp_ship,
                         def_list=defend,
                         equip=tmp_equip,

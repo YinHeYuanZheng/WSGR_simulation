@@ -16,8 +16,8 @@ from src.wsgr.phase import *
 class Skill_103191_1(CommonSkill):
     """提升自身所携带的鱼雷机的鱼雷值7点"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = EquipTarget(
             side=1,
             target=SelfTarget(master),
@@ -25,6 +25,7 @@ class Skill_103191_1(CommonSkill):
         )
         self.buff = [
             CommonBuff(
+                timer=timer,
                 name='torpedo',
                 phase=(AllPhase,),
                 value=7,
@@ -37,17 +38,19 @@ class Skill_103191_2(Skill):
     """自身血量降低时不会对自身属性造成影响，
     且同时减少30%自身因战斗造成的载机量损失（大破时除外）。"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             AtkCoefProcess(
+                timer=timer,
                 name='dmg_coef',
                 phase=(AllPhase,),
                 value=1,
                 atk_request=[BuffRequest_1]
             ),
             AtkBuff(
+                timer=timer,
                 name='fall_rest',
                 phase=(AirPhase,),
                 value=-0.3,

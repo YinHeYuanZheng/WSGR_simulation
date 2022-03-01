@@ -11,32 +11,32 @@ import src.wsgr.equipment as requip
 from src import skillCode
 
 
-def load_config(config, dataset):
+def load_config(config, dataset, timer):
     """加载配置文件"""
     dom = xml.dom.minidom.parse(config)
     root = dom.documentElement
 
     friend_root = root.getElementsByTagName('Fleet')[0]
-    friend = load_fleet(friend_root, dataset)
+    friend = load_fleet(friend_root, dataset, timer)
 
     enemy_root = root.getElementsByTagName('Fleet')[1]
-    enemy = load_fleet(enemy_root, dataset)
+    enemy = load_fleet(enemy_root, dataset, timer)
 
     # 根据战斗类型调用不同流程类
     battle_type = root.getAttribute('type')
     battle = getattr(battleUtil, battle_type)
 
-    return battle(friend, enemy)
+    return battle(timer, friend, enemy)
 
 
-def load_fleet(node, dataset):
-    fleet = Fleet()
+def load_fleet(node, dataset, timer):
+    fleet = Fleet(timer)
     fleet.set_form(int(node.getAttribute('form')))
 
     shiplist = []
     for i in range(len(node.getElementsByTagName('Ship'))):
         s_node = node.getElementsByTagName('Ship')[i]
-        ship = load_ship(s_node, dataset)
+        ship = load_ship(s_node, dataset, timer)
         shiplist.append(ship)
 
     fleet.set_ship(shiplist)
@@ -44,22 +44,22 @@ def load_fleet(node, dataset):
     return fleet
 
 
-def load_ship(node, dataset):
+def load_ship(node, dataset, timer):
     cid = node.getAttribute('cid')
     if cid[0] == '1':
-        return load_friend_ship(node, dataset)
+        return load_friend_ship(node, dataset, timer)
     else:
-        return load_enemy_ship(node, dataset)
+        return load_enemy_ship(node, dataset, timer)
 
 
-def load_friend_ship(node, dataset):
+def load_friend_ship(node, dataset, timer):
     # 读取舰船属性
     cid = node.getAttribute('cid')
     status = dataset.get_friend_ship_status(cid)
 
     # 舰船对象实例化
     ship_type = status.pop('type')
-    ship = getattr(rship, ship_type)()  # 根据船型获取类，并实例化
+    ship = getattr(rship, ship_type)(timer)  # 根据船型获取类，并实例化
     ship.set_cid(cid)
 
     # 写入节点属性
@@ -73,7 +73,7 @@ def load_friend_ship(node, dataset):
     equip_num = status.pop('equipnum')
     skill_list = status.pop('skill')
 
-    if ship.affection >= 100:  # 婚舰幸运+5
+    if ship.affection > 100:  # 婚舰幸运+5
         status['luck'] += 5
 
     # 写入舰船属性
@@ -96,7 +96,7 @@ def load_friend_ship(node, dataset):
         if enum > equip_num:  # 装备所在栏位超出舰船装备限制
             continue
 
-        e_skill, equip = load_equip(e_node, dataset, ship)
+        e_skill, equip = load_equip(e_node, dataset, ship, timer)
         ship.set_equipment(equip)
         eskill_list.append(e_skill)
 
@@ -107,14 +107,14 @@ def load_friend_ship(node, dataset):
     return ship
 
 
-def load_enemy_ship(node, dataset):
+def load_enemy_ship(node, dataset, timer):
     # 读取舰船属性
     cid = node.getAttribute('cid')
     status = dataset.get_enemy_ship_status(cid)
 
     # 舰船对象实例化
     ship_type = status.pop('type')
-    ship = getattr(rship, ship_type)()  # 根据船型获取类，并实例化
+    ship = getattr(rship, ship_type)(timer)  # 根据船型获取类，并实例化
     ship.set_cid(cid)
 
     # 写入节点属性
@@ -147,7 +147,7 @@ def load_enemy_ship(node, dataset):
         if eid != '':
             estatus = dataset.get_equip_status(eid)
             equip_type = estatus.pop('type')
-            equip = getattr(requip, equip_type)(ship, i + 1)  # 根据装备类型获取类，并实例化
+            equip = getattr(requip, equip_type)(timer, ship, i + 1)  # 根据装备类型获取类，并实例化
 
             # 如果装备也存在特殊效果，当作技能写入舰船skill内
             esid = estatus.pop('skill')
@@ -167,7 +167,7 @@ def load_enemy_ship(node, dataset):
     return ship
 
 
-def load_equip(node, dataset, master):
+def load_equip(node, dataset, master, timer):
     # 读取装备属性
     eid = node.getAttribute('eid')
     status = dataset.get_equip_status(eid)
@@ -175,7 +175,7 @@ def load_equip(node, dataset, master):
     # 装备对象实例化
     equip_type = status.pop('type')
     enum = int(node.getAttribute('loc'))
-    equip = getattr(requip, equip_type)(master, enum)  # 根据装备类型获取类，并实例化
+    equip = getattr(requip, equip_type)(timer, master, enum)  # 根据装备类型获取类，并实例化
 
     # 如果装备也存在特殊效果，当作技能写入舰船skill内
     skill = []

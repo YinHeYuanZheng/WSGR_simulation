@@ -19,8 +19,8 @@ __all__ = ['ATK',
 class ATK(Time):
     """攻击总类"""
 
-    def __init__(self, atk_body, def_list, coef, atk_form, def_form, target=None):
-        super().__init__()
+    def __init__(self, timer, atk_body, def_list, coef, atk_form, def_form, target=None):
+        super().__init__(timer)
         self.timer.set_atk(self)
         self.atk_body = atk_body
         self.def_list = def_list  # 可被攻击目标列表
@@ -172,8 +172,8 @@ class ATK(Time):
 
 
 class AirAtk(ATK):
-    def __init__(self, atk_body, def_list, equip, coef, atk_form, def_form):
-        super().__init__(atk_body, def_list, coef, atk_form, def_form)
+    def __init__(self, atk_body, def_list, equip, coef, atk_form, def_form, timer):
+        super().__init__(timer, atk_body, def_list, coef, atk_form, def_form)
         self.equip = equip
 
         self.form_coef = {
@@ -264,6 +264,7 @@ class AirAtk(ATK):
         if evasion < 1:
             evasion = 1
         hit_rate = accuracy / evasion / 2
+        hit_rate = min(1, hit_rate)
 
         # 阵型命中率补正
         hit_rate *= self.get_form_coef('hit', self.atk_form) / \

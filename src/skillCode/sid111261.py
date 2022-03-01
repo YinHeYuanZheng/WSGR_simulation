@@ -11,8 +11,8 @@ from src.wsgr.equipment import *
 
 class Skill_111261_1(CommonSkill):
     """战斗机对空值+30%"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = EquipTarget(
             side=1,
             target=SelfTarget(master),
@@ -20,6 +20,7 @@ class Skill_111261_1(CommonSkill):
         )
         self.buff = [
             CommonBuff(
+                timer=timer,
                 name='antiair',
                 phase=(AllPhase,),
                 value=0.3,
@@ -31,11 +32,12 @@ class Skill_111261_1(CommonSkill):
 class Skill_111261_2(Skill):
     """战斗中鱼雷机威力+15%"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
+                timer=timer,
                 name='air_dive_atk_buff',
                 phase=(AllPhase,),
                 value=0.15,

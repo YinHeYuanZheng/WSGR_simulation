@@ -11,19 +11,21 @@ from src.wsgr.equipment import *
 
 class Skill_110222_1(Skill):
     """鱼雷机装备数量较多时，鱼雷机威力增加25%，轰炸机威力降低25%"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
 
         self.request = [Request_1]
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
+                timer=timer,
                 name='air_bomb_atk_buff',
                 phase=(AirPhase,),
                 value=-0.25,
                 bias_or_weight=2
             ),
             CoeffBuff(
+                timer=timer,
                 name='air_dive_atk_buff',
                 phase=(AirPhase,),
                 value=0.25,
@@ -32,7 +34,7 @@ class Skill_110222_1(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return bool(self.request[0](self.master, friend, enemy))
+        return bool(self.request[0](self.timer, self.master, friend, enemy))
 
 
 class Request_1(Request):
@@ -59,19 +61,21 @@ class Request_1(Request):
 
 class Skill_110222_2(Skill):
     """轰炸机装备数量较多时，轰炸机威力增加25%，鱼雷机威力降低25%"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
 
         self.request = [Request_2]
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
+                timer=timer,
                 name='air_bomb_atk_buff',
                 phase=(AirPhase,),
                 value=0.25,
                 bias_or_weight=2
             ),
             CoeffBuff(
+                timer=timer,
                 name='air_dive_atk_buff',
                 phase=(AirPhase,),
                 value=-0.25,
@@ -80,7 +84,7 @@ class Skill_110222_2(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return bool(self.request[0](self.master, friend, enemy))
+        return bool(self.request[0](self.timer, self.master, friend, enemy))
 
 
 class Request_2(Request):

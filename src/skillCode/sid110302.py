@@ -32,11 +32,11 @@ class Skill_110231(Skill):
 
         self.master.add_buff(
             CoeffBuff(
+                timer=self.timer,
                 name='air_atk_buff',
                 phase=(AllPhase,),
                 value=buff_value,
-                bias_or_weight=2,
-            )
+                bias_or_weight=2)
         )
 
 

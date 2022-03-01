@@ -9,9 +9,9 @@ from src.wsgr.phase import *
 
 
 class Skill_112232_1(Skill):
-    def __init__(self, master):
+    def __init__(self, timer, master):
         """航空战阶段，提升自身前方三个位置的航母、装母、轻母20%的伤害。"""
-        super().__init__(master)
+        super().__init__(timer, master)
         self.target = NearestLocTarget(
             side=1,
             master=master,
@@ -21,34 +21,38 @@ class Skill_112232_1(Skill):
         )
         self.buff = [
             FinalDamageBuff(
+                timer,
                 name='final_damage_buff',
                 phase=(AirPhase,),
-                value=0.2,
+                value=0.2
             )
         ]
 
 
 class Skill_112232_2(Skill):
-    def __init__(self, master):
+    def __init__(self, timer, master):
         """当队伍中除了自己，不含有其他航母、轻母、装母时，
         增加自身装甲值35点与索敌值25点，炮击战阶段，自身被攻击概率增加35%"""
-        super().__init__(master)
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
 
         self.buff = [
             StatusBuff(
+                timer,
                 name='armor',
-                phase=(AllPhase, ),
+                phase=(AllPhase,),
                 value=35,
                 bias_or_weight=0
             ),
             StatusBuff(
+                timer,
                 name='recon',
-                phase=(AllPhase, ),
+                phase=(AllPhase,),
                 value=25,
                 bias_or_weight=0
             ),
             MagnetBuff(
+                timer,
                 phase=(ShellingPhase,),
                 master=master,
                 rate=0.35

@@ -10,17 +10,20 @@ from src.wsgr.equipment import *
 
 class Skill_110041(Skill):
     """机群驱散B(3级)：降低航空战时对方轰炸机20%的命中率。"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = EquipTarget(side=0,
                                   target=Target(side=0),
                                   equiptype=(Bomber,))
-        self.buff = [CoeffBuff(
-            name='hit_rate',
-            phase=(AirPhase,),
-            value=-0.2,
-            bias_or_weight=0
-        )]
+        self.buff = [
+            CoeffBuff(
+                timer=timer,
+                name='hit_rate',
+                phase=(AirPhase,),
+                value=-0.2,
+                bias_or_weight=0
+            )
+        ]
 
 
 skill = [Skill_110041]

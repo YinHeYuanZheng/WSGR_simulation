@@ -14,10 +14,11 @@ from src.wsgr.phase import *
 class Skill_102261_1(CommonSkill):
     """提升自身6点火力值"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [CommonBuff(
+            timer=timer,
             name='fire',
             phase=(AllPhase,),
             value=6,
@@ -28,16 +29,19 @@ class Skill_102261_1(CommonSkill):
 class Skill_102261_2(CommonSkill):
     """战斗中当敌方有装母、航母或者轻母时，随机降低敌方一艘装母、航母或者轻母的火力值20点。"""
 
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = RandomTypeTarget(side=0, shiptype=(AV, CV, CVL))
 
-        self.buff = [StatusBuff(
-            name='fire',
-            phase=(AllPhase,),
-            value=-20,
-            bias_or_weight=0
-        )]
+        self.buff = [
+            StatusBuff(
+                timer=timer,
+                name='fire',
+                phase=(AllPhase,),
+                value=-20,
+                bias_or_weight=0
+            )
+        ]
 
 
 skill = [Skill_102261_1, Skill_102261_2]

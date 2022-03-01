@@ -10,21 +10,26 @@ from src.wsgr.phase import *
 
 class Skill_110231(Skill):
     """增加自身暴击率10%，被暴击率5%，自身攻击附带25%护甲穿透效果（不能和装备叠加）。"""
-    def __init__(self, master):
-        super().__init__(master)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
+                timer,
                 name='crit',
                 phase=(AllPhase,),
                 value=0.10,
                 bias_or_weight=0
-            ), CoeffBuff(
+            ),
+            CoeffBuff(
+                timer,
                 name='be_crit',
                 phase=(AllPhase,),
                 value=0.05,
                 bias_or_weight=0
-            ), CoeffBuff(  # todo 不能和装备叠加
+            ),
+            CoeffBuff(
+                timer,
                 name='pierce_coef',
                 phase=(AllPhase,),
                 value=0.25,
