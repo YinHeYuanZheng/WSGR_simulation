@@ -3,9 +3,9 @@
 # env:py38
 # 赤城改-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """旗舰技能，索敌成功时，敌方全体对空值降低30%"""
 

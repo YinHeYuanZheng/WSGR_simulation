@@ -3,10 +3,10 @@
 # env:py38
 # 埃罗芒什改-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
-from ..wsgr.equipment import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+from src.wsgr.equipment import *
 
 
 class Skill_110231_1(CommonSkill):

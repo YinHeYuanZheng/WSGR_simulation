@@ -4,10 +4,8 @@
 # 装备类
 
 import numpy as np
-# import sys
-# sys.path.append(r'.\wsgr')
-
-from .wsgrTimer import Time
+from src.wsgr.wsgrTimer import Time
+from src.wsgr.ship import *
 
 
 class Equipment(Time):
@@ -114,13 +112,18 @@ class Plane(Equipment):
         super().__init__(master, enum)
         self.load = self.master.load[self.enum - 1]
 
+    def __repr__(self):
+        return f"{type(self).__name__}: {self.status['name']} " \
+               f"({self.load}/{self.master.load[self.enum-1]})"
+
     def fall(self, fall_num):
         fall_num = min(self.load, fall_num)
         self.load -= int(fall_num)
 
 
 class Bomber(Plane):
-    pass
+    def __init__(self, master, enum):
+        super().__init__(master, enum)
 
 
 class DiveBomber(Plane):
@@ -132,7 +135,7 @@ class Fighter(Plane):
     pass
 
 
-class ScoutPLane(Plane):
+class ScoutPLane(Equipment):
     pass
 
 

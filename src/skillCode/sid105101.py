@@ -3,9 +3,9 @@
 # env:py38
 # G14-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """海平面突袭：队伍中每有1艘J国舰船都会增加自身6%的舰载机威力。
 首轮炮击战阶段40%概率同时攻击两个目标且必定命中，队伍中每有1艘装甲航母都会增加15%发动概率"""

@@ -3,9 +3,10 @@
 # env:py38
 # 约克城改-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+
 """萨奇剪(3级)：提升自身10点火力值和航空战25点制空值；
 制空权劣势和丧失时不降低舰载机伤害，
 制空权均势、优势和确保时增加舰载机15%伤害。

@@ -4,9 +4,10 @@
 # G6-1
 
 import numpy as np
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+
 """航空战阶段增加自身40点制空值。
 全阶段队伍中随机3艘J国舰船增加10点火力值，对敌方造成的伤害提高15%"""
 

@@ -2,10 +2,10 @@
 # Author:zzhh225
 # env:py38
 # 伊势改-1
-from ..wsgr.equipment import Bomber
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+from src.wsgr.equipment import *
 
 
 class Skill_110041(Skill):

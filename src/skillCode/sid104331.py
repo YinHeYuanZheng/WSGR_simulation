@@ -2,11 +2,12 @@
 # Author:zzhh225
 # env:py38
 # 提康德罗加-1
-from ..wsgr.formulas import AirAtk
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
-from ..wsgr.equipment import *
+
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+from src.wsgr.formulas import *
+from src.wsgr.equipment import *
 
 """制空权(3级)：自身受到航母单位攻击时降低20%的伤害（限开幕与炮击战阶段）。
 自身和其上方最近的一艘航母，装母，轻母单位在制空权均势，优势，确保时舰载机伤害增加10%。"""

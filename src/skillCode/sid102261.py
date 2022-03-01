@@ -3,9 +3,9 @@
 # env:py38
 # 埃塞克斯-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """猎火鸡比赛(3级)：提升自身6点火力值。
 战斗中当敌方有装母、航母或者轻母时，随机降低敌方一艘装母、航母或者轻母的火力值20点。"""

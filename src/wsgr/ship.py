@@ -3,10 +3,8 @@
 # env:py38
 # 舰船类
 
-# import sys
-# sys.path.append(r'.\wsgr')
 import numpy as np
-from .wsgrTimer import Time
+from src.wsgr.wsgrTimer import Time
 
 
 class Ship(Time):
@@ -41,6 +39,7 @@ class Ship(Time):
         self._skill = []  # 技能(未实例化)
         self.skill = []  # 技能
         self.equipment = []  # 装备
+        self.load = []
 
         self.side = 0  # 敌我识别; 1: 友方; 0: 敌方
         self.loc = 0  # 站位, 1-6
@@ -64,7 +63,8 @@ class Ship(Time):
                self.side != other.side
 
     def __repr__(self):
-        return f"{type(self).__name__}: {self.status['name']}"
+        damage = ['未定义', '正常', '中破', '大破', '撤退']
+        return f"{type(self).__name__}: {self.status['name']}, 状态: {damage[self.damaged]}"
 
     def set_cid(self, cid):
         """设置舰船编号"""
@@ -111,6 +111,12 @@ class Ship(Time):
             self.equipment = equipment
         else:
             self.equipment.append(equipment)
+
+    def set_load(self, load):
+        if isinstance(load, list):
+            self.load = load
+        else:
+            raise AttributeError(f"'load' should be list, got {type(load)} instead.")
 
     def init_health(self):
         """初始化血量"""
@@ -257,7 +263,7 @@ class Ship(Time):
 
     def act_in_phase(self):
         """判断舰船在指定阶段内能否行动"""
-        pass
+        return False
 
     def get_target(self):
         """判断指定阶段内可以攻击什么目标"""
@@ -278,7 +284,7 @@ class Ship(Time):
 
     def can_be_atk(self, atk):
         """判断舰船是否可被某攻击类型指定"""
-        pass
+        return True
 
     def get_damage(self, damage):
         """受伤结算，过伤害保护，需要返回受伤与否"""
@@ -333,7 +339,7 @@ class LargeShip(Ship):
 
     def __init__(self):
         super().__init__()
-        self.type = 3  # 船型
+        self.size = 3  # 船型
 
 
 class MidShip(Ship):
@@ -341,7 +347,7 @@ class MidShip(Ship):
 
     def __init__(self):
         super().__init__()
-        self.type = 2  # 船型
+        self.size = 2  # 船型
 
 
 class SmallShip(Ship):
@@ -349,7 +355,7 @@ class SmallShip(Ship):
 
     def __init__(self):
         super().__init__()
-        self.type = 1  # 船型
+        self.size = 1  # 船型
 
 
 class MainShip(Ship):
@@ -374,13 +380,9 @@ class Aircraft(Ship):
     def __init__(self):
         super().__init__()
         self.flightparam = 0
-        self.load = []
 
-    def set_load(self, load):
-        if isinstance(load, list):
-            self.load = load
-        else:
-            raise AttributeError(f"'load' should be list, got {type(load)} instead.")
+    def act_in_phase(self):
+        return True
 
 
 class CV(Aircraft, LargeShip, MainShip):
@@ -388,12 +390,6 @@ class CV(Aircraft, LargeShip, MainShip):
         super().__init__()
         self.type = 'CV'
         self.flightparam = 5
-
-    def act_in_phase(self):
-        return True
-
-    def can_be_atk(self, atk):
-        return True
 
 
 class CVL(Aircraft, MidShip, CoverShip):
@@ -418,6 +414,13 @@ class BC(LargeShip, MainShip):
     pass
 
 
+class BBV(Aircraft, LargeShip, MainShip):
+    def __init__(self):
+        super().__init__()
+        self.type = 'BBV'
+        self.flightparam = 10
+
+
 class CA(MidShip, CoverShip):
     pass
 
@@ -432,7 +435,8 @@ class DD(SmallShip, CoverShip):
 
 class Submarine(Ship):
     """水下单位"""
-    pass
+    def can_be_atk(self, atk):
+        return False
 
 
 class SS(Submarine, SmallShip, CoverShip):

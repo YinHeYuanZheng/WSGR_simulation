@@ -4,6 +4,7 @@
 
 import os
 import sys
+import copy
 
 curDir = os.path.dirname(__file__)
 srcDir = os.path.dirname(curDir)

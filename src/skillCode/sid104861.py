@@ -3,10 +3,10 @@
 # env:py38
 # G15-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
-from ..wsgr.equipment import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+
 """增加自身火力值15点、航速3节。
 航空战阶段自身被攻击概率提高40%，受到伤害减少15点。"""
 

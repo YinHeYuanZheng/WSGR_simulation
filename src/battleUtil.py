@@ -2,8 +2,8 @@
 # Author:银河远征
 # env:py38
 
-from wsgr.wsgrTimer import Time
-from wsgr.phase import *
+from src.wsgr.wsgrTimer import Time
+from src.wsgr.phase import *
 
 
 class BattleUtil(Time):
@@ -28,6 +28,7 @@ class BattleUtil(Time):
         """进行阵型选择和战斗流程"""
         self.battle_init()
         self.recon_phase()
+        self.get_direction()
         self.buff_phase()
         self.air_phase()
 

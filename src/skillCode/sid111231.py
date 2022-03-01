@@ -3,9 +3,9 @@
 # env:py38
 # 博格改-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 
 class Skill_110231(Skill):
@@ -13,7 +13,7 @@ class Skill_110231(Skill):
     def __init__(self, master):
         # 降低敌方所有潜艇单位的命中值8点，回避值5点（多个单位携带此技能不重复生效）。
         super().__init__(master)
-        self.target = TypeTarget(side=0, shiptype=('SS', 'SC'))
+        self.target = TypeTarget(side=0, shiptype=(SS, SC))
         self.buff = [
             StatusBuff(
                 name='accuracy',

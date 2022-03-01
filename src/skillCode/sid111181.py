@@ -3,9 +3,10 @@
 # env:py38
 # 齐柏林伯爵改-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+
 """斯图卡(3级)：当队伍中战列数量大于2时，增加全队战列舰9%暴击率，9点命中值；
 当队伍中没有战列时，增加自身25%暴击率，20点装甲值。炮击战阶段，被齐柏林命中的非旗舰单位在炮击战阶段不再行动。
 """

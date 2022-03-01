@@ -24,6 +24,8 @@ class timer:
 
     def set_air_con(self, air_con_flag):
         self.air_con_flag = air_con_flag
+        air_con_info = ['空确', '空优', '均势', '劣势', '丧失']
+        print(f"制空结果：{air_con_info[air_con_flag - 1]}")
 
     def set_phase(self, phase):
         self.phase = phase
@@ -39,12 +41,17 @@ class timer:
         self.phase.start()
 
     def report(self, damage_value):
-        pass
+        print(f"{self.atk.atk_body.status['name']} -> "
+              f"{self.atk.target.status['name']}: "
+              f"{str(damage_value)}")
+
+
+time = timer()
 
 
 class Time:
     def __init__(self):
-        self.timer = timer()
+        self.timer = time
 
     def set_timer(self, new_timer):
         self.timer = new_timer

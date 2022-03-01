@@ -2,11 +2,13 @@
 # Author:zzhh225
 # env:py38
 # 帝国改-2
+
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+
 """混合特击(3级)：队伍中如果有装母时增加帝国自身18点火力值；炮击战时有25%概率同时对2个单位造成伤害。
 """
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
 
 
 class Skill_113392_1(Skill):

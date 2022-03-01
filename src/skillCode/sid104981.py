@@ -3,10 +3,10 @@
 # env:py38
 # 复仇-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
-from ..wsgr.equipment import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+
 """	队伍中每有一艘埃塞克斯级航空母舰都会增加自身8%的舰载机威力。"""
 
 

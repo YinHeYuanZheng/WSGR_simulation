@@ -4,10 +4,9 @@
 # 瑞鹤改-1
 
 import numpy as np
-import random
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """幸运的云雨区(3级)：自身幸运值提升15，被攻击时，最大增加80%幸运值的装甲，最大增加80%幸运值的回避。"""
 
@@ -56,7 +55,7 @@ class LuckBuff(StatusBuff):
     def is_active(self, *args, **kwargs):
         """因为每次都会判断is_active，因此利用该函数生成每次不同的值"""
         self.value = np.ceil(
-            (1 - random.random()) * 0.8
+            (1 - np.random.random()) * 0.8
             * self.master.get_final_status('luck')
         )
         return True

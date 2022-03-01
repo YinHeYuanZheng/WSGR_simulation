@@ -3,9 +3,9 @@
 # env:py38
 # 胜利-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """自身对战列舰、战列巡洋舰造成的伤害提高30%。
 自身与相邻上方舰船舰载机威力提高15%，

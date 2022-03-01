@@ -3,9 +3,9 @@
 # env:py38
 # 飞龙改-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 
 class Skill_112211(Skill):

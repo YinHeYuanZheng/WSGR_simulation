@@ -3,15 +3,12 @@
 # env:py38
 # 舰R公式
 
-import random
 import numpy as np
-# import sys
-# sys.path.append(r'.\wsgr')
 
-from .formulas import *
-from . import formulas as rform
-from . import equipment as requip
-from .wsgrTimer import Time
+from src.wsgr.wsgrTimer import Time
+from src.wsgr.formulas import *
+import src.wsgr.formulas as rform
+from src.wsgr.equipment import *
 
 __all__ = ['AllPhase',
            'BuffPhase',
@@ -72,11 +69,25 @@ class AirPhase(AllPhase):
         else:
             return
 
+        # 检查双方攻击性飞机, 都为0不进行航空战
+        atk_plane_friend = self.get_atk_plane(side=1)
+        atk_plane_enemy = self.get_atk_plane(side=0)
+        if not atk_plane_friend and not atk_plane_enemy:
+            return
+
         # 计算双方制空
         aerial_friend = rform.get_fleet_aerial(atk_friend)
         aerial_enemy = rform.get_fleet_aerial(atk_enemy)
-        # 制空结果
+        # 制空结果, 从空确到空丧分别为1-5
         air_con_flag = rform.compare_aerial(aerial_friend, aerial_enemy)
+        # 制空均为0时特殊情况, 检查双方攻击性飞机
+        if aerial_friend == 0 and aerial_enemy == 0:
+            if atk_plane_friend and not atk_plane_enemy:
+                air_con_flag = 1
+            elif atk_plane_friend and atk_plane_enemy:
+                air_con_flag = 3
+            elif not atk_plane_friend and atk_plane_enemy:
+                air_con_flag = 5
         self.timer.set_air_con(air_con_flag)
 
         # 航空轰炸阶段
@@ -99,15 +110,15 @@ class AirPhase(AllPhase):
         total_plane_rest = rform.get_total_plane_rest(attack)  # 总剩余载机量
 
         for tmp_ship in attack:
-            fall_rand = random.uniform(*fall_coef)  # 每艘船固定一个制空击坠随机数
+            fall_rand = np.random.uniform(*fall_coef)  # 每艘船固定一个制空击坠随机数
             flightlimit = rform.get_flightlimit(tmp_ship)  # 放飞限制
             for tmp_equip in tmp_ship.equipment:
                 coef = {}  # 公式参数
 
                 # 检查该装备是否为参与航空战的飞机
-                if not isinstance(tmp_equip, requip.Plane):
+                if not isinstance(tmp_equip, Plane):
                     continue
-                if isinstance(tmp_equip, requip.ScoutPLane):  # 侦察机不参与航空战
+                if isinstance(tmp_equip, ScoutPLane):  # 侦察机不参与航空战
                     continue
 
                 # 检查该飞机载量是否不为0
@@ -132,12 +143,12 @@ class AirPhase(AllPhase):
                 coef['air_con_coef'] = air_con_coef
 
                 # 战斗机仅计算制空击坠就结束
-                if isinstance(tmp_equip, requip.Fighter):
+                if isinstance(tmp_equip, Fighter):
                     tmp_equip.fall(air_con_fall)  # 最大击坠量可超过实际放飞量（存在洗甲板）
                     continue
 
                 # 轰炸机，发起轰炸攻击
-                elif isinstance(tmp_equip, requip.Bomber):
+                elif isinstance(tmp_equip, Bomber):
                     atk = AirBombAtk(
                         atk_body=tmp_ship,
                         def_list=defend,
@@ -150,7 +161,7 @@ class AirPhase(AllPhase):
                     anti_num = atk.get_coef('anti_num')
 
                 # 攻击机，发起鱼雷轰炸攻击
-                elif isinstance(tmp_equip, requip.DiveBomber):
+                elif isinstance(tmp_equip, DiveBomber):
                     atk = AirDiveAtk(
                         atk_body=tmp_ship,
                         def_list=defend,
@@ -161,6 +172,19 @@ class AirPhase(AllPhase):
                     )
                     atk.start()
                     anti_num = atk.get_coef('anti_num')
+
+    def get_atk_plane(self, side):
+        if side == 1:
+            fleet = self.friend.ship
+        else:
+            fleet = self.enemy.ship
+
+        for tmp_ship in fleet:
+            for tmp_equip in tmp_ship.equipment:
+                if isinstance(tmp_equip, (Fighter, Bomber, DiveBomber)):
+                    if tmp_equip.load > 0:
+                        return True
+        return False
 
 
 class ShellingPhase(AllPhase):

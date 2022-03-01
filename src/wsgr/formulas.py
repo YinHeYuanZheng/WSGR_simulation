@@ -4,13 +4,10 @@
 # 舰R公式
 
 import numpy as np
-import random
-# import sys
-# sys.path.append(r'.\wsgr')
 
-from . import equipment as requip
-from .wsgrTimer import Time
-from .ship import AV
+from src.wsgr.wsgrTimer import Time
+from src.wsgr.ship import *
+from src.wsgr.equipment import *
 
 __all__ = ['ATK',
            'AirAtk',
@@ -40,6 +37,12 @@ class ATK(Time):
             'be_crit': [],
         }  # 阵型系数
 
+    def __repr__(self):
+        source_name = self.atk_body.status['name']
+        target_name = self.target.status['name'] \
+            if self.target is not None else '未确定'
+        return f"{source_name} -> {target_name}"
+
     def start(self):
         """攻击开始命令，结算到攻击结束"""
         pass
@@ -51,7 +54,7 @@ class ATK(Time):
             assert not isinstance(prior, list)
             self.target = prior
         else:
-            self.target = random.choice(self.def_list)
+            self.target = np.random.choice(self.def_list)
 
     def set_target(self, target):
         self.target = target
@@ -93,16 +96,16 @@ class ATK(Time):
 
         # 基础暴击率
         crit = 0.05 + (self.atk_body.affection - 50) * 0.001 + \
-               self.atk_body.get_atk_buff('crit', self) + \
-               self.atk_body.get_final_status('luck') * 0.16 + \
-               self.target.get_atk_buff('be_crit', self)
+               self.atk_body.get_atk_buff('crit', self)[1] + \
+               self.atk_body.get_final_status('luck') * 0.0016 + \
+               self.target.get_atk_buff('be_crit', self)[1]
 
         # 阵型暴击率补正
         crit += self.get_form_coef('crit', self.atk_form) + \
                 self.get_form_coef('be_crit', self.def_form)
 
         crit = cap(crit)
-        verify = random.random()
+        verify = np.random.random()
         if verify < crit:
             self.coef['crit'] = True
             return
@@ -154,16 +157,18 @@ class ATK(Time):
         # todo 可能会增加战术终伤
         return max(0, damage)
 
-    def end_atk(self, damage_flag):
+    def end_atk(self, damage_flag, damage_value):
         """
         攻击结束时点，进行受伤时点效果、反击等
         :param damage_flag: 是否受到了伤害
+        :param damage_value: 伤害记录
         """
         if not damage_flag:
-            return
+            self.timer.report('miss')
         else:
             self.atk_body.atk_hit('atk_hit', self)
             self.target.atk_hit('be_atk_hit', self)
+            self.timer.report(damage_value)
 
 
 class AirAtk(ATK):
@@ -190,35 +195,35 @@ class AirAtk(ATK):
         self.process_coef()  # 生成公式相关系数
 
         if not self.coef['hit']:
-            self.end_atk(damage_flag)
+            self.end_atk(damage_flag, 'miss')
             return
 
         if self.coef['plane_rest'] == 0:
-            self.end_atk(damage_flag)
+            self.end_atk(damage_flag, 'miss')
             return
 
         damage = self.formula()
         if damage == 0:
-            self.end_atk(damage_flag)
+            self.end_atk(damage_flag, 'jump')
             return
 
         damage = self.final_damage(damage)
         damage_flag = self.target.get_damage(damage)
-        self.end_atk(damage_flag)
+        self.end_atk(damage_flag, damage)
 
     def get_anti_air_fall(self, anti_num):
         """计算防空击坠"""
         ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_antiair', self)  # 无视对空
-        target_anti_air = self.target.get_final_status('anti_air', equip=False) * \
+        target_anti_air = self.target.get_final_status('antiair', equip=False) * \
                           (1 + ignore_scale) + ignore_bias  # 本体裸对空
         target_anti_air = max(0, target_anti_air)
 
         team_anti_air = get_team_anti_air(self.def_list)  # 全队对空补正
-        equip_anti_air = self.target.get_equip_status('anti_air')  # 装备对空总和
+        equip_anti_air = self.target.get_equip_status('antiair')  # 装备对空总和
         aa_value = target_anti_air + team_anti_air + equip_anti_air
         aa_value *= self.get_form_coef('anti_def', self.def_form)  # todo 未明确
 
-        alpha = random.random()
+        alpha = np.random.random()
         bottom_a = 0.618
         aa_fall = np.floor(alpha * aa_value * bottom_a ** (anti_num - 1) / 10)
         return aa_fall
@@ -226,7 +231,7 @@ class AirAtk(ATK):
     def get_anti_air_def(self):
         """减伤对空"""
         ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_antiair', self)  # 无视对空
-        target_anti_air = self.target.get_final_status('anti_air', equip=False) * \
+        target_anti_air = self.target.get_final_status('antiair', equip=False) * \
                           (1 + ignore_scale) + ignore_bias  # 本体裸对空
         target_anti_air = max(0, target_anti_air)
         aa_value = target_anti_air + get_scaled_anti_air(self.target)
@@ -268,7 +273,7 @@ class AirAtk(ATK):
         if self.atk_body.side == 1 and self.timer.recon_flag:
             hit_rate += 0.05
         if self.target.side == 1 and self.timer.recon_flag:
-            hit_rate += 0.05
+            hit_rate -= 0.05
 
         # 制空补正
         hit_rate += get_air_hit_coef(self.timer.air_con_flag,
@@ -278,22 +283,32 @@ class AirAtk(ATK):
         aa_value = self.get_anti_air_def()
         if self.target.size == 3:
             aa_base = 1500
+            mul_rate = 1
         elif self.target.size == 2:
             aa_base = 375
+            mul_rate = 0.75
         else:
             aa_base = 150
+            mul_rate = 0.5
         aa_hit_coef = aa_base / (aa_base + aa_value)
-        hit_rate *= aa_hit_coef
+        hit_rate *= aa_hit_coef * mul_rate
 
         # 装备补正
-        hit_rate += self.equip.get_atk_buff('hit_rate', self)
+        _, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
+        hit_rate += hitrate_bias
 
         # 技能补正
-        hit_rate += self.atk_body.get_atk_buff('hit_rate', self)
-        hit_rate -= self.target.get_atk_buff('miss_rate', self)
+        _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
+        hit_rate += hitrate_bias
+        _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
+        hit_rate -= hitrate_bias
+
+        # 好感补正
+        hit_rate += self.atk_body.affection * 0.001
+        hit_rate -= self.target.affection * 0.001
 
         hit_rate = cap(hit_rate)
-        verify = random.random()
+        verify = np.random.random()
         if verify < hit_rate:
             self.coef['hit'] = True
             return
@@ -387,7 +402,7 @@ class AirBombAtk(AirAtk):
             self.coef['crit_coef'] = 1.
 
         # 浮动系数
-        self.coef['random_coef'] = random.uniform(.89, 1.22)
+        self.coef['random_coef'] = np.random.uniform(.89, 1.22)
 
         # 穿甲系数
         _, pierce_bias = self.atk_body.get_atk_buff('pierce_coef', self)
@@ -470,10 +485,10 @@ class AirDiveAtk(AirAtk):
             self.coef['crit_coef'] = 1.
 
         # 浮动系数
-        self.coef['random_coef'] = random.uniform(.89, 1.22)
+        self.coef['random_coef'] = np.random.uniform(.89, 1.22)
 
         # 鱼雷机系数
-        self.coef['dive_random_coef'] = random.uniform(.5, 1.)
+        self.coef['dive_random_coef'] = np.random.uniform(.5, 1.)
 
         # 穿甲系数
         _, pierce_bias = self.atk_body.get_atk_buff('pierce_coef', self)
@@ -538,7 +553,15 @@ def get_ship_aerial(ship):
     actual_flight = np.array([min(tmp_load, flight_limit)
                               for tmp_load in ship.load])
     antiair = np.array([tmp_equip.get_final_status('antiair')
-                        for tmp_equip in ship.equipment])
+                        for tmp_equip in ship.equipment
+                        if isinstance(tmp_equip, (Fighter, Bomber, DiveBomber))])
+    eloc_list = np.array([tmp_equip.enum - 1
+                          for tmp_equip in ship.equipment
+                          if isinstance(tmp_equip, (Fighter, Bomber, DiveBomber))])
+    if not len(eloc_list):
+        return 0
+
+    actual_flight = actual_flight[eloc_list]
     buff_scale, buff_bias = ship.get_buff('air_con_buff')
 
     air = np.log(2 * (actual_flight + 1)) * antiair
@@ -606,7 +629,7 @@ def get_total_plane_rest(shiplist):
     rest = 0
     for tmp_ship in shiplist:
         for tmp_equip in tmp_ship.equipment:
-            if isinstance(tmp_equip, requip.Plane):
+            if isinstance(tmp_equip, Plane):
                 rest += tmp_equip.load
     return rest
 
@@ -629,7 +652,7 @@ def get_team_anti_air(team):
         for tmp_equip in tmp_ship.equipment:
             equip_aa_coef = tmp_equip.get_final_status('aa_coef')
             if equip_aa_coef != 0:
-                anti_air += tmp_equip.get_final_status('anti_air')
+                anti_air += tmp_equip.get_final_status('antiair')
                 aa_coef = max(equip_aa_coef, aa_coef)
     return anti_air * aa_coef
 
@@ -638,7 +661,7 @@ def get_scaled_anti_air(ship):
     """获取(装备防空*防空倍率)之和"""
     anti_air = 0
     for tmp_equip in ship.equipment:
-        equip_aa = tmp_equip.get_final_status('anti_air')
+        equip_aa = tmp_equip.get_final_status('antiair')
         equip_aa_scale = tmp_equip.get_final_status('aa_scale')
         anti_air += 2.5 * equip_aa * equip_aa_scale
     return anti_air

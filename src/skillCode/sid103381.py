@@ -3,9 +3,9 @@
 # env:py38
 # 天鹰-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """地中海护卫(3级)：炮击战时增加自身暴击率12%，降低对方所有航母及轻母炮击战时的命中值12点。
 """

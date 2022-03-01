@@ -2,10 +2,10 @@
 # Author:zzhh225
 # env:py38
 # 日向改-1
-from ..wsgr.equipment import DiveBomber
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+from src.wsgr.equipment import *
 
 
 class Skill_110051(Skill):

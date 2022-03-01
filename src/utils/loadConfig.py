@@ -4,11 +4,11 @@
 
 import xml.dom.minidom
 
-from .. import battleUtil
-from ..wsgr.ship import *
-from ..wsgr import ship as rship
-from ..wsgr import equipment as requip
-from .. import skillCode
+from src import battleUtil
+from src.wsgr.ship import *
+import src.wsgr.ship as rship
+import src.wsgr.equipment as requip
+from src import skillCode
 
 
 def load_config(config, dataset):

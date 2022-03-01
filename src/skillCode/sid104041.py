@@ -3,10 +3,10 @@
 # env:py38
 # 怨仇-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
-from ..wsgr.equipment import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+from src.wsgr.equipment import *
 
 """钨作战(3级)：降低敌方全体主力舰15闪避值。航空战阶段降低被命中目标15%命中率。"""
 

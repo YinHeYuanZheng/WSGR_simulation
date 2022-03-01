@@ -5,8 +5,8 @@
 
 import numpy as np
 
-from .wsgrTimer import Time
-from .ship import Ship, Fleet
+from src.wsgr.wsgrTimer import Time
+from src.wsgr.ship import Ship, Fleet
 
 
 class Skill(Time):
@@ -176,7 +176,7 @@ class OrderedTypeTarget(TypeTarget):
 
 class LocTarget(Target):
     """指定站位的目标"""
-    def __init__(self, side, loc):
+    def __init__(self, side, loc: list):
         super().__init__(side)
         self.loc = loc
 
@@ -405,6 +405,9 @@ class Buff(Time):
         self.bias_or_weight = bias_or_weight
         self.rate = rate
 
+    def __repr__(self):
+        return f"{self.name}"
+
     def set_master(self, master):
         self.master = master
 
@@ -436,6 +439,9 @@ class StatusBuff(Buff):
         super().__init__(name, phase, bias_or_weight, rate)
         self.value = value
 
+    def __repr__(self):
+        return f"{self.name}: {self.value}"
+
 
 class CommonBuff(StatusBuff):
     """常驻增益(通常直接显示在面板上)"""
@@ -448,6 +454,9 @@ class CoeffBuff(Buff):
     def __init__(self, name, phase, value, bias_or_weight, rate=1):
         super().__init__(name, phase, bias_or_weight, rate)
         self.value = value
+
+    def __repr__(self):
+        return f"{self.name}: {self.value}"
 
 
 class AtkBuff(CoeffBuff):
@@ -594,6 +603,9 @@ class MagnetBuff(EventBuff):
         self.master = master
         self.atk_request = atk_request
 
+    def __repr__(self):
+        return f"嘲讽: {self.rate}"
+
     def is_active(self, atk, *args, **kwargs):
         if self.atk_request is None:
             return isinstance(self.timer.phase, self.phase) and \
@@ -613,11 +625,14 @@ class MagnetBuff(EventBuff):
 
 class UnMagnetBuff(EventBuff):
     """负嘲讽技能"""
-    def __init__(self, phase, master, name='un_magnet',
-                 atk_request=None, bias_or_weight=3, rate=1):
+    def __init__(self, phase, master, rate,
+                 name='un_magnet', atk_request=None, bias_or_weight=3):
         super().__init__(name, phase, bias_or_weight, rate)
         self.master = master
         self.atk_request = atk_request
+
+    def __repr__(self):
+        return f"负嘲讽: {self.rate}"
 
     def is_active(self, atk, *args, **kwargs):
         if self.atk_request is None:

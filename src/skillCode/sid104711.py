@@ -3,10 +3,10 @@
 # env:py38
 # 欧罗巴-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
-from ..wsgr.equipment import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+
 """增加自身护甲穿透30%，根据总出征数(上限30000次)增加自身最多15点火力值和命中值。"""
 
 

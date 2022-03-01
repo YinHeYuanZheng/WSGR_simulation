@@ -3,10 +3,10 @@
 # env:py38
 # 彼得·施特拉塞尔-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
-from ..wsgr.equipment import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+from src.wsgr.equipment import *
 
 """超重型航弹(3级)：增加自身20%暴击率。
 彼得·施特拉塞尔命中过的目标会降低10点闪避值与10点装甲值，

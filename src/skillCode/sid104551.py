@@ -3,10 +3,9 @@
 # env:py38
 # 皇家方舟(av)-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
-from ..wsgr.equipment import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """新时代(3级)：提升自身12点火力值。
 炮击战阶段，自身可以参与次轮炮击战，火力为首轮炮击120%。"""

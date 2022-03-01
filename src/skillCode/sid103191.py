@@ -3,10 +3,10 @@
 # env:py38
 # 不挠-1
 
-from ..wsgr.equipment import DiveBomber
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.equipment import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """持久作战(3级)：提升自身所携带的鱼雷机的鱼雷值7点。
 自身血量降低时不会对自身属性造成影响，

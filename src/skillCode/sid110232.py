@@ -3,10 +3,10 @@
 # env:py38
 # 加贺改-2
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
-from ..wsgr.formulas import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+from src.wsgr.formulas import *
 
 
 class Skill_110231_1(Skill):
