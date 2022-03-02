@@ -16,7 +16,6 @@ from src.wsgr.wsgrTimer import timer
 
 
 if __name__ == '__main__':
-    # xml_file = r'F:\文件\WSGR_simulation\config\config.xml'
     configDir = os.path.join(os.path.dirname(srcDir), 'config')
     xml_file = os.path.join(configDir, 'config.xml')
 
@@ -25,9 +24,21 @@ if __name__ == '__main__':
     ds = Dataset(data_file)
     timer_init = timer()
     battle = load_config(xml_file, ds, timer_init)
-    hit_rate = 1
-    for i in range(5000):
+
+    # SS S A B C D
+    result = [0] * 6
+    resulr_flag_list = ['SS', 'S', 'A', 'B', 'C', 'D']
+    for i in range(1000):
         tmp_battle = copy.deepcopy(battle)
-        tmp_battle.battle_start()
-        hit_rate = (hit_rate * i + tmp_battle.report()) / (i + 1)
-        print(f"第{i+1}次：平均命中率 {hit_rate * 100}%")
+        tmp_battle.start()
+        # hit_rate = (hit_rate * i + tmp_battle.report()) / (i + 1)
+
+        log = tmp_battle.report()
+        result_flag_id = resulr_flag_list.index(log['result'])
+        result[result_flag_id] += 1
+        print(f"第{i+1}次 - 战果分布: SS {result[0] / (i + 1) * 100:.1f}%; "
+              f"S {result[1] / (i + 1) * 100:.1f}%; "
+              f"A {result[2] / (i + 1) * 100:.1f}%; "
+              f"B {result[3] / (i + 1) * 100:.1f}%; "
+              f"C {result[4] / (i + 1) * 100:.1f}%; "
+              f"D {result[5] / (i + 1) * 100:.1f}%; ")

@@ -208,7 +208,8 @@ class AirAtk(ATK):
             return
 
         damage = self.final_damage(damage)
-        damage_flag = self.target.get_damage(damage)
+        damage = self.target.get_damage(damage)
+        damage_flag = bool(damage)
         self.end_atk(damage_flag, damage)
 
     def get_anti_air_fall(self, anti_num):

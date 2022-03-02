@@ -3,6 +3,8 @@
 # env:py38
 # 时统
 
+import numpy as np
+
 
 class timer:
     """战斗时点依赖"""
@@ -14,10 +16,12 @@ class timer:
         self.phase = None           # 阶段
         self.atk = None
         self.queue = []             # 有时点依赖的技能 TODO 战斗结束记得清空
-        self.log = []
-
-        self.hit = 0
-        self.miss = 0
+        self.log = {
+            'create_damage': {
+                1: np.zeros((6,)),
+                0: np.zeros((6,))
+            }
+        }
 
     def set_recon(self, recon_flag):
         self.recon_flag = recon_flag
@@ -47,10 +51,14 @@ class timer:
         # print(f"{self.atk.atk_body.status['name']} -> "
         #       f"{self.atk.target.status['name']}: "
         #       f"{str(damage_value)}")
+        # if isinstance(damage_value, str):
+        #     self.miss += 1
+        # else:
+        #     self.hit +=1
         if isinstance(damage_value, str):
-            self.miss += 1
-        else:
-            self.hit +=1
+            damage_value = 0
+        self.log['create_damage'][self.atk.atk_body.side][self.atk.atk_body.loc - 1]\
+            += damage_value
 
 
 class Time:

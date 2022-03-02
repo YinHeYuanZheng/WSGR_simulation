@@ -318,12 +318,12 @@ class Ship(Time):
         if self.damaged < 3 and \
                 self.status['health'] < standard_health * 0.25:
             self.damaged = 3
-        if self.damaged < 4 and \
+        if self.damaged < 4 or \
                 self.status['health'] <= 0:
             self.status['health'] = 0
             self.damaged = 4
 
-        return bool(damage)
+        return damage
 
     def clear_buff(self):
         """清空临时buff"""
