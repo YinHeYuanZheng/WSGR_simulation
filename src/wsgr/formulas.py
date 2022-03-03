@@ -359,8 +359,6 @@ class AirAtk(ATK):
                                                     damage=damage)
         damage -= reduce_damage
 
-        # todo 可能增加挡枪减伤
-
         return max(0, damage)
 
 

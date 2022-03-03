@@ -46,7 +46,7 @@ class Ship(Time):
         self.level = 110  # 等级
         self.affection = 200  # 好感
         self.damaged = 1  # 耐久状态, 1: 正常; 2: 中破; 3: 大破; 4: 撤退
-        self.damage_protect = True  # 耐久保护，todo 大破进击时消失
+        self.damage_protect = True  # 耐久保护，大破进击时消失
         self.supply = 1.  # 补给状态
         self.common_buff = []  # 永久面板加成
         self.temper_buff = []  # 临时buff

@@ -15,12 +15,28 @@ class Skill_101191(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            AtkHitBuff(timer, name='atk_hit', phase=(AllPhase,), buff=[
-                StatusBuff(timer, name='evasion', phase=(AllPhase,), value=-30,
-                           bias_or_weight=0),
-                CoeffBuff(timer, name='be_crit', phase=(AllPhase,), value=0.25,
-                          bias_or_weight=0)
-            ], side=0)
+            AtkHitBuff(
+                timer,
+                name='atk_hit',
+                phase=(AllPhase,),
+                buff=[
+                    StatusBuff(
+                        timer,
+                        name='evasion',
+                        phase=(AllPhase,),
+                        value=-30,
+                        bias_or_weight=0
+                    ),
+                    CoeffBuff(
+                        timer,
+                        name='be_crit',
+                        phase=(AllPhase,),
+                        value=0.25,
+                        bias_or_weight=0
+                    )
+                ],
+                side=0
+            )
         ]
 
 

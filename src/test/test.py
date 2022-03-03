@@ -25,13 +25,11 @@ if __name__ == '__main__':
     timer_init = timer()
     battle = load_config(xml_file, ds, timer_init)
 
-    # SS S A B C D
     result = [0] * 6
     resulr_flag_list = ['SS', 'S', 'A', 'B', 'C', 'D']
     for i in range(1000):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
-        # hit_rate = (hit_rate * i + tmp_battle.report()) / (i + 1)
 
         log = tmp_battle.report()
         result_flag_id = resulr_flag_list.index(log['result'])

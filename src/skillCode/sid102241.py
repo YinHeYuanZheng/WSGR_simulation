@@ -16,9 +16,20 @@ class Skill_102241(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            StatusBuff(timer, name='accuracy', phase=(AirPhase,), value=15, bias_or_weight=0),
-            AtkBuff(timer, name='ignore_armor', phase=(ShellingPhase,), value=-0.3,
-                    bias_or_weight=1)
+            StatusBuff(
+                timer,
+                name='accuracy',
+                phase=(AirPhase,),
+                value=15,
+                bias_or_weight=0
+            ),
+            AtkBuff(
+                timer,
+                name='ignore_armor',
+                phase=(ShellingPhase,),
+                value=-0.3,
+                bias_or_weight=1
+            )
         ]
 
 

@@ -131,8 +131,9 @@ class BattleUtil(Time):
             self.timer.log['result'] = 'C'
 
     def report(self):
-        # hit_rate = self.timer.hit / (self.timer.hit + self.timer.miss)
-        # return hit_rate
+        hit_rate = self.timer.log['hit'] / \
+                   (self.timer.log['hit'] + self.timer.log['miss'])
+        self.timer.log['hit_rate'] = hit_rate
         return self.timer.log
 
 

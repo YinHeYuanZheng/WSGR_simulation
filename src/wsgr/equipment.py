@@ -179,3 +179,16 @@ class Shell(Equipment):
 class Accessory(Equipment):
     """强化部件"""
     pass
+
+
+class Launcher(Equipment):
+    """发射器"""
+    pass
+
+
+class Missile(Equipment):
+    pass
+
+
+class AntiMissile(Equipment):
+    pass

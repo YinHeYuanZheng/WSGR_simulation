@@ -15,12 +15,14 @@ class timer:
         self.air_con_flag = None    # 制空结果, 从空确到空丧分别为1-5
         self.phase = None           # 阶段
         self.atk = None
-        self.queue = []             # 有时点依赖的技能 TODO 战斗结束记得清空
+        self.queue = []             # 有时点依赖的技能
         self.log = {
             'create_damage': {
                 1: np.zeros((6,)),
                 0: np.zeros((6,))
-            }
+            },
+            'miss': 0,
+            'hit': 0,
         }
 
     def set_recon(self, recon_flag):
@@ -51,10 +53,12 @@ class timer:
         # print(f"{self.atk.atk_body.status['name']} -> "
         #       f"{self.atk.target.status['name']}: "
         #       f"{str(damage_value)}")
-        # if isinstance(damage_value, str):
-        #     self.miss += 1
-        # else:
-        #     self.hit +=1
+
+        if self.atk.atk_body.side == 1:
+            if isinstance(damage_value, str):
+                self.log['miss'] += 1
+            else:
+                self.log['hit'] += 1
         if isinstance(damage_value, str):
             damage_value = 0
         self.log['create_damage'][self.atk.atk_body.side][self.atk.atk_body.loc - 1]\
