@@ -5,6 +5,7 @@
 import os
 import sys
 import copy
+import numpy as np
 
 curDir = os.path.dirname(__file__)
 srcDir = os.path.join(curDir, 'src')
@@ -21,9 +22,8 @@ def run_victory(battle, epoc):
     for i in range(epoc):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
-        # hit_rate = (hit_rate * i + tmp_battle.report()) / (i + 1)
-
         log = tmp_battle.report()
+
         result_flag_id = resulr_flag_list.index(log['result'])
         result[result_flag_id] += 1
         print(f"第{i + 1}次 - 战果分布: "
@@ -40,10 +40,21 @@ def run_hit_rate(battle, epoc):
     for i in range(epoc):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
-
         log = tmp_battle.report()
+
         hit_rate = (hit_rate * i + log['hit_rate']) / (i + 1)
         print(f"第{i + 1}次 - 命中率: {hit_rate * 100: .4f}%")
+
+
+def run_avg_damage(battle, epoc):
+    avg_damage = 0
+    for i in range(epoc):
+        tmp_battle = copy.deepcopy(battle)
+        tmp_battle.start()
+        log = tmp_battle.report()
+
+        avg_damage = (avg_damage * i + np.sum(log['create_damage'][1])) / (i + 1)
+        print(f"第{i + 1}次 - 平均伤害: {avg_damage:.4f}")
 
 
 if __name__ == '__main__':

@@ -452,18 +452,57 @@ class LandUnit(LargeShip, MainShip):
     pass
 
 
-class Fortness(LandUnit):
+class Elite(Aircraft, LargeShip, MainShip):
+    """旗舰"""
+
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.flightparam = 10
+
+
+class Fortness(LandUnit, Aircraft):
     """要塞"""
-    pass
+
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.flightparam = 10
 
 
-class Airfield(LandUnit):
+class Airfield(LandUnit, Aircraft):
     """机场"""
-    pass
+
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.flightparam = 10
 
 
 class Port(LandUnit):
     """港口"""
+    pass
+
+
+class MissileShip(Ship):
+    """导弹船"""
+    pass
+
+
+class ASDG(MissileShip, SmallShip, MainShip):
+    """导驱"""
+    pass
+
+
+class AADG(MissileShip, SmallShip, CoverShip):
+    """防驱"""
+    pass
+
+
+class BBG(MissileShip, LargeShip, MainShip):
+    """导战"""
+    pass
+
+
+class BG(MissileShip, LargeShip, MainShip):
+    """大巡"""
     pass
 
 
