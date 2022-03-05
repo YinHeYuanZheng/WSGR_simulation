@@ -40,6 +40,50 @@ class CommonSkill(Skill):
         return True
 
 
+class EquipSkill(Skill):
+    """装备携带特效"""
+
+    def __init__(self, timer, master, value: list):
+        super().__init__(timer, master)
+        self.value = value
+
+    def activate(self, friend, enemy):
+        """技能生效时, 给所有满足条件的目标套上所有buff"""
+        target = self.target.get_target(friend, enemy)
+        for tmp_target in target:
+            for tmp_buff in self.buff[:]:
+                buff_type = tmp_buff.effect_type
+
+                # 2类不叠加
+                if buff_type in [2.1, 2.2]:
+                    type2 = tmp_target.get_unique_effect(effect_type=buff_type)
+
+                    # 有2类特效，跳过
+                    if type2 is not None:
+                        continue
+
+                # 3和4类不叠加
+                elif buff_type in [3, 4]:
+                    type34 = tmp_target.get_unique_effect(effect_type=[3, 4])
+
+                    # 无3和4类特效
+                    if type34 is None:
+                        pass
+
+                    # 特效类型不同，跳过
+                    elif type34.effect_type != buff_type:
+                        continue
+
+                    # 特效类型相同，取最高值
+                    else:
+                        value1 = tmp_buff.value
+                        value2 = type34.value
+                        type34.set_value(max(value1, value2))
+                        continue
+
+                tmp_target.add_buff(tmp_buff)
+
+
 class Request(Time):
     """技能发动条件"""
 
@@ -417,6 +461,9 @@ class Buff(Time):
     def is_event(self):
         return False
 
+    def is_equip_effect(self):
+        return False
+
     def is_coef_process(self):
         return False
 
@@ -457,6 +504,24 @@ class CoeffBuff(Buff):
 
     def __repr__(self):
         return f"{self.name}: {self.value}"
+
+
+class EquipEffect(Buff):
+    """装备自带特效"""
+
+    def __init__(self, timer, effect_type, name, phase, value, bias_or_weight, rate=1):
+        super().__init__(timer, name, phase, bias_or_weight, rate)
+        self.value = value
+        self.effect_type = effect_type
+
+    def __repr__(self):
+        return f"{self.name}: {self.value}(装备特效{self.effect_type})"
+
+    def is_equip_effect(self):
+        return True
+
+    def set_value(self, value):
+        self.value = value
 
 
 class AtkBuff(CoeffBuff):

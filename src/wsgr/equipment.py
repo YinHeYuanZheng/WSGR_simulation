@@ -16,6 +16,7 @@ class Equipment(Time):
         self.master = master  # 该装备载体
         self.enum = enum  # 该装备所在栏位
         self.status = {}  # 装备属性
+        self._skill = []  # 技能(未实例化)
         self.common_buff = []  # 永久面板加成(如驻岛舰队、巨像、汉考克)
         self.temper_buff = []  # 临时buff
 
@@ -34,6 +35,16 @@ class Equipment(Time):
                 self.status = status
             else:
                 raise AttributeError(f"'status' should be dict, got {type(status)} instead.")
+
+    def add_skill(self, skill):
+        """设置装备技能(未实例化)"""
+        self._skill.extend(skill)
+
+    def get_skill(self):
+        """获取技能，master调用"""
+        skill = self._skill[:]
+        skill_value = self.status['skill_value']
+        return skill, skill_value
 
     def get_status(self, name):
         """根据属性名称获取装备属性，包含常驻面板加成"""

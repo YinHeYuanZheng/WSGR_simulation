@@ -2,6 +2,9 @@
 # Author:银河远征
 # env:py38
 
+# 装备特效
+from . import esid003  # 装备穿甲特效
+
 # 未改船
 from . import sid101191  # 皇家方舟-1
 from . import sid102241  # 可畏-1
@@ -44,7 +47,7 @@ from . import sid111181  # 齐柏林伯爵改-1
 from . import sid111201  # 约克城改-1
 from . import sid111211  # 企业改-1
 from . import sid111212  # 企业改-2
-# from . import sid111231  # 博格改-1、追赶者改-1
+from . import sid111231  # 博格改-1、追赶者改-1
 from . import sid111251  # 埃罗芒什（巨像改）-1
 from . import sid111261  # 普林斯顿改-1
 from . import sid112191  # 瑞鹤改-1

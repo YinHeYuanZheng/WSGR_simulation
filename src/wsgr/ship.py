@@ -101,6 +101,14 @@ class Ship(Time):
             else:
                 self.skill.append(tmp_skill)
 
+        # 装备技能
+        for tmp_equip in self.equipment:
+            e_skill, e_value = tmp_equip.get_skill()
+            if len(e_skill):
+                assert len(e_skill) == 1
+                tmp_skill = e_skill[0](self.timer, self, e_value)
+                self.skill.append(tmp_skill)
+
     def get_raw_skill(self):
         """获取技能，让巴尔可调用"""
         return self._skill[:]
@@ -186,10 +194,22 @@ class Ship(Time):
         buff.set_master(self)
         if buff.is_common():
             self.common_buff.append(buff)
+
+        elif buff.is_event():
+            self.timer.queue_append(buff)
+
         else:
             self.temper_buff.append(buff)
-        if buff.is_event():
-            self.timer.queue_append(buff)
+
+    def get_unique_effect(self, effect_type):
+        if not isinstance(effect_type, list):
+            effect_type = [effect_type]
+
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.is_equip_effect():
+                if tmp_buff.effect_type in effect_type:
+                    return tmp_buff
+        return None
 
     def get_buff(self, name, *args, **kwargs):
         """根据增益名称获取全部属性增益"""

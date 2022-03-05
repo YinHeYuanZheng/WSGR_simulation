@@ -15,21 +15,22 @@ class Skill_110231(Skill):
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
-                timer,
+                timer=timer,
                 name='crit',
                 phase=(AllPhase,),
                 value=0.10,
                 bias_or_weight=0
             ),
             CoeffBuff(
-                timer,
+                timer=timer,
                 name='be_crit',
                 phase=(AllPhase,),
                 value=0.05,
                 bias_or_weight=0
             ),
-            CoeffBuff(
-                timer,
+            EquipEffect(
+                timer=timer,
+                effect_type=3,
                 name='pierce_coef',
                 phase=(AllPhase,),
                 value=0.25,
