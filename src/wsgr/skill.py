@@ -620,9 +620,16 @@ class SpecialBuff(Buff):
         self.atk_request = atk_request
 
     def is_active(self, *args, **kwargs):
+        if self.exhaust is None:
+            exhaust_flag = True
+        elif self.exhaust > 0:
+            exhaust_flag = True
+        else:
+            exhaust_flag = False
+
         if self.atk_request is None:
             return isinstance(self.timer.phase, self.phase) and \
-                   self.rate_verify() and (not self.exhaust)
+                   self.rate_verify() and exhaust_flag
 
         try:
             atk = kwargs['atk']
@@ -631,7 +638,7 @@ class SpecialBuff(Buff):
 
         return isinstance(self.timer.phase, self.phase) and \
                bool(self.atk_request[0](self.timer, atk)) and \
-               self.rate_verify() and (not self.exhaust)
+               self.rate_verify() and exhaust_flag
 
     def activate(self, *args, **kwargs):
         if self.exhaust is not None:

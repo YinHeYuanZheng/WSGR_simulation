@@ -259,6 +259,7 @@ class Ship(Time):
                 if tmp_buff.is_active(*args, **kwargs):
                     tmp_buff.activate(*args, **kwargs)
                     return True
+        return False
 
     def get_final_damage_buff(self, atk):
         """根据攻击类型决定终伤加成"""
