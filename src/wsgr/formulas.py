@@ -136,7 +136,11 @@ class ATK(Time):
         hit_rate = accuracy / evasion / 2
 
     def get_dmg_coef(self):
-        if self.atk_body.damaged == 1:
+        if self.get_coef('ignore_damaged'):
+            return 1.
+        elif self.atk_body.get_special_buff('ignore_damaged', self):
+            return 1.
+        elif self.atk_body.damaged == 1:
             return 1.
         elif self.atk_body.damaged == 2:
             return .6

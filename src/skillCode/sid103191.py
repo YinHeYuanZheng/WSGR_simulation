@@ -42,11 +42,10 @@ class Skill_103191_2(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            AtkCoefProcess(
+            SpecialBuff(
                 timer=timer,
-                name='dmg_coef',
+                name='ignore_damaged',
                 phase=(AllPhase,),
-                value=1,
                 atk_request=[BuffRequest_1]
             ),
             AtkBuff(
