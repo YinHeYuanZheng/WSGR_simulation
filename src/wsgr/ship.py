@@ -5,6 +5,7 @@
 
 import numpy as np
 from src.wsgr.wsgrTimer import Time
+from src.wsgr.phase import *
 
 
 class Ship(Time):
@@ -41,6 +42,8 @@ class Ship(Time):
         self.equipment = []  # 装备
         self.load = []
 
+        self.act_phase = []  # 可行动阶段
+
         self.side = 0  # 敌我识别; 1: 友方; 0: 敌方
         self.loc = 0  # 站位, 1-6
         self.level = 110  # 等级
@@ -50,7 +53,6 @@ class Ship(Time):
         self.supply = 1.  # 补给状态
         self.common_buff = []  # 永久面板加成
         self.temper_buff = []  # 临时buff
-        # self.target_list = []  # 优先攻击列表
 
     def __eq__(self, other):
         return self.cid == other.cid and \
@@ -401,8 +403,13 @@ class Aircraft(Ship):
     def __init__(self, timer):
         super().__init__(timer)
         self.flightparam = 0
+        self.act_phase.extend([AirPhase, FirstShellingPhase])
 
     def act_in_phase(self):
+        # for tmp_buff in self.temper_buff:
+        #     if tmp_buff.name == 'act_phase':
+        #         pass
+        # if self.timer.phase
         return True
 
 

@@ -645,6 +645,20 @@ class SpecialBuff(Buff):
             self.exhaust -= 1
 
 
+class ActPhaseBuff(Buff):
+    """可行动阶段"""
+    def __init__(self, timer, name, phase, proof,
+                 bias_or_weight=3, rate=1):
+        super().__init__(timer, name, phase, bias_or_weight, rate)
+        self.proof = proof
+
+    def is_active(self, *args, **kwargs):
+        return True
+
+    def activate(self, phase, *args, **kwargs):
+        pass
+
+
 class PriorTargetBuff(Buff):
     """优先攻击目标"""
     def __init__(self, timer, name, phase, target, ordered):

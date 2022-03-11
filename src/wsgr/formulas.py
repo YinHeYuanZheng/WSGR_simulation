@@ -86,12 +86,12 @@ class ATK(Time):
         """暴击检定"""
         if self.get_coef('must_crit') or \
                 self.atk_body.get_special_buff('must_crit', self):
-            self.coef['crit'] = True
+            self.coef['crit_flag'] = True
             return
 
         if self.get_coef('must_not_crit') or \
                 self.target.get_special_buff('must_not_crit', self):
-            self.coef['crit'] = False
+            self.coef['crit_flag'] = False
             return
 
         # 基础暴击率
@@ -107,26 +107,26 @@ class ATK(Time):
         crit = cap(crit)
         verify = np.random.random()
         if verify < crit:
-            self.coef['crit'] = True
+            self.coef['crit_flag'] = True
             return
         else:
-            self.coef['crit'] = False
+            self.coef['crit_flag'] = False
             return
 
     def hit_verify(self):
         """命中检定"""
         if self.target.get_special_buff('shield', self):
-            self.coef['hit'] = False
+            self.coef['hit_flag'] = False
             return
 
         if self.get_coef('must_hit') or \
                 self.atk_body.get_special_buff('must_hit', self):
-            self.coef['hit'] = True
+            self.coef['hit_flag'] = True
             return
 
         if self.get_coef('must_not_hit') or \
                 self.target.get_special_buff('must_not_hit', self):
-            self.coef['hit'] = False
+            self.coef['hit_flag'] = False
             return
 
         accuracy = self.atk_body.get_final_status('accuracy')
@@ -198,7 +198,7 @@ class AirAtk(ATK):
         self.crit_verify()  # 暴击检定
         self.process_coef()  # 生成公式相关系数
 
-        if not self.coef['hit']:
+        if not self.coef['hit_flag']:
             self.end_atk(damage_flag, 'miss')
             return
 
@@ -246,7 +246,7 @@ class AirAtk(ATK):
         """航空攻击命中检定，含对空预警，含飞机装备命中率buff"""
         # 护盾
         if self.target.get_special_buff('shield', self):
-            self.coef['hit'] = False
+            self.hit_flag = False
             return
 
         # todo 对空预警
@@ -254,13 +254,13 @@ class AirAtk(ATK):
         # 技能必中
         if self.get_coef('must_hit') or \
                 self.atk_body.get_special_buff('must_hit', self):
-            self.coef['hit'] = True
+            self.coef['hit_flag'] = True
             return
 
         # 技能必不中
         if self.get_coef('must_not_hit') or \
                 self.target.get_special_buff('must_not_hit', self):
-            self.coef['hit'] = False
+            self.coef['hit_flag'] = False
             return
 
         # 基础命中率
@@ -316,10 +316,10 @@ class AirAtk(ATK):
         hit_rate = cap(hit_rate)
         verify = np.random.random()
         if verify < hit_rate:
-            self.coef['hit'] = True
+            self.coef['hit_flag'] = True
             return
         else:
-            self.coef['hit'] = False
+            self.coef['hit_flag'] = False
             return
 
     def final_damage(self, damage):
@@ -399,7 +399,7 @@ class AirBombAtk(AirAtk):
         self.coef['supply_coef'] = self.get_supply_coef()
 
         # 暴击系数
-        if self.coef['crit']:
+        if self.coef['crit_flag']:
             _, crit_bias = self.atk_body.get_atk_buff('crit_coef', self)
             self.coef['crit_coef'] = 1.5 + crit_bias
         else:
@@ -482,7 +482,7 @@ class AirDiveAtk(AirAtk):
         self.coef['supply_coef'] = self.get_supply_coef()
 
         # 暴击系数
-        if self.coef['crit']:
+        if self.coef['crit_flag']:
             _, crit_bias = self.atk_body.get_atk_buff('crit_coef', self)
             self.coef['crit_coef'] = 1.5 + crit_bias
         else:

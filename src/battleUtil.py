@@ -88,6 +88,7 @@ class BattleUtil(Time):
         for tmp_ship in self.enemy.ship:
             if tmp_ship.damaged == 4:
                 enemy_retreat_num += 1
+        self.timer.log['enemy_retreat_num'] = enemy_retreat_num
 
         # 敌方全部被击沉
         if damage_progress[1] == 1:

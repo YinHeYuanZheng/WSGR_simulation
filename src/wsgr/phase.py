@@ -23,17 +23,17 @@ __all__ = ['AllPhase',
 class AllPhase(Time):
     """战斗阶段总类"""
 
+    def __init__(self, timer, friend, enemy):
+        super().__init__(timer)
+        self.friend = friend
+        self.enemy = enemy
+
     def start(self):
         pass
 
 
 class BuffPhase(AllPhase):
     """buff阶段"""
-
-    def __init__(self, timer, friend, enemy):
-        super().__init__(timer)
-        self.friend = friend
-        self.enemy = enemy
 
     def start(self):
         for tmp_ship in self.friend.ship:
@@ -48,11 +48,6 @@ class BuffPhase(AllPhase):
 
 class AirPhase(AllPhase):
     """航空战阶段"""
-
-    def __init__(self, timer, friend, enemy):
-        super().__init__(timer)
-        self.friend = friend
-        self.enemy = enemy
 
     def start(self):
         # 检查可参与航空战的对象
@@ -191,7 +186,15 @@ class AirPhase(AllPhase):
 
 class ShellingPhase(AllPhase):
     """炮击战"""
-    pass
+
+    def start(self):
+        # 检查可参与炮击战的对象
+        atk_friend = self.friend.get_member_inphase()
+        atk_enemy = self.enemy.get_member_inphase()
+
+        # 如果双方均不存在可行动对象，结束本阶段
+        if not len(atk_friend) and not len(atk_enemy):
+            return
 
 
 class FirstShellingPhase(AllPhase):
