@@ -31,6 +31,20 @@ class AllPhase(Time):
     def start(self):
         pass
 
+    def get_atk_member(self, side):
+        """获取可行动单位"""
+        if side == 1:
+            fleet = self.friend.ship
+        else:
+            fleet = self.enemy.ship
+
+        member = fleet.get_member_inphase()
+        atk_member = []
+        for tmp_ship in member:
+            if tmp_ship.get_act_indicator():
+                atk_member.append(tmp_ship)
+        return atk_member
+
 
 class BuffPhase(AllPhase):
     """buff阶段"""
@@ -186,6 +200,11 @@ class AirPhase(AllPhase):
 
 class ShellingPhase(AllPhase):
     """炮击战"""
+    pass
+
+
+class FirstShellingPhase(AllPhase):
+    """首轮炮击"""
 
     def start(self):
         # 检查可参与炮击战的对象
@@ -195,11 +214,6 @@ class ShellingPhase(AllPhase):
         # 如果双方均不存在可行动对象，结束本阶段
         if not len(atk_friend) and not len(atk_enemy):
             return
-
-
-class FirstShellingPhase(AllPhase):
-    """首轮炮击"""
-    pass
 
 
 class SecondShellingPhase(AllPhase):

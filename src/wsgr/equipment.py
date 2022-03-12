@@ -3,9 +3,9 @@
 # env:py38
 # 装备类
 
-import numpy as np
+# import numpy as np
+# from src.wsgr.ship import *
 from src.wsgr.wsgrTimer import Time
-from src.wsgr.ship import *
 
 
 class Equipment(Time):

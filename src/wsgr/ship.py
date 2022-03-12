@@ -5,7 +5,7 @@
 
 import numpy as np
 from src.wsgr.wsgrTimer import Time
-from src.wsgr.phase import *
+from src.wsgr.equipment import *
 
 
 class Ship(Time):
@@ -42,7 +42,30 @@ class Ship(Time):
         self.equipment = []  # 装备
         self.load = []
 
-        self.act_phase = []  # 可行动阶段
+        self.act_phase_flag = {
+            'AirPhase': False,
+            'FirstMissilePhase': False,
+            'AntisubPhase': False,
+            'FirstTorpedoPhase': False,
+            'FirstShellingPhase': True,
+            'SecondShellingPhase': True,
+            'SecondTorpedoPhase': True,
+            'SecondMissilePhase': False,
+            'NightPhase': True,
+        }  # 可参与阶段
+
+        self.act_phase_indicator = {
+            'AirPhase': False,
+            'FirstMissilePhase': False,
+            'AntisubPhase': False,
+            'FirstTorpedoPhase': False,
+            'FirstShellingPhase': True,
+            'SecondShellingPhase': self.get_final_status('range') >= 3,
+            'SecondTorpedoPhase':
+                (self.damaged < 3) and (self.get_final_status('torpedo') > 0),
+            'SecondMissilePhase': False,
+            'NightPhase': self.damaged < 3,
+        }  # 可行动标准
 
         self.side = 0  # 敌我识别; 1: 友方; 0: 敌方
         self.loc = 0  # 站位, 1-6
@@ -284,9 +307,25 @@ class Ship(Time):
                     tmp_buff.is_active(atk=atk, *args, **kwargs):
                 tmp_buff.activate(atk=atk, *args, **kwargs)
 
-    def act_in_phase(self):
+    def get_act_flag(self):
+        phase_name = type(self.timer.phase).__name__
+        return self.act_phase_flag[phase_name]
+
+    def get_act_indicator(self):
         """判断舰船在指定阶段内能否行动"""
-        return False
+        # 跳过阶段，优先级最高
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'not_act_phase' and tmp_buff.is_active():
+                return False
+
+        # 可参与阶段
+        # for tmp_buff in self.temper_buff:
+        #     if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
+        #         return True
+
+        # 默认行动模式
+        phase_name = type(self.timer.phase).__name__
+        return self.act_phase_indicator[phase_name]
 
     def get_target(self):
         """判断指定阶段内可以攻击什么目标"""
@@ -335,16 +374,15 @@ class Ship(Time):
 
         self.status['health'] -= damage
         # 受伤状态结算
-        if self.damaged < 2 and \
-                self.status['health'] < standard_health * 0.5:
-            self.damaged = 2
-        if self.damaged < 3 and \
-                self.status['health'] < standard_health * 0.25:
-            self.damaged = 3
-        if self.damaged < 4 or \
-                self.status['health'] <= 0:
+        if self.status['health'] <= 0:
             self.status['health'] = 0
             self.damaged = 4
+        elif self.damaged < 3 and \
+                self.status['health'] < standard_health * 0.25:
+            self.damaged = 3
+        elif self.damaged < 2 and \
+                self.status['health'] < standard_health * 0.5:
+            self.damaged = 2
 
         return damage
 
@@ -403,14 +441,13 @@ class Aircraft(Ship):
     def __init__(self, timer):
         super().__init__(timer)
         self.flightparam = 0
-        self.act_phase.extend([AirPhase, FirstShellingPhase])
 
-    def act_in_phase(self):
-        # for tmp_buff in self.temper_buff:
-        #     if tmp_buff.name == 'act_phase':
-        #         pass
-        # if self.timer.phase
-        return True
+    def get_plane(self):
+        for tmp_equip in self.equipment:
+            if isinstance(tmp_equip, (Fighter, Bomber, DiveBomber)):
+                if tmp_equip.load > 0:
+                    return True
+        return False
 
 
 class CV(Aircraft, LargeShip, MainShip):
@@ -419,6 +456,34 @@ class CV(Aircraft, LargeShip, MainShip):
         self.type = 'CV'
         self.flightparam = 5
 
+        self.act_phase_flag.update({
+            'AirPhase': True,
+            'SecondTorpedoPhase': False
+        })
+
+        self.act_phase_indicator.update({
+            'AirPhase': self.damaged < 3,
+            'FirstShellingPhase': self.damaged < 2,
+            'SecondShellingPhase':
+                (self.damaged < 2) and (self.get_final_status('range') >= 3),
+            'NightPhase': False,
+        })
+
+    def get_act_indicator(self):
+        # 跳过阶段，优先级最高
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'not_act_phase' and tmp_buff.is_active():
+                return False
+
+        # 可参与阶段
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
+                return self.damaged < 2
+
+        # 默认行动模式
+        phase_name = type(self.timer.phase).__name__
+        return self.act_phase_indicator[phase_name]
+
 
 class CVL(Aircraft, MidShip, CoverShip):
     def __init__(self, timer):
@@ -426,12 +491,78 @@ class CVL(Aircraft, MidShip, CoverShip):
         self.type = 'CVL'
         self.flightparam = 5
 
+        self.act_phase_flag.update({
+            'AirPhase': True,
+            'AntisubPhase': True,
+            'SecondTorpedoPhase': False
+        })
+
+        self.act_phase_indicator.update({
+            'AirPhase': self.damaged < 3,
+            'AntisubPhase':
+                (self.damaged < 2) and self.get_atk_plane(),
+            'FirstShellingPhase': self.damaged < 2,
+            'SecondShellingPhase':
+                (self.damaged < 2) and (self.get_final_status('range') >= 3),
+            'NightPhase': False,
+        })
+
+    def get_act_indicator(self):
+        # 跳过阶段，优先级最高
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'not_act_phase' and tmp_buff.is_active():
+                return False
+
+        # 可参与阶段
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
+                return self.damaged < 2
+
+        # 默认行动模式
+        phase_name = type(self.timer.phase).__name__
+        return self.act_phase_indicator[phase_name]
+
+    def get_atk_plane(self):
+        for tmp_equip in self.equipment:
+            if isinstance(tmp_equip, (Bomber, DiveBomber)):
+                if tmp_equip.load > 0:
+                    return True
+        return False
+
 
 class AV(Aircraft, LargeShip, MainShip):
     def __init__(self, timer):
         super().__init__(timer)
         self.type = 'AV'
         self.flightparam = 5
+
+        self.act_phase_flag.update({
+            'AirPhase': True,
+            'SecondTorpedoPhase': False
+        })
+
+        self.act_phase_indicator.update({
+            'AirPhase': self.damaged < 3,
+            'FirstShellingPhase': self.damaged < 3,
+            'SecondShellingPhase':
+                (self.damaged < 3) and (self.get_final_status('range') >= 3),
+            'NightPhase': False,
+        })
+
+    def get_act_indicator(self):
+        # 跳过阶段，优先级最高
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'not_act_phase' and tmp_buff.is_active():
+                return False
+
+        # 可参与阶段
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
+                return self.damaged < 3
+
+        # 默认行动模式
+        phase_name = type(self.timer.phase).__name__
+        return self.act_phase_indicator[phase_name]
 
 
 class BB(LargeShip, MainShip):
@@ -568,7 +699,7 @@ class Fleet(Time):
         """确定舰队中参与当前阶段的成员"""
         member = []
         for tmp_ship in self.ship:
-            if tmp_ship.act_in_phase():
+            if tmp_ship.get_act_flag():
                 member.append(tmp_ship)
         return member
 

@@ -246,7 +246,7 @@ class AirAtk(ATK):
         """航空攻击命中检定，含对空预警，含飞机装备命中率buff"""
         # 护盾
         if self.target.get_special_buff('shield', self):
-            self.hit_flag = False
+            self.coef['hit'] = False
             return
 
         # todo 对空预警

@@ -7,6 +7,7 @@ import numpy as np
 
 from src.wsgr.wsgrTimer import Time
 from src.wsgr.ship import Ship, Fleet
+from src.wsgr.phase import *
 
 
 class Skill(Time):
@@ -647,16 +648,7 @@ class SpecialBuff(Buff):
 
 class ActPhaseBuff(Buff):
     """可行动阶段"""
-    def __init__(self, timer, name, phase, proof,
-                 bias_or_weight=3, rate=1):
-        super().__init__(timer, name, phase, bias_or_weight, rate)
-        self.proof = proof
-
-    def is_active(self, *args, **kwargs):
-        return True
-
-    def activate(self, phase, *args, **kwargs):
-        pass
+    pass
 
 
 class PriorTargetBuff(Buff):
