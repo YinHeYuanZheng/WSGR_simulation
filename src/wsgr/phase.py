@@ -203,7 +203,7 @@ class ShellingPhase(AllPhase):
     pass
 
 
-class FirstShellingPhase(AllPhase):
+class FirstShellingPhase(ShellingPhase):
     """首轮炮击"""
 
     def start(self):
@@ -215,7 +215,27 @@ class FirstShellingPhase(AllPhase):
         if not len(atk_friend) and not len(atk_enemy):
             return
 
+        ordered_friend = self.get_order(atk_friend)
+        ordered_enemy = self.get_order(atk_enemy)
 
-class SecondShellingPhase(AllPhase):
+        for i in range(6):
+            if i < len(ordered_friend):
+                ordered_friend[i].raise_atk()
+
+            if i < len(ordered_enemy):
+                ordered_enemy[i].raise_atk()
+
+    def get_order(self, fleet):
+        """炮序"""
+        base_order = [5, 6, 4, 3, 2, 1]
+        fleet.sort(key=lambda x: (-x.get_range(), base_order.index(x.loc)))
+        return fleet
+
+
+class SecondShellingPhase(ShellingPhase):
     """次轮炮击"""
-    pass
+
+    def get_order(self, fleet):
+        """炮序"""
+        fleet.sort(key=lambda x: x.loc)
+        return fleet

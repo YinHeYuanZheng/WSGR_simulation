@@ -72,6 +72,20 @@ class Equipment(Time):
         status = self.get_status(name) * (1 + buff_scale) + buff_bias
         return max(0, status)
 
+    def get_range(self):
+        equip_range = self.status.get('range', 0)
+
+        for tmp_buff in self.common_buff:
+            if tmp_buff.name == 'range' and tmp_buff.is_active():
+                tmp_range = tmp_buff.value
+                equip_range = max(equip_range, tmp_range)
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'range' and tmp_buff.is_active():
+                tmp_range = tmp_buff.value
+                equip_range = max(equip_range, tmp_range)
+
+        return equip_range
+
     def add_buff(self, buff):
         """添加增益"""
         buff.set_master(self)

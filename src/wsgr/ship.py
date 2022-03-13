@@ -55,16 +55,17 @@ class Ship(Time):
         }  # 可参与阶段
 
         self.act_phase_indicator = {
-            'AirPhase': False,
-            'FirstMissilePhase': False,
-            'AntisubPhase': False,
-            'FirstTorpedoPhase': False,
-            'FirstShellingPhase': True,
-            'SecondShellingPhase': self.get_final_status('range') >= 3,
-            'SecondTorpedoPhase':
+            'AirPhase': lambda: False,
+            'FirstMissilePhase': lambda: False,
+            'AntisubPhase': lambda: False,
+            'FirstTorpedoPhase': lambda: False,
+            'FirstShellingPhase': lambda: self.damaged < 4,
+            'SecondShellingPhase': lambda:
+                (self.get_range() >= 3) and (self.damaged < 4),
+            'SecondTorpedoPhase': lambda:
                 (self.damaged < 3) and (self.get_final_status('torpedo') > 0),
-            'SecondMissilePhase': False,
-            'NightPhase': self.damaged < 3,
+            'SecondMissilePhase': lambda: False,
+            'NightPhase': lambda: self.damaged < 3,
         }  # 可行动标准
 
         self.side = 0  # 敌我识别; 1: 友方; 0: 敌方
@@ -214,6 +215,23 @@ class Ship(Time):
 
         return max(0, status)
 
+    def get_range(self):
+        ship_range = self.status['range']
+
+        for tmp_buff in self.common_buff:
+            if tmp_buff.name == 'range' and tmp_buff.is_active():
+                tmp_range = tmp_buff.value
+                ship_range = max(ship_range, tmp_range)
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'range' and tmp_buff.is_active():
+                tmp_range = tmp_buff.value
+                ship_range = max(ship_range, tmp_range)
+        for tmp_equip in self.equipment:
+            equip_range = tmp_equip.get_range()
+            ship_range = max(ship_range, equip_range)
+
+        return ship_range
+
     def add_buff(self, buff):
         """添加增益"""
         buff.set_master(self)
@@ -325,7 +343,7 @@ class Ship(Time):
 
         # 默认行动模式
         phase_name = type(self.timer.phase).__name__
-        return self.act_phase_indicator[phase_name]
+        return self.act_phase_indicator[phase_name]()
 
     def get_target(self):
         """判断指定阶段内可以攻击什么目标"""
@@ -462,11 +480,11 @@ class CV(Aircraft, LargeShip, MainShip):
         })
 
         self.act_phase_indicator.update({
-            'AirPhase': self.damaged < 3,
-            'FirstShellingPhase': self.damaged < 2,
-            'SecondShellingPhase':
-                (self.damaged < 2) and (self.get_final_status('range') >= 3),
-            'NightPhase': False,
+            'AirPhase': lambda: self.damaged < 3,
+            'FirstShellingPhase': lambda: self.damaged < 2,
+            'SecondShellingPhase': lambda:
+                (self.damaged < 2) and (self.get_range() >= 3),
+            'NightPhase': lambda: False,
         })
 
     def get_act_indicator(self):
@@ -482,7 +500,7 @@ class CV(Aircraft, LargeShip, MainShip):
 
         # 默认行动模式
         phase_name = type(self.timer.phase).__name__
-        return self.act_phase_indicator[phase_name]
+        return self.act_phase_indicator[phase_name]()
 
 
 class CVL(Aircraft, MidShip, CoverShip):
@@ -498,13 +516,13 @@ class CVL(Aircraft, MidShip, CoverShip):
         })
 
         self.act_phase_indicator.update({
-            'AirPhase': self.damaged < 3,
-            'AntisubPhase':
+            'AirPhase': lambda: self.damaged < 3,
+            'AntisubPhase': lambda:
                 (self.damaged < 2) and self.get_atk_plane(),
-            'FirstShellingPhase': self.damaged < 2,
-            'SecondShellingPhase':
-                (self.damaged < 2) and (self.get_final_status('range') >= 3),
-            'NightPhase': False,
+            'FirstShellingPhase': lambda: self.damaged < 2,
+            'SecondShellingPhase': lambda:
+                (self.damaged < 2) and (self.get_range() >= 3),
+            'NightPhase': lambda: False,
         })
 
     def get_act_indicator(self):
@@ -520,7 +538,7 @@ class CVL(Aircraft, MidShip, CoverShip):
 
         # 默认行动模式
         phase_name = type(self.timer.phase).__name__
-        return self.act_phase_indicator[phase_name]
+        return self.act_phase_indicator[phase_name]()
 
     def get_atk_plane(self):
         for tmp_equip in self.equipment:
@@ -542,11 +560,11 @@ class AV(Aircraft, LargeShip, MainShip):
         })
 
         self.act_phase_indicator.update({
-            'AirPhase': self.damaged < 3,
-            'FirstShellingPhase': self.damaged < 3,
-            'SecondShellingPhase':
-                (self.damaged < 3) and (self.get_final_status('range') >= 3),
-            'NightPhase': False,
+            'AirPhase': lambda: self.damaged < 3,
+            'FirstShellingPhase': lambda: self.damaged < 3,
+            'SecondShellingPhase': lambda:
+                (self.damaged < 3) and (self.get_range() >= 3),
+            'NightPhase': lambda: False,
         })
 
     def get_act_indicator(self):
@@ -562,7 +580,7 @@ class AV(Aircraft, LargeShip, MainShip):
 
         # 默认行动模式
         phase_name = type(self.timer.phase).__name__
-        return self.act_phase_indicator[phase_name]
+        return self.act_phase_indicator[phase_name]()
 
 
 class BB(LargeShip, MainShip):
@@ -594,12 +612,27 @@ class DD(SmallShip, CoverShip):
 
 class Submarine(Ship):
     """水下单位"""
+
     def can_be_atk(self, atk):
         return False
 
 
 class SS(Submarine, SmallShip, CoverShip):
-    pass
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'SS'
+
+        self.act_phase_flag.update({
+            'FirstTorpedoPhase': True,
+            'FirstShellingPhase': False,
+            'SecondShellingPhase': False,
+        })
+
+        self.act_phase_indicator.update({
+            'FirstTorpedoPhase': lambda: (self.level > 10) and (self.damaged < 3),
+            'FirstShellingPhase': lambda: False,
+            'SecondShellingPhase': lambda: False,
+        })
 
 
 class SC(Submarine, SmallShip, CoverShip):

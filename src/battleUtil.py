@@ -22,7 +22,9 @@ class BattleUtil(Time):
         self.recon_phase()
         self.get_direction()
         self.buff_phase()
-        self.air_phase()
+        # self.air_phase()
+        self.first_shelling_phase()
+        # self.second_shelling_phase()
         self.end_phase()
 
     def battle_init(self):
@@ -54,6 +56,14 @@ class BattleUtil(Time):
 
     def air_phase(self):
         self.timer.set_phase(AirPhase(self.timer, self.friend, self.enemy))
+        self.timer.phase_start()
+
+    def first_shelling_phase(self):
+        self.timer.set_phase(FirstShellingPhase(self.timer, self.friend, self.enemy))
+        self.timer.phase_start()
+
+    def second_shelling_phase(self):
+        self.timer.set_phase(SecondShellingPhase(self.timer, self.friend, self.enemy))
         self.timer.phase_start()
 
     def end_phase(self):
@@ -132,9 +142,12 @@ class BattleUtil(Time):
             self.timer.log['result'] = 'C'
 
     def report(self):
-        hit_rate = self.timer.log['hit'] / \
-                   (self.timer.log['hit'] + self.timer.log['miss'])
-        self.timer.log['hit_rate'] = hit_rate
+        try:
+            hit_rate = self.timer.log['hit'] / \
+                       (self.timer.log['hit'] + self.timer.log['miss'])
+            self.timer.log['hit_rate'] = hit_rate
+        except:
+            self.timer.log['hit_rate'] = 0
         return self.timer.log
 
 

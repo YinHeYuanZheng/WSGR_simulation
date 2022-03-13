@@ -30,7 +30,7 @@ if __name__ == '__main__':
     resulr_flag_list = ['SS', 'S', 'A', 'B', 'C', 'D']
     avg_damage = 0
     retreat_num = 0
-    for i in range(1000):
+    for i in range(1):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
