@@ -65,11 +65,11 @@ class AirPhase(AllPhase):
 
     def start(self):
         # 检查可参与航空战的对象
-        atk_friend = self.friend.get_member_inphase()
-        atk_enemy = self.enemy.get_member_inphase()
+        atk_friend = self.friend.get_act_member_inphase()
+        atk_enemy = self.enemy.get_act_member_inphase()
         # 检查可被航空攻击的对象
-        def_friend = self.friend.get_target(AirAtk)
-        def_enemy = self.enemy.get_target(AirAtk)
+        def_friend = self.friend.get_target(atk_type=AirAtk)
+        def_enemy = self.enemy.get_target(atk_type=AirAtk)
 
         # 如果不存在可行动对象或可攻击对象，结束本阶段
         if (len(atk_friend) and len(def_enemy)) or \

@@ -12,20 +12,27 @@ from src.wsgr.equipment import *
 __all__ = ['ATK',
            'AirAtk',
            'AirBombAtk',
-           'AirDiveAtk']
+           'AirDiveAtk',
+
+           'NormalAtk',
+           ]
 
 
 # attack types
 class ATK(Time):
     """攻击总类"""
 
-    def __init__(self, timer, atk_body, def_list, coef, atk_form, def_form, target=None):
+    def __init__(self, timer, atk_body, def_list, atk_form, def_form,
+                 coef=None, target=None):
         super().__init__(timer)
         self.timer.set_atk(self)
         self.atk_body = atk_body
         self.def_list = def_list  # 可被攻击目标列表
         self.target = target  # 攻击目标，可被更改
-        self.coef = coef  # 伤害计算相关参数
+        if coef is None:
+            self.coef = {}
+        else:
+            self.coef = coef  # 伤害计算相关参数
         self.atk_form = atk_form  # 攻击方阵型
         self.def_form = def_form  # 防御方阵型
 
@@ -33,22 +40,46 @@ class ATK(Time):
             'power': [],
             'hit': [],
             'miss': [],
-            'crit': [],
-            'be_crit': [],
+            'crit': [0, 0, 0, .25, 0],
+            'be_crit': [0, 0, 0, .25, -.1],
         }  # 阵型系数
 
     def __repr__(self):
         source_name = self.atk_body.status['name']
         target_name = self.target.status['name'] \
             if self.target is not None else '未确定'
-        return f"{source_name} -> {target_name}"
+        return f"{source_name} -> {target_name} ({type(self).__name__})"
 
     def start(self):
         """攻击开始命令，结算到攻击结束"""
-        pass
+
+        damage_flag = False
+        self.target_init()
+        self.start_atk()
+
+        self.hit_verify()  # 闪避检定
+        self.crit_verify()  # 暴击检定
+        self.process_coef()  # 生成公式相关系数
+
+        if not self.coef['hit_flag']:
+            self.end_atk(damage_flag, 'miss')
+            return
+
+        damage = self.formula()
+        if damage == 0:
+            self.end_atk(damage_flag, 'jump')
+            return
+
+        damage = self.final_damage(damage)
+        damage = self.target.get_damage(damage)
+        damage_flag = bool(damage)
+        self.end_atk(damage_flag, damage)
 
     def target_init(self):
         """决定攻击目标，技能可以影响优先目标"""
+        if self.target is not None:
+            return
+
         prior = self.atk_body.get_prior_target(self.def_list)
         if prior is not None:
             assert not isinstance(prior, list)
@@ -67,8 +98,8 @@ class ATK(Time):
                     tmp_buff.activate(self)
                     break
 
-    def set_coef(self, name, value):
-        self.coef[name] = value
+    def set_coef(self, coef):
+        self.coef.update(coef)
 
     def process_coef(self):
         pass
@@ -129,11 +160,46 @@ class ATK(Time):
             self.coef['hit_flag'] = False
             return
 
+        # 基础命中率
         accuracy = self.atk_body.get_final_status('accuracy')
         evasion = self.atk_body.get_final_status('evasion')
-        if evasion == 0:
+
+        # 梯形锁定减少闪避
+
+        if evasion < 1:
             evasion = 1
         hit_rate = accuracy / evasion / 2
+        hit_rate = min(1, hit_rate)
+
+        # 阵型命中率补正
+        hit_rate *= self.get_form_coef('hit', self.atk_form) / \
+                    self.get_form_coef('miss', self.def_form)
+
+        # 索敌补正
+        if self.atk_body.side == 1 and self.timer.recon_flag:
+            hit_rate += 0.05
+        if self.target.side == 1 and self.timer.recon_flag:
+            hit_rate -= 0.05
+
+        # 船型补正
+
+        # 技能补正
+        _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
+        hit_rate += hitrate_bias
+        _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
+        hit_rate -= hitrate_bias
+
+        # 好感补正
+        hit_rate += self.atk_body.affection * 0.001
+        hit_rate -= self.target.affection * 0.001
+
+        hit_rate = cap(hit_rate)
+        verify = np.random.random()
+        if verify < hit_rate:
+            self.coef['hit_flag'] = True
+            return
+        else:
+            self.coef['hit_flag'] = False
 
     def get_dmg_coef(self):
         if self.get_coef('ignore_damaged'):
@@ -154,12 +220,7 @@ class ATK(Time):
         pass
 
     def final_damage(self, damage):
-        for buff_scale in self.atk_body.get_final_damage_buff(self):
-            damage = np.ceil(damage * (1 + buff_scale))
-        for debuff_scale in self.target.get_final_damage_debuff(self):
-            damage = np.ceil(damage * (1 + debuff_scale))
-        # todo 可能会增加战术终伤
-        return max(0, damage)
+        pass
 
     def end_atk(self, damage_flag, damage_value):
         """
@@ -176,18 +237,17 @@ class ATK(Time):
 
 
 class AirAtk(ATK):
-    def __init__(self, atk_body, def_list, equip, coef, atk_form, def_form, timer):
-        super().__init__(timer, atk_body, def_list, coef, atk_form, def_form)
+    def __init__(self, timer, atk_body, def_list, equip, atk_form, def_form, coef,
+                 target=None):
+        super().__init__(timer, atk_body, def_list, atk_form, def_form, coef, target)
         self.equip = equip
 
-        self.form_coef = {
+        self.form_coef.update({
             'power': [1, 1, 1, 1, 1],
             'hit': [1, 1, 1, 1, 1],
             'miss': [.8, 1., 1.2, .8, .9],
-            'crit': [0, 0, 0, .25, 0],
-            'be_crit': [0, 0, 0, .25, -.1],
             'anti_def': [1, 1.2, 1.6, 1, 1],
-        }  # 阵型系数
+        })  # 阵型系数
 
     def start(self):
         damage_flag = False
@@ -249,7 +309,7 @@ class AirAtk(ATK):
             self.coef['hit'] = False
             return
 
-        # todo 对空预警
+        # 对空预警
 
         # 技能必中
         if self.get_coef('must_hit') or \
@@ -335,11 +395,6 @@ class AirAtk(ATK):
         for debuff_scale in self.target.get_final_damage_debuff(self):
             damage = np.ceil(damage * (1 + debuff_scale))
 
-        # 挡枪减伤
-        # tank_damage_debuff = self.get_coef('tank_damage_debuff')
-        # if tank_damage_debuff is not None:
-        #     damage = np.ceil(damage * (1 + tank_damage_debuff))
-
         # 对空减伤
         aa_value = self.get_anti_air_def()
         if self.target.size == 3:
@@ -351,7 +406,7 @@ class AirAtk(ATK):
         aa_damage_coef = aa_base / (aa_base + aa_value)
         damage = np.ceil(damage * aa_damage_coef)
 
-        # todo 可能会增加战术终伤
+        # 战术终伤
 
         # 装母对轰炸减伤75%
         if isinstance(self.target, AV) and isinstance(self, AirBombAtk):
@@ -534,6 +589,51 @@ class AirDiveAtk(AirAtk):
                     min(real_atk, self.target.get_status('health')) * 0.1
                 )
         return real_dmg
+
+
+class NormalAtk(ATK):
+    """普通炮击"""
+
+    def __init__(self, timer, atk_body, def_list, atk_form, def_form,
+                 coef=None, target=None):
+        super().__init__(timer, atk_body, def_list, atk_form, def_form, coef, target)
+
+        self.form_coef.update({
+            'power': [1, .8, .75, 1, .8],
+            'hit': [1.1, 1, .9, 1.2, .75],
+            'miss': [.9, 1.2, .9, .8, 1.3],
+        })  # 阵型系数
+
+    def formula(self):
+        pass
+
+    def final_damage(self, damage):
+        """普通炮击终伤"""
+
+        # 额外伤害
+        _, extra_damage = self.atk_body.get_atk_buff('extra_damage', self)
+        damage += extra_damage
+
+        # 终伤系数
+        for buff_scale in self.atk_body.get_final_damage_buff(self):
+            damage = np.ceil(damage * (1 + buff_scale))
+        for debuff_scale in self.target.get_final_damage_debuff(self):
+            damage = np.ceil(damage * (1 + debuff_scale))
+
+        # 挡枪减伤
+        # tank_damage_debuff = self.get_coef('tank_damage_debuff')
+        # if tank_damage_debuff is not None:
+        #     damage = np.ceil(damage * (1 + tank_damage_debuff))
+
+        # 战术终伤
+
+        # 技能伤害减免
+        _, reduce_damage = self.target.get_atk_buff(name='reduce_damage',
+                                                    atk=self,
+                                                    damage=damage)
+        damage -= reduce_damage
+
+        return max(0, damage)
 
 
 def cap(x):

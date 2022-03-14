@@ -293,7 +293,7 @@ class Ship(Time):
             if not tmp_buff.is_coef_process():
                 continue
             if tmp_buff.is_active(atk=atk, *args, **kwargs):
-                atk.set_coef(tmp_buff.name, tmp_buff.value)
+                atk.set_coef({tmp_buff.name: tmp_buff.value})
 
     def get_special_buff(self, name, *args, **kwargs):
         """查询机制增益"""
@@ -736,6 +736,14 @@ class Fleet(Time):
                 member.append(tmp_ship)
         return member
 
+    def get_act_member_inphase(self):
+        """确定舰队中在当前阶段可行动的成员"""
+        member = []
+        for tmp_ship in self.ship:
+            if tmp_ship.get_act_flag() and tmp_ship.get_act_indicator():
+                member.append(tmp_ship)
+        return member
+
     def get_target(self, atk_type=None, atk_body=None):
         """确定舰队中可被指定攻击方式选中的成员"""
         target = []
@@ -743,12 +751,13 @@ class Fleet(Time):
             for tmp_ship in self.ship:
                 if tmp_ship.can_be_atk(atk_type):
                     target.append(tmp_ship)
-            return target
-        elif atk_body is not None:
-            for tmp_ship in self.ship:
-                if tmp_ship in atk_body.get_target():
-                    target.append(tmp_ship)
-            return target
+        # elif atk_body is not None:
+        #     for tmp_ship in self.ship:
+        #         if tmp_ship in atk_body.get_target():
+        #             target.append(tmp_ship)
+        # else:
+        #     raise ValueError('"atk_type" and "atk_body" should not be None at the same time!')
+        return target
 
     def count(self, shiptype):
         c = 0
