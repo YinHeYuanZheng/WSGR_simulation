@@ -31,7 +31,7 @@ class Skill_110311_1(Skill):
             ),
             PriorTargetBuff(
                 timer=timer,
-                name='prior_target',
+                name='prior_type_target',
                 phase=(ShellingPhase,),
                 target=OrderedTypeTarget(shiptype=(Fortness, Airfield, Port, CV)),
                 ordered=False

@@ -68,8 +68,8 @@ class AirPhase(AllPhase):
         atk_friend = self.friend.get_act_member_inphase()
         atk_enemy = self.enemy.get_act_member_inphase()
         # 检查可被航空攻击的对象
-        def_friend = self.friend.get_target(atk_type=AirAtk)
-        def_enemy = self.enemy.get_target(atk_type=AirAtk)
+        def_friend = self.friend.get_atk_target(atk_type=AirAtk)
+        def_enemy = self.enemy.get_atk_target(atk_type=AirAtk)
 
         # 如果不存在可行动对象或可攻击对象，结束本阶段
         if (len(atk_friend) and len(def_enemy)) or \
@@ -164,8 +164,6 @@ class AirPhase(AllPhase):
                         def_list=defend,
                         equip=tmp_equip,
                         coef=coef,
-                        atk_form=self.friend.form if side == 1 else self.enemy.form,
-                        def_form=self.enemy.form if side == 1 else self.friend.form
                     )
                     atk.start()
                     anti_num = atk.get_coef('anti_num')
@@ -178,8 +176,6 @@ class AirPhase(AllPhase):
                         def_list=defend,
                         equip=tmp_equip,
                         coef=coef,
-                        atk_form=self.friend.form if side == 1 else self.enemy.form,
-                        def_form=self.enemy.form if side == 1 else self.friend.form
                     )
                     atk.start()
                     anti_num = atk.get_coef('anti_num')
@@ -200,12 +196,6 @@ class AirPhase(AllPhase):
 
 class ShellingPhase(AllPhase):
     """炮击战"""
-    pass
-
-
-class FirstShellingPhase(ShellingPhase):
-    """首轮炮击"""
-
     def start(self):
         # 检查可参与炮击战的对象
         atk_friend = self.friend.get_member_inphase()
@@ -215,15 +205,33 @@ class FirstShellingPhase(ShellingPhase):
         if not len(atk_friend) and not len(atk_enemy):
             return
 
+        # 排列炮序
         ordered_friend = self.get_order(atk_friend)
         ordered_enemy = self.get_order(atk_enemy)
 
+        # 按照炮序依次行动
         for i in range(6):
             if i < len(ordered_friend):
-                ordered_friend[i].raise_atk()
+                self.normal_atk(ordered_friend[i], self.enemy)
 
             if i < len(ordered_enemy):
-                ordered_enemy[i].raise_atk()
+                self.normal_atk(ordered_enemy[i], self.friend)
+
+    def get_order(self, fleet):
+        """炮序"""
+        fleet.sort(key=lambda x: x.loc)
+        return fleet
+
+    def normal_atk(self, source, target_fleet):
+        if not source.get_act_indicator():
+            return
+        atk_list = source.raise_atk(target_fleet)
+        for atk in atk_list:
+            atk.start()
+
+
+class FirstShellingPhase(ShellingPhase):
+    """首轮炮击"""
 
     def get_order(self, fleet):
         """炮序"""
@@ -234,8 +242,4 @@ class FirstShellingPhase(ShellingPhase):
 
 class SecondShellingPhase(ShellingPhase):
     """次轮炮击"""
-
-    def get_order(self, fleet):
-        """炮序"""
-        fleet.sort(key=lambda x: x.loc)
-        return fleet
+    pass

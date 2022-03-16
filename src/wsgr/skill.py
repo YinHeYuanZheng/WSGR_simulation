@@ -685,6 +685,9 @@ class MagnetBuff(EventBuff):
         return f"嘲讽: {self.rate}"
 
     def is_active(self, atk, *args, **kwargs):
+        if not atk.changeable:
+            return False
+
         if self.atk_request is None:
             return isinstance(self.timer.phase, self.phase) and \
                    self.master != atk.target and \
@@ -713,6 +716,9 @@ class UnMagnetBuff(EventBuff):
         return f"负嘲讽: {self.rate}"
 
     def is_active(self, atk, *args, **kwargs):
+        if not atk.changeable:
+            return False
+
         if self.atk_request is None:
             return isinstance(self.timer.phase, self.phase) and \
                    self.master == atk.target and \

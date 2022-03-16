@@ -6,6 +6,7 @@
 import numpy as np
 from src.wsgr.wsgrTimer import Time
 from src.wsgr.equipment import *
+# import src.wsgr.formulas as rform
 
 
 class Ship(Time):
@@ -13,6 +14,7 @@ class Ship(Time):
 
     def __init__(self, timer):
         super().__init__(timer)
+        self.master = None
         self.cid = 0  # 编号
         self.type = None  # 船型
         self.size = None  # 量级，大中小型船
@@ -42,6 +44,16 @@ class Ship(Time):
         self.equipment = []  # 装备
         self.load = []
 
+        self.side = 0  # 敌我识别; 1: 友方; 0: 敌方
+        self.loc = 0  # 站位, 1-6
+        self.level = 110  # 等级
+        self.affection = 200  # 好感
+        self.damaged = 1  # 耐久状态, 1: 正常; 2: 中破; 3: 大破; 4: 撤退
+        self.damage_protect = True  # 耐久保护，大破进击时消失
+        self.supply = 1.  # 补给状态
+        self.common_buff = []  # 永久面板加成
+        self.temper_buff = []  # 临时buff
+
         self.act_phase_flag = {
             'AirPhase': False,
             'FirstMissilePhase': False,
@@ -68,15 +80,9 @@ class Ship(Time):
             'NightPhase': lambda: self.damaged < 3,
         }  # 可行动标准
 
-        self.side = 0  # 敌我识别; 1: 友方; 0: 敌方
-        self.loc = 0  # 站位, 1-6
-        self.level = 110  # 等级
-        self.affection = 200  # 好感
-        self.damaged = 1  # 耐久状态, 1: 正常; 2: 中破; 3: 大破; 4: 撤退
-        self.damage_protect = True  # 耐久保护，大破进击时消失
-        self.supply = 1.  # 补给状态
-        self.common_buff = []  # 永久面板加成
-        self.temper_buff = []  # 临时buff
+        from src.wsgr.formulas import NormalAtk
+        self.normal_atk = NormalAtk
+        self.special_atk = None
 
     def __eq__(self, other):
         return self.cid == other.cid and \
@@ -91,6 +97,12 @@ class Ship(Time):
     def __repr__(self):
         damage = ['未定义', '正常', '中破', '大破', '撤退']
         return f"{type(self).__name__}: {self.status['name']}, 状态: {damage[self.damaged]}"
+
+    def set_master(self, master):
+        self.master = master
+
+    def get_form(self):
+        return self.master.form
 
     def set_cid(self, cid):
         """设置舰船编号"""
@@ -345,16 +357,40 @@ class Ship(Time):
         phase_name = type(self.timer.phase).__name__
         return self.act_phase_indicator[phase_name]()
 
-    def get_target(self):
-        """判断指定阶段内可以攻击什么目标"""
-        pass
+    def raise_atk(self, target_fleet):
+        """判断炮击战、夜战攻击类型"""
+        # 技能发动特殊攻击
 
-    def get_prior_target(self, fleet, *args, **kwargs):
+        # 技能优先攻击特定船型
+        def_list = target_fleet.get_atk_target(atk_type=self.normal_atk)
+        prior = self.get_prior_type_target(def_list)
+        if prior is not None:
+            assert not isinstance(prior, list)
+            atk = self.normal_atk(
+                timer=self.timer,
+                atk_body=self,
+                target=prior,
+                def_list=def_list,
+            )
+            return [atk]
+
+        # 常规攻击模式
+
+    def get_prior_type_target(self, fleet, *args, **kwargs):
         """获取指定列表可被自身优先攻击的目标"""
         if isinstance(fleet, Fleet):
             fleet = fleet.ship
         for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'prior_target' and \
+            if tmp_buff.name == 'prior_type_target' and \
+                    tmp_buff.is_active(*args, **kwargs):
+                return tmp_buff.activate(fleet)
+
+    def get_prior_loc_target(self, fleet, *args, **kwargs):
+        """获取指定列表可被自身优先攻击的目标"""
+        if isinstance(fleet, Fleet):
+            fleet = fleet.ship
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'prior_loc_target' and \
                     tmp_buff.is_active(*args, **kwargs):
                 return tmp_buff.activate(fleet)
 
@@ -744,7 +780,7 @@ class Fleet(Time):
                 member.append(tmp_ship)
         return member
 
-    def get_target(self, atk_type=None, atk_body=None):
+    def get_atk_target(self, atk_type=None, atk_body=None):
         """确定舰队中可被指定攻击方式选中的成员"""
         target = []
         if atk_type is not None:

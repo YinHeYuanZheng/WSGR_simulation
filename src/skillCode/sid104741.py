@@ -35,7 +35,7 @@ class Skill_101471_2(Skill):
         self.buff = [
             PriorTargetBuff(
                 timer=timer,
-                name='prior_target',
+                name='prior_loc_target',
                 phase=(AirPhase,),
                 target=LocTarget(
                     side=0,

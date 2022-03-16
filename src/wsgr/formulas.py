@@ -6,7 +6,6 @@
 import numpy as np
 
 from src.wsgr.wsgrTimer import Time
-from src.wsgr.ship import *
 from src.wsgr.equipment import *
 
 __all__ = ['ATK',
@@ -22,8 +21,7 @@ __all__ = ['ATK',
 class ATK(Time):
     """攻击总类"""
 
-    def __init__(self, timer, atk_body, def_list, atk_form, def_form,
-                 coef=None, target=None):
+    def __init__(self, timer, atk_body, def_list, coef=None, target=None):
         super().__init__(timer)
         self.timer.set_atk(self)
         self.atk_body = atk_body
@@ -33,8 +31,7 @@ class ATK(Time):
             self.coef = {}
         else:
             self.coef = coef  # 伤害计算相关参数
-        self.atk_form = atk_form  # 攻击方阵型
-        self.def_form = def_form  # 防御方阵型
+        self.changeable = True
 
         self.form_coef = {
             'power': [],
@@ -78,12 +75,14 @@ class ATK(Time):
     def target_init(self):
         """决定攻击目标，技能可以影响优先目标"""
         if self.target is not None:
+            self.changeable = False
             return
 
-        prior = self.atk_body.get_prior_target(self.def_list)
+        prior = self.atk_body.get_prior_loc_target(self.def_list)
         if prior is not None:
             assert not isinstance(prior, list)
             self.target = prior
+            self.changeable = False
         else:
             self.target = np.random.choice(self.def_list)
 
@@ -132,8 +131,8 @@ class ATK(Time):
                self.target.get_atk_buff('be_crit', self)[1]
 
         # 阵型暴击率补正
-        crit += self.get_form_coef('crit', self.atk_form) + \
-                self.get_form_coef('be_crit', self.def_form)
+        crit += self.get_form_coef('crit', self.atk_body.get_form()) + \
+                self.get_form_coef('be_crit', self.target.get_form())
 
         crit = cap(crit)
         verify = np.random.random()
@@ -172,8 +171,8 @@ class ATK(Time):
         hit_rate = min(1, hit_rate)
 
         # 阵型命中率补正
-        hit_rate *= self.get_form_coef('hit', self.atk_form) / \
-                    self.get_form_coef('miss', self.def_form)
+        hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
+                    self.get_form_coef('miss', self.target.get_form())
 
         # 索敌补正
         if self.atk_body.side == 1 and self.timer.recon_flag:
@@ -237,9 +236,9 @@ class ATK(Time):
 
 
 class AirAtk(ATK):
-    def __init__(self, timer, atk_body, def_list, equip, atk_form, def_form, coef,
+    def __init__(self, timer, atk_body, def_list, equip, coef,
                  target=None):
-        super().__init__(timer, atk_body, def_list, atk_form, def_form, coef, target)
+        super().__init__(timer, atk_body, def_list, coef, target)
         self.equip = equip
 
         self.form_coef.update({
@@ -286,7 +285,7 @@ class AirAtk(ATK):
         team_anti_air = get_team_anti_air(self.def_list)  # 全队对空补正
         equip_anti_air = self.target.get_equip_status('antiair')  # 装备对空总和
         aa_value = target_anti_air + team_anti_air + equip_anti_air
-        aa_value *= self.get_form_coef('anti_def', self.def_form)  # todo 未明确
+        aa_value *= self.get_form_coef('anti_def', self.target.get_form())  # todo 未明确
 
         alpha = np.random.random()
         bottom_a = 0.618
@@ -306,7 +305,7 @@ class AirAtk(ATK):
         """航空攻击命中检定，含对空预警，含飞机装备命中率buff"""
         # 护盾
         if self.target.get_special_buff('shield', self):
-            self.coef['hit'] = False
+            self.coef['hit_flag'] = False
             return
 
         # 对空预警
@@ -332,8 +331,8 @@ class AirAtk(ATK):
         hit_rate = min(1, hit_rate)
 
         # 阵型命中率补正
-        hit_rate *= self.get_form_coef('hit', self.atk_form) / \
-                    self.get_form_coef('miss', self.def_form)
+        hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
+                    self.get_form_coef('miss', self.target.get_form())
 
         # 索敌补正
         if self.atk_body.side == 1 and self.timer.recon_flag:
@@ -409,6 +408,7 @@ class AirAtk(ATK):
         # 战术终伤
 
         # 装母对轰炸减伤75%
+        from src.wsgr.ship import AV
         if isinstance(self.target, AV) and isinstance(self, AirBombAtk):
             damage = np.ceil(damage * .25)
 
@@ -594,9 +594,8 @@ class AirDiveAtk(AirAtk):
 class NormalAtk(ATK):
     """普通炮击"""
 
-    def __init__(self, timer, atk_body, def_list, atk_form, def_form,
-                 coef=None, target=None):
-        super().__init__(timer, atk_body, def_list, atk_form, def_form, coef, target)
+    def __init__(self, timer, atk_body, def_list, coef=None, target=None):
+        super().__init__(timer, atk_body, def_list, coef, target)
 
         self.form_coef.update({
             'power': [1, .8, .75, 1, .8],

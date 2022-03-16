@@ -37,6 +37,7 @@ def load_fleet(node, dataset, timer):
     for i in range(len(node.getElementsByTagName('Ship'))):
         s_node = node.getElementsByTagName('Ship')[i]
         ship = load_ship(s_node, dataset, timer)
+        ship.set_master(fleet)
         shiplist.append(ship)
 
     fleet.set_ship(shiplist)
