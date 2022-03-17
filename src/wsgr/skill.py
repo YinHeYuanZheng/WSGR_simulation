@@ -4,6 +4,7 @@
 # 技能类
 
 import numpy as np
+import copy
 
 from src.wsgr.wsgrTimer import Time
 from src.wsgr.ship import Ship, Fleet
@@ -462,10 +463,16 @@ class Buff(Time):
     def is_event(self):
         return False
 
+    def is_active_buff(self):
+        return False
+
     def is_equip_effect(self):
         return False
 
     def is_coef_process(self):
+        return False
+
+    def is_switch(self):
         return False
 
     def is_active(self, *args, **kwargs):
@@ -675,10 +682,9 @@ class EventBuff(Buff):
 
 class MagnetBuff(EventBuff):
     """嘲讽技能"""
-    def __init__(self, timer, phase, master, rate,
+    def __init__(self, timer, phase, rate,
                  name='magnet', atk_request=None, bias_or_weight=3):
         super().__init__(timer, name, phase, bias_or_weight, rate)
-        self.master = master
         self.atk_request = atk_request
 
     def __repr__(self):
@@ -737,3 +743,105 @@ class UnMagnetBuff(EventBuff):
 class TankBuff(EventBuff):
     """挡枪技能"""
     pass
+
+
+class ActiveBuff(Buff):
+    """主动技能"""
+
+    def __init__(self, timer, phase, num, target, buff, rate,
+                 coef=None, name='multiple_attack', bias_or_weight=3):
+        super().__init__(timer, name, phase, bias_or_weight, rate)
+        self.target = target
+        self.buff = buff
+        self.num = num
+        self.coef = coef
+
+    def is_active_buff(self):
+        return True
+
+    def activate(self, atk, enemy, *args, **kwargs):
+        atk_list = []
+        return atk_list
+
+
+class MultipleAtkBuff(ActiveBuff):
+    """多次攻击"""
+
+    def activate(self, atk, enemy, *args, **kwargs):
+        assert self.master is not None
+        def_list = enemy.get_atk_target(atk_type=atk)
+        atk_list = []
+        for i in range(self.num):
+            if not len(def_list):
+                break
+
+            tmp_atk = atk(
+                timer=self.timer,
+                atk_body=self.master,
+                def_list=def_list,
+                coef=self.coef,
+            )
+            tmp_atk.target_init()
+            def_list.remove(tmp_atk.target)
+            atk_list.append(tmp_atk)
+
+        return atk_list
+
+
+class ExtraAtkBuff(ActiveBuff):
+    """连续攻击"""
+
+    def activate(self, atk, enemy, *args, **kwargs):
+        assert self.master is not None
+        def_list = enemy.get_atk_target(atk_type=atk)
+        atk_list = []
+        if not len(def_list):
+            return atk_list
+
+        atk_sample = atk(
+            timer=self.timer,
+            atk_body=self.master,
+            def_list=def_list,
+            coef=self.coef,
+        )
+        atk_sample.target_init()
+
+        for i in range(self.num):
+            tmp_atk = copy.deepcopy(atk_sample)
+            atk_list.append(tmp_atk)
+
+        del atk_sample
+        return atk_list
+
+
+# class SwitchBuff(AtkBuff):
+#     """攻击期间、攻击后生效buff"""
+#     def __init__(self, timer, name, phase, value, switch, bias_or_weight,
+#                  atk_request=None, rate=1):
+#         super().__init__(timer, name, phase, value, bias_or_weight, atk_request, rate)
+#         self.switch = switch
+#
+#     def is_switch(self):
+#         return True
+#
+#     def switch_on(self):
+#         self.switch = True
+#
+#     def switch_off(self):
+#         self.switch = False
+#
+#     def is_active(self, *args, **kwargs):
+#         if self.atk_request is None:
+#             return self.switch and \
+#                    isinstance(self.timer.phase, self.phase) and \
+#                    self.rate_verify()
+#
+#         try:
+#             atk = kwargs['atk']
+#         except:
+#             atk = args[0]
+#
+#         return self.switch and \
+#                isinstance(self.timer.phase, self.phase) and \
+#                bool(self.atk_request[0](self.timer, atk)) and \
+#                self.rate_verify()

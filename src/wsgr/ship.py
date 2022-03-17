@@ -53,6 +53,7 @@ class Ship(Time):
         self.supply = 1.  # 补给状态
         self.common_buff = []  # 永久面板加成
         self.temper_buff = []  # 临时buff
+        self.active_buff = []  # 主动技能buff
 
         self.act_phase_flag = {
             'AirPhase': False,
@@ -250,6 +251,9 @@ class Ship(Time):
         if buff.is_common():
             self.common_buff.append(buff)
 
+        elif buff.is_active_buff():
+            self.active_buff.append(buff)
+
         elif buff.is_event():
             self.timer.queue_append(buff)
 
@@ -360,6 +364,9 @@ class Ship(Time):
     def raise_atk(self, target_fleet):
         """判断炮击战、夜战攻击类型"""
         # 技能发动特殊攻击
+        for tmp_buff in self.active_buff:
+            if tmp_buff.is_active():
+                return tmp_buff.activate(atk=self.normal_atk, enemy=target_fleet)
 
         # 技能优先攻击特定船型
         def_list = target_fleet.get_atk_target(atk_type=self.normal_atk)
@@ -375,9 +382,16 @@ class Ship(Time):
             return [atk]
 
         # 常规攻击模式
+        else:
+            atk = self.normal_atk(
+                timer=self.timer,
+                atk_body=self,
+                def_list=def_list,
+            )
+            return [atk]
 
     def get_prior_type_target(self, fleet, *args, **kwargs):
-        """获取指定列表可被自身优先攻击的目标"""
+        """获取指定列表可被自身优先攻击船型的目标"""
         if isinstance(fleet, Fleet):
             fleet = fleet.ship
         for tmp_buff in self.temper_buff:
@@ -386,7 +400,7 @@ class Ship(Time):
                 return tmp_buff.activate(fleet)
 
     def get_prior_loc_target(self, fleet, *args, **kwargs):
-        """获取指定列表可被自身优先攻击的目标"""
+        """获取指定列表可被自身优先攻击站位的目标"""
         if isinstance(fleet, Fleet):
             fleet = fleet.ship
         for tmp_buff in self.temper_buff:

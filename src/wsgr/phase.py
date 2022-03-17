@@ -60,7 +60,12 @@ class BuffPhase(AllPhase):
                     tmp_skill.activate(self.enemy, self.friend)
 
 
-class AirPhase(AllPhase):
+class DaytimePhase(AllPhase):
+    """昼战阶段"""
+    pass
+
+
+class AirPhase(DaytimePhase):
     """航空战阶段"""
 
     def start(self):
@@ -194,7 +199,7 @@ class AirPhase(AllPhase):
         return False
 
 
-class ShellingPhase(AllPhase):
+class ShellingPhase(DaytimePhase):
     """炮击战"""
     def start(self):
         # 检查可参与炮击战的对象

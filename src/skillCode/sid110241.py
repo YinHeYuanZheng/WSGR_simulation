@@ -52,7 +52,6 @@ class Skill_110241_2(Skill):
             MagnetBuff(
                 timer,
                 phase=(ShellingPhase,),
-                master=master,
                 rate=0.2,
                 atk_request=[BuffRequest_1]
             )

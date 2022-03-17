@@ -21,7 +21,7 @@ class Skill_112232_1(Skill):
         )
         self.buff = [
             FinalDamageBuff(
-                timer,
+                timer=timer,
                 name='final_damage_buff',
                 phase=(AirPhase,),
                 value=0.2
@@ -38,23 +38,22 @@ class Skill_112232_2(Skill):
 
         self.buff = [
             StatusBuff(
-                timer,
+                timer=timer,
                 name='armor',
                 phase=(AllPhase,),
                 value=35,
                 bias_or_weight=0
             ),
             StatusBuff(
-                timer,
+                timer=timer,
                 name='recon',
                 phase=(AllPhase,),
                 value=25,
                 bias_or_weight=0
             ),
             MagnetBuff(
-                timer,
+                timer=timer,
                 phase=(ShellingPhase,),
-                master=master,
                 rate=0.35
             )
         ]

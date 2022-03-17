@@ -43,7 +43,6 @@ class Skill_104861_2(Skill):
             MagnetBuff(
                 timer=timer,
                 phase=(AirPhase,),
-                master=master,
                 rate=0.4
             ),
             CoeffBuff(

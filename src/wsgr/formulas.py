@@ -85,6 +85,7 @@ class ATK(Time):
             self.changeable = False
         else:
             self.target = np.random.choice(self.def_list)
+            self.changeable = True
 
     def set_target(self, target):
         self.target = target
