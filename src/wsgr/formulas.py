@@ -75,17 +75,18 @@ class ATK(Time):
     def target_init(self):
         """决定攻击目标，技能可以影响优先目标"""
         if self.target is not None:
-            self.changeable = False
-            return
+            return self.target
 
         prior = self.atk_body.get_prior_loc_target(self.def_list)
         if prior is not None:
             assert not isinstance(prior, list)
             self.target = prior
             self.changeable = False
+            return self.target
         else:
             self.target = np.random.choice(self.def_list)
             self.changeable = True
+            return self.target
 
     def set_target(self, target):
         self.target = target

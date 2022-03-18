@@ -366,7 +366,7 @@ class Ship(Time):
         # 技能发动特殊攻击
         for tmp_buff in self.active_buff:
             if tmp_buff.is_active():
-                return tmp_buff.activate(atk=self.normal_atk, enemy=target_fleet)
+                return tmp_buff.active_start(atk=self.normal_atk, enemy=target_fleet)
 
         # 技能优先攻击特定船型
         def_list = target_fleet.get_atk_target(atk_type=self.normal_atk)
@@ -379,6 +379,7 @@ class Ship(Time):
                 target=prior,
                 def_list=def_list,
             )
+            atk.changeable = False
             return [atk]
 
         # 常规攻击模式

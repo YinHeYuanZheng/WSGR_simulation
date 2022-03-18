@@ -230,6 +230,7 @@ class ShellingPhase(DaytimePhase):
     def normal_atk(self, source, target_fleet):
         if not source.get_act_indicator():
             return
+
         atk_list = source.raise_atk(target_fleet)
         for atk in atk_list:
             atk.start()

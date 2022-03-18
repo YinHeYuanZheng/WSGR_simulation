@@ -748,29 +748,42 @@ class TankBuff(EventBuff):
 class ActiveBuff(Buff):
     """主动技能"""
 
-    def __init__(self, timer, phase, num, target, buff, rate,
+    def __init__(self, timer, phase, num, during_buff, end_buff, rate,
                  coef=None, name='multiple_attack', bias_or_weight=3):
         super().__init__(timer, name, phase, bias_or_weight, rate)
-        self.target = target
-        self.buff = buff
+        self.during_buff = during_buff
+        self.end_buff = end_buff
         self.num = num
         self.coef = coef
 
     def is_active_buff(self):
         return True
 
-    def activate(self, atk, enemy, *args, **kwargs):
-        atk_list = []
-        return atk_list
+    def active_start(self, atk, enemy, *args, **kwargs):
+        """迭代器，依次执行攻击时效果、攻击行动、攻击后效果"""
+        pass
+
+    def add_during_buff(self):
+        for tmp_buff in self.during_buff:
+            self.master.temper_buff.append(tmp_buff)
+
+    def remove_during_buff(self):
+        for tmp_buff in self.during_buff:
+            self.master.temper_buff.remove(tmp_buff)
+
+    def add_end_buff(self):
+        for tmp_buff in self.end_buff:
+            self.master.add_buff(tmp_buff)
 
 
 class MultipleAtkBuff(ActiveBuff):
     """多次攻击"""
 
-    def activate(self, atk, enemy, *args, **kwargs):
+    def active_start(self, atk, enemy, *args, **kwargs):
         assert self.master is not None
         def_list = enemy.get_atk_target(atk_type=atk)
-        atk_list = []
+        self.add_during_buff()  # 攻击时效果
+
         for i in range(self.num):
             if not len(def_list):
                 break
@@ -781,37 +794,45 @@ class MultipleAtkBuff(ActiveBuff):
                 def_list=def_list,
                 coef=self.coef,
             )
-            tmp_atk.target_init()
-            def_list.remove(tmp_atk.target)
-            atk_list.append(tmp_atk)
+            tmp_target = tmp_atk.target_init()
+            def_list.remove(tmp_target)
+            yield tmp_atk
 
-        return atk_list
+        self.remove_during_buff()  # 去除攻击时效果
+        self.add_end_buff()  # 攻击结束效果
 
 
 class ExtraAtkBuff(ActiveBuff):
     """连续攻击"""
 
-    def activate(self, atk, enemy, *args, **kwargs):
+    def active_start(self, atk, enemy, *args, **kwargs):
         assert self.master is not None
         def_list = enemy.get_atk_target(atk_type=atk)
-        atk_list = []
         if not len(def_list):
-            return atk_list
+            return
 
+        self.add_during_buff()  # 攻击时效果
         atk_sample = atk(
             timer=self.timer,
             atk_body=self.master,
             def_list=def_list,
             coef=self.coef,
         )
-        atk_sample.target_init()
+        yield atk_sample
 
-        for i in range(self.num):
-            tmp_atk = copy.deepcopy(atk_sample)
-            atk_list.append(tmp_atk)
+        for i in range(self.num - 1):
+            tmp_atk = atk(
+                timer=self.timer,
+                atk_body=self.master,
+                def_list=def_list,
+                coef=self.coef,
+                target=atk_sample.target,
+            )
+            tmp_atk.changeable = False
+            yield tmp_atk
 
-        del atk_sample
-        return atk_list
+        self.remove_during_buff()  # 去除攻击时效果
+        self.add_end_buff()  # 攻击结束效果
 
 
 # class SwitchBuff(AtkBuff):
