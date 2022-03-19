@@ -73,7 +73,7 @@ class BattleUtil(Time):
                 tmp_ship.damage_protect = False
 
         # todo 清空buff
-        self.timer.queue = []
+        self.timer.reset_queue()
 
         # 受伤记录
         self.timer.log['end_health'] = {

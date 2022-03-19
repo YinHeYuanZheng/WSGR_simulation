@@ -26,12 +26,14 @@ class ATK(Time):
         self.timer.set_atk(self)
         self.atk_body = atk_body
         self.def_list = def_list  # 可被攻击目标列表
+
         self.target = target  # 攻击目标，可被更改
+        self.changeable = True  # 攻击目标是否可被更改
+
         if coef is None:
             self.coef = {}
         else:
             self.coef = coef  # 伤害计算相关参数
-        self.changeable = True
 
         self.form_coef = {
             'power': [],
@@ -75,8 +77,10 @@ class ATK(Time):
     def target_init(self):
         """决定攻击目标，技能可以影响优先目标"""
         if self.target is not None:
+            self.changeable = False
             return self.target
 
+        # 优先站位攻击
         prior = self.atk_body.get_prior_loc_target(self.def_list)
         if prior is not None:
             assert not isinstance(prior, list)
@@ -86,15 +90,21 @@ class ATK(Time):
         else:
             self.target = np.random.choice(self.def_list)
             self.changeable = True
+
+            # 嘲讽技能
+            for tmp_buff in self.timer.queue['magnet']:
+                if tmp_buff.is_active(self):
+                    tmp_buff.activate(self)
+                    break
             return self.target
 
     def set_target(self, target):
         self.target = target
 
     def start_atk(self):
-        """攻击开始时点，进行嘲讽判定等"""
-        if len(self.timer.queue):
-            for tmp_buff in self.timer.queue:
+        """攻击开始时点，进行挡枪判定等"""
+        if len(self.timer.queue['tank']):
+            for tmp_buff in self.timer.queue['tank']:
                 if tmp_buff.is_active(self):
                     tmp_buff.activate(self)
                     break
@@ -165,12 +175,16 @@ class ATK(Time):
         accuracy = self.atk_body.get_final_status('accuracy')
         evasion = self.atk_body.get_final_status('evasion')
 
+        # 好感补正
+        accuracy *= 1 + self.atk_body.affection * 0.001
+        evasion *= 1 + self.target.affection * 0.001
+
         # 梯形锁定减少闪避
 
         if evasion < 1:
             evasion = 1
         hit_rate = accuracy / evasion / 2
-        hit_rate = min(1, hit_rate)
+        # hit_rate = min(1, hit_rate)
 
         # 阵型命中率补正
         hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
@@ -189,10 +203,6 @@ class ATK(Time):
         hit_rate += hitrate_bias
         _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
         hit_rate -= hitrate_bias
-
-        # 好感补正
-        hit_rate += self.atk_body.affection * 0.001
-        hit_rate -= self.target.affection * 0.001
 
         hit_rate = cap(hit_rate)
         verify = np.random.random()
@@ -327,10 +337,15 @@ class AirAtk(ATK):
         # 基础命中率
         accuracy = self.atk_body.get_final_status('accuracy')
         evasion = self.atk_body.get_final_status('evasion')
+
+        # 好感补正
+        accuracy *= 1 + self.atk_body.affection * 0.001
+        evasion *= 1 + self.target.affection * 0.001
+
         if evasion < 1:
             evasion = 1
         hit_rate = accuracy / evasion / 2
-        hit_rate = min(1, hit_rate)
+        # hit_rate = min(1, hit_rate)
 
         # 阵型命中率补正
         hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
@@ -369,10 +384,6 @@ class AirAtk(ATK):
         hit_rate += hitrate_bias
         _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
         hit_rate -= hitrate_bias
-
-        # 好感补正
-        hit_rate += self.atk_body.affection * 0.001
-        hit_rate -= self.target.affection * 0.001
 
         hit_rate = cap(hit_rate)
         verify = np.random.random()
@@ -622,9 +633,9 @@ class NormalAtk(ATK):
             damage = np.ceil(damage * (1 + debuff_scale))
 
         # 挡枪减伤
-        # tank_damage_debuff = self.get_coef('tank_damage_debuff')
-        # if tank_damage_debuff is not None:
-        #     damage = np.ceil(damage * (1 + tank_damage_debuff))
+        tank_damage_debuff = self.get_coef('tank_damage_debuff')
+        if tank_damage_debuff is not None:
+            damage = np.ceil(damage * (1 + tank_damage_debuff))
 
         # 战术终伤
 

@@ -472,9 +472,6 @@ class Buff(Time):
     def is_coef_process(self):
         return False
 
-    def is_switch(self):
-        return False
-
     def is_active(self, *args, **kwargs):
         """技能是否满足发动阶段"""
         return self.rate_verify() and \
@@ -679,6 +676,9 @@ class EventBuff(Buff):
     def is_event(self):
         return True
 
+    def activate(self, atk, *args, **kwargs):
+        pass
+
 
 class MagnetBuff(EventBuff):
     """嘲讽技能"""
@@ -688,10 +688,12 @@ class MagnetBuff(EventBuff):
         self.atk_request = atk_request
 
     def __repr__(self):
-        return f"嘲讽: {self.rate}"
+        return f"嘲讽: {self.rate * 100}%"
 
     def is_active(self, atk, *args, **kwargs):
         if not atk.changeable:
+            return False
+        if self.master.damaged == 4:
             return False
 
         if self.atk_request is None:
@@ -712,14 +714,13 @@ class MagnetBuff(EventBuff):
 
 class UnMagnetBuff(EventBuff):
     """负嘲讽技能"""
-    def __init__(self, timer, phase, master, rate,
+    def __init__(self, timer, phase, rate,
                  name='un_magnet', atk_request=None, bias_or_weight=3):
         super().__init__(timer, name, phase, bias_or_weight, rate)
-        self.master = master
         self.atk_request = atk_request
 
     def __repr__(self):
-        return f"负嘲讽: {self.rate}"
+        return f"负嘲讽: {self.rate * 100}%"
 
     def is_active(self, atk, *args, **kwargs):
         if not atk.changeable:
@@ -742,17 +743,52 @@ class UnMagnetBuff(EventBuff):
 
 class TankBuff(EventBuff):
     """挡枪技能"""
-    pass
+    def __init__(self, timer, phase, target, rate,
+                 name='tank', coef=None, exhaust=1, bias_or_weight=3):
+        super().__init__(timer, name, phase, bias_or_weight, rate)
+        self.target = target
+        self.exhaust = exhaust
+
+        self.coef = {'must_hit': True}
+        if coef is None:
+            coef = {}
+        self.coef.update(coef)
+
+    def __repr__(self):
+        return f"挡枪: {self.rate * 100}%"
+
+    def is_active(self, atk, *args, **kwargs):
+        if not self.exhaust:
+            return False
+        if self.master.damaged >= 3:
+            return False
+
+        def_target = self.target.get_target(atk.def_list, None)
+        return isinstance(self.timer.phase, self.phase) and \
+               self.master != atk.target and \
+               self.master in atk.def_list and \
+               atk.target in def_target and \
+               self.rate_verify()
+
+    def activate(self, atk, *args, **kwargs):
+        atk.set_target(self.master)
+        atk.set_coef(self.coef)
 
 
 class ActiveBuff(Buff):
     """主动技能"""
 
-    def __init__(self, timer, phase, num, during_buff, end_buff, rate,
-                 coef=None, name='multiple_attack', bias_or_weight=3):
+    def __init__(self, timer, name, phase, num, rate,
+                 during_buff=None, end_buff=None, coef=None, bias_or_weight=3):
         super().__init__(timer, name, phase, bias_or_weight, rate)
+        if during_buff is None:
+            during_buff = []
         self.during_buff = during_buff
+
+        if end_buff is None:
+            end_buff = []
         self.end_buff = end_buff
+
         self.num = num
         self.coef = coef
 
@@ -818,6 +854,7 @@ class ExtraAtkBuff(ActiveBuff):
             def_list=def_list,
             coef=self.coef,
         )
+        tmp_target = atk_sample.target_init()
         yield atk_sample
 
         for i in range(self.num - 1):
@@ -826,43 +863,9 @@ class ExtraAtkBuff(ActiveBuff):
                 atk_body=self.master,
                 def_list=def_list,
                 coef=self.coef,
-                target=atk_sample.target,
+                target=tmp_target,
             )
-            tmp_atk.changeable = False
             yield tmp_atk
 
         self.remove_during_buff()  # 去除攻击时效果
         self.add_end_buff()  # 攻击结束效果
-
-
-# class SwitchBuff(AtkBuff):
-#     """攻击期间、攻击后生效buff"""
-#     def __init__(self, timer, name, phase, value, switch, bias_or_weight,
-#                  atk_request=None, rate=1):
-#         super().__init__(timer, name, phase, value, bias_or_weight, atk_request, rate)
-#         self.switch = switch
-#
-#     def is_switch(self):
-#         return True
-#
-#     def switch_on(self):
-#         self.switch = True
-#
-#     def switch_off(self):
-#         self.switch = False
-#
-#     def is_active(self, *args, **kwargs):
-#         if self.atk_request is None:
-#             return self.switch and \
-#                    isinstance(self.timer.phase, self.phase) and \
-#                    self.rate_verify()
-#
-#         try:
-#             atk = kwargs['atk']
-#         except:
-#             atk = args[0]
-#
-#         return self.switch and \
-#                isinstance(self.timer.phase, self.phase) and \
-#                bool(self.atk_request[0](self.timer, atk)) and \
-#                self.rate_verify()

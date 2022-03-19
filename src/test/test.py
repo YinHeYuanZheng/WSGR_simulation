@@ -40,6 +40,8 @@ if __name__ == '__main__':
 
         avg_damage = (avg_damage * i + np.sum(log['create_damage'][1])) / (i + 1)
         retreat_num = (retreat_num * i + log['enemy_retreat_num']) / (i + 1)
+        # retreat_num += int(tmp_battle.enemy.ship[4].damaged <= 2 and
+        #                    tmp_battle.enemy.ship[5].damaged <= 2)
         print(f"第{i+1}次 - 战果分布: SS {result[0] / (i + 1) * 100:.1f}%; "
               f"S {result[1] / (i + 1) * 100:.1f}%; "
               f"A {result[2] / (i + 1) * 100:.1f}%; "

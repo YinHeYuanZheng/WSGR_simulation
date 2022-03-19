@@ -76,14 +76,34 @@ class Skill_111181_2(Skill):
         return number == 0
 
 
-# class Skill_111181_3(Skill):
-#     炮击战阶段，被齐柏林命中的非旗舰单位在炮击战阶段不再行动。
-#     def __init__(self, timer, master):
-#         super().__init__(timer, master)
-#         self.target = SelfTarget(master)
-#         self.buff = []
+class Skill_111181_3(Skill):
+    """炮击战阶段，被齐柏林命中的非旗舰单位在炮击战阶段不再行动。"""
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
+        self.buff = [
+            AtkHitBuff(
+                timer=timer,
+                name='atk_hit',
+                phase=ShellingPhase,
+                buff=[
+                    ActPhaseBuff(
+                        timer=timer,
+                        name='not_act_phase',
+                        phase=ShellingPhase
+                    )
+                ],
+                side=0,
+                atk_request=[BuffRequest_1]
+            )
+        ]
 
 
-skill = [Skill_111181_1, Skill_111181_2]
+class BuffRequest_1(ATKRequest):
+    def __bool__(self):
+        return self.atk.target.loc != 1
+
+
+skill = [Skill_111181_1, Skill_111181_2, Skill_111181_3]
 
 

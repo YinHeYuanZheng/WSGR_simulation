@@ -94,7 +94,7 @@ class Equipment(Time):
         else:
             self.temper_buff.append(buff)
         if buff.is_event():
-            self.timer.queue.append(buff)
+            self.timer.queue_append(buff)
 
     def get_buff(self, name, *args, **kwargs):
         """根据增益名称获取全部属性增益"""

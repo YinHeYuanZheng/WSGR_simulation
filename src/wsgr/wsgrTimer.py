@@ -15,7 +15,10 @@ class timer:
         self.air_con_flag = None    # 制空结果, 从空确到空丧分别为1-5
         self.phase = None           # 阶段
         self.atk = None
-        self.queue = []             # 有时点依赖的技能
+        self.queue = {              # 有时点依赖的技能
+            'magnet': [],           # 嘲讽
+            'tank': [],             # 挡枪
+        }
         self.log = {
             'create_damage': {
                 1: np.zeros((6,)),
@@ -43,8 +46,19 @@ class timer:
         self.atk = atk
 
     def queue_append(self, buff):
-        self.queue.append(buff)
-        self.queue.sort(key=lambda x: (-x.rate, x.master.loc))
+        if buff.name == 'tank':
+            queue = self.queue['tank']
+        else:
+            queue = self.queue['magnet']
+
+        queue.append(buff)
+        queue.sort(key=lambda x: (-x.rate, x.master.loc))
+
+    def reset_queue(self):
+        self.queue = {
+            'magnet': [],
+            'tank': [],
+        }
 
     def phase_start(self):
         self.phase.start()

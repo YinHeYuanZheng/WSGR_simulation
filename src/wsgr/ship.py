@@ -260,16 +260,6 @@ class Ship(Time):
         else:
             self.temper_buff.append(buff)
 
-    def get_unique_effect(self, effect_type):
-        if not isinstance(effect_type, list):
-            effect_type = [effect_type]
-
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.is_equip_effect():
-                if tmp_buff.effect_type in effect_type:
-                    return tmp_buff
-        return None
-
     def get_buff(self, name, *args, **kwargs):
         """根据增益名称获取全部属性增益"""
         scale_add = 0
@@ -319,6 +309,16 @@ class Ship(Time):
                     tmp_buff.activate(*args, **kwargs)
                     return True
         return False
+
+    def get_unique_effect(self, effect_type):
+        if not isinstance(effect_type, list):
+            effect_type = [effect_type]
+
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.is_equip_effect():
+                if tmp_buff.effect_type in effect_type:
+                    return tmp_buff
+        return None
 
     def get_final_damage_buff(self, atk):
         """根据攻击类型决定终伤加成"""
@@ -384,6 +384,9 @@ class Ship(Time):
 
         # 常规攻击模式
         else:
+            if not len(def_list):
+                return []
+
             atk = self.normal_atk(
                 timer=self.timer,
                 atk_body=self,

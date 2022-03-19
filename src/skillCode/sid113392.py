@@ -34,7 +34,20 @@ class Skill_113392_1(Skill):
         return len(target_av) >= 1
 
 
-# todo 炮击战时有25%概率同时对2个单位造成伤害"""
+class Skill_113392_2(Skill):
+    """炮击战时有25%概率同时对2个单位造成伤害"""
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
+        self.buff = [
+            MultipleAtkBuff(
+                timer=timer,
+                name='multi_attack',
+                phase=ShellingPhase,
+                num=2,
+                rate=0.25
+            )
+        ]
 
 
-skill = [Skill_113392_1]
+skill = [Skill_113392_1, Skill_113392_2]
