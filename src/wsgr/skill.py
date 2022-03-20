@@ -4,11 +4,9 @@
 # 技能类
 
 import numpy as np
-import copy
 
 from src.wsgr.wsgrTimer import Time
 from src.wsgr.ship import Ship, Fleet
-from src.wsgr.phase import *
 
 
 class Skill(Time):
@@ -21,9 +19,11 @@ class Skill(Time):
         self.buff = None  # list of Buff
 
     def is_active(self, friend, enemy):
-        """技能是否满足发动条件, 默认True, 子类根据需要重新定义"""
-        # bool(request(self.master, friend, enemy))
-        return True
+        """技能是否满足发动条件, 子类可根据需要重新定义"""
+        if self.request is None:
+            return True
+        else:
+            return bool(self.request[0](self.timer, self.master, friend, enemy))
 
     def activate(self, friend, enemy):
         """技能生效时, 给所有满足条件的目标套上所有buff"""

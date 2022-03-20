@@ -45,9 +45,6 @@ class Skill_111211_2(Skill):
             )
         ]
 
-    def is_active(self, friend, enemy):
-        return bool(self.request[0](self.timer, self.master, friend, enemy))
-
 
 class Request_1(Request):
     def __bool__(self):
