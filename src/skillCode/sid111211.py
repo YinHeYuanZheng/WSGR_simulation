@@ -3,20 +3,18 @@
 # env:py38
 # 企业改-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
-"""独木成林(3级)：增加自身回避20点，并且队伍中没有其余航母（航母，轻母，装母）存在时，自身射程变更为长,火力加成55点
-"""
-class Skill_111211(Skill):
-    def __init__(self, master):
-        super().__init__(master)
 
-        self.master = master
+class Skill_111211_1(CommonSkill):
+    """增加自身回避20点"""
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
-
         self.buff = [CommonBuff(
+            timer=timer,
             name='evasion',
             phase=(AllPhase,),
             value=20,
@@ -24,32 +22,42 @@ class Skill_111211(Skill):
         )]
 
 
-class Skill_111211_1(Skill):
-    def __init__(self, master):
-        super().__init__(master)
+class Skill_111211_2(Skill):
+    """队伍中没有其余航母（航母，轻母，装母）存在时，自身射程变更为长,火力加成55点"""
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.request = [Request_1]
-        self.range = 3 - master.status.range
-        self.buff = [StatusBuff(
-            name='range',
-            phase=(AllPhase,),
-            value=self.range,
-            bias_or_weight=0
-        ), StatusBuff(
-            name='fire',
-            phase=(AllPhase,),
-            value=55,
-            bias_or_weight=0
-        )]
+        self.buff = [
+            StatusBuff(
+                timer,
+                name='range',
+                phase=(AllPhase,),
+                value=3,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer,
+                name='fire',
+                phase=(AllPhase,),
+                value=55,
+                bias_or_weight=0
+            )
+        ]
 
     def is_active(self, friend, enemy):
-        return bool(self.request[0](self.master, friend, enemy))
+        return bool(self.request[0](self.timer, self.master, friend, enemy))
 
 
 class Request_1(Request):
     def __bool__(self):
-        num = TypeTarget(side=1, shiptype=('CV', 'CVL', 'AV')).get_target(self.friend, self.enemy)
-        return num == 1
+        target = TypeTarget(
+            side=1,
+            shiptype=(CV, CVL, AV)
+        ).get_target(self.friend, self.enemy)
+        target.remove(self.master)
+        num = len(target)
+        return num == 0
 
 
-skill = [Skill_111211, Skill_111211_1]
+skill = [Skill_111211_1, Skill_111211_2]

@@ -3,81 +3,96 @@
 # env:py38
 # 约克城改-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
-"""萨奇剪(3级)：提升自身10点火力值和航空战25点制空值；制空权劣势和丧失时不降低舰载机伤害，制空权均势、优势和确保时增加舰载机15%伤害。
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+
+"""萨奇剪(3级)：提升自身10点火力值和航空战25点制空值；
+制空权劣势和丧失时不降低舰载机伤害，
+制空权均势、优势和确保时增加舰载机15%伤害。
 """
 
 
-class Skill_111201(Skill):
-    def __init__(self, master):
-        # 提升自身10点火力值和航空战25点制空值
-        super().__init__(master)
-        self.master = master
+class Skill_111201_1(CommonSkill):
+    """提升自身10点火力值"""
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CommonBuff(
+                timer=timer,
                 name='fire',
-                phase=('AllPhase', ),
+                phase=(AllPhase, ),
                 value=10,
                 bias_or_weight=0
-            ), CoeffBuff(
+            )
+        ]
+
+
+class Skill_111201_2(Skill):
+    """提升航空战25点制空值"""
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
+        self.buff = [
+            CoeffBuff(
+                timer=timer,
                 name='air_con_buff',
-                phase=('AirPhase', ),
+                phase=(AirPhase,),
                 value=25,
                 bias_or_weight=0
             )
         ]
 
-    def is_active(self, friend, enemy):
-        return True
 
-
-class Skill_111201_1(Skill):
-    def __init__(self, master):
-        # todo 制空权劣势和丧失时不降低舰载机伤害，
-        super().__init__(master)
-        self.master = master
+class Skill_111201_3(Skill):
+    """制空权劣势和丧失时不降低舰载机伤害"""
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
-        self.request = [Request_1]
         self.buff = [
-
+            AtkCoefProcess(
+                timer=timer,
+                name='air_con_coef',
+                phase=(AllPhase,),
+                value=1.,
+                atk_request=[BuffRequest_1])
         ]
 
-    def is_active(self, friend, enemy):
-        return bool(self.request[0](self.master, friend, enemy))
 
-
-class Request_1(Request):
+class BuffRequest_1(ATKRequest):
     def __bool__(self):
-        return self.timer.air_con_flag > 3
+        if self.atk.atk_body.side == 1:
+            air_con_flag = self.timer.air_con_flag
+        else:
+            air_con_flag = 6 - self.timer.air_con_flag
+        return air_con_flag > 3
 
 
-class Skill_111201_2(Skill):
-    def __init__(self, master):
-        # 制空权均势、优势和确保时增加舰载机15%伤害。
-        super().__init__(master)
-        self.master = master
+class Skill_111201_4(Skill):
+    """制空权均势、优势和确保时增加舰载机15%伤害。"""
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
-        self.request = [Request_2]
         self.buff = [
-            CoeffBuff(
+            AtkBuff(
+                timer=timer,
                 name='air_atk_buff',
-                phase=('AllPhase', ),
+                phase=(AllPhase,),
                 value=0.15,
-                bias_or_weight=0
+                bias_or_weight=2,
+                atk_request=[BuffRequest_2]
             )
         ]
 
-    def is_active(self, friend, enemy):
-        return bool(self.request[0](self.master, friend, enemy))
 
-
-class Request_2(Request):
+class BuffRequest_2(ATKRequest):
     def __bool__(self):
-        return self.timer.air_con_flag <= 3
+        if self.atk.atk_body.side == 1:
+            air_con_flag = self.timer.air_con_flag
+        else:
+            air_con_flag = 6 - self.timer.air_con_flag
+        return air_con_flag <= 3
 
 
-
-skill = [Skill_111201]
+skill = [Skill_111201_1, Skill_111201_2, Skill_111201_3, Skill_111201_4]
