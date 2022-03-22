@@ -16,37 +16,36 @@ class Skill_102051(Skill):
     def __init__(self, master, timer):
         super().__init__(master, timer)
         self.target = SelfTarget(master)
+
+    def active(self, friend, enemy):
         ENumber = StatusTarget(side=1,
                                status_name="country",
                                fun="eq",
-                               value='E').get_target(master.friend, master.enemy)
+                               value='E').get_target(friend, enemy)
         SkillValue = (6 - len(ENumber)) * 3
-        self.buff = [
+        self.master.add_buff([
             StatusBuff(
-                timer,
+                self.timer,
                 name="fire",
                 phase=AllPhase,
                 value=SkillValue,
                 bias_or_weight=0
             ),
             StatusBuff(
-                timer,
-                name="evasion",
-                phase=AllPhase,
-                value=SkillValue,
-                bias_or_weight=0
+                    self.timer,
+                    name="evasion",
+                    phase=AllPhase,
+                    value=SkillValue,
+                    bias_or_weight=0
             ),
             StatusBuff(
-                timer,
-                name="accuracy",
-                phase=AllPhase,
-                value=SkillValue,
-                bias_or_weight=0
+                    self.timer,
+                    name="accuracy",
+                    phase=AllPhase,
+                    value=SkillValue,
+                    bias_or_weight=0
             )
-        ]
-
-    def is_active(self, friend, enemy):
-        return True
+        ])
 
 
 skill = [Skill_102051]
