@@ -1,2 +1,5 @@
 # Project exclude paths
 /src/junkbin/
+/Pipfile
+/Pipfile.lock
+/.idea
