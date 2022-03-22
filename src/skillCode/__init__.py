@@ -5,7 +5,7 @@
 # 装备特效
 from . import esid003  # 装备穿甲特效
 
-# 未改船
+# 未改航系
 from . import sid101191  # 皇家方舟-1
 from . import sid102241  # 可畏-1
 from . import sid102261  # 埃塞克斯-1
@@ -27,7 +27,7 @@ from . import sid104941  # G6-1
 from . import sid104981  # 复仇-1
 from . import sid105101  # G14-1
 
-# 改造船
+# 改造航系
 from . import sid110021  # 扶桑改-1
 from . import sid110041  # 伊势改-1
 from . import sid110051  # 日向改-1
@@ -64,3 +64,9 @@ from . import sid112331  # 最上改-1
 from . import sid112481  # 大淀改-1
 from . import sid113391  # 帝国改-1
 from . import sid113392  # 帝国改-2
+
+# 未改BB
+from . import sid103051  # 英王乔治五世-1
+from . import sid104681  # 猎户座-1
+
+# 改造BB
