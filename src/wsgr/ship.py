@@ -782,6 +782,16 @@ class Fleet(Time):
     def get_status(self):
         pass
 
+    def get_avg_status(self, name):
+        if not len(self.ship):
+            return 0
+
+        status = 0
+        for tmp_ship in self.ship:
+            status += tmp_ship.get_final_status(name)
+        status /= len(self.ship)
+        return status
+
     def get_member_inphase(self):
         """确定舰队中参与当前阶段的成员"""
         member = []

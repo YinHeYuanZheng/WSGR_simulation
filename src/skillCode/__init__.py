@@ -70,3 +70,5 @@ from . import sid103051  # 英王乔治五世-1
 from . import sid104681  # 猎户座-1
 
 # 改造BB
+from . import sid112071  # 南达科他-1
+from . import sid112072  # 南达科他-2
