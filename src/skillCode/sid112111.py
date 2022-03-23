@@ -12,7 +12,7 @@ from src.wsgr.phase import *
 """
 
 
-class Skill_110071(Skill):
+class Skill_112111(Skill):
     """首轮炮击额外提升最低20%，最高25%的伤害"""
 
     def __init__(self, timer, master):
@@ -38,4 +38,4 @@ class Skill_110071(Skill):
         return self.master.loc == 1
 
 
-skill = [Skill_110071]
+skill = [Skill_112111]
