@@ -13,7 +13,7 @@ T劣时增加自身60%暴击率和45%暴击伤害。
 """
 
 
-class Skill_104601_1(Skill):
+class Skill_104641_1(Skill):
     """T优和同航战时，炮击战阶段对大型船造成30%额外伤害。"""
     def __init__(self, master, timer):
         super().__init__(master, timer)
@@ -32,7 +32,7 @@ class Skill_104601_1(Skill):
         return self.timer.direction_flag <= 2
 
 
-class Skill_104601_2(Skill):
+class Skill_104641_2(Skill):
     """T劣时增加自身60%暴击率和45%暴击伤害。"""
     def __init__(self, master, timer):
         super().__init__(master, timer)
@@ -63,4 +63,4 @@ class Request_1(ATKRequest):
         return isinstance(self.atk.target, LargeShip)
 
 
-skill = [Skill_104601_1, Skill_104601_2]
+skill = [Skill_104641_1, Skill_104641_2]
