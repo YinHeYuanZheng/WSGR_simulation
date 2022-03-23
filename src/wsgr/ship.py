@@ -783,6 +783,7 @@ class Fleet(Time):
         pass
 
     def get_avg_status(self, name):
+        """获取平均数据"""
         if not len(self.ship):
             return 0
 

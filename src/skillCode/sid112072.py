@@ -55,7 +55,7 @@ class Skill_112072_2(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return enemy.get_avg_status('fire') < \
+        return enemy.get_avg_status('fire') <= \
                self.master.get_final_status('fire')
 
 
