@@ -66,6 +66,9 @@ from . import sid113391  # 帝国改-1
 from . import sid113392  # 帝国改-2
 
 # 未改BB
+from . import sid102001  # 兴登堡-1
+from . import sid102051  # 约克公爵-1
+from . import sid102091  # 密苏里-1
 from . import sid103051  # 英王乔治五世-1
 from . import sid104681  # 猎户座-1
 

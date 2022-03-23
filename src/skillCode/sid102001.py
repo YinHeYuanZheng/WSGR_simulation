@@ -6,7 +6,6 @@
 from ..wsgr.skill import *
 from ..wsgr.ship import *
 from ..wsgr.phase import *
-from ..wsgr.equipment import *
 
 
 class Skill_102001(Skill):
@@ -15,24 +14,28 @@ class Skill_102001(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            CoeffBuff(
-                timer,
+            AtkBuff(
+                timer=timer,
                 name="ignore_armor",
                 phase=ShellingPhase,
-                value=0.15,
-                bias_or_weight=1
+                value=-0.15,
+                bias_or_weight=1,
+                atk_request=[BuffRequest_1]
             ),
-            CoeffBuff(
-                timer,
+            AtkBuff(
+                timer=timer,
                 name="extra_damage",
                 phase=ShellingPhase,
                 value=20,
-                bias_or_weight=0
+                bias_or_weight=0,
+                atk_request=[BuffRequest_1]
             )
         ]
 
-    def is_active(self, friend, enemy):
-        return self.master.damaged == 1
+
+class BuffRequest_1(ATKRequest):
+    def __bool__(self):
+        return self.atk.atk_body.damaged == 1
 
 
 skill = [Skill_102001]

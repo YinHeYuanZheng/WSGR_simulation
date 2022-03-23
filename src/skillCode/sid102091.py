@@ -13,8 +13,7 @@ from ..wsgr.equipment import *
 """
 
 
-class Skill_102091_1(Skill):
-    """在炮击战阶段优先攻击敌方战列/战巡/航战单位，"""
+class Skill_102091(Skill):
     def __init__(self, master, timer):
         super().__init__(master, timer)
         self.target = SelfTarget(master)
@@ -22,63 +21,35 @@ class Skill_102091_1(Skill):
             PriorTargetBuff(
                 timer=timer,
                 name='prior_type_target',
-                phase=(ShellingPhase,),
+                phase=ShellingPhase,
                 target=OrderedTypeTarget(shiptype=(BB, BC, BBV)),
                 ordered=True
             ),
-        ]
-
-    def is_active(self, friend, enemy):
-        return True
-
-
-class Skill_102091_2(Skill):
-    """增加自身对于战列/战巡/航战的暴击率20%"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
-        self.request = [Request_1]
-        self.target = SelfTarget(master)
-        self.buff = [
-            CoeffBuff(
-                timer,
-                name="crit",
+            AtkBuff(
+                timer=timer,
+                name='crit',
                 phase=ShellingPhase,
                 value=0.2,
-                bias_or_weight=0
-            )
-        ]
-
-    def is_active(self, friend, enemy):
-        return self.request[0](self.timer, self.master.atk)
-
-
-class Skill_102091_3(Skill):
-    """暴击时攻击无视自身战损。"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
-        self.target = SelfTarget(master)
-        self.atk_request = [atk_request_1]
-        self.buff = [
+                bias_or_weight=0,
+                atk_request=[BuffRequest_1]
+            ),
             SpecialBuff(
-                timer,
+                timer=timer,
                 name="ignore_damaged",
                 phase=ShellingPhase,
-                atk_request=self.atk_request
+                atk_request=[BuffRequest_2]
             )
         ]
 
-    def is_active(self, friend, enemy):
-        return True
 
-
-class atk_request_1(ATKRequest):
-    def __bool__(self):
-        return self.atk.get_coef('crit_flag')
-
-
-class Request_1(ATKRequest):
+class BuffRequest_1(ATKRequest):
     def __bool__(self):
         return isinstance(self.atk.target, (BB, BC, BBV))
 
 
-skill = [Skill_102091_1, Skill_102091_3]
+class BuffRequest_2(ATKRequest):
+    def __bool__(self):
+        return self.atk.get_coef('crit_flag')
+
+
+skill = [Skill_102091]

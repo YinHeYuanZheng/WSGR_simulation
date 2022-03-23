@@ -35,6 +35,11 @@ class Skill(Time):
     def is_common(self):
         return False
 
+    def change_master(self, master):
+        """让巴尔技能调用，更换技能master"""
+        self.master = master
+        self.target.change_master(master)
+
 
 class CommonSkill(Skill):
     """仅包含常驻面板加成的技能"""
@@ -131,6 +136,9 @@ class Target:
         else:
             return enemy
 
+    def change_master(self, master):
+        pass
+
 
 class SelfTarget(Target):
     """自身buff"""
@@ -140,6 +148,10 @@ class SelfTarget(Target):
 
     def get_target(self, friend, enemy):
         return [self.master]
+
+    def change_master(self, master):
+        """让巴尔技能调用，更换技能master"""
+        self.master = master
 
 
 class TypeTarget(Target):
@@ -352,7 +364,7 @@ class NearestLocTarget(Target):
 
 
 class TagTarget(Target):
-    """指定标签的目标"""
+    """指定标签的目标(可指定国籍等字符串属性)"""
 
     def __init__(self, side, tag, tag_name='tag'):
         super().__init__(side)
@@ -375,8 +387,26 @@ class TagTarget(Target):
         return target
 
 
+class NotTagTarget(TagTarget):
+    """非指定标签的目标(可指定国籍等字符串属性)"""
+    def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        target = [ship for ship in fleet
+                  if ship.status[self.tag_name] != self.tag]
+        return target
+
+
 class StatusTarget(Target):
-    """指定属性的目标"""
+    """指定属性的目标(字符串属性除外)"""
 
     def __init__(self, side, status_name, fun, value):
         """
@@ -403,19 +433,19 @@ class StatusTarget(Target):
 
         if self.fun == 'eq':
             target = [ship for ship in fleet
-                      if ship.get_status(self.status_name) == self.value]
+                      if ship.get_final_status(self.status_name) == self.value]
         elif self.fun == 'ge':
             target = [ship for ship in fleet
-                      if ship.get_status(self.status_name) >= self.value]
+                      if ship.get_final_status(self.status_name) >= self.value]
         elif self.fun == 'gt':
             target = [ship for ship in fleet
-                      if ship.get_status(self.status_name) > self.value]
+                      if ship.get_final_status(self.status_name) > self.value]
         elif self.fun == 'le':
             target = [ship for ship in fleet
-                      if ship.get_status(self.status_name) <= self.value]
+                      if ship.get_final_status(self.status_name) <= self.value]
         elif self.fun == 'lt':
             target = [ship for ship in fleet
-                      if ship.get_status(self.status_name) < self.value]
+                      if ship.get_final_status(self.status_name) < self.value]
         else:
             raise ValueError()
         return target
