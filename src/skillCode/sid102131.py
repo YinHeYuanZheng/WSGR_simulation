@@ -6,7 +6,6 @@
 from ..wsgr.skill import *
 from ..wsgr.ship import *
 from ..wsgr.phase import *
-from ..wsgr.equipment import *
 
 
 class Skill_102131(Skill):
@@ -15,10 +14,10 @@ class Skill_102131(Skill):
         super().__init__(master, timer)
         self.target = SelfTarget(master)
         self.buff = [
-            CoeffBuff(
+            AtkBuff(
                 timer,
                 name="ignore_armor",
-                value=0.4,
+                value=-0.4,
                 phase=FirstShellingPhase,
                 bias_or_weight=1
             )

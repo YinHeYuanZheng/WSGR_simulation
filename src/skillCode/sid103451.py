@@ -6,7 +6,7 @@
 from ..wsgr.skill import *
 from ..wsgr.ship import *
 from ..wsgr.phase import *
-from ..wsgr.equipment import *
+
 """高速特遣队(3级)：炮击战阶段,降低敌方高速舰（速度≥27）命中率6%。
 威斯康星为旗舰时，本方战列、战巡、航战、重巡首轮炮击命中率增加9%，次轮炮击暴击率增加9%。
 """
@@ -35,7 +35,6 @@ class Skill_103451_2(Skill):
     """威斯康星为旗舰时，本方战列、战巡、航战、重巡首轮炮击命中率增加9%，次轮炮击暴击率增加9%。"""
     def __init__(self, master, timer):
         super().__init__(master, timer)
-        self.request = [Request_1]
         self.target = TypeTarget(side=1,
                                  shiptype=(BB, BC, BBV, CA))
         self.buff = [
@@ -56,11 +55,6 @@ class Skill_103451_2(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return bool(self.request[0](self.timer, self.master, friend, enemy))
-
-
-class Request_1(Request):
-    def __bool__(self):
         return self.master.loc == 1
 
 

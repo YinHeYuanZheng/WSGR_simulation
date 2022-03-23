@@ -810,6 +810,11 @@ class ActiveBuff(Buff):
 
     def __init__(self, timer, name, phase, num, rate,
                  during_buff=None, end_buff=None, coef=None, bias_or_weight=3):
+        """
+        :param num: 总攻击次数
+        :param during_buff: 攻击期间buff
+        :param end_buff: 攻击结束后buff
+        """
         super().__init__(timer, name, phase, bias_or_weight, rate)
         if during_buff is None:
             during_buff = []
