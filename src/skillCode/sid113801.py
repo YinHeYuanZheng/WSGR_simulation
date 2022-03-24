@@ -12,45 +12,47 @@ T优势提升20%自身炮击战伤害，同航战时提升10%自身炮击战伤�
 """
 
 
-class Skill_113801(Skill):
-    """单纵阵和梯形阵时增加自身火力值12点，降低自身闪避值3点。
-        T优势提升20%自身炮击战伤害，同航战时提升10%自身炮击战伤害，反航时自身火力不受影响。"""
+class Skill_113801_1(Skill):
+    """单纵阵和梯形阵时增加自身火力值12点，降低自身闪避值3点。"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
 
         self.buff = [
-            StatusBuff_1(
+            StatusBuff(
                 timer=timer,
                 name='fire',
                 value=12,
-            ), StatusBuff_1(
+                phase=(AllPhase,),
+                bias_or_weight=0
+            ), StatusBuff(
                 timer=timer,
                 name='evasion',
-                value=-3
-            ), FinalDamageBuff_1(
+                value=-3,
+                phase=(AllPhase,),
+                bias_or_weight=0
+            )
+        ]
+
+    def is_active(self, friend, enemy):
+        return friend.form == 1 or friend.form == 4
+
+
+class Skill_113801_2(Skill):
+    """T优势提升20%自身炮击战伤害，同航战时提升10%自身炮击战伤害，反航时自身火力不受影响。"""
+
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
+
+        self.buff = [
+            FinalDamageBuff_1(
                 timer=timer
             ), AtkCoefProcess_1(
                 timer=timer
             )
         ]
-
-
-class StatusBuff_1:
-    """单纵阵和梯形阵发动"""
-
-    def __init__(self, timer, name, value):
-        super().__init__(
-            timer=timer,
-            name=name,
-            value=value,
-            phase=(AllPhase,),
-            bias_or_weight=0
-        )
-
-    def is_active(self, friend, enemy):
-        return friend.form == 1 or friend.form == 4
 
 
 class FinalDamageBuff_1(FinalDamageBuff):
@@ -64,7 +66,7 @@ class FinalDamageBuff_1(FinalDamageBuff):
             value=0
         )
 
-    def is_active(self, friend, enemy):
+    def is_active(self, *args, **kwargs):
         if self.timer.direction_flag == 1:
             self.value = 0.2
             return True
@@ -86,8 +88,8 @@ class AtkCoefProcess_1(AtkCoefProcess):
             value=1
         )
 
-    def is_active(self, friend, enemy):
+    def is_active(self, *args, **kwargs):
         return self.timer.direction_flag == 4
 
 
-skill = [Skill_113801]
+skill = [Skill_113801_1, Skill_113801_2]
