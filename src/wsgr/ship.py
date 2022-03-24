@@ -383,7 +383,7 @@ class Ship(Time):
         """判断炮击战、夜战攻击类型"""
         # 技能发动特殊攻击
         for tmp_buff in self.active_buff:
-            if tmp_buff.is_active():
+            if tmp_buff.is_active(atk=self.normal_atk, enemy=target_fleet):
                 return tmp_buff.active_start(atk=self.normal_atk, enemy=target_fleet)
 
         # 技能优先攻击特定船型
@@ -479,6 +479,7 @@ class Ship(Time):
     def clear_buff(self):
         """清空临时buff"""
         self.temper_buff = []
+        self.active_buff = []
 
     def reset(self):
         """初始化当前舰船"""

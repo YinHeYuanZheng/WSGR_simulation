@@ -844,6 +844,9 @@ class ActiveBuff(Buff):
         self.num = num
         self.coef = coef
 
+    def __repr__(self):
+        return f'{self.name}: {self.rate}'
+
     def is_active_buff(self):
         return True
 
