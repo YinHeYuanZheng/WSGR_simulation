@@ -6,7 +6,7 @@
 from ..wsgr.skill import *
 from ..wsgr.ship import *
 from ..wsgr.phase import *
-from ..wsgr.equipment import *
+
 """决胜之兵(3级)：在炮击战阶段优先攻击敌方战列/战巡/航战单位，
 增加自身对于战列/战巡/航战的暴击率20%
 暴击时攻击无视自身战损。

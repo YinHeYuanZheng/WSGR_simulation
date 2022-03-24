@@ -17,7 +17,8 @@ __all__ = ['AllPhase',
            'ShellingPhase',
            'FirstShellingPhase',
            'SecondShellingPhase',
-           ]
+
+           'NightPhase']
 
 
 class AllPhase(Time):
@@ -248,4 +249,9 @@ class FirstShellingPhase(ShellingPhase):
 
 class SecondShellingPhase(ShellingPhase):
     """次轮炮击"""
+    pass
+
+
+class NightPhase(AllPhase):
+    """夜战"""
     pass

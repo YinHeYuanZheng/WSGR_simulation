@@ -38,7 +38,15 @@ class Skill(Time):
     def change_master(self, master):
         """让巴尔技能调用，更换技能master"""
         self.master = master
-        self.target.change_master(master)
+        if self.target is not None:
+            self.target.change_master(master)
+
+    def change_rate(self, rate):
+        """让巴尔技能调用，更改发动概率"""
+        if self.buff is None:
+            raise ValueError(f'{self.master.status["name"]}.buff should not be None!')
+        for tmp_buff in self.buff:
+            tmp_buff.change_rate(rate)
 
 
 class CommonSkill(Skill):
@@ -487,6 +495,9 @@ class Buff(Time):
     def set_master(self, master):
         self.master = master
 
+    def change_rate(self, rate):
+        self.rate = rate
+
     def is_common(self):
         return False
 
@@ -741,6 +752,9 @@ class MagnetBuff(EventBuff):
     def activate(self, atk, *args, **kwargs):
         atk.set_target(self.master)
 
+    def change_rate(self, rate):
+        pass
+
 
 class UnMagnetBuff(EventBuff):
     """负嘲讽技能"""
@@ -770,6 +784,9 @@ class UnMagnetBuff(EventBuff):
         target = np.random.choice(atk.def_list)
         atk.set_target(target)
 
+    def change_rate(self, rate):
+        pass
+
 
 class TankBuff(EventBuff):
     """挡枪技能"""
@@ -793,12 +810,12 @@ class TankBuff(EventBuff):
         if self.master.damaged >= 3:
             return False
 
-        def_target = self.target.get_target(atk.def_list, None)
+        def_target = self.target.get_target(atk.target.master, None)
         return isinstance(self.timer.phase, self.phase) and \
                self.master != atk.target and \
-               self.master in atk.def_list and \
                atk.target in def_target and \
                self.rate_verify()
+               # self.master in atk.def_list and \
 
     def activate(self, atk, *args, **kwargs):
         atk.set_target(self.master)
@@ -904,3 +921,7 @@ class ExtraAtkBuff(ActiveBuff):
 
         self.remove_during_buff()  # 去除攻击时效果
         self.add_end_buff()  # 攻击结束效果
+
+
+class SpecialAtkBuff(ActiveBuff):
+    pass

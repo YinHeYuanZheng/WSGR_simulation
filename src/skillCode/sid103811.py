@@ -13,7 +13,30 @@ from ..wsgr.phase import *
 
 
 class Skill_103811(Skill):
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.buff = [
+            StatusBuff(
+                timer=self.timer,
+                name='fire',
+                phase=AllPhase,
+                value=3,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=self.timer,
+                name='accuracy',
+                phase=AllPhase,
+                value=4,
+                bias_or_weight=0
+            )
+        ]
+
     def activate(self, friend, enemy):
+        buff = self.buff[:]
+
+        # 火力buff
+        buff_0 = buff[0]
         # 获取BB
         target_bb = TypeTarget(
             side=1,
@@ -27,28 +50,17 @@ class Skill_103811(Skill):
             bb_speed += tmp_ship.get_final_status('speed')
         bb_speed /= bb_num
         if bb_speed >= 27:
-            fire_value = 4
+            buff_0.value = 4
         else:
-            fire_value = 3
+            buff_0.value = 3
 
-        self.master.add_buff(
-            StatusBuff(
-                timer=self.timer,
-                name='fire',
-                phase=AllPhase,
-                value=fire_value * bb_num,
-                bias_or_weight=0
-            )
-        )
-        self.master.add_buff(
-            StatusBuff(
-                timer=self.timer,
-                name='accuracy',
-                phase=AllPhase,
-                value=4 * bb_num,
-                bias_or_weight=0
-            )
-        )
+        buff_0.value *= bb_num
+        self.master.add_buff(buff_0)
+
+        # 命中buff
+        buff_1 = buff[1]
+        buff_1.value *= bb_num
+        self.master.add_buff(buff_1)
 
 
 skill = [Skill_103811]

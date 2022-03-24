@@ -68,18 +68,19 @@ from . import sid113392  # 帝国改-2
 # 未改BB
 from . import sid102001  # 兴登堡-1
 from . import sid102051  # 约克公爵-1
-# 马萨诸塞
+from . import sid102081  # 马萨诸塞-1
 from . import sid102091  # 密苏里-1
 from . import sid102101  # 衣阿华-1
 from . import sid102131  # 罗马-1
-# 苏联
-# 让巴尔
+from . import sid102141  # 苏联-1
+# from . import sid102991  # 让巴尔-1
 from . import sid103051  # 英王乔治五世-1
 from . import sid103451  # 威斯康星-1
 from . import sid103671  # 乌尔里希·冯·胡滕-1
 from . import sid103811  # 印第安纳-1
 from . import sid104091  # 新泽西-1
 
+from . import sid104601  # 宾夕法尼亚-1
 from . import sid104681  # 猎户座-1
 
 # 改造BB

@@ -11,8 +11,21 @@ from src.wsgr.phase import *
 class Skill_110231(Skill):
     """队伍中每1艘自身以外的航母、装母、轻母，都会提高自身7%的舰载机威力。
     如果是E国额外提高7%"""
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.buff = [
+            CoeffBuff(
+                timer=self.timer,
+                name='air_atk_buff',
+                phase=(AllPhase,),
+                value=0.07,
+                bias_or_weight=2
+            )
+        ]
 
     def activate(self, friend, enemy):
+        buff = self.buff[:]
+
         # 获取航系
         target_craft = TypeTarget(
             side=1,
@@ -28,16 +41,10 @@ class Skill_110231(Skill):
 
         num_craft = len(target_craft)
         num_e_craft = len(target_e_craft)
-        buff_value = 0.07 * (num_craft + num_e_craft)
 
-        self.master.add_buff(
-            CoeffBuff(
-                timer=self.timer,
-                name='air_atk_buff',
-                phase=(AllPhase,),
-                value=buff_value,
-                bias_or_weight=2)
-        )
+        buff_0 = buff[0]
+        buff_0.value *= (num_craft + num_e_craft)
+        self.master.add_buff(buff_0)
 
 
 skill = [Skill_110231]
