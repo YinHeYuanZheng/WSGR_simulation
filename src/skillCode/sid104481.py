@@ -3,9 +3,9 @@
 # env:py38
 # 弗兰德尔-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """主炮群覆盖(3级)：单纵时增加自身10%暴击率。同航战时增加自身9点火力值；T优时增加20%暴击伤害。
 """

@@ -3,9 +3,9 @@
 # env:py38
 # 南达科他(1920)-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """主炮火力(3级)：T优和同航战时，炮击战阶段对大型船造成30%额外伤害。
 T劣时增加自身60%暴击率和45%暴击伤害。
