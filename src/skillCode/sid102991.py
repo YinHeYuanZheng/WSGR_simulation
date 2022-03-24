@@ -3,9 +3,9 @@
 # env:py38
 # 让巴尔-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """
 Lv.1: 降低自身30%被攻击概率。

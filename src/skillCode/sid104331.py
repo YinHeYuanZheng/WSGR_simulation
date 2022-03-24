@@ -7,7 +7,6 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 from src.wsgr.formulas import *
-from src.wsgr.equipment import *
 
 """制空权(3级)：自身受到航母单位攻击时降低20%的伤害（限开幕与炮击战阶段）。
 自身和其上方最近的一艘航母，装母，轻母单位在制空权均势，优势，确保时舰载机伤害增加10%。"""
@@ -65,11 +64,7 @@ class Skill_104331_2(Skill):
 
 class BuffRequest_2(ATKRequest):
     def __bool__(self):
-        if self.atk.atk_body.side == 1:
-            air_con_flag = self.timer.air_con_flag
-        else:
-            air_con_flag = 6 - self.timer.air_con_flag
-        return air_con_flag <= 3
+        return self.atk.atk_body.get_air_con_flag() <= 3
 
 
 skill = [Skill_104331_1, Skill_104331_2]

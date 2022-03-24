@@ -3,9 +3,9 @@
 # env:py38
 # 衣阿华-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """止战之戈(3级)：炮击战阶段，26%概率炮击同一个目标两次，触发技能之后炮击战阶段将不再行动。"""
 

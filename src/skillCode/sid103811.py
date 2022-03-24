@@ -3,9 +3,9 @@
 # env:py38
 # 印第安纳-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """战列舰支队(3级)：队伍中每有一艘战列舰给印第安纳自身增加火力值3点，命中值4点，
 如果队伍中战列舰平均航速大于等于27,增加火力值为4点。

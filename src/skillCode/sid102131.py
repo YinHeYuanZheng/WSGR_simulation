@@ -3,9 +3,9 @@
 # env:py38
 # 罗马-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 
 class Skill_102131(Skill):
@@ -16,7 +16,7 @@ class Skill_102131(Skill):
         self.buff = [
             AtkBuff(
                 timer,
-                name="ignore_armor",
+                name='ignore_armor',
                 value=-0.4,
                 phase=FirstShellingPhase,
                 bias_or_weight=1

@@ -3,9 +3,9 @@
 # env:py38
 # 约克公爵-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """骑士之誓(3级)：队伍中每有一艘非E国的船只都会增加自身命中、回避、火力3点。
 """

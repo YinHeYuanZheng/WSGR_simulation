@@ -191,9 +191,9 @@ class ATK(Time):
                     self.get_form_coef('miss', self.target.get_form())
 
         # 索敌补正
-        if self.atk_body.side == 1 and self.timer.recon_flag:
+        if self.atk_body.get_recon_flag():
             hit_rate += 0.05
-        if self.target.side == 1 and self.timer.recon_flag:
+        if self.target.get_recon_flag():
             hit_rate -= 0.05
 
         # 船型补正
@@ -352,14 +352,13 @@ class AirAtk(ATK):
                     self.get_form_coef('miss', self.target.get_form())
 
         # 索敌补正
-        if self.atk_body.side == 1 and self.timer.recon_flag:
+        if self.atk_body.get_recon_flag():
             hit_rate += 0.05
-        if self.target.side == 1 and self.timer.recon_flag:
+        if self.target.get_recon_flag():
             hit_rate -= 0.05
 
         # 制空补正
-        hit_rate += get_air_hit_coef(self.timer.air_con_flag,
-                                     self.atk_body.side)
+        hit_rate += get_air_hit_coef(self.atk_body.get_air_con_flag())
 
         # 船型补正
         aa_value = self.get_anti_air_def()
@@ -723,10 +722,7 @@ def get_air_coef(air_con_flag, side):
     return fall_coef, air_con_coef
 
 
-def get_air_hit_coef(air_con_flag, side):
-    if side == 0:
-        air_con_flag = 6 - air_con_flag
-
+def get_air_hit_coef(air_con_flag):
     if air_con_flag == 1:
         hit_rate = 0.1
     elif air_con_flag == 2:

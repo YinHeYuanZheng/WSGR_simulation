@@ -4,9 +4,9 @@
 # 马萨诸塞-1
 
 import numpy as np
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """重击(3级)：攻击有40%概率降低被命中单位75%的火力（夜战阶段无效），有35%概率造成敌方总血量20%的额外伤害。"""
 

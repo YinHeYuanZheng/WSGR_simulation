@@ -4,9 +4,9 @@
 # 苏联-1
 
 import numpy as np
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """该船的炮击伤害会在90%~130%之间浮动。"""
 
@@ -20,14 +20,14 @@ class Skill_102141(Skill):
                 timer=timer,
                 name='final_damage_buff',
                 phase=ShellingPhase,
-                value=1
+                value=0
             )
         ]
 
 
 class RandomFinalDamage(FinalDamageBuff):
     def is_active(self, *args, **kwargs):
-        self.value = np.random.uniform(0.9, 1.3)
+        self.value = np.random.uniform(0.9, 1.3) - 1
         return isinstance(self.timer.phase, self.phase)
 
 

@@ -3,9 +3,9 @@
 # env:py38
 # 乌尔里希·冯·胡滕-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """德式设计(3级)：提升自身装甲值10点，航空战时增加15%被暴击率。
 炮击战时免疫受到的第一次炮击攻击，攻击护甲高于自身的敌人时，提升自身15%暴击伤害。"""
@@ -19,7 +19,7 @@ class Skill_103671_1(CommonSkill):
         self.buff = [
             CommonBuff(
                 timer=timer,
-                name="armor",
+                name='armor',
                 phase=AllPhase,
                 value=10,
                 bias_or_weight=0

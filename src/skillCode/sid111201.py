@@ -62,11 +62,7 @@ class Skill_111201_3(Skill):
 
 class BuffRequest_1(ATKRequest):
     def __bool__(self):
-        if self.atk.atk_body.side == 1:
-            air_con_flag = self.timer.air_con_flag
-        else:
-            air_con_flag = 6 - self.timer.air_con_flag
-        return air_con_flag > 3
+        return self.atk.atk_body.get_air_con_flag() > 3
 
 
 class Skill_111201_4(Skill):
@@ -88,11 +84,7 @@ class Skill_111201_4(Skill):
 
 class BuffRequest_2(ATKRequest):
     def __bool__(self):
-        if self.atk.atk_body.side == 1:
-            air_con_flag = self.timer.air_con_flag
-        else:
-            air_con_flag = 6 - self.timer.air_con_flag
-        return air_con_flag <= 3
+        return self.atk.atk_body.get_air_con_flag() <= 3
 
 
 skill = [Skill_111201_1, Skill_111201_2, Skill_111201_3, Skill_111201_4]

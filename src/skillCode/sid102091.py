@@ -3,9 +3,9 @@
 # env:py38
 # 密苏里-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """决胜之兵(3级)：在炮击战阶段优先攻击敌方战列/战巡/航战单位，
 增加自身对于战列/战巡/航战的暴击率20%
@@ -35,7 +35,7 @@ class Skill_102091(Skill):
             ),
             SpecialBuff(
                 timer=timer,
-                name="ignore_damaged",
+                name='ignore_damaged',
                 phase=ShellingPhase,
                 atk_request=[BuffRequest_2]
             )

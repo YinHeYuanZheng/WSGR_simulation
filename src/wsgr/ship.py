@@ -105,6 +105,24 @@ class Ship(Time):
     def get_form(self):
         return self.master.form
 
+    def get_recon_flag(self):
+        if self.side:
+            return self.timer.recon_flag
+        else:
+            return False
+
+    def get_direction(self):
+        if self.side:
+            return self.timer.direction_flag
+        else:
+            return 5 - self.timer.direction_flag
+
+    def get_air_con_flag(self):
+        if self.side:
+            return self.timer.air_con_flag
+        else:
+            return 6 - self.timer.air_con_flag
+
     def set_cid(self, cid):
         """设置舰船编号"""
         self.cid = cid

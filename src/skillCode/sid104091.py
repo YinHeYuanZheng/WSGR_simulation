@@ -3,9 +3,9 @@
 # env:py38
 # 新泽西-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """重火力炮击(3级)：T优时增加自身25%暴击率，同航战时增加自身15%暴击率。
 炮击战阶段命中旗舰时造成额外30%伤害。
@@ -28,7 +28,7 @@ class Skill_104091_1(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return self.timer.direction_flag == 1
+        return self.master.get_direction() == 1
 
 
 class Skill_104091_2(Skill):
@@ -47,7 +47,7 @@ class Skill_104091_2(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return self.timer.direction_flag == 2
+        return self.master.get_direction() == 2
 
 
 class Skill_104091_3(Skill):

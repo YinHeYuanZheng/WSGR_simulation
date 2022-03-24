@@ -3,9 +3,9 @@
 # env:py38
 # 宾夕法尼亚-1
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
 
 """主炮支援(3级)：队伍内每有一个大型船单位都会提升宾夕法尼亚的炮击战4%的伤害。
 宾夕法尼亚击中非满血敌方单位时造成额外15%的伤害。

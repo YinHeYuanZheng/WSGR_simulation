@@ -73,14 +73,19 @@ from . import sid102091  # 密苏里-1
 from . import sid102101  # 衣阿华-1
 from . import sid102131  # 罗马-1
 from . import sid102141  # 苏联-1
-# from . import sid102991  # 让巴尔-1
+from . import sid102991  # 让巴尔-1
 from . import sid103051  # 英王乔治五世-1
 from . import sid103451  # 威斯康星-1
 from . import sid103671  # 乌尔里希·冯·胡滕-1
 from . import sid103811  # 印第安纳-1
 from . import sid104091  # 新泽西-1
-
+from . import sid104181  # 阿金库尔-1
+from . import sid104421  # 里昂-1
+from . import sid104481  # 弗兰德尔-1
+# from . import sid104501  # L20-1
+from . import sid104541  # 征服者-1
 from . import sid104601  # 宾夕法尼亚-1
+from . import sid104641  # 南达科他(1920)-1
 from . import sid104681  # 猎户座-1
 
 # 改造BB
