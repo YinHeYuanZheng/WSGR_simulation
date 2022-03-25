@@ -513,6 +513,9 @@ class Buff(Time):
     def is_coef_process(self):
         return False
 
+    def is_during_buff(self):
+        return False
+
     def is_active(self, *args, **kwargs):
         """技能是否满足发动阶段"""
         return self.rate_verify() and \
@@ -596,11 +599,31 @@ class AtkBuff(CoeffBuff):
                self.rate_verify()
 
 
+class DuringAtkBuff(CoeffBuff):
+    """某一攻击结算期间有效"""
+    def __init__(self, timer, name, phase, bias_or_weight,
+                 value=None, rate=1):
+        super().__init__(timer, name, phase, value, bias_or_weight, rate)
+
+    def __repr__(self):
+        if self.value is None:
+            return f"{self.name}(temporal)"
+        else:
+            return f"{self.name}(temporal): {self.value}"
+
+    def is_during_buff(self):
+        return True
+
+
 class AtkHitBuff(Buff):
-    """命中后效果"""
+    """攻击时、命中后效果"""
     def __init__(self, timer, name, phase, buff, side,
                  atk_request=None, bias_or_weight=3, rate=1):
         """
+        :param name:    'atk_hit'       自身攻击命中并造成伤害后
+                        'atk_be_hit'    自身被攻击命中并造成伤害后
+                        'give_atk'      自身攻击时
+                        'get_atk'       自身被攻击时
         :param buff: 施加效果内容
         :param side: 给谁加, 0: 被攻击者; 1: 攻击者
         :param atk_request: ATKRequest, 攻击判断(攻击者、被攻击者、攻击类型)

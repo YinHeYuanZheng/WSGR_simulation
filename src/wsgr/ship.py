@@ -476,6 +476,11 @@ class Ship(Time):
 
         return damage
 
+    def remove_during_buff(self):
+        for tmp_buff in self.temper_buff[:]:
+            if tmp_buff.is_during_buff():
+                self.temper_buff.remove(tmp_buff)
+
     def clear_buff(self):
         """清空临时buff"""
         self.temper_buff = []

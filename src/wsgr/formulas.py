@@ -102,12 +102,15 @@ class ATK(Time):
         self.target = target
 
     def start_atk(self):
-        """攻击开始时点，进行挡枪判定等"""
+        """攻击开始时点，进行挡枪判定、攻击时复杂效果结算等"""
         if len(self.timer.queue['tank']):
             for tmp_buff in self.timer.queue['tank']:
                 if tmp_buff.is_active(self):
                     tmp_buff.activate(self)
                     break
+
+        self.atk_body.atk_hit('give_atk')
+        self.target.atk_hit('get_atk')
 
     def set_coef(self, coef):
         self.coef.update(coef)
@@ -245,6 +248,9 @@ class ATK(Time):
             self.atk_body.atk_hit('atk_hit', self)
             self.target.atk_hit('be_atk_hit', self)
             self.timer.report(damage_value)
+
+        self.atk_body.remove_during_buff()
+        self.target.remove_during_buff()
 
 
 class AirAtk(ATK):

@@ -93,5 +93,7 @@ from . import sid104681  # 猎户座-1
 from . import sid110061  # 俾斯麦-1
 from . import sid110062  # 俾斯麦-2
 
+from . import sid110111  # 重点防御：内华达-1、俄克拉荷马-1
+
 from . import sid112071  # 南达科他-1
 from . import sid112072  # 南达科他-2

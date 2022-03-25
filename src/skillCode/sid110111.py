@@ -1,13 +1,12 @@
 # -*- coding:utf-8 -*-
-# Author:zzhh225
+# Author:银河远征
 # env:py38
 # 内华达、俄克拉荷马
 
-from ..wsgr.skill import *
-from ..wsgr.ship import *
-from ..wsgr.phase import *
-from ..wsgr.equipment import *
-from src.wsgr.formulas import *
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+
 """重点防御(3级)：所有阶段受到攻击时，50%概率发动，减免50%伤害，并且此次攻击不会被暴击。
 """
 
@@ -17,25 +16,29 @@ class Skill_110111(Skill):
         super().__init__(master, timer)
         self.target = SelfTarget(master)
         self.buff = [
-        ]
-
-    def activate(self, friend, enemy):
-        buff = [
-            SpecialBuff(
-                self.timer,
-                name='must_not_crit',
+            AtkHitBuff(
+                timer=timer,
+                name='get_atk',
                 phase=AllPhase,
-            ),
-            FinalDamageBuff(
-                self.timer,
-                name='final_damage_debuff',
-                phase=AllPhase,
-                value=-0.5,
+                buff=[
+                    DuringAtkBuff(
+                        timer=timer,
+                        name='final_damage_debuff',
+                        phase=AllPhase,
+                        value=-0.5,
+                        bias_or_weight=2
+                    ),
+                    DuringAtkBuff(
+                        timer=timer,
+                        name='must_not_crit',
+                        phase=AllPhase,
+                        bias_or_weight=3
+                    )
+                ],
+                side=1,
+                rate=0.5
             )
         ]
-        tmp_rate = np.random.random()
-        if tmp_rate <= 0.5:
-            self.master.add_buff(buff)
 
 
 skill = [Skill_110111]
