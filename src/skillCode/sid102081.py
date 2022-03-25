@@ -29,7 +29,8 @@ class Skill_102081(Skill):
                         bias_or_weight=1
                     )
                 ],
-                side=0
+                side=0,
+                rate=0.4
             ),
             AtkBuff_1(
                 timer=timer,

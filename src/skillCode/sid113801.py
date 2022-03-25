@@ -26,7 +26,8 @@ class Skill_113801_1(Skill):
                 value=12,
                 phase=(AllPhase,),
                 bias_or_weight=0
-            ), StatusBuff(
+            ),
+            StatusBuff(
                 timer=timer,
                 name='evasion',
                 value=-3,
@@ -36,60 +37,68 @@ class Skill_113801_1(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return friend.form == 1 or friend.form == 4
+        return self.master.get_form() == 1 or \
+               self.master.get_form() == 4
 
 
 class Skill_113801_2(Skill):
-    """T优势提升20%自身炮击战伤害，同航战时提升10%自身炮击战伤害，反航时自身火力不受影响。"""
+    """T优势提升20%自身炮击战伤害"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
 
         self.buff = [
-            FinalDamageBuff_1(
-                timer=timer
-            ), AtkCoefProcess_1(
-                timer=timer
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=ShellingPhase,
+                value=0.2,
             )
         ]
 
-
-class FinalDamageBuff_1(FinalDamageBuff):
-    """ T优势提升20%自身炮击战伤害，同航战时提升10%自身炮击战伤害"""
-
-    def __init__(self, timer):
-        super().__init__(
-            timer=timer,
-            name='final_damage_buff',
-            phase=(ShellingPhase,),
-            value=0
-        )
-
-    def is_active(self, *args, **kwargs):
-        if self.timer.direction_flag == 1:
-            self.value = 0.2
-            return True
-        elif self.timer.direction_flag == 2:
-            self.value = 0.1
-            return True
-        else:
-            return False
+    def is_active(self, friend, enemy):
+        return self.master.get_direction() == 1
 
 
-class AtkCoefProcess_1(AtkCoefProcess):
+class Skill_113801_3(Skill):
+    """同航战时提升10%自身炮击战伤害"""
+
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
+
+        self.buff = [
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=ShellingPhase,
+                value=0.1,
+            )
+        ]
+
+    def is_active(self, friend, enemy):
+        return self.master.get_direction() == 2
+
+
+class Skill_113801_4(Skill):
     """反航时自身火力不受影响"""
 
-    def __init__(self, timer):
-        super().__init__(
-            timer=timer,
-            name='direct_coef',
-            phase=(AllPhase,),
-            value=1
-        )
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
 
-    def is_active(self, *args, **kwargs):
-        return self.timer.direction_flag == 4
+        self.buff = [
+            AtkCoefProcess(
+                timer=timer,
+                name='direct_coef',
+                phase=AllPhase,
+                value=1,
+            )
+        ]
+
+    def is_active(self, friend, enemy):
+        return self.master.get_direction() == 3
 
 
-skill = [Skill_113801_1, Skill_113801_2]
+skill = [Skill_113801_1, Skill_113801_2, Skill_113801_3, Skill_113801_4]

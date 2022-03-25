@@ -13,29 +13,37 @@ from src.wsgr.phase import *
 
 
 class Skill_112111(Skill):
-    """首轮炮击额外提升最低20%，最高25%的伤害"""
-
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
 
         self.buff = [
-            FinalDamageBuff(
+            RandomFinalDamage(
                 timer=timer,
                 name='final_damage_buff',
-                phase=(ShellingPhase,),
-                value=np.random.uniform(.2, .25)
-            ), StatusBuff(
+                phase=FirstShellingPhase,
+                value=0
+            ),
+            LuckBuff(
                 timer=timer,
                 name='armor',
                 phase=AllPhase,
-                value=0.2 * self.master.get_final_status('luck'),
+                value=0,
                 bias_or_weight=0
             )
         ]
 
-    def is_active(self, friend, enemy):
-        return self.master.loc == 1
+
+class RandomFinalDamage(FinalDamageBuff):
+    def is_active(self, *args, **kwargs):
+        self.value = np.random.uniform(0.2, 0.25)
+        return isinstance(self.timer.phase, self.phase)
+
+
+class LuckBuff(StatusBuff):
+    def is_active(self, *args, **kwargs):
+        self.value = np.ceil(0.2 * self.master.get_final_status('luck'))
+        return isinstance(self.timer.phase, self.phase)
 
 
 skill = [Skill_112111]

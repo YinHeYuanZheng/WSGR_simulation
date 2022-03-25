@@ -22,13 +22,14 @@ class Skill_110071(Skill):
         self.buff = [
             StatusBuff(
                 timer=timer,
-                name='hit_rate',
+                name='accuracy',
                 phase=(AllPhase,),
                 value=-8,
                 bias_or_weight=0
-            ), StatusBuff(
+            ),
+            StatusBuff(
                 timer=timer,
-                name='miss_rate',
+                name='evasion',
                 phase=(AllPhase,),
                 value=-8,
                 bias_or_weight=0

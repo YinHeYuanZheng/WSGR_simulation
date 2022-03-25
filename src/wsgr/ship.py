@@ -112,12 +112,14 @@ class Ship(Time):
             return False
 
     def get_direction(self):
+        """航向, 优同反劣分别为1-4"""
         if self.side:
             return self.timer.direction_flag
         else:
             return 5 - self.timer.direction_flag
 
     def get_air_con_flag(self):
+        """制空结果, 从空确到空丧分别为1-5"""
         if self.side:
             return self.timer.air_con_flag
         else:
@@ -354,10 +356,14 @@ class Ship(Time):
 
     def atk_hit(self, name, atk, *args, **kwargs):
         """处理命中后、被命中后添加buff效果（不处理反击）"""
+        if name == 'be_atk_hit':
+            pass  # todo hit_back接口
         for tmp_buff in self.temper_buff:
             if tmp_buff.name == name and \
                     tmp_buff.is_active(atk=atk, *args, **kwargs):
                 tmp_buff.activate(atk=atk, *args, **kwargs)
+
+        return None
 
     def get_act_flag(self):
         phase_name = type(self.timer.phase).__name__

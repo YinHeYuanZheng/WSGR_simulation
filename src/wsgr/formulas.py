@@ -61,18 +61,16 @@ class ATK(Time):
         self.process_coef()  # 生成公式相关系数
 
         if not self.coef['hit_flag']:
-            self.end_atk(damage_flag, 'miss')
-            return
+            return self.end_atk(damage_flag, 'miss')
 
         damage = self.formula()
         if damage == 0:
-            self.end_atk(damage_flag, 'jump')
-            return
+            return self.end_atk(damage_flag, 'jump')
 
         damage = self.final_damage(damage)
         damage = self.target.get_damage(damage)
         damage_flag = bool(damage)
-        self.end_atk(damage_flag, damage)
+        return self.end_atk(damage_flag, damage)
 
     def target_init(self):
         """决定攻击目标，技能可以影响优先目标"""
@@ -165,6 +163,7 @@ class ATK(Time):
             return
 
         if self.get_coef('must_hit') or \
+                self.get_coef('hit_back') or \
                 self.atk_body.get_special_buff('must_hit', self):
             self.coef['hit_flag'] = True
             return
@@ -243,14 +242,16 @@ class ATK(Time):
         :param damage_value: 伤害记录
         """
         if not damage_flag:
+            hit_back = None
             self.timer.report('miss')
         else:
             self.atk_body.atk_hit('atk_hit', self)
-            self.target.atk_hit('be_atk_hit', self)
+            hit_back = self.target.atk_hit('be_atk_hit', self)
             self.timer.report(damage_value)
 
         self.atk_body.remove_during_buff()
         self.target.remove_during_buff()
+        return hit_back
 
 
 class AirAtk(ATK):
@@ -276,22 +277,19 @@ class AirAtk(ATK):
         self.process_coef()  # 生成公式相关系数
 
         if not self.coef['hit_flag']:
-            self.end_atk(damage_flag, 'miss')
-            return
+            return self.end_atk(damage_flag, 'miss')
 
         if self.coef['plane_rest'] == 0:
-            self.end_atk(damage_flag, 'miss')
-            return
+            return self.end_atk(damage_flag, 'miss')
 
         damage = self.formula()
         if damage == 0:
-            self.end_atk(damage_flag, 'jump')
-            return
+            return self.end_atk(damage_flag, 'jump')
 
         damage = self.final_damage(damage)
         damage = self.target.get_damage(damage)
         damage_flag = bool(damage)
-        self.end_atk(damage_flag, damage)
+        return self.end_atk(damage_flag, damage)
 
     def get_anti_air_fall(self, anti_num):
         """计算防空击坠"""
@@ -406,11 +404,19 @@ class AirAtk(ATK):
         _, extra_damage = self.atk_body.get_atk_buff('extra_damage', self)
         damage += extra_damage
 
-        # 终伤系数
+        # 终伤增伤系数
         for buff_scale in self.atk_body.get_final_damage_buff(self):
             damage = np.ceil(damage * (1 + buff_scale))
+        buff_scale = self.get_coef('final_damage_buff')
+        if buff_scale:
+            damage = np.ceil(damage * (1 + buff_scale))
+
+        # 终伤减伤系数
         for debuff_scale in self.target.get_final_damage_debuff(self):
             damage = np.ceil(damage * (1 + debuff_scale))
+        buff_scale = self.get_coef('final_damage_debuff')
+        if buff_scale:
+            damage = np.ceil(damage * (1 + buff_scale))
 
         # 对空减伤
         aa_value = self.get_anti_air_def()

@@ -45,7 +45,8 @@ class Skill_103671_2(Skill):
                 timer=timer,
                 name='shield',
                 phase=ShellingPhase,
-                exhaust=1),
+                exhaust=1
+            ),
             AtkBuff(
                 timer=timer,
                 name='crit_coef',
