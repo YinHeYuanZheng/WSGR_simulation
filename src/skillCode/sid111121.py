@@ -10,27 +10,40 @@ from src.wsgr.phase import *
 """火力+20，命中-6，战斗中免疫第一次被攻击时受到的伤害"""
 
 
-class Skill_111121(Skill):
-    """火力+20，命中-6，战斗中免疫第一次被攻击时受到的伤害。"""
+class Skill_111121_1(CommonSkill):
+    """火力+20，命中-6"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
 
         self.buff = [
-            StatusBuff(
+            CommonBuff(
                 timer=timer,
                 name='fire',
                 phase=AllPhase,
                 value=20,
                 bias_or_weight=0
-            ), StatusBuff(
+            ),
+            CommonBuff(
                 timer=timer,
                 name='accuracy',
                 phase=AllPhase,
                 value=-6,
                 bias_or_weight=0
-            ), SpecialBuff(
+            )
+        ]
+
+
+class Skill_111121_2(Skill):
+    """战斗中免疫第一次被攻击时受到的伤害。"""
+
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
+
+        self.buff = [
+            SpecialBuff(
                 timer=timer,
                 name='shield',
                 phase=AllPhase,
@@ -38,4 +51,4 @@ class Skill_111121(Skill):
         ]
 
 
-Skill = [Skill_111121]
+Skill = [Skill_111121_1, Skill_111121_2]

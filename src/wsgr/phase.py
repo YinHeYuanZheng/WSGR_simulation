@@ -18,6 +18,7 @@ __all__ = ['AllPhase',
            'FirstShellingPhase',
            'SecondShellingPhase',
 
+           'DaytimePhase',
            'NightPhase']
 
 
@@ -162,14 +163,18 @@ class AirPhase(DaytimePhase):
                     tmp_equip.fall(air_con_fall)  # 最大击坠量可超过实际放飞量（存在洗甲板）
                     continue
 
+                # 检查是否存在优先攻击船型对象
+                prior = tmp_ship.get_prior_type_target(defend)
+
                 # 轰炸机，发起轰炸攻击
-                elif isinstance(tmp_equip, Bomber):
+                if isinstance(tmp_equip, Bomber):
                     atk = AirBombAtk(
                         timer=self.timer,
                         atk_body=tmp_ship,
                         def_list=defend,
                         equip=tmp_equip,
                         coef=coef,
+                        target=prior,
                     )
                     atk.start()
                     anti_num = atk.get_coef('anti_num')
@@ -182,6 +187,7 @@ class AirPhase(DaytimePhase):
                         def_list=defend,
                         equip=tmp_equip,
                         coef=coef,
+                        target=prior,
                     )
                     atk.start()
                     anti_num = atk.get_coef('anti_num')

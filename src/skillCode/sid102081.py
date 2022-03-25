@@ -16,10 +16,10 @@ class Skill_102081(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            AtkHitBuff_1(
+            AtkHitBuff(
                 timer=timer,
                 name='atk_hit',
-                phase=AllPhase,
+                phase=DaytimePhase,
                 buff=[
                     StatusBuff(
                         timer=timer,
@@ -41,12 +41,6 @@ class Skill_102081(Skill):
                 rate=0.35
             )
         ]
-
-
-class AtkHitBuff_1(AtkHitBuff):
-    def is_active(self, *args, **kwargs):
-        return (not isinstance(self.timer.phase, NightPhase)) and \
-               self.rate_verify()
 
 
 class AtkBuff_1(AtkBuff):

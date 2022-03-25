@@ -82,7 +82,7 @@ from . import sid104091  # 新泽西-1
 from . import sid104181  # 阿金库尔-1
 from . import sid104421  # 里昂-1
 from . import sid104481  # 弗兰德尔-1
-# from . import sid104501  # L20-1
+from . import sid104501  # L20-1
 from . import sid104541  # 征服者-1
 from . import sid104601  # 宾夕法尼亚-1
 from . import sid104641  # 南达科他(1920)-1
@@ -96,6 +96,8 @@ from . import sid110071  # 提尔比茨-1
 from . import sid110081  # BIG SEVEN
 
 from . import sid110111  # 重点防御：内华达-1、俄克拉荷马-1
+
+from . import sid111121  # 维内托-1
 
 from . import sid112071  # 南达科他-1
 from . import sid112072  # 南达科他-2
