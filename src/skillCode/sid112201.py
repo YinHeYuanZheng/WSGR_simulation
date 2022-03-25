@@ -20,8 +20,8 @@ class Skill_112201(Skill):
                 timer=timer,
                 phase=ShellingPhase,
                 target=TypeTarget(side=1, shiptype=(CV, AV, CVL)),
+                value=-0.8,
                 rate=0.25,
-                coef={'tank_damage_debuff': -0.8}
             )
         ]
 

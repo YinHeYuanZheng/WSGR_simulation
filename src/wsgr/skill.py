@@ -813,13 +813,14 @@ class UnMagnetBuff(EventBuff):
 
 class TankBuff(EventBuff):
     """挡枪技能"""
-    def __init__(self, timer, phase, target, rate,
+    def __init__(self, timer, phase, target, value, rate,
                  name='tank', coef=None, exhaust=1, bias_or_weight=3):
         super().__init__(timer, name, phase, bias_or_weight, rate)
         self.target = target
         self.exhaust = exhaust
 
-        self.coef = {'must_hit': True}
+        self.coef = {'must_hit': True,
+                     'tank_damage_debuff': value}
         if coef is None:
             coef = {}
         self.coef.update(coef)
@@ -830,7 +831,7 @@ class TankBuff(EventBuff):
     def is_active(self, atk, *args, **kwargs):
         if not self.exhaust:
             return False
-        if self.master.damaged >= 3:
+        if self.master.damaged >= 3:  # 大破状态不能发动
             return False
 
         def_target = self.target.get_target(atk.target.master, None)

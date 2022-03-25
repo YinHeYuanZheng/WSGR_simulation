@@ -234,7 +234,10 @@ class ShellingPhase(DaytimePhase):
 
         atk_list = source.raise_atk(target_fleet)
         for atk in atk_list:
-            atk.start()
+            hit_back = atk.start()
+            if isinstance(hit_back, ATK):
+                hit_back.set_coef({'hit_back': True})
+                hit_back.start()
 
 
 class FirstShellingPhase(ShellingPhase):
