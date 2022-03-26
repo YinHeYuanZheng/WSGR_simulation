@@ -15,58 +15,56 @@ class Skill_111051(Skill):
     def __init__(self, master, timer):
         super().__init__(master, timer)
         self.target = SelfTarget(master)
-        self.batterTimes = 1
+        self.value = 3
         self.buff = [
             StatusBuff(
                 timer=timer,
                 name='fire',
                 phase=AllPhase,
-                value=3*self.batterTimes,
+                value=self.value,
                 bias_or_weight=0
             ),
             StatusBuff(
                 timer=timer,
                 name='armor',
                 phase=AllPhase,
-                value=3*self.batterTimes,
+                value=self.value,
                 bias_or_weight=0
             ),
             StatusBuff(
                 timer=timer,
                 name='antiair',
                 phase=AllPhase,
-                value=3*self.batterTimes,
+                value=self.value,
                 bias_or_weight=0
             ),
             StatusBuff(
                 timer=timer,
                 name='accuracy',
                 phase=AllPhase,
-                value=3*self.batterTimes,
+                value=self.value,
                 bias_or_weight=0
             ),
             StatusBuff(
                 timer=timer,
                 name='evasion',
                 phase=AllPhase,
-                value=3*self.batterTimes,
+                value=self.value,
                 bias_or_weight=0
             ),
             CoeffBuff(
                 timer=timer,
                 name='crit',
                 phase=AllPhase,
-                value=0.03*self.batterTimes,
+                value=0.01*self.value,
                 bias_or_weight=0
             ),
         ]
 
     def is_active(self, friend, enemy):
-        self.set_battertimes(5)
+        num = 5
+        self.value *= num
         return True
-
-    def set_battertimes(self, value):
-        self.batterTimes = value
 
 
 skill = [Skill_111051]
