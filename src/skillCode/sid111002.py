@@ -6,6 +6,7 @@
 from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
+
 """单纵阵时增加我方全体战列15点装甲值，
 梯形阵时增加我方全体战巡12点闪避值和命中值，
 敌方主力舰>=3时增加我方全体20%暴击伤害。
@@ -31,7 +32,7 @@ class Skill_111002_1(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return self.master.get_form == 1
+        return self.master.get_form() == 1
 
 
 class Skill_111002_2(Skill):
@@ -57,15 +58,15 @@ class Skill_111002_2(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return self.master.get_form == 5
+        return self.master.get_form() == 4
 
 
 class Skill_111002_3(Skill):
     """敌方主力舰>=3时增加我方全体20%暴击伤害。"""
     def __init__(self, master, timer):
         super().__init__(master, timer)
-        self.target = Target(side=1)
         self.request = [Request_1]
+        self.target = Target(side=1)
         self.buff = [
             CoeffBuff(
                 timer=timer,
@@ -93,7 +94,8 @@ class Skill_111002_4(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return self.master.loc != 1 and self.master.get_form() == 1
+        return self.master.loc != 1 and \
+               self.master.get_form() == 1
 
 
 class Skill_111002_5(Skill):
@@ -112,7 +114,8 @@ class Skill_111002_5(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return self.master.loc != 1 and self.master.get_form() == 5
+        return self.master.loc != 1 and \
+               self.master.get_form() == 4
 
 
 class Skill_111002_6(Skill):
@@ -132,7 +135,8 @@ class Skill_111002_6(Skill):
         self.request = [Request_1]
 
     def is_active(self, friend, enemy):
-        return self.master.loc != 1 and bool(self.request[0](self.timer, self.master, friend, enemy))
+        return self.master.loc != 1 and \
+               bool(self.request[0](self.timer, self.master, friend, enemy))
 
 
 class Skill_111002_7(Skill):
@@ -191,9 +195,13 @@ class Skill_111002_7(Skill):
 
 class Request_1(Request):
     def __bool__(self):
-        target = TypeTarget(side=0, shiptype=MainShip).get_target(self.friend, self.enemy),
+        target = TypeTarget(
+            side=0,
+            shiptype=MainShip
+        ).get_target(self.friend, self.enemy),
         number = len(target)
         return number >= 3
 
 
-skill = [Skill_111002_1, Skill_111002_2, Skill_111002_3, Skill_111002_4, Skill_111002_5, Skill_111002_6, Skill_111002_7]
+skill = [Skill_111002_1, Skill_111002_2, Skill_111002_3, Skill_111002_4,
+         Skill_111002_5, Skill_111002_6, Skill_111002_7]

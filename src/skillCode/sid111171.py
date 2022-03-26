@@ -10,7 +10,7 @@ from src.wsgr.phase import *
 
 class Skill_111171(Skill):
     """队伍中该舰下方位置的3艘航母（轻航，正规航母，装甲航母）增加回避6点
-    todo 并且炮击战可进行二次攻击，但二次攻击的伤害减低50%。"""
+    并且炮击战可进行二次攻击，但二次攻击的伤害减低50%。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = NearestLocTarget(
@@ -30,6 +30,17 @@ class Skill_111171(Skill):
                 value=6,
                 bias_or_weight=0
             ),
+            ActPhaseBuff(
+                timer=timer,
+                name='act_phase',
+                phase=SecondShellingPhase,
+            ),
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=SecondShellingPhase,
+                value=-0.5,
+            )
         ]
 
 

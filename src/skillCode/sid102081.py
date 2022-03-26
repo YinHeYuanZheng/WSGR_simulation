@@ -36,7 +36,7 @@ class Skill_102081(Skill):
                 timer=timer,
                 name='extra_damage',
                 phase=AllPhase,
-                value=0,
+                value=0.2,
                 bias_or_weight=0,
                 rate=0.35
             )

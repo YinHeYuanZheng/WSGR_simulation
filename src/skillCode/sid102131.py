@@ -14,8 +14,8 @@ class Skill_102131(Skill):
         super().__init__(master, timer)
         self.target = SelfTarget(master)
         self.buff = [
-            AtkBuff(
-                timer,
+            CoeffBuff(
+                timer=timer,
                 name='ignore_armor',
                 value=-0.4,
                 phase=FirstShellingPhase,

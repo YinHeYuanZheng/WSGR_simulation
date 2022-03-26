@@ -38,6 +38,11 @@ class Skill(Time):
     def change_master(self, master):
         """让巴尔技能调用，更换技能master"""
         self.master = master
+
+        if self.request is not None:
+            for tmp_request in self.request:
+                tmp_request.change_master(master)
+
         if self.target is not None:
             self.target.change_master(master)
 
@@ -110,6 +115,10 @@ class Request(Time):
 
     def __bool__(self):
         pass
+
+    def change_master(self, master):
+        """让巴尔技能调用，更换技能master"""
+        self.master = master
 
 
 class ATKRequest(Time):
@@ -283,6 +292,10 @@ class NearestLocTarget(Target):
         self.expand = expand
         self.shiptype = shiptype
 
+    def change_master(self, master):
+        """让巴尔技能调用，更换技能master"""
+        self.master = master
+
     def get_target(self, friend, enemy):
         if isinstance(friend, Fleet):
             friend = friend.ship
@@ -368,6 +381,28 @@ class NearestLocTarget(Target):
             if not self.expand:
                 count -= 1
 
+        return target
+
+
+class CountryTarget(Target):
+    """指定国籍的目标(可指定多个国籍)"""
+    def __init__(self, side, country: list):
+        super().__init__(side)
+        self.country = country
+
+    def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        target = [ship for ship in fleet
+                  if ship.status['country'] in self.country]
         return target
 
 

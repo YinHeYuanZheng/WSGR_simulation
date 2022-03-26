@@ -87,15 +87,21 @@ from . import sid104541  # 征服者-1
 from . import sid104601  # 宾夕法尼亚-1
 from . import sid104641  # 南达科他(1920)-1
 from . import sid104681  # 猎户座-1
-# from . import sid104991  # 克里蒙梭-1
+from . import sid104991  # 克里蒙梭-1
 
 # 改造BB
 from . import sid110061  # 俾斯麦-1
 from . import sid110062  # 俾斯麦-2
 from . import sid110071  # 提尔比茨-1
 from . import sid110081  # BIG SEVEN
-
+from . import sid110092  # 罗德尼-2
+from . import sid110101  # 威尔士亲王-1
+from . import sid110102  # 威尔士亲王-2
 from . import sid110111  # 重点防御：内华达-1、俄克拉荷马-1
+from . import sid110131  # 安德烈亚多里亚-1
+from . import sid110141  # 金刚-1
+from . import sid111001  # 狮-1
+from . import sid111002  # 狮-2
 
 from . import sid111121  # 维内托-1
 

@@ -6,6 +6,7 @@
 from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
+
 """高速战舰(3级)：编队内J国重巡，战列，战巡，航战，航巡的火力+8，命中+8。
 """
 
@@ -13,7 +14,8 @@ from src.wsgr.phase import *
 class Skill_110141(Skill):
     def __init__(self, master, timer):
         super().__init__(master, timer)
-        self.target = TypeStatusTarget(side=1, shiptype=(CA, BB, BC, BBV, CAV))
+        self.target = TypeStatusTarget(side=1,
+                                       shiptype=(CA, BB, BC, BBV, CAV))
         self.buff = [
             StatusBuff(
                 timer=timer,
@@ -43,11 +45,11 @@ class TypeStatusTarget(TypeTarget):
             fleet = friend
         else:
             fleet = enemy
+
         target = []
         for ship in fleet:
-            if isinstance(ship, self.shiptype) and ship.get_status('country') == 'J':
+            if isinstance(ship, self.shiptype) and ship.status['country'] == 'J':
                 target.append(ship)
-
         return target
 
 

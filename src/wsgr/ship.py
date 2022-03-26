@@ -103,6 +103,8 @@ class Ship(Time):
         self.master = master
 
     def get_form(self):
+        """阵型
+        1: 单纵; 2: 复纵; 3: 轮形; 4: 梯形; 5: 单横"""
         return self.master.form
 
     def get_recon_flag(self):
@@ -680,6 +682,10 @@ class BBV(Aircraft, LargeShip, MainShip):
         super().__init__(timer)
         self.type = 'BBV'
         self.flightparam = 10
+
+
+class CAV(Aircraft, MidShip, CoverShip):
+    pass
 
 
 class CA(MidShip, CoverShip):
