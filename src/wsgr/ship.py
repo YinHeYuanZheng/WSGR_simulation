@@ -242,11 +242,13 @@ class Ship(Time):
 
     def get_final_status(self, name, equip=True):
         """根据属性名称获取属性总和"""
-        buff_scale, buff_bias = self.get_buff(name)
-        status = self.get_status(name) * (1 + buff_scale) + buff_bias
+        buff_scale_1, buff_scale_2, buff_bias = self.get_buff(name)
+        status = self.get_status(name) * (1 + buff_scale_1) * buff_scale_2
 
         if equip:
-            status += self.get_equip_status(name)
+            status += self.get_equip_status(name) * buff_scale_2
+
+        status += buff_bias
 
         return max(0, status)
 
@@ -297,7 +299,7 @@ class Ship(Time):
                     scale_mult *= (1 + tmp_buff.value)
                 else:
                     pass
-        return (1 + scale_add) * scale_mult - 1, bias  # 先scale后bias
+        return scale_add, scale_mult, bias  # 先scale后bias
 
     def get_atk_buff(self, name, atk, *args, **kwargs):
         """根据增益名称获取全部攻击系数增益(含攻击判断)"""
@@ -356,21 +358,6 @@ class Ship(Time):
                     tmp_buff.is_active(atk=atk):
                 yield tmp_buff.value
 
-    def atk_hit(self, name, atk, *args, **kwargs):
-        """处理命中后、被命中后添加buff效果（不处理反击）"""
-        if name == 'be_atk_hit':
-            pass  # todo hit_back接口
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.name == name and \
-                    tmp_buff.is_active(atk=atk, *args, **kwargs):
-                tmp_buff.activate(atk=atk, *args, **kwargs)
-
-        return None
-
-    def get_act_flag(self):
-        phase_name = type(self.timer.phase).__name__
-        return self.act_phase_flag[phase_name]
-
     def get_act_indicator(self):
         """判断舰船在指定阶段内能否行动"""
         # 跳过阶段，优先级最高
@@ -420,6 +407,14 @@ class Ship(Time):
             )
             return [atk]
 
+    # def get_atk_type(self, target):
+    #     """判断攻击该对象时使用什么攻击类型"""
+    #     pass
+
+    def can_be_atk(self, atk):
+        """判断舰船是否可被某攻击类型指定"""
+        return self.damaged <= 3
+
     def get_prior_type_target(self, fleet, *args, **kwargs):
         """获取指定列表可被自身优先攻击船型的目标"""
         if isinstance(fleet, Fleet):
@@ -438,13 +433,22 @@ class Ship(Time):
                     tmp_buff.is_active(*args, **kwargs):
                 return tmp_buff.activate(fleet)
 
-    def get_atk_type(self, target):
-        """判断攻击该对象时使用什么攻击类型"""
-        pass
+    def atk_hit(self, name, atk, *args, **kwargs):
+        """处理命中后、被命中后添加buff效果（不处理反击）"""
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == name and \
+                    tmp_buff.is_active(atk=atk, *args, **kwargs):
+                tmp_buff.activate(atk=atk, *args, **kwargs)
 
-    def can_be_atk(self, atk):
-        """判断舰船是否可被某攻击类型指定"""
-        return self.damaged <= 3
+        if name == 'be_atk_hit':
+            for tmp_buff in self.temper_buff:
+                if tmp_buff.name == 'hit_back' and \
+                        tmp_buff.is_active(atk=atk, *args, **kwargs):
+                    return tmp_buff.activate(atk=atk, *args, **kwargs)
+
+    def get_act_flag(self):
+        phase_name = type(self.timer.phase).__name__
+        return self.act_phase_flag[phase_name]
 
     def get_damage(self, damage):
         """受伤结算，过伤害保护，需要返回受伤与否"""

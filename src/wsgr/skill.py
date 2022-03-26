@@ -668,26 +668,16 @@ class AtkHitBuff(Buff):
         self.side = side
         self.atk_request = atk_request
 
-    def is_active(self, *args, **kwargs):
+    def is_active(self, atk, *args, **kwargs):
         if self.atk_request is None:
             return isinstance(self.timer.phase, self.phase) and \
                    self.rate_verify()
-
-        try:
-            atk = kwargs['atk']
-        except:
-            atk = args[0]
 
         return isinstance(self.timer.phase, self.phase) and \
                bool(self.atk_request[0](self.timer, atk)) and \
                self.rate_verify()
 
-    def activate(self, *args, **kwargs):
-        try:
-            atk = kwargs['atk']
-        except:
-            atk = args[0]
-
+    def activate(self, atk, *args, **kwargs):
         if (self.name == 'atk_hit' and self.side == 1) or \
                 (self.name == 'be_atk_hit' and self.side == 0):
             target = atk.atk_body
@@ -713,40 +703,6 @@ class FinalDamageBuff(AtkBuff):
     def __init__(self, timer, name, phase, value,
                  bias_or_weight=2, atk_request=None, rate=1):
         super().__init__(timer, name, phase, value, bias_or_weight, atk_request, rate)
-
-
-class SpecialBuff(Buff):
-    """机制增益"""
-    def __init__(self, timer, name, phase,
-                 exhaust=None, atk_request=None, bias_or_weight=3, rate=1):
-        super().__init__(timer, name, phase, bias_or_weight, rate)
-        self.exhaust = exhaust
-        self.atk_request = atk_request
-
-    def is_active(self, *args, **kwargs):
-        if self.exhaust is None:
-            exhaust_flag = True
-        elif self.exhaust > 0:
-            exhaust_flag = True
-        else:
-            exhaust_flag = False
-
-        if self.atk_request is None:
-            return isinstance(self.timer.phase, self.phase) and \
-                   self.rate_verify() and exhaust_flag
-
-        try:
-            atk = kwargs['atk']
-        except:
-            atk = args[0]
-
-        return isinstance(self.timer.phase, self.phase) and \
-               bool(self.atk_request[0](self.timer, atk)) and \
-               self.rate_verify() and exhaust_flag
-
-    def activate(self, *args, **kwargs):
-        if self.exhaust is not None:
-            self.exhaust -= 1
 
 
 class ActPhaseBuff(Buff):
@@ -864,7 +820,7 @@ class TankBuff(EventBuff):
         return f"挡枪: {self.rate * 100}%"
 
     def is_active(self, atk, *args, **kwargs):
-        if not self.exhaust:
+        if self.exhaust is not None and self.exhaust == 0:
             return False
         if self.master.damaged >= 3:  # 大破状态不能发动
             return False
@@ -879,6 +835,77 @@ class TankBuff(EventBuff):
     def activate(self, atk, *args, **kwargs):
         atk.set_target(self.master)
         atk.set_coef(self.coef)
+
+
+class SpecialBuff(Buff):
+    """机制增益"""
+    def __init__(self, timer, name, phase,
+                 exhaust=None, atk_request=None, bias_or_weight=3, rate=1):
+        super().__init__(timer, name, phase, bias_or_weight, rate)
+        self.exhaust = exhaust
+        self.atk_request = atk_request
+
+    def is_active(self, *args, **kwargs):
+        if self.exhaust is not None and self.exhaust == 0:
+            return False
+
+        if self.atk_request is None:
+            return isinstance(self.timer.phase, self.phase) and \
+                   self.rate_verify()
+
+        try:
+            atk = kwargs['atk']
+        except:
+            atk = args[0]
+
+        return isinstance(self.timer.phase, self.phase) and \
+               bool(self.atk_request[0](self.timer, atk)) and \
+               self.rate_verify()
+
+    def activate(self, *args, **kwargs):
+        if self.exhaust is not None:
+            self.exhaust -= 1
+
+
+class HitBack(SpecialBuff):
+    def __init__(self, timer, phase,
+                 name='hit_back', coef=None, exhaust=1,
+                 atk_request=None, bias_or_weight=3, rate=1):
+        super().__init__(timer, name, phase, exhaust, atk_request, bias_or_weight, rate)
+        if coef is None:
+            coef = {}
+        self.coef = coef
+
+    def is_active(self, atk, *args, **kwargs):
+        if atk.get_coef('hit_back'):  # 无法反击反击
+            return False
+        if self.exhaust is not None and self.exhaust == 0:
+            return False
+        if self.master.damaged >= 3:  # 大破状态不能发动
+            return False
+
+        if self.atk_request is None:
+            return isinstance(self.timer.phase, self.phase) and \
+                   self.rate_verify()
+
+        return isinstance(self.timer.phase, self.phase) and \
+               bool(self.atk_request[0](self.timer, atk)) and \
+               self.rate_verify()
+
+    def activate(self, atk, *args, **kwargs):
+        assert atk.atk_body.side != self.master.side
+
+        if self.exhaust is not None:
+            self.exhaust -= 1
+
+        hit_back = self.master.normal_atk(
+            timer=self.timer,
+            atk_body=self.master,
+            def_list=None,
+            coef=self.coef,
+            target=atk.atk_body
+        )
+        return hit_back
 
 
 class ActiveBuff(Buff):

@@ -627,6 +627,10 @@ class NormalAtk(ATK):
             'miss': [.9, 1.2, .9, .8, 1.3],
         })  # 阵型系数
 
+    def process_coef(self):
+        # todo fire_buff技能系数
+        pass
+
     def formula(self):
         pass
 
@@ -637,11 +641,19 @@ class NormalAtk(ATK):
         _, extra_damage = self.atk_body.get_atk_buff('extra_damage', self)
         damage += extra_damage
 
-        # 终伤系数
+        # 终伤增伤系数
         for buff_scale in self.atk_body.get_final_damage_buff(self):
             damage = np.ceil(damage * (1 + buff_scale))
+        buff_scale = self.get_coef('final_damage_buff')
+        if buff_scale:
+            damage = np.ceil(damage * (1 + buff_scale))
+
+        # 终伤减伤系数
         for debuff_scale in self.target.get_final_damage_debuff(self):
             damage = np.ceil(damage * (1 + debuff_scale))
+        buff_scale = self.get_coef('final_damage_debuff')
+        if buff_scale:
+            damage = np.ceil(damage * (1 + buff_scale))
 
         # 挡枪减伤
         tank_damage_debuff = self.get_coef('tank_damage_debuff')
@@ -689,7 +701,7 @@ def get_ship_aerial(ship):
         return 0
 
     actual_flight = actual_flight[eloc_list]
-    buff_scale, buff_bias = ship.get_buff('air_con_buff')
+    buff_scale, _, buff_bias = ship.get_buff('air_con_buff')
 
     air = np.log(2 * (actual_flight + 1)) * antiair
     result = np.sum(air) * (1 + buff_scale) + buff_bias

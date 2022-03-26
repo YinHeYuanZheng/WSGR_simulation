@@ -57,7 +57,7 @@ from . import sid112212  # 飞龙改-2
 from . import sid112221  # 苍龙改-1
 from . import sid112231  # 信浓改-1
 from . import sid112232  # 信浓改-2
-# from . import sid112251  # 黄蜂改-1
+from . import sid112251  # 黄蜂改-1
 from . import sid112271  # 飞鹰改-1
 from . import sid112281  # 隼鹰改-1
 from . import sid112331  # 最上改-1
