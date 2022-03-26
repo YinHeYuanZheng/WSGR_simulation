@@ -103,8 +103,15 @@ from . import sid110141  # 金刚-1
 from . import sid111001  # 狮-1
 from . import sid111002  # 狮-2
 
-from . import sid111121  # 维内托-1
+from . import sid111091  # 马里兰-1
+from . import sid111101  # 西弗吉尼亚-1
+from . import sid111102  # 西弗吉尼亚-2
 
+from . import sid111121  # 维内托-1
+from . import sid111131  # 黎塞留-1
+from . import sid111132  # 黎塞留-2
+from . import sid112061  # 北卡罗来纳-1
+from . import sid112062  # 北卡罗来纳-2
 from . import sid112071  # 南达科他-1
 from . import sid112072  # 南达科他-2
 from . import sid112111  # 卡约•杜伊里奥-1

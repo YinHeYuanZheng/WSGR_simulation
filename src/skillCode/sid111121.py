@@ -51,4 +51,4 @@ class Skill_111121_2(Skill):
         ]
 
 
-Skill = [Skill_111121_1, Skill_111121_2]
+skill = [Skill_111121_1, Skill_111121_2]

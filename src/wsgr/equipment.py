@@ -68,8 +68,8 @@ class Equipment(Time):
 
     def get_final_status(self, name):
         """根据属性名称获取最终属性"""
-        buff_scale, buff_bias = self.get_buff(name)
-        status = self.get_status(name) * (1 + buff_scale) + buff_bias
+        buff_scale_1, buff_scale_2, buff_bias = self.get_buff(name)
+        status = self.get_status(name) * (1 + buff_scale_1) * buff_scale_2 + buff_bias
         return max(0, status)
 
     def get_range(self):
@@ -111,7 +111,7 @@ class Equipment(Time):
                     scale_mult *= (1 + tmp_buff.value)
                 else:
                     pass
-        return (1 + scale_add) * scale_mult - 1, bias  # 先scale后bias
+        return scale_add, scale_mult, bias  # 先scale后bias
 
     def get_atk_buff(self, name, atk, *args, **kwargs):
         """根据增益名称获取全部攻击系数增益(含攻击判断)(目前只有命中调用)"""

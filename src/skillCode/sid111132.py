@@ -23,28 +23,27 @@ class Skill_111132(Skill):
                 phase=AllPhase,
                 value=0.09,
                 bias_or_weight=0
-            ), AtkBuff_1(
-                timer=timer
+            ),
+            AtkBuff(
+                timer=timer,
+                name='ignore_armor',
+                phase=AllPhase,
+                value=-1,
+                bias_or_weight=1,
+                atk_request=[BuffRequest_1]
             )
         ]
 
 
-class AtkBuff_1(AtkBuff):
-    def __init__(self, timer):
-        super().__init__(timer=timer,
-                         name='ignore_armor',
-                         phase=AllPhase,
-                         value=-1,
-                         bias_or_weight=1)
+class BuffRequest_1(ATKRequest):
+    def __bool__(self):
+        if self.atk.atk_body.damaged == 2 or \
+                self.atk.atk_body.damaged == 3:
+            return True
+        if self.atk.get_coef('crit_flag'):
+            return True
 
-    def is_active(self, *args, **kwargs):
-        try:
-            atk = kwargs['atk']
-        except:
-            atk = args[0]
-
-        return self.master.damaged >= 2 or \
-            atk.get_coef('crit_flag')
+        return False
 
 
-Skill = [Skill_111132]
+skill = [Skill_111132]

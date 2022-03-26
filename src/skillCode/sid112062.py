@@ -2,6 +2,7 @@
 # Author:stars
 # env:py38
 # 北卡罗来纳-2
+
 from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
@@ -11,20 +12,21 @@ from src.wsgr.phase import *
 """
 
 
-class Skill_112062_1(Skill):
+class Skill_112062_1(CommonSkill):
     """提升自身火力值10点，降低自身闪避值5点"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            StatusBuff(
+            CommonBuff(
                 timer=timer,
                 name='fire',
                 value=10,
                 phase=AllPhase,
                 bias_or_weight=0
-            ), StatusBuff(
+            ),
+            CommonBuff(
                 timer=timer,
                 name='evasion',
                 value=-5,
@@ -39,7 +41,8 @@ class Skill_112062_2(Skill):
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = Target_1
+        self.target = TypeTarget(side=0, shiptype=(BB, BC))
+
         self.buff = [
             StatusBuff(
                 timer=timer,
@@ -47,7 +50,8 @@ class Skill_112062_2(Skill):
                 value=-10,
                 phase=AllPhase,
                 bias_or_weight=0
-            ), StatusBuff(
+            ),
+            StatusBuff(
                 timer=timer,
                 name='evasion',
                 value=-10,
@@ -56,15 +60,12 @@ class Skill_112062_2(Skill):
             )
         ]
 
-    def is_active(self, friend, enemy):
-        return self.master.loc != 1
+    def activate(self, friend, enemy):
+        target = self.target.get_target(friend, enemy)
+        for tmp_target in target:
+            if tmp_target.loc != 1:
+                for tmp_buff in self.buff[:]:
+                    tmp_target.add_buff(tmp_buff)
 
 
-class Target_1(Target):
-    def get_target(self, friend, enemy):
-        type_target = TypeTarget(side=0, shiptype=(BB, BC)).get_target(friend=friend, enemy=enemy)
-        target = [ship for ship in type_target if ship.loc != 1]
-        return target
-
-
-Skill = [Skill_112062_1, Skill_112062_2]
+skill = [Skill_112062_1, Skill_112062_2]

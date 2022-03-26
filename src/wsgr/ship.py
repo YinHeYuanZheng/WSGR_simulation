@@ -245,7 +245,7 @@ class Ship(Time):
         buff_scale_1, buff_scale_2, buff_bias = self.get_buff(name)
         status = self.get_status(name) * (1 + buff_scale_1) * buff_scale_2
 
-        if equip:
+        if equip and name != 'speed':
             status += self.get_equip_status(name) * buff_scale_2
 
         status += buff_bias
@@ -701,6 +701,10 @@ class CL(MidShip, CoverShip):
 
 
 class DD(SmallShip, CoverShip):
+    pass
+
+
+class BM(SmallShip, CoverShip):
     pass
 
 

@@ -12,8 +12,6 @@ from src.wsgr.phase import *
 
 
 class Skill_110231(Skill):
-    """自身暴击率提升20%，自身每损失5点HP，在炮击战中便会增加10点固定伤害，最多增加100点固定伤害。"""
-
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
@@ -24,23 +22,25 @@ class Skill_110231(Skill):
                 phase=AllPhase,
                 value=0.20,
                 bias_or_weight=0
-            ), CoeffBuff_1(
-                timer=timer
+            ),
+            ExtraDamage(
+                timer=timer,
+                name='extra_damage',
+                phase=ShellingPhase,
+                value=0,
+                bias_or_weight=0
             )
         ]
 
 
-class CoeffBuff_1(CoeffBuff):
+class ExtraDamage(CoeffBuff):
     """自身每损失5点HP，在炮击战中便会增加10点固定伤害，最多增加100点固定伤害"""
-
-    def __init__(self, timer):
-        super().__init__(timer=timer,
-                         name='extra_damage',
-                         phase=ShellingPhase,
-                         value=0,
-                         bias_or_weight=0)
-
     def is_active(self, *args, **kwargs):
-        value1 = 10 * ((self.master.status["total_health"] - self.master.status["total_health"]) // 5)
-        self.value = value1 if value1 < 100 else 100
+        extra_damage = (self.master.status['standard_health'] -
+                        self.master.status['health'])\
+                       // 5 * 10
+        self.value = min(100, extra_damage)
         return True
+
+
+skill = [Skill_110231]

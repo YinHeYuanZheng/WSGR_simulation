@@ -2,12 +2,12 @@
 # Author:stars
 # env:py38
 # 马里兰-1
+
 from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""好斗的玛丽(3级)：攻击威力不会因耐久损伤而降低，并根据战斗受损程度增加攻击威力，最多28%。。
-"""
+"""好斗的玛丽(3级)：攻击威力不会因耐久损伤而降低，并根据战斗受损程度增加攻击威力，最多28%。"""
 
 
 class Skill_111091(Skill):
@@ -19,15 +19,25 @@ class Skill_111091(Skill):
                 timer=timer,
                 name='ignore_damaged',
                 phase=AllPhase,
-            ), CoeffBuff(
+            ),
+            DamagedCoeffBuff(
                 timer=timer,
                 name='fire_buff',
                 phase=AllPhase,
-                value=0.28 * (master.status["total_health"] - master.status["health"]) / (
-                        master.status["total_health"] - 1),
+                value=0.28,
                 bias_or_weight=0
             )
         ]
 
 
-Skill = [Skill_111091]
+class DamagedCoeffBuff(CoeffBuff):
+    def is_active(self, *args, **kwargs):
+        self.value = 0.28 * (
+                self.master.status["standard_health"] - self.master.status["health"]
+        ) / (
+                self.master.status["standard_health"] - 1
+        )
+        return True
+
+
+skill = [Skill_111091]
