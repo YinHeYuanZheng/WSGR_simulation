@@ -14,7 +14,7 @@ class Skill_110101_1(Skill):
     """队伍中所有U国和E国舰船命中值增加7"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = CountryTarget(side=1, country=['U', 'E'])
+        self.target = CountryTarget(side=1, country='UE')
         self.buff = [
             StatusBuff(
                 timer=timer,

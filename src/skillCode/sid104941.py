@@ -32,7 +32,7 @@ class Skill_104941_2(Skill):
     """全阶段队伍中随机3艘J国舰船增加10点火力值，对敌方造成的伤害提高15%"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = CountryTarget(side=1, country=['J'])
+        self.target = CountryTarget(side=1, country='J')
         self.buff = [
             StatusBuff(
                 timer=timer,

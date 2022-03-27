@@ -220,7 +220,7 @@ class Ship(Time):
         scale_mult = 1
         bias = 0
         for tmp_buff in self.common_buff:
-            if tmp_buff.name == name and tmp_buff.is_active():
+            if tmp_buff.name == name:
                 if tmp_buff.bias_or_weight == 0:
                     bias += tmp_buff.value
                 elif tmp_buff.bias_or_weight == 1:

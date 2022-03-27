@@ -37,10 +37,8 @@ class Skill_105101_1(Skill):
 
         # 队伍中每有1艘J国舰船都会增加自身6%的舰载机威力
         # 获取J国
-        target_j = CountryTarget(
-            side=1,
-            country=['J']
-        ).get_target(friend, enemy)
+        target_j = CountryTarget(side=1, country='J'
+                                 ).get_target(friend, enemy)
         buff_0 = buff[0]
         buff_0.value *= len(target_j)
         self.master.add_buff(buff_0)

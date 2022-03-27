@@ -229,7 +229,7 @@ class RandomTypeTarget(TypeTarget):
 
 class OrderedTypeTarget(TypeTarget):
     """按照指定船型的顺序+站位顺序选择目标"""
-    def __init__(self, shiptype, side=0):
+    def __init__(self, shiptype: tuple, side=0):
         super().__init__(side, shiptype)
 
     def get_target(self, friend, enemy):
@@ -386,7 +386,7 @@ class NearestLocTarget(Target):
 
 class CountryTarget(Target):
     """指定国籍的目标(可指定多个国籍)"""
-    def __init__(self, side, country: list):
+    def __init__(self, side, country: str):
         super().__init__(side)
         self.country = country
 
@@ -577,6 +577,9 @@ class StatusBuff(Buff):
 class CommonBuff(StatusBuff):
     """常驻增益(通常直接显示在面板上)"""
     def is_common(self):
+        return True
+
+    def is_active(self, *args, **kwargs):
         return True
 
 

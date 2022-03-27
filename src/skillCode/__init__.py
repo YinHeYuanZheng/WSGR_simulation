@@ -106,7 +106,8 @@ from . import sid111002  # 狮-2
 from . import sid111091  # 马里兰-1
 from . import sid111101  # 西弗吉尼亚-1
 from . import sid111102  # 西弗吉尼亚-2
-
+from . import sid111111  # 华盛顿-1
+from . import sid111112  # 华盛顿-2
 from . import sid111121  # 维内托-1
 from . import sid111131  # 黎塞留-1
 from . import sid111132  # 黎塞留-2
