@@ -582,7 +582,7 @@ class AirDiveAtk(AirAtk):
 
     def formula(self):
         # 基础攻击力
-        base_status = self.equip.get_final_status('dive')
+        base_status = self.equip.get_final_status('torpedo')
         base_atk = 2 * np.log(self.coef['plane_rest'] + 1) * base_status + 25
 
         # 实际威力

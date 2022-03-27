@@ -15,8 +15,8 @@ T劣时，增加自身35点火力值，降低自身4点命中值。
 
 class Skill_104421_1(CommonSkill):
     """增加自身15点火力值，降低自身3点命中值。"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CommonBuff(
@@ -38,8 +38,8 @@ class Skill_104421_1(CommonSkill):
 
 class Skill_104421_2(Skill):
     """T优时，炮击战阶段必暴击；"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             SpecialBuff(
@@ -55,8 +55,8 @@ class Skill_104421_2(Skill):
 
 class Skill_104421_3(Skill):
     """T劣时，增加自身35点火力值，降低自身4点命中值。"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             StatusBuff(

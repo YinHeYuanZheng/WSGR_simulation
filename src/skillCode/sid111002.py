@@ -18,8 +18,8 @@ from src.wsgr.phase import *
 
 class Skill_111002_1(Skill):
     """单纵阵时增加我方全体战列15点装甲值"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = TypeTarget(side=1, shiptype=BB)
         self.buff = [
             StatusBuff(
@@ -37,8 +37,8 @@ class Skill_111002_1(Skill):
 
 class Skill_111002_2(Skill):
     """梯形阵时增加我方全体战巡12点闪避值和命中值"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = TypeTarget(side=1, shiptype=BC)
         self.buff = [
             StatusBuff(
@@ -63,8 +63,8 @@ class Skill_111002_2(Skill):
 
 class Skill_111002_3(Skill):
     """敌方主力舰>=3时增加我方全体20%暴击伤害。"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.request = [Request_1]
         self.target = Target(side=1)
         self.buff = [
@@ -80,8 +80,8 @@ class Skill_111002_3(Skill):
 
 class Skill_111002_4(Skill):
     """当自身不为旗舰时，单纵阵增加自身20点火力值，"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             StatusBuff(
@@ -100,8 +100,8 @@ class Skill_111002_4(Skill):
 
 class Skill_111002_5(Skill):
     """当自身不为旗舰时，梯形阵增加自身20%暴击率，"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
@@ -120,8 +120,8 @@ class Skill_111002_5(Skill):
 
 class Skill_111002_6(Skill):
     """当自身不为旗舰时，敌方主力舰>=3时增加自身25点装甲值。"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             StatusBuff(
@@ -141,8 +141,8 @@ class Skill_111002_6(Skill):
 
 class Skill_111002_7(Skill):
     """当自身为旗舰时增加20点火力值、25点装甲、12点命中值和闪避值、20%暴击率和暴击伤害。"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             StatusBuff(

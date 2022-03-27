@@ -15,8 +15,8 @@ from src.wsgr.phase import *
 
 class Skill_104181_1(Skill):
     """增加队伍中战列、战巡10点火力值，"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = TypeTarget(side=1, shiptype=(BB, BC))
         self.buff = [
             StatusBuff(
@@ -31,8 +31,8 @@ class Skill_104181_1(Skill):
 
 class Skill_104181_2(Skill):
     """单纵阵时增加己方全体12点火力值与10点命中值，"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = Target(side=1)
         self.buff = [
             StatusBuff(
@@ -58,8 +58,8 @@ class Skill_104181_2(Skill):
 class Skill_104181_3(Skill):
     """梯形阵时增加己方全体15%暴击率与7%被暴击率。"""
 
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = Target(side=1)
         self.buff = [
             CoeffBuff(

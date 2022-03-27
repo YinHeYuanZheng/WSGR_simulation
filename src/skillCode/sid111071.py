@@ -6,13 +6,14 @@
 from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
+
 """降低自身命中值5点，提升自身15%暴击率。战斗全阶段每受到一次攻击(含未命中)，提升自身火力值13点。"""
 
 
 class Skill_111071_1(CommonSkill):
     """降低自身命中值5点，"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CommonBuff(
@@ -27,8 +28,8 @@ class Skill_111071_1(CommonSkill):
 
 class Skill_111071_2(Skill):
     """提升自身15%暴击率"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
@@ -43,8 +44,8 @@ class Skill_111071_2(Skill):
 
 class Skill_111071_3(Skill):
     """战斗全阶段每受到一次攻击(含未命中)，提升自身火力值13点。"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
            AtkHitBuff(
@@ -55,6 +56,7 @@ class Skill_111071_3(Skill):
                    StatusBuff(
                        timer=timer,
                        name='fire',
+                       phase=AllPhase,
                        value=13,
                        bias_or_weight=0
                    )

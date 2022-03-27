@@ -14,8 +14,8 @@ from src.wsgr.phase import *
 
 class Skill_104091_1(Skill):
     """T优时增加自身25%暴击率"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
@@ -33,8 +33,8 @@ class Skill_104091_1(Skill):
 
 class Skill_104091_2(Skill):
     """同航战时增加自身15%暴击率。"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
@@ -52,8 +52,8 @@ class Skill_104091_2(Skill):
 
 class Skill_104091_3(Skill):
     """炮击战阶段命中旗舰时造成额外30%伤害。"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             FinalDamageBuff(

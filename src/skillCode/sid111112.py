@@ -16,8 +16,8 @@ from src.wsgr.phase import *
 class Skill_111112_1(CommonSkill):
     """增加自身5点耐久值、15点火力值、15点装甲值和15点命中值。"""
 
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CommonBuff(
@@ -53,8 +53,8 @@ class Skill_111112_1(CommonSkill):
 
 class Skill_111112_2(Skill):
     """夜战阶段敌方旗舰和自身对位水上目标无法行动。"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SkillTarget(master)
         self.buff = [
             ActPhaseBuff(

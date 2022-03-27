@@ -12,8 +12,8 @@ from src.wsgr.phase import *
 
 
 class Skill_111111(Skill):
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = CountryTarget(side=1, country='U')
         self.buff = [
             StatusBuff(

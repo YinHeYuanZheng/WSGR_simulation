@@ -57,6 +57,7 @@ from . import sid112212  # 飞龙改-2
 from . import sid112221  # 苍龙改-1
 from . import sid112231  # 信浓改-1
 from . import sid112232  # 信浓改-2
+# from . import sid112242  # 可畏改-2
 from . import sid112251  # 黄蜂改-1
 from . import sid112271  # 飞鹰改-1
 from . import sid112281  # 隼鹰改-1
@@ -102,7 +103,11 @@ from . import sid110131  # 安德烈亚多里亚-1
 from . import sid110141  # 金刚-1
 from . import sid111001  # 狮-1
 from . import sid111002  # 狮-2
-
+from . import sid111022  # 陆奥-2
+from . import sid111051  # 前卫-1
+from . import sid111052  # 前卫-2
+from . import sid111061  # 田纳西-1
+from . import sid111071  # 田纳西-1
 from . import sid111091  # 马里兰-1
 from . import sid111101  # 西弗吉尼亚-1
 from . import sid111102  # 西弗吉尼亚-2

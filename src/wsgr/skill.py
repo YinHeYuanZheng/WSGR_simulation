@@ -705,6 +705,10 @@ class FinalDamageBuff(AtkBuff):
     """终伤系数, 乘算, 需要判断攻击类型"""
     def __init__(self, timer, name, phase, value,
                  bias_or_weight=2, atk_request=None, rate=1):
+        """
+        :param name:    final_damage_buff
+                        final_damage_debuff
+        """
         super().__init__(timer, name, phase, value, bias_or_weight, atk_request, rate)
 
 
@@ -716,6 +720,10 @@ class ActPhaseBuff(Buff):
 class PriorTargetBuff(Buff):
     """优先攻击目标"""
     def __init__(self, timer, name, phase, target, ordered):
+        """
+        :param name:    prior_type_target
+                        prior_loc_target
+        """
         super().__init__(timer, name, phase)
         self.target = target
         self.ordered = ordered

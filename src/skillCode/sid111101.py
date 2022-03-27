@@ -17,8 +17,8 @@ class Skill_111101_1(Skill):
     """旗舰技，为全队航速27节以下的战列/航战/战巡/重炮提供炮击战加成：
     攻击时敌人装甲降低20%"""
 
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = TypeStatusTarget(
             side=1,
             shiptype=(BB, BBV, BC, BM)
@@ -42,8 +42,8 @@ class Skill_111101_2(Skill):
     """旗舰技，为全队航速27节以下的战列/航战/战巡/重炮提供炮击战加成：
     T劣时火力值为150%"""
 
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = TypeStatusTarget(
             side=1,
             shiptype=(BB, BBV, BC, BM)

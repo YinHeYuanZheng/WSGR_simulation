@@ -62,8 +62,8 @@ class ConditionFinalDamage(FinalDamageBuff):
 class Skill_104601_2(Skill):
     """宾夕法尼亚击中非满血敌方单位时造成额外15%的伤害。"""
 
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.request = [Request_1]
         self.buff = [

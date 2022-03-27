@@ -13,8 +13,8 @@ from src.wsgr.phase import *
 
 class Skill_104481_1(Skill):
     """单纵时增加自身10%暴击率"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
@@ -33,8 +33,8 @@ class Skill_104481_1(Skill):
 class Skill_104481_2(Skill):
     """同航战时增加自身9点火力值；"""
 
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             StatusBuff(
@@ -53,8 +53,8 @@ class Skill_104481_2(Skill):
 class Skill_104481_3(Skill):
     """T优时增加20%暴击伤害。"""
 
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(

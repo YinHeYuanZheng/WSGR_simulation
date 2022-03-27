@@ -6,27 +6,28 @@
 from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
+
 """	T优时，自身基础火力值提升40%，基础命中值提升40%。"""
 
 
 class Skill_111061(Skill):
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             StatusBuff(
                 timer=timer,
                 name='fire',
                 phase=AllPhase,
-                value=0.4 * master.get_status('fire'),
-                bias_or_weight=0
+                value=0.4,
+                bias_or_weight=1
             ),
             StatusBuff(
                 timer=timer,
                 name='accuracy',
                 phase=AllPhase,
-                value=0.4 * master.get_status('accuracy'),
-                bias_or_weight=0
+                value=0.4,
+                bias_or_weight=1
             )
         ]
 

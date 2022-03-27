@@ -16,8 +16,8 @@ from src.wsgr.phase import *
 
 class Skill_104541_1(Skill):
     """提高全队9点命中值"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = Target(side=1)
         self.buff = [
             StatusBuff(
@@ -33,8 +33,8 @@ class Skill_104541_1(Skill):
 class Skill_104541_2(Skill):
     """降低自身3点回避值；"""
 
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             StatusBuff(
@@ -49,8 +49,8 @@ class Skill_104541_2(Skill):
 
 class Skill_104541_3(Skill):
     """单纵时提高自身12点火力值、10点命中值；"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             StatusBuff(
@@ -75,8 +75,8 @@ class Skill_104541_3(Skill):
 
 class Skill_104541_4(Skill):
     """梯形时提高全队9%暴击率；"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = Target(side=1)
         self.buff = [
             CoeffBuff(
@@ -94,8 +94,8 @@ class Skill_104541_4(Skill):
 
 class Skill_104541_5(Skill):
     """复纵时提高全队9点回避值。"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = Target(side=1)
         self.buff = [
             StatusBuff(

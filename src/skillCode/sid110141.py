@@ -12,8 +12,8 @@ from src.wsgr.phase import *
 
 
 class Skill_110141(Skill):
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = TypeStatusTarget(side=1,
                                        shiptype=(CA, BB, BC, BBV, CAV))
         self.buff = [

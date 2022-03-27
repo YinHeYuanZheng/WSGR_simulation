@@ -14,8 +14,8 @@ from src.wsgr.phase import *
 
 
 class Skill_102091(Skill):
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             PriorTargetBuff(

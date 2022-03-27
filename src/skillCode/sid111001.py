@@ -12,8 +12,8 @@ from src.wsgr.phase import *
 
 class Skill_111001_1(CommonSkill):
     """根据总出征次数(上限30000次)增加自身火力最多12点"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CommonBuff(
@@ -28,8 +28,8 @@ class Skill_111001_1(CommonSkill):
 
 class Skill_111001_2(Skill):
     """根据总出征次数(上限30000次)增加自身暴击率最多12%"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(

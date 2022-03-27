@@ -13,8 +13,8 @@ from src.wsgr.phase import *
 
 class Skill_103671_1(CommonSkill):
     """提升自身装甲值10点，"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CommonBuff(
@@ -30,8 +30,8 @@ class Skill_103671_1(CommonSkill):
 class Skill_103671_2(Skill):
     """航空战时增加15%被暴击率。炮击战时免疫受到的第一次炮击攻击，
     攻击护甲高于自身的敌人时，提升自身15%暴击伤害"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(

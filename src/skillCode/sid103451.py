@@ -14,8 +14,8 @@ from src.wsgr.phase import *
 
 class Skill_103451_1(Skill):
     """炮击战阶段,降低敌方高速舰（速度≥27）命中率6%。"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = StatusTarget(side=0,
                                    status_name='speed',
                                    fun='ge',
@@ -33,8 +33,8 @@ class Skill_103451_1(Skill):
 
 class Skill_103451_2(Skill):
     """威斯康星为旗舰时，本方战列、战巡、航战、重巡首轮炮击命中率增加9%，次轮炮击暴击率增加9%。"""
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = TypeTarget(side=1,
                                  shiptype=(BB, BC, BBV, CA))
         self.buff = [
