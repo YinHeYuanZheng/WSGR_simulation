@@ -7,21 +7,34 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
+"""增加全队舰船5点索敌值和10点命中值。增加我方小型船15%暴击率。"""
 
-class Skill_112481_1(CommonSkill):
-    """增加全队舰船5点索敌值和10点命中值。"""
+
+class Skill_112481_1(PrepSkill):
+    """增加全队舰船5点索敌值"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = Target(side=1)
         self.buff = [
-            CommonBuff(
+            StatusBuff(
                 timer=timer,
                 name='recon',
                 phase=(AllPhase,),
                 value=5,
                 bias_or_weight=0
-            ), CommonBuff(
+            )
+        ]
+
+
+class Skill_112481_2(Skill):
+    """增加全队舰船10点命中值"""
+
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = Target(side=1)
+        self.buff = [
+            StatusBuff(
                 timer=timer,
                 name='accuracy',
                 phase=(AllPhase,),
@@ -31,7 +44,7 @@ class Skill_112481_1(CommonSkill):
         ]
 
 
-class Skill_112481_2(Skill):
+class Skill_112481_3(Skill):
     """增加我方小型船15%暴击率。"""
 
     def __init__(self, timer, master):
@@ -50,4 +63,4 @@ class Skill_112481_2(Skill):
 
 # 该舰船可以使用航母飞机类装备
 
-skill = [Skill_112481_1, Skill_112481_2]
+skill = [Skill_112481_1, Skill_112481_2, Skill_112481_3]

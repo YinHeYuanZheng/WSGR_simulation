@@ -19,8 +19,6 @@ class BattleUtil(Time):
         """进行战斗流程"""
         self.battle_init()
         self.start_phase()
-        self.recon_phase()
-        self.get_direction()
         self.buff_phase()
         # self.air_phase()
         self.first_shelling_phase()
@@ -37,18 +35,18 @@ class BattleUtil(Time):
             tmp_ship.init_skill(self.enemy, self.friend)
             tmp_ship.init_health()
 
+        # 计算索敌、航速相关舰队属性(只用于带路判断)
+        self.friend.get_init_status()
+        self.enemy.get_init_status()
+
     def start_phase(self):
         self.timer.log['start_health'] = {
             1: np.array([ship.status['health'] for ship in self.friend.ship]),
             0: np.array([ship.status['health'] for ship in self.enemy.ship])
         }
 
-    def recon_phase(self):
-        recon_flag = True  # 暂时默认索敌成功
-        self.timer.set_recon(recon_flag=recon_flag)
-
-    def get_direction(self):
-        pass
+        self.timer.set_phase(PreparePhase(self.timer, self.friend, self.enemy))
+        self.timer.phase_start()
 
     def buff_phase(self):
         self.timer.set_phase(BuffPhase(self.timer, self.friend, self.enemy))

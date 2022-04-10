@@ -28,8 +28,8 @@ class Skill_104641_1(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return self.master.get_direction() == 1 or \
-               self.master.get_direction() == 2
+        return self.master.get_dir_flag() == 1 or \
+               self.master.get_dir_flag() == 2
 
 
 class Request_1(ATKRequest):
@@ -60,7 +60,7 @@ class Skill_104641_2(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return self.master.get_direction() == 4
+        return self.master.get_dir_flag() == 4
 
 
 skill = [Skill_104641_1, Skill_104641_2]

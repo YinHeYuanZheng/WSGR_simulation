@@ -28,7 +28,7 @@ class Skill_102991_1(Skill):
         ]
 
 
-class Skill_102991_2(Skill):
+class Skill_102991_2(PrepSkill):
     """战斗中随机选择我方任意一艘自身以外的中、大型船，获得其技能
     如果这个技能包含有概率发动的效果，则变为100%发动。"""
     def activate(self, friend, enemy):
@@ -46,3 +46,6 @@ class Skill_102991_2(Skill):
             tmp_skill.change_rate(1)  # 变为100%发动
             if tmp_skill.is_active(friend, enemy):
                 tmp_skill.activate(friend, enemy)
+
+
+skill = [Skill_102991_1, Skill_102991_2]

@@ -9,8 +9,10 @@ from src.wsgr.wsgrTimer import Time
 from src.wsgr.formulas import *
 import src.wsgr.formulas as rform
 from src.wsgr.equipment import *
+from src.wsgr.ship import Submarine, AntiSubShip
 
 __all__ = ['AllPhase',
+           'PreparePhase',
            'BuffPhase',
            'AirPhase',
 
@@ -48,18 +50,101 @@ class AllPhase(Time):
         return atk_member
 
 
+class PreparePhase(AllPhase):
+    """准备阶段"""
+
+    def __init__(self, timer, friend, enemy):
+        super().__init__(timer, friend, enemy)
+        self.friend_fleet_speed = None
+        self.enemy_fleet_speed = None
+
+    def start(self):
+        # 结算影响队友航速、索敌的技能，结算让巴尔
+        for tmp_ship in self.friend.ship:
+            tmp_ship.run_prepare_skill(self.friend, self.enemy)
+        for tmp_ship in self.enemy.ship:
+            tmp_ship.run_prepare_skill(self.enemy, self.friend)
+
+        # 计算舰队航速
+        self.friend_fleet_speed = self.friend.get_fleet_speed()
+        self.enemy_fleet_speed = self.enemy.get_fleet_speed()
+
+        # 索敌
+        recon_flag = self.compare_recon()
+        # recon_flag = True  # 暂时默认索敌成功
+        self.timer.set_recon(recon_flag=recon_flag)
+
+        # 迂回
+
+        # 航向
+        direction_flag = self.compare_speed()
+        self.timer.set_direction(direction_flag=direction_flag)
+
+    def compare_recon(self):
+        sub_num = self.enemy.count(Submarine)
+        if sub_num != len(self.enemy.ship):
+            friend_recon = self.friend.get_total_status('recon')
+            enemy_recon = self.enemy.get_total_status('recon')
+            d_recon = friend_recon - enemy_recon
+
+            recon_rate = 0.5 + d_recon * 0.05
+            recon_rate = max(0, recon_rate)
+            recon_rate = min(1, recon_rate)
+
+            verify = np.random.random()
+            if verify <= recon_rate:
+                return True
+            else:
+                return False
+        else:
+            friend_recon = 0
+            for tmp_ship in self.friend.ship:
+                if isinstance(tmp_ship, AntiSubShip):
+                    friend_recon += tmp_ship.get_final_status('recon')
+                    friend_recon += tmp_ship.get_final_status('antisub', equip=False)
+
+            enemy_level = 0
+            for tmp_ship in self.enemy.ship:
+                enemy_level += tmp_ship.level
+
+            if friend_recon >= enemy_level:
+                return True
+            else:
+                return False
+
+    def compare_speed(self):
+        friend_leader_speed = self.friend.ship[0].get_final_status('speed')
+        enemy_leader_speed = self.enemy.ship[0].get_final_status('speed')
+        d_leader_speed = int(friend_leader_speed - enemy_leader_speed)
+        d_fleet_speed = int(self.friend_fleet_speed - self.enemy_fleet_speed)
+
+        # 航向权重，顺序为优同反劣
+        if self.timer.direction_flag:
+            speed_matrix = np.array([20, 35, 25, 5])
+        else:
+            speed_matrix = np.array([10, 30, 30, 15])
+
+        speed_matrix[0] += min(d_leader_speed, d_fleet_speed)
+        speed_matrix[0] = max(0, speed_matrix[0])
+        speed_matrix[1] += d_fleet_speed
+        speed_matrix[1] = max(5, speed_matrix[1])
+        speed_matrix[2] -= d_leader_speed
+        speed_matrix[2] = max(0, speed_matrix[2])
+        speed_matrix[3] -= d_fleet_speed
+        speed_matrix[3] = max(0, speed_matrix[3])
+
+        speed_matrix = speed_matrix / sum(speed_matrix)
+        return np.random.choice([1, 2, 3, 4], p=speed_matrix)
+
+
 class BuffPhase(AllPhase):
     """buff阶段"""
 
     def start(self):
         for tmp_ship in self.friend.ship:
-            for tmp_skill in tmp_ship.skill:
-                if tmp_skill.is_active(self.friend, self.enemy):
-                    tmp_skill.activate(self.friend, self.enemy)
+            tmp_ship.run_normal_skill(self.friend, self.enemy)
         for tmp_ship in self.enemy.ship:
-            for tmp_skill in tmp_ship.skill:
-                if tmp_skill.is_active(self.enemy, self.friend):
-                    tmp_skill.activate(self.enemy, self.friend)
+            tmp_ship.run_normal_skill(self.enemy, self.friend)
 
 
 class DaytimePhase(AllPhase):

@@ -61,7 +61,7 @@ class Skill_111101_2(Skill):
 
     def is_active(self, friend, enemy):
         return self.master.loc == 1 and \
-               self.master.get_direction() == 4
+               self.master.get_dir_flag() == 4
 
 
 class TypeStatusTarget(TypeTarget):

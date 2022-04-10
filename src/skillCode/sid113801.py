@@ -58,7 +58,7 @@ class Skill_113801_2(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return self.master.get_direction() == 1
+        return self.master.get_dir_flag() == 1
 
 
 class Skill_113801_3(Skill):
@@ -78,7 +78,7 @@ class Skill_113801_3(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return self.master.get_direction() == 2
+        return self.master.get_dir_flag() == 2
 
 
 class Skill_113801_4(Skill):
@@ -98,7 +98,7 @@ class Skill_113801_4(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return self.master.get_direction() == 3
+        return self.master.get_dir_flag() == 3
 
 
 skill = [Skill_113801_1, Skill_113801_2, Skill_113801_3, Skill_113801_4]

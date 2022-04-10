@@ -35,6 +35,9 @@ class Skill(Time):
     def is_common(self):
         return False
 
+    def is_prep(self):
+        return False
+
     def change_master(self, master):
         """让巴尔技能调用，更换技能master"""
         self.master = master
@@ -57,6 +60,12 @@ class Skill(Time):
 class CommonSkill(Skill):
     """仅包含常驻面板加成的技能"""
     def is_common(self):
+        return True
+
+
+class PrepSkill(Skill):
+    """影响队友航速、索敌的技能，需要在buff阶段前结算"""
+    def is_prep(self):
         return True
 
 
