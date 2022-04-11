@@ -7,7 +7,6 @@ import numpy as np
 
 from src.wsgr.wsgrTimer import Time
 from src.wsgr.equipment import *
-from src.wsgr.ship import Submarine
 
 __all__ = ['ATK',
            'AirAtk',
@@ -163,16 +162,21 @@ class ATK(Time):
 
     def hit_verify(self):
         """命中检定"""
+        # 护盾
         if self.target.get_special_buff('shield', self):
             self.coef['hit_flag'] = False
             return
 
+        # 大角度
+
+        # 技能必中
         if self.get_coef('must_hit') or \
                 self.get_coef('hit_back') or \
                 self.atk_body.get_special_buff('must_hit', self):
             self.coef['hit_flag'] = True
             return
 
+        # 技能必不中
         if self.get_coef('must_not_hit') or \
                 self.target.get_special_buff('must_not_hit', self):
             self.coef['hit_flag'] = False
@@ -188,7 +192,7 @@ class ATK(Time):
 
         # 梯形锁定减少闪避
 
-        if evasion < 1:
+        if evasion == 0:
             evasion = 1
         hit_rate = accuracy / evasion / 2
         # hit_rate = min(1, hit_rate)
@@ -204,6 +208,18 @@ class ATK(Time):
             hit_rate -= 0.05
 
         # 船型补正
+        d_size = self.atk_body.size - self.target.size
+        hit_rate *= 1 - max(0, d_size * 0.1)
+
+        # 单纵、复纵额外补正
+        add = 0
+        if self.target.get_form() == 2:
+            add = -0.05
+        from src.wsgr.phase import SecondShellingPhase
+        if self.atk_body.get_form() == 1 and \
+                isinstance(self.timer.phase, SecondShellingPhase):
+            add = 0.05
+        hit_rate += add
 
         # 技能补正
         _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
@@ -238,7 +254,40 @@ class ATK(Time):
         pass
 
     def final_damage(self, damage):
-        pass
+        """普通攻击终伤"""
+
+        # 额外伤害
+        _, extra_damage = self.atk_body.get_atk_buff('extra_damage', self)
+        damage += extra_damage
+
+        # 终伤增伤系数
+        for buff_scale in self.atk_body.get_final_damage_buff(self):
+            damage = np.ceil(damage * (1 + buff_scale))
+        buff_scale = self.get_coef('final_damage_buff')
+        if buff_scale:
+            damage = np.ceil(damage * (1 + buff_scale))
+
+        # 终伤减伤系数
+        for debuff_scale in self.target.get_final_damage_debuff(self):
+            damage = np.ceil(damage * (1 + debuff_scale))
+        buff_scale = self.get_coef('final_damage_debuff')
+        if buff_scale:
+            damage = np.ceil(damage * (1 + buff_scale))
+
+        # 挡枪减伤
+        tank_damage_debuff = self.get_coef('tank_damage_debuff')
+        if tank_damage_debuff is not None:
+            damage = np.ceil(damage * (1 + tank_damage_debuff))
+
+        # 战术终伤
+
+        # 技能伤害减免
+        _, reduce_damage = self.target.get_atk_buff(name='reduce_damage',
+                                                    atk=self,
+                                                    damage=damage)
+        damage -= reduce_damage
+
+        return max(0, damage)
 
     def end_atk(self, damage_flag, damage_value):
         """
@@ -351,7 +400,7 @@ class AirAtk(ATK):
         accuracy *= 1 + self.atk_body.affection * 0.001
         evasion *= 1 + self.target.affection * 0.001
 
-        if evasion < 1:
+        if evasion == 0:
             evasion = 1
         hit_rate = accuracy / evasion / 2
         # hit_rate = min(1, hit_rate)
@@ -362,9 +411,9 @@ class AirAtk(ATK):
 
         # 索敌补正
         if self.atk_body.get_recon_flag():
-            hit_rate += 0.05
+            hit_rate *= 1.05
         if self.target.get_recon_flag():
-            hit_rate -= 0.05
+            hit_rate *= 0.95
 
         # 制空补正
         hit_rate += get_air_hit_coef(self.atk_body.get_air_con_flag())
@@ -637,7 +686,7 @@ class NormalAtk(ATK):
         self.coef['form_coef'] = self.get_form_coef('power', self.atk_body.get_form())
 
         # 技能系数
-        skill_scale, _ = self.atk_body.get_atk_buff('fire_buff', self)
+        skill_scale, _ = self.atk_body.get_atk_buff('power_buff', self)
         self.coef['skill_coef'] = 1 + skill_scale
 
         # 航向系数
@@ -656,8 +705,8 @@ class NormalAtk(ATK):
         else:
             self.coef['crit_coef'] = 1.
 
-        # 浮动系数 todo 超重弹
-        equip_bias = 0
+        # 浮动系数，超重弹
+        _, equip_bias = self.atk_body.get_atk_buff('uplimit_buff', self)
         self.coef['random_coef'] = np.random.uniform(.89, 1.22 + equip_bias)
 
         # 穿甲系数
@@ -700,41 +749,85 @@ class NormalAtk(ATK):
                 )
         return real_dmg
 
-    def final_damage(self, damage):
-        """普通炮击终伤"""
 
-        # 额外伤害
-        _, extra_damage = self.atk_body.get_atk_buff('extra_damage', self)
-        damage += extra_damage
+class TorpedoAtk(ATK):
+    """鱼雷攻击"""
 
-        # 终伤增伤系数
-        for buff_scale in self.atk_body.get_final_damage_buff(self):
-            damage = np.ceil(damage * (1 + buff_scale))
-        buff_scale = self.get_coef('final_damage_buff')
-        if buff_scale:
-            damage = np.ceil(damage * (1 + buff_scale))
+    def __init__(self, timer, atk_body, def_list, coef=None, target=None):
+        super().__init__(timer, atk_body, def_list, coef, target)
 
-        # 终伤减伤系数
-        for debuff_scale in self.target.get_final_damage_debuff(self):
-            damage = np.ceil(damage * (1 + debuff_scale))
-        buff_scale = self.get_coef('final_damage_debuff')
-        if buff_scale:
-            damage = np.ceil(damage * (1 + buff_scale))
+        self.form_coef.update({
+            'power': [1, .9, .8, 1, .8],
+            'hit': [1, 1.1, .9, 1.2, .5],
+            'miss': [.9, 1.2, .9, .8, 1.3],
+        })  # 阵型系数
 
-        # 挡枪减伤
-        tank_damage_debuff = self.get_coef('tank_damage_debuff')
-        if tank_damage_debuff is not None:
-            damage = np.ceil(damage * (1 + tank_damage_debuff))
+    def process_coef(self):
+        # 阵型系数
+        self.coef['form_coef'] = self.get_form_coef('power', self.atk_body.get_form())
 
-        # 战术终伤
+        # 技能系数
+        skill_scale, _ = self.atk_body.get_atk_buff('power_buff', self)
+        self.coef['skill_coef'] = 1 + skill_scale
 
-        # 技能伤害减免
-        _, reduce_damage = self.target.get_atk_buff(name='reduce_damage',
-                                                    atk=self,
-                                                    damage=damage)
-        damage -= reduce_damage
+        # 航向系数
+        self.coef['dir_coef'] = self.get_dir_coef(self.atk_body.get_dir_flag())
 
-        return max(0, damage)
+        # 船损系数
+        self.coef['dmg_coef'] = self.get_dmg_coef()
+
+        # 弹损系数
+        self.coef['supply_coef'] = self.get_supply_coef()
+
+        # 暴击系数
+        if self.coef['crit_flag']:
+            _, crit_bias = self.atk_body.get_atk_buff('crit_coef', self)
+            self.coef['crit_coef'] = 1.5 + crit_bias
+        else:
+            self.coef['crit_coef'] = 1.
+
+        # 浮动系数
+        self.coef['random_coef'] = np.random.uniform(.89, 1.22)
+
+        # 穿甲系数
+        _, pierce_bias = self.atk_body.get_atk_buff('pierce_coef', self)
+        self.coef['pierce_coef'] = 1. + pierce_bias
+
+        # 攻击者对系数进行最终修正（最高优先级）
+        self.atk_body.atk_coef_process(self)
+
+    def formula(self):
+        # 基础攻击力
+        base_atk = self.atk_body.get_final_status('torpedo') + 5
+
+        # 实际威力
+        real_atk = (base_atk *
+                    self.coef['form_coef'] *
+                    self.coef['skill_coef'] *
+                    self.coef['dir_coef'] *
+                    self.coef['dmg_coef'] *
+                    self.coef['supply_coef'] *
+                    self.coef['crit_coef'] *
+                    self.coef['random_coef'])
+
+        # 实际伤害
+        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_armor', self)  # 无视装甲
+        def_armor = self.target.get_final_status('armor') * \
+                    (1 + ignore_scale) + ignore_bias
+        def_armor = max(0, def_armor)
+
+        real_dmg = np.ceil(real_atk *
+                           (1 - def_armor /
+                            (0.5 * def_armor + self.coef['pierce_coef'] * real_atk)))
+
+        if real_dmg <= 0:
+            if np.random.random() < 0.5:  # 50% 跳弹
+                return 0
+            else:  # 50% 擦伤
+                real_dmg = np.ceil(
+                    min(real_atk, self.target.get_status('health')) * 0.1
+                )
+        return real_dmg
 
 
 def cap(x):

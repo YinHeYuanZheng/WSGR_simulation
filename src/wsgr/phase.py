@@ -35,19 +35,19 @@ class AllPhase(Time):
     def start(self):
         pass
 
-    def get_atk_member(self, side):
-        """获取可行动单位"""
-        if side == 1:
-            fleet = self.friend.ship
-        else:
-            fleet = self.enemy.ship
-
-        member = fleet.get_member_inphase()
-        atk_member = []
-        for tmp_ship in member:
-            if tmp_ship.get_act_indicator():
-                atk_member.append(tmp_ship)
-        return atk_member
+    # def get_atk_member(self, side):
+    #     """获取可行动单位(目前没有调用该接口的需求，可能需要删除)"""
+    #     if side == 1:
+    #         fleet = self.friend.ship
+    #     else:
+    #         fleet = self.enemy.ship
+    #
+    #     member = fleet.get_member_inphase()
+    #     atk_member = []
+    #     for tmp_ship in member:
+    #         if tmp_ship.get_act_indicator():
+    #             atk_member.append(tmp_ship)
+    #     return atk_member
 
 
 class PreparePhase(AllPhase):

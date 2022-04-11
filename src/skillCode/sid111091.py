@@ -22,7 +22,7 @@ class Skill_111091(Skill):
             ),
             DamagedCoeffBuff(
                 timer=timer,
-                name='fire_buff',
+                name='power_buff',
                 phase=AllPhase,
                 value=0.28,
                 bias_or_weight=0

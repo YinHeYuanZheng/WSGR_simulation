@@ -6,7 +6,6 @@
 import numpy as np
 from src.wsgr.wsgrTimer import Time
 from src.wsgr.equipment import *
-# import src.wsgr.formulas as rform
 
 
 class Ship(Time):
@@ -15,7 +14,7 @@ class Ship(Time):
     def __init__(self, timer):
         super().__init__(timer)
         self.master = None
-        self.cid = 0  # 编号
+        self.cid = '0'  # 编号
         self.type = None  # 船型
         self.size = None  # 量级，大中小型船
         self.function = None  # 功能，主力、护卫舰
@@ -71,7 +70,8 @@ class Ship(Time):
             'AirPhase': lambda: False,
             'FirstMissilePhase': lambda: False,
             'AntisubPhase': lambda: False,
-            'FirstTorpedoPhase': lambda: False,
+            'FirstTorpedoPhase': lambda:
+                (self.level > 10) and (self.damaged < 3),
             'FirstShellingPhase': lambda: self.damaged < 4,
             'SecondShellingPhase': lambda:
                 (self.get_range() >= 3) and (self.damaged < 4),
@@ -153,6 +153,14 @@ class Ship(Time):
     def set_affection(self, affection):
         """设置舰船好感度"""
         self.affection = affection
+
+    def get_affection(self):
+        """获取舰船好感度"""
+        if self.side == 0:
+            return 50
+        if self.cid[0] != 1:
+            return 50
+        return self.affection
 
     def add_skill(self, skill):
         """设置舰船技能(未实例化)"""
@@ -409,7 +417,7 @@ class Ship(Time):
         return self.act_phase_indicator[phase_name]()
 
     def raise_atk(self, target_fleet):
-        """判断炮击战、夜战攻击类型"""
+        """判断炮击战、夜战攻击类型(todo 待优化)"""
         # 技能发动特殊攻击
         for tmp_buff in self.active_buff:
             if tmp_buff.is_active(atk=self.normal_atk, enemy=target_fleet):
@@ -946,7 +954,7 @@ class Fleet(Time):
             return np.floor(speed)
 
     def get_member_inphase(self):
-        """确定舰队中参与当前阶段的成员"""
+        """确定舰队中参与当前阶段的成员(不论是否可以行动，以满足炮序计算需求)"""
         member = []
         for tmp_ship in self.ship:
             if tmp_ship.get_act_flag():
