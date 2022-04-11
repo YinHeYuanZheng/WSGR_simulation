@@ -70,7 +70,9 @@ class BattleUtil(Time):
             if tmp_ship.damaged >= 3:
                 tmp_ship.damage_protect = False
 
-        # todo 清空buff
+        # 清空buff
+        self.friend.clear_buff()
+        self.enemy.clear_buff()
         self.timer.reset_queue()
 
         # 受伤记录

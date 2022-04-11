@@ -326,6 +326,10 @@ class Ship(Time):
         else:
             self.temper_buff.append(buff)
 
+    def clear_buff(self):
+        self.active_buff = []
+        self.temper_buff = []
+
     def get_buff(self, name, *args, **kwargs):
         """根据增益名称获取全部属性增益"""
         scale_add = 0
@@ -990,3 +994,7 @@ class Fleet(Time):
             if isinstance(tmp_ship, shiptype):
                 c += 1
         return c
+
+    def clear_buff(self):
+        for tmp_ship in self.ship:
+            tmp_ship.clear_buff()

@@ -203,9 +203,9 @@ class ATK(Time):
 
         # 索敌补正
         if self.atk_body.get_recon_flag():
-            hit_rate += 0.05
+            hit_rate *= 1.05
         if self.target.get_recon_flag():
-            hit_rate -= 0.05
+            hit_rate *= 0.95
 
         # 船型补正
         d_size = self.atk_body.size - self.target.size
@@ -416,7 +416,7 @@ class AirAtk(ATK):
             hit_rate *= 0.95
 
         # 制空补正
-        hit_rate += get_air_hit_coef(self.atk_body.get_air_con_flag())
+        hit_rate *= 1 + get_air_hit_coef(self.atk_body.get_air_con_flag())
 
         # 船型补正
         aa_value = self.get_anti_air_def()
@@ -430,7 +430,7 @@ class AirAtk(ATK):
             aa_base = 150
             mul_rate = 0.5
         aa_hit_coef = aa_base / (aa_base + aa_value)
-        hit_rate *= aa_hit_coef * mul_rate
+        hit_rate *= aa_hit_coef
 
         # 装备补正
         _, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
