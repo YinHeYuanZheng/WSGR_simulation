@@ -83,7 +83,7 @@ class Ship(Time):
 
         from src.wsgr.formulas import NormalAtk
         self.normal_atk = NormalAtk
-        self.special_atk = None
+        self.night_atk = None
 
     def __eq__(self, other):
         return self.cid == other.cid and \
@@ -326,10 +326,6 @@ class Ship(Time):
         else:
             self.temper_buff.append(buff)
 
-    def clear_buff(self):
-        self.active_buff = []
-        self.temper_buff = []
-
     def get_buff(self, name, *args, **kwargs):
         """根据增益名称获取全部属性增益"""
         scale_add = 0
@@ -535,9 +531,22 @@ class Ship(Time):
         return damage
 
     def remove_during_buff(self):
-        for tmp_buff in self.temper_buff[:]:
+        """去除攻击期间的临时buff"""
+        # remove_list = []
+        # for tmp_buff in self.temper_buff:
+        #     if tmp_buff.is_during_buff():
+        #         remove_list.append(tmp_buff)
+        # for tmp_buff in remove_list:
+        #     self.temper_buff.remove(tmp_buff)
+
+        i = 0
+        while i < len(self.temper_buff):
+            tmp_buff = self.temper_buff[i]
             if tmp_buff.is_during_buff():
                 self.temper_buff.remove(tmp_buff)
+                continue
+            else:
+                i += 1
 
     def clear_buff(self):
         """清空临时buff"""
@@ -593,6 +602,7 @@ class Submarine(Ship):
     """水下单位"""
 
     def can_be_atk(self, atk):
+        # from src.wsgr.formulas import AntiSubAtk
         return False
 
 
@@ -605,12 +615,6 @@ class SS(Submarine, SmallShip, CoverShip):
             'FirstTorpedoPhase': True,
             'FirstShellingPhase': False,
             'SecondShellingPhase': False,
-        })
-
-        self.act_phase_indicator.update({
-            'FirstTorpedoPhase': lambda: (self.level > 10) and (self.damaged < 3),
-            'FirstShellingPhase': lambda: False,
-            'SecondShellingPhase': lambda: False,
         })
 
 
@@ -633,9 +637,10 @@ class Aircraft(Ship):
         self.flightparam = 0
         self.normal_atk = None  # 炮击战航空攻击
 
-    def get_plane(self):
+    def get_atk_plane(self):
+        """检查攻击型飞机是否有载量"""
         for tmp_equip in self.equipment:
-            if isinstance(tmp_equip, (Fighter, Bomber, DiveBomber)):
+            if isinstance(tmp_equip, (Bomber, DiveBomber)):
                 if tmp_equip.load > 0:
                     return True
         return False
@@ -655,9 +660,10 @@ class CV(Aircraft, LargeShip, MainShip):
 
         self.act_phase_indicator.update({
             'AirPhase': lambda: self.damaged < 3,
-            'FirstShellingPhase': lambda: self.damaged < 2,
+            'FirstShellingPhase': lambda:
+                (self.damaged < 2) and (self.get_atk_plane()),
             'SecondShellingPhase': lambda:
-                (self.damaged < 2) and (self.get_range() >= 3),
+                (self.damaged < 2) and (self.get_atk_plane()) and (self.get_range() >= 3),
         })
 
     def get_act_indicator(self):
@@ -692,10 +698,10 @@ class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
         self.act_phase_indicator.update({
             'AirPhase': lambda: self.damaged < 3,
             'AntisubPhase': lambda:
-                (self.damaged < 2) and self.get_atk_plane(),
+                (self.damaged < 2) and (self.get_atk_plane()),
             'FirstShellingPhase': lambda: self.damaged < 2,
             'SecondShellingPhase': lambda:
-                (self.damaged < 2) and (self.get_range() >= 3),
+                (self.damaged < 2) and (self.get_atk_plane()) and (self.get_range() >= 3),
         })
 
         self.anti_sub_atk = None  # 反潜攻击
@@ -715,13 +721,6 @@ class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
         phase_name = type(self.timer.phase).__name__
         return self.act_phase_indicator[phase_name]()
 
-    def get_atk_plane(self):
-        for tmp_equip in self.equipment:
-            if isinstance(tmp_equip, (Bomber, DiveBomber)):
-                if tmp_equip.load > 0:
-                    return True
-        return False
-
 
 class AV(Aircraft, LargeShip, MainShip):
     def __init__(self, timer):
@@ -737,9 +736,10 @@ class AV(Aircraft, LargeShip, MainShip):
 
         self.act_phase_indicator.update({
             'AirPhase': lambda: self.damaged < 3,
-            'FirstShellingPhase': lambda: self.damaged < 3,
+            'FirstShellingPhase': lambda:
+                (self.damaged < 3) and (self.get_atk_plane()),
             'SecondShellingPhase': lambda:
-                (self.damaged < 3) and (self.get_range() >= 3),
+                (self.damaged < 3) and (self.get_atk_plane()) and (self.get_range() >= 3),
         })
 
     def get_act_indicator(self):
@@ -828,7 +828,14 @@ class BG(MissileShip, LargeShip, MainShip):
 
 class LandUnit(LargeShip, MainShip):
     """路基单位"""
-    pass
+    def can_be_atk(self, atk):
+        from src.wsgr.formulas import TorpedoAtk  # , AntiSubAtk
+        if isinstance(atk, TorpedoAtk):
+            return False
+        # elif isinstance(atk, AntiSubAtk):
+        #     return False
+        else:
+            return True
 
 
 class Elite(Aircraft, LargeShip, MainShip):

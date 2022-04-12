@@ -160,8 +160,8 @@ class AirPhase(DaytimePhase):
         atk_friend = self.friend.get_act_member_inphase()
         atk_enemy = self.enemy.get_act_member_inphase()
         # 检查可被航空攻击的对象
-        def_friend = self.friend.get_atk_target(atk_type=AirAtk)
-        def_enemy = self.enemy.get_atk_target(atk_type=AirAtk)
+        def_friend = self.friend.get_atk_target(atk_type=AirStrikeAtk)
+        def_enemy = self.enemy.get_atk_target(atk_type=AirStrikeAtk)
 
         # 如果不存在可行动对象或可攻击对象，结束本阶段
         if (len(atk_friend) and len(def_enemy)) or \
@@ -191,7 +191,7 @@ class AirPhase(DaytimePhase):
                 air_con_flag = 5
         self.timer.set_air_con(air_con_flag)
 
-        # 航空轰炸阶段
+        # 航空轰炸阶段，先结算我方
         self.air_strike(atk_friend, def_enemy, aerial_enemy, side=1)
         self.air_strike(atk_enemy, def_friend, aerial_friend, side=0)
 
@@ -289,6 +289,49 @@ class AirPhase(DaytimePhase):
                     if tmp_equip.load > 0:
                         return True
         return False
+    
+
+class TorpedoPhase(DaytimePhase):
+    """鱼雷战"""
+
+    def start(self):
+        # 检查可参与先制鱼雷的对象
+        atk_friend = self.friend.get_act_member_inphase()
+        atk_enemy = self.enemy.get_act_member_inphase()
+        # 检查可被鱼雷攻击的对象
+        def_friend = self.friend.get_atk_target(atk_type=TorpedoAtk)
+        def_enemy = self.enemy.get_atk_target(atk_type=TorpedoAtk)
+
+        # 如果不存在可行动对象或可攻击对象，结束本阶段
+        if (len(atk_friend) and len(def_enemy)) or \
+                (len(atk_enemy) and len(def_friend)):
+            pass
+        else:
+            return
+
+        # 按照站位依次行动，先结算我方
+        self.torpedo_strike(atk_friend, def_enemy)
+        atk_enemy = self.enemy.get_act_member_inphase()  # 重新检查敌方可行动对象
+        self.torpedo_strike(atk_enemy, def_friend)
+
+    def torpedo_strike(self, attack, defend):
+        for tmp_ship in attack:
+            # 检查是否存在优先攻击船型对象
+            prior = tmp_ship.get_prior_type_target(defend)
+
+            # 发起鱼雷攻击
+            atk = TorpedoAtk(
+                timer=self.timer,
+                atk_body=tmp_ship,
+                def_list=defend,
+                target=prior
+            )
+            atk.start()
+
+
+class FirstTorpedoPhase(TorpedoPhase):
+    """先制鱼雷"""
+    pass
 
 
 class ShellingPhase(DaytimePhase):
@@ -343,6 +386,11 @@ class FirstShellingPhase(ShellingPhase):
 
 class SecondShellingPhase(ShellingPhase):
     """次轮炮击"""
+    pass
+
+
+class SecondTorpedoPhase(TorpedoPhase):
+    """闭幕鱼雷"""
     pass
 
 
