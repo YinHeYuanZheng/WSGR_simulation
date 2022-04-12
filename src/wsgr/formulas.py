@@ -16,6 +16,7 @@ __all__ = ['ATK',
 
            'TorpedoAtk',
            'NormalAtk',
+           'AirNormalAtk'
            ]
 
 
@@ -767,9 +768,9 @@ class AirNormalAtk(NormalAtk, AirAtk):
         super().__init__(timer, atk_body, def_list, coef, target)
 
         self.form_coef.update({
-            'power': [1, 1, 1, 1, 1],
-            'hit': [1, 1, 1, 1, 1],
-            'miss': [.8, 1., 1.2, .8, .9],
+            'power': [1, .8, .75, 1, .8],
+            'hit': [1.1, 1, .9, 1.2, .75],
+            'miss': [.9, 1.2, .9, .8, 1.3],
         })  # 阵型系数
 
     def hit_verify(self):

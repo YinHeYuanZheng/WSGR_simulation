@@ -635,7 +635,10 @@ class Aircraft(Ship):
     def __init__(self, timer):
         super().__init__(timer)
         self.flightparam = 0
-        self.normal_atk = None  # 炮击战航空攻击
+
+        self.act_phase_flag.update({
+            'AirPhase': True,
+        })
 
     def get_atk_plane(self):
         """检查攻击型飞机是否有载量"""
@@ -665,6 +668,9 @@ class CV(Aircraft, LargeShip, MainShip):
             'SecondShellingPhase': lambda:
                 (self.damaged < 2) and (self.get_atk_plane()) and (self.get_range() >= 3),
         })
+
+        from src.wsgr.formulas import AirNormalAtk
+        self.normal_atk = AirNormalAtk  # 炮击战航空攻击
 
     def get_act_indicator(self):
         # 跳过阶段，优先级最高
@@ -704,6 +710,8 @@ class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
                 (self.damaged < 2) and (self.get_atk_plane()) and (self.get_range() >= 3),
         })
 
+        from src.wsgr.formulas import AirNormalAtk
+        self.normal_atk = AirNormalAtk  # 炮击战航空攻击
         self.anti_sub_atk = None  # 反潜攻击
 
     def get_act_indicator(self):
@@ -741,6 +749,9 @@ class AV(Aircraft, LargeShip, MainShip):
             'SecondShellingPhase': lambda:
                 (self.damaged < 3) and (self.get_atk_plane()) and (self.get_range() >= 3),
         })
+
+        from src.wsgr.formulas import AirNormalAtk
+        self.normal_atk = AirNormalAtk  # 炮击战航空攻击
 
     def get_act_indicator(self):
         # 跳过阶段，优先级最高
@@ -860,6 +871,23 @@ class Airfield(LandUnit, Aircraft):
     def __init__(self, timer):
         super().__init__(timer)
         self.flightparam = 10
+
+        self.act_phase_flag.update({
+            'AirPhase': True,
+            'SecondTorpedoPhase': False,
+            'NightPhase': False,
+        })
+
+        self.act_phase_indicator.update({
+            'AirPhase': lambda: self.damaged < 3,
+            'FirstShellingPhase': lambda:
+                (self.damaged < 3) and (self.get_atk_plane()),
+            'SecondShellingPhase': lambda:
+                (self.damaged < 3) and (self.get_atk_plane()) and (self.get_range() >= 3),
+        })
+
+        from src.wsgr.formulas import AirNormalAtk
+        self.normal_atk = AirNormalAtk  # 炮击战航空攻击
 
 
 class Port(LandUnit):
