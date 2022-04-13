@@ -14,6 +14,8 @@ __all__ = ['ATK',
            'AirBombAtk',
            'AirDiveAtk',
 
+           'AntiSubAtk',
+           'AirAntiSubAtk',
            'TorpedoAtk',
            'NormalAtk',
            'AirNormalAtk'
@@ -67,7 +69,8 @@ class ATK(Time):
         if not self.coef['hit_flag']:
             return self.end_atk(damage_flag, 'miss')
 
-        damage = self.formula()
+        real_atk = self.formula()
+        damage = self.real_damage(real_atk)
         if damage == 0:
             return self.end_atk(damage_flag, 'jump')
 
@@ -124,6 +127,10 @@ class ATK(Time):
         """获取指定名称的参数"""
         return self.coef.get(name, None)
 
+    def get_coef_value(self, name):
+        """获取指定名称的参数值"""
+        return self.coef.get(name, 0)
+
     def get_form_coef(self, name, form_num):
         """获取阵型系数"""
         coef = self.form_coef.get(name)[form_num - 1]
@@ -146,6 +153,7 @@ class ATK(Time):
 
         # 基础暴击率
         crit = 0.05 + (self.atk_body.affection - 50) * 0.001 + \
+               self.get_coef_value('crit') + \
                self.atk_body.get_atk_buff('crit', self)[1] + \
                self.atk_body.get_final_status('luck') * 0.0016 + \
                self.target.get_atk_buff('be_crit', self)[1]
@@ -256,6 +264,29 @@ class ATK(Time):
     def formula(self):
         pass
 
+    def real_damage(self, real_atk):
+        if real_atk is None:
+            raise ValueError(f'Formula of "{type(self).__name__}" is not defined!')
+
+        # 实际伤害
+        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_armor', self)  # 无视装甲
+        def_armor = self.target.get_final_status('armor') * \
+                    (1 + ignore_scale) + ignore_bias
+        def_armor = max(0, def_armor)
+
+        real_dmg = np.ceil(real_atk *
+                           (1 - def_armor /
+                            (0.5 * def_armor + self.coef['pierce_coef'] * real_atk)))
+
+        if real_dmg <= 0:
+            if np.random.random() < 0.5:  # 50% 跳弹
+                return 0
+            else:  # 50% 擦伤
+                real_dmg = np.ceil(
+                    min(real_atk, self.target.get_status('health')) * 0.1
+                )
+        return real_dmg
+
     def final_damage(self, damage):
         """普通攻击终伤"""
 
@@ -312,7 +343,7 @@ class ATK(Time):
 
 
 class AirAtk(ATK):
-    """航空攻击，包含航空战AirStrikeAtk与炮击战AirNormalAtk"""
+    """航空攻击，包含航空战AirStrikeAtk、炮击战AirNormalAtk、炮击战航空反潜AirAntiSubAtk"""
     def __init__(self, timer, atk_body, def_list, coef=None, target=None):
         super().__init__(timer, atk_body, def_list, coef, target)
         self.equip = None
@@ -572,25 +603,7 @@ class AirBombAtk(AirStrikeAtk):
                     self.coef['supply_coef'] *
                     self.coef['crit_coef'] *
                     self.coef['random_coef'])
-
-        # 实际伤害
-        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_armor', self)  # 无视装甲
-        def_armor = self.target.get_final_status('armor') * \
-                    (1 + ignore_scale) + ignore_bias
-        def_armor = max(0, def_armor)
-
-        real_dmg = np.ceil(real_atk *
-                           (1 - def_armor /
-                            (0.5 * def_armor + self.coef['pierce_coef'] * real_atk)))
-
-        if real_dmg <= 0:
-            if np.random.random() < 0.5:  # 50% 跳弹
-                return 0
-            else:  # 50% 擦伤
-                real_dmg = np.ceil(
-                    min(real_atk, self.target.get_status('health')) * 0.1
-                )
-        return real_dmg
+        return real_atk
 
 
 class AirDiveAtk(AirStrikeAtk):
@@ -659,25 +672,176 @@ class AirDiveAtk(AirStrikeAtk):
                     self.coef['crit_coef'] *
                     self.coef['random_coef'] *
                     self.coef['dive_random_coef'])
+        return real_atk
 
-        # 实际伤害
-        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_armor', self)
-        def_armor = self.target.get_final_status('armor') * \
-                    (1 + ignore_scale) + ignore_bias
-        def_armor = max(0, def_armor)
 
-        real_dmg = np.ceil(real_atk *
-                           (1 - def_armor /
-                            (0.5 * def_armor + self.coef['pierce_coef'] * real_atk)))
+class AntiSubAtk(ATK):
+    """反潜攻击"""
 
-        if real_dmg <= 0:
-            if np.random.random() < 0.5:  # 50% 跳弹
-                return 0
-            else:  # 50% 擦伤
-                real_dmg = np.ceil(
-                    min(real_atk, self.target.get_status('health')) * 0.1
-                )
-        return real_dmg
+    def __init__(self, timer, atk_body, def_list, coef=None, target=None):
+        super().__init__(timer, atk_body, def_list, coef, target)
+
+        self.form_coef.update({
+            'power': [1, 1, 1, 1, 1],
+            'hit': [1, 1, 1, 1, 1.2],
+            'miss': [1, 1, 1, 1, 1.2],
+        })  # 阵型系数
+
+    def process_coef(self):
+        # 技能系数
+        skill_scale, _ = self.atk_body.get_atk_buff('power_buff', self)
+        self.coef['skill_coef'] = 1 + skill_scale
+
+        # 船损系数
+        self.coef['dmg_coef'] = self.get_dmg_coef()
+
+        # 弹损系数
+        self.coef['supply_coef'] = self.get_supply_coef()
+
+        # 暴击系数
+        if self.coef['crit_flag']:
+            _, crit_bias = self.atk_body.get_atk_buff('crit_coef', self)
+            self.coef['crit_coef'] = 1.5 + crit_bias
+        else:
+            self.coef['crit_coef'] = 1.
+
+        # 浮动系数
+        self.coef['random_coef'] = np.random.uniform(.89, 1.22)
+
+        # 穿甲系数
+        _, pierce_bias = self.atk_body.get_atk_buff('pierce_coef', self)
+        self.coef['pierce_coef'] = 2 + pierce_bias
+
+        # 攻击者对系数进行最终修正（最高优先级）
+        self.atk_body.atk_coef_process(self)
+
+    def formula(self):
+        # 基础攻击力
+        s_antisub = self.atk_body.get_final_status('antisub', equip=False)  # 裸反潜
+        e_antisub = self.atk_body.get_equip_status('antisub', equiptype=DepthMine)  # 深投反潜
+        sonar = 1 + (self.atk_body.get_equip_status('antisub') - e_antisub) / 10  # 声纳系数
+        base_atk = np.floor(
+            (pow(e_antisub, 1/3) * 20 + s_antisub / 3) * sonar
+        )
+
+        # 实际威力
+        real_atk = (base_atk *
+                    self.coef['skill_coef'] *
+                    self.coef['dmg_coef'] *
+                    self.coef['supply_coef'] *
+                    self.coef['crit_coef'] *
+                    self.coef['random_coef'])
+        return real_atk
+
+
+class AirAntiSubAtk(AntiSubAtk, AirAtk):
+    """航空反潜攻击"""
+
+    def process_coef(self):
+        # 技能系数
+        skill_scale, _ = self.atk_body.get_atk_buff('power_buff', self)
+        self.coef['skill_coef'] = 1 + skill_scale
+
+        # 船损系数
+        self.coef['dmg_coef'] = self.get_dmg_coef()
+
+        # 弹损系数
+        self.coef['supply_coef'] = self.get_supply_coef()
+
+        # 暴击系数
+        if self.coef['crit_flag']:
+            _, crit_bias = self.atk_body.get_atk_buff('crit_coef', self)
+            self.coef['crit_coef'] = 1.5 + crit_bias
+        else:
+            self.coef['crit_coef'] = 1.
+
+        # 浮动系数
+        self.coef['random_coef'] = np.random.uniform(.89, 1.22)
+
+        # 穿甲系数
+        _, pierce_bias = self.atk_body.get_atk_buff('pierce_coef', self)
+        self.coef['pierce_coef'] = 10 + pierce_bias
+
+        # 攻击者对系数进行最终修正（最高优先级）
+        self.atk_body.atk_coef_process(self)
+
+    def formula(self):
+        # 基础攻击力
+        s_antisub = self.atk_body.get_final_status('antisub', equip=False)  # 裸反潜
+        e_antisub = self.atk_body.get_equip_status('antisub')  # 装备反潜
+        recon = self.atk_body.get_final_status('recon')  # 索敌
+        base_atk = s_antisub + e_antisub * 2 + recon / 2
+
+        # 实际威力
+        real_atk = (base_atk *
+                    self.coef['skill_coef'] *
+                    self.coef['dmg_coef'] *
+                    self.coef['supply_coef'] *
+                    self.coef['crit_coef'] *
+                    self.coef['random_coef'])
+        return real_atk
+
+
+class TorpedoAtk(ATK):
+    """鱼雷攻击"""
+
+    def __init__(self, timer, atk_body, def_list, coef=None, target=None):
+        super().__init__(timer, atk_body, def_list, coef, target)
+
+        self.form_coef.update({
+            'power': [1, .9, .8, 1, .8],
+            'hit': [1, 1.1, .9, 1.2, .5],
+            'miss': [.9, 1.2, .9, .8, 1.3],
+        })  # 阵型系数
+
+    def process_coef(self):
+        # 阵型系数
+        self.coef['form_coef'] = self.get_form_coef('power', self.atk_body.get_form())
+
+        # 技能系数
+        skill_scale, _ = self.atk_body.get_atk_buff('power_buff', self)
+        self.coef['skill_coef'] = 1 + skill_scale
+
+        # 航向系数
+        self.coef['dir_coef'] = self.get_dir_coef(self.atk_body.get_dir_flag())
+
+        # 船损系数
+        self.coef['dmg_coef'] = self.get_dmg_coef()
+
+        # 弹损系数
+        self.coef['supply_coef'] = self.get_supply_coef()
+
+        # 暴击系数
+        if self.coef['crit_flag']:
+            _, crit_bias = self.atk_body.get_atk_buff('crit_coef', self)
+            self.coef['crit_coef'] = 1.5 + crit_bias
+        else:
+            self.coef['crit_coef'] = 1.
+
+        # 浮动系数
+        self.coef['random_coef'] = np.random.uniform(.89, 1.22)
+
+        # 穿甲系数
+        _, pierce_bias = self.atk_body.get_atk_buff('pierce_coef', self)
+        self.coef['pierce_coef'] = 1. + pierce_bias
+
+        # 攻击者对系数进行最终修正（最高优先级）
+        self.atk_body.atk_coef_process(self)
+
+    def formula(self):
+        # 基础攻击力
+        base_atk = self.atk_body.get_final_status('torpedo') + 5
+
+        # 实际威力
+        real_atk = (base_atk *
+                    self.coef['form_coef'] *
+                    self.coef['skill_coef'] *
+                    self.coef['dir_coef'] *
+                    self.coef['dmg_coef'] *
+                    self.coef['supply_coef'] *
+                    self.coef['crit_coef'] *
+                    self.coef['random_coef'])
+        return real_atk
 
 
 class NormalAtk(ATK):
@@ -740,25 +904,7 @@ class NormalAtk(ATK):
                     self.coef['supply_coef'] *
                     self.coef['crit_coef'] *
                     self.coef['random_coef'])
-
-        # 实际伤害
-        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_armor', self)  # 无视装甲
-        def_armor = self.target.get_final_status('armor') * \
-                    (1 + ignore_scale) + ignore_bias
-        def_armor = max(0, def_armor)
-
-        real_dmg = np.ceil(real_atk *
-                           (1 - def_armor /
-                            (0.5 * def_armor + self.coef['pierce_coef'] * real_atk)))
-
-        if real_dmg <= 0:
-            if np.random.random() < 0.5:  # 50% 跳弹
-                return 0
-            else:  # 50% 擦伤
-                real_dmg = np.ceil(
-                    min(real_atk, self.target.get_status('health')) * 0.1
-                )
-        return real_dmg
+        return real_atk
 
 
 class AirNormalAtk(NormalAtk, AirAtk):
@@ -860,6 +1006,9 @@ class AirNormalAtk(NormalAtk, AirAtk):
         skill_scale, _ = self.atk_body.get_atk_buff('air_atk_buff', self)
         self.coef['skill_coef'] = 1 + skill_scale
 
+        # 航向系数
+        self.coef['dir_coef'] = self.get_dir_coef(self.atk_body.get_dir_flag())
+
         # 船损系数
         self.coef['dmg_coef'] = self.get_dmg_coef()
 
@@ -901,29 +1050,12 @@ class AirNormalAtk(NormalAtk, AirAtk):
         real_atk = (base_atk *
                     self.coef['skill_coef'] *
                     self.coef['air_con_coef'] *
+                    self.coef['dir_coef'] *
                     self.coef['dmg_coef'] *
                     self.coef['supply_coef'] *
                     self.coef['crit_coef'] *
                     self.coef['random_coef'])
-
-        # 实际伤害
-        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_armor', self)  # 无视装甲
-        def_armor = self.target.get_final_status('armor') * \
-                    (1 + ignore_scale) + ignore_bias
-        def_armor = max(0, def_armor)
-
-        real_dmg = np.ceil(real_atk *
-                           (1 - def_armor /
-                            (0.5 * def_armor + self.coef['pierce_coef'] * real_atk)))
-
-        if real_dmg <= 0:
-            if np.random.random() < 0.5:  # 50% 跳弹
-                return 0
-            else:  # 50% 擦伤
-                real_dmg = np.ceil(
-                    min(real_atk, self.target.get_status('health')) * 0.1
-                )
-        return real_dmg
+        return real_atk
 
     def final_damage(self, damage):
         """航空炮击终伤"""
@@ -971,86 +1103,6 @@ class AirNormalAtk(NormalAtk, AirAtk):
         damage -= reduce_damage
 
         return max(0, damage)
-
-
-class TorpedoAtk(ATK):
-    """鱼雷攻击"""
-
-    def __init__(self, timer, atk_body, def_list, coef=None, target=None):
-        super().__init__(timer, atk_body, def_list, coef, target)
-
-        self.form_coef.update({
-            'power': [1, .9, .8, 1, .8],
-            'hit': [1, 1.1, .9, 1.2, .5],
-            'miss': [.9, 1.2, .9, .8, 1.3],
-        })  # 阵型系数
-
-    def process_coef(self):
-        # 阵型系数
-        self.coef['form_coef'] = self.get_form_coef('power', self.atk_body.get_form())
-
-        # 技能系数
-        skill_scale, _ = self.atk_body.get_atk_buff('power_buff', self)
-        self.coef['skill_coef'] = 1 + skill_scale
-
-        # 航向系数
-        self.coef['dir_coef'] = self.get_dir_coef(self.atk_body.get_dir_flag())
-
-        # 船损系数
-        self.coef['dmg_coef'] = self.get_dmg_coef()
-
-        # 弹损系数
-        self.coef['supply_coef'] = self.get_supply_coef()
-
-        # 暴击系数
-        if self.coef['crit_flag']:
-            _, crit_bias = self.atk_body.get_atk_buff('crit_coef', self)
-            self.coef['crit_coef'] = 1.5 + crit_bias
-        else:
-            self.coef['crit_coef'] = 1.
-
-        # 浮动系数
-        self.coef['random_coef'] = np.random.uniform(.89, 1.22)
-
-        # 穿甲系数
-        _, pierce_bias = self.atk_body.get_atk_buff('pierce_coef', self)
-        self.coef['pierce_coef'] = 1. + pierce_bias
-
-        # 攻击者对系数进行最终修正（最高优先级）
-        self.atk_body.atk_coef_process(self)
-
-    def formula(self):
-        # 基础攻击力
-        base_atk = self.atk_body.get_final_status('torpedo') + 5
-
-        # 实际威力
-        real_atk = (base_atk *
-                    self.coef['form_coef'] *
-                    self.coef['skill_coef'] *
-                    self.coef['dir_coef'] *
-                    self.coef['dmg_coef'] *
-                    self.coef['supply_coef'] *
-                    self.coef['crit_coef'] *
-                    self.coef['random_coef'])
-
-        # 实际伤害
-        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_armor', self)  # 无视装甲
-        def_armor = self.target.get_final_status('armor') * \
-                    (1 + ignore_scale) + ignore_bias
-        def_armor = max(0, def_armor)
-
-        real_dmg = np.ceil(real_atk *
-                           (1 - def_armor /
-                            (0.5 * def_armor + self.coef['pierce_coef'] * real_atk)))
-
-        if real_dmg <= 0:
-            if np.random.random() < 0.5:  # 50% 跳弹
-                return 0
-            else:  # 50% 擦伤
-                real_dmg = np.ceil(
-                    min(real_atk, self.target.get_status('health')) * 0.1
-                )
-        return real_dmg
 
 
 def cap(x):

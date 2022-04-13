@@ -16,6 +16,10 @@ __all__ = ['AllPhase',
            'BuffPhase',
            'AirPhase',
 
+           'TorpedoPhase',
+           'FirstTorpedoPhase',
+           'SecondTorpedoPhase',
+
            'ShellingPhase',
            'FirstShellingPhase',
            'SecondShellingPhase',
@@ -250,16 +254,19 @@ class AirPhase(DaytimePhase):
 
                 # 检查是否存在优先攻击船型对象
                 prior = tmp_ship.get_prior_type_target(defend)
+                if prior is not None:
+                    def_list = prior
+                else:
+                    def_list = defend
 
                 # 轰炸机，发起轰炸攻击
                 if isinstance(tmp_equip, Bomber):
                     atk = AirBombAtk(
                         timer=self.timer,
                         atk_body=tmp_ship,
-                        def_list=defend,
+                        def_list=def_list,
                         equip=tmp_equip,
                         coef=coef,
-                        target=prior,
                     )
                     atk.start()
                     anti_num = atk.get_coef('anti_num')
@@ -269,10 +276,9 @@ class AirPhase(DaytimePhase):
                     atk = AirDiveAtk(
                         timer=self.timer,
                         atk_body=tmp_ship,
-                        def_list=defend,
+                        def_list=def_list,
                         equip=tmp_equip,
                         coef=coef,
-                        target=prior,
                     )
                     atk.start()
                     anti_num = atk.get_coef('anti_num')
@@ -318,13 +324,16 @@ class TorpedoPhase(DaytimePhase):
         for tmp_ship in attack:
             # 检查是否存在优先攻击船型对象
             prior = tmp_ship.get_prior_type_target(defend)
+            if prior is not None:
+                def_list = prior
+            else:
+                def_list = defend
 
             # 发起鱼雷攻击
             atk = TorpedoAtk(
                 timer=self.timer,
                 atk_body=tmp_ship,
-                def_list=defend,
-                target=prior
+                def_list=def_list,
             )
             atk.start()
 
@@ -370,6 +379,7 @@ class ShellingPhase(DaytimePhase):
         for atk in atk_list:
             hit_back = atk.start()
             if isinstance(hit_back, ATK):
+                # hit_back_list.append(hit_back)  # todo 反击结算放在所有攻击结束后
                 hit_back.set_coef({'hit_back': True})
                 hit_back.start()
 

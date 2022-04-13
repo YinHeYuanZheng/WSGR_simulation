@@ -20,9 +20,11 @@ class BattleUtil(Time):
         self.battle_init()
         self.start_phase()
         self.buff_phase()
-        # self.air_phase()
+        self.air_phase()
+        self.first_torpedo_phase()
         self.first_shelling_phase()
-        # self.second_shelling_phase()
+        self.second_shelling_phase()
+        self.second_torpedo_phase()
         self.end_phase()
 
     def battle_init(self):
@@ -54,6 +56,14 @@ class BattleUtil(Time):
 
     def air_phase(self):
         self.timer.set_phase(AirPhase(self.timer, self.friend, self.enemy))
+        self.timer.phase_start()
+
+    def first_torpedo_phase(self):
+        self.timer.set_phase(FirstTorpedoPhase(self.timer, self.friend, self.enemy))
+        self.timer.phase_start()
+
+    def second_torpedo_phase(self):
+        self.timer.set_phase(SecondTorpedoPhase(self.timer, self.friend, self.enemy))
         self.timer.phase_start()
 
     def first_shelling_phase(self):

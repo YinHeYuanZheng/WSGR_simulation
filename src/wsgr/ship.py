@@ -83,6 +83,7 @@ class Ship(Time):
 
         from src.wsgr.formulas import NormalAtk
         self.normal_atk = NormalAtk
+        self.anti_sub_atk = None
         self.night_atk = None
 
     def __eq__(self, other):
@@ -417,28 +418,36 @@ class Ship(Time):
         return self.act_phase_indicator[phase_name]()
 
     def raise_atk(self, target_fleet):
-        """判断炮击战、夜战攻击类型(todo 待优化)"""
+        """判断炮击战、夜战攻击类型(todo 夜战、航战)"""
         # 技能发动特殊攻击
         for tmp_buff in self.active_buff:
             if tmp_buff.is_active(atk=self.normal_atk, enemy=target_fleet):
                 return tmp_buff.active_start(atk=self.normal_atk, enemy=target_fleet)
 
         # 技能优先攻击特定船型
-        def_list = target_fleet.get_atk_target(atk_type=self.normal_atk)
-        prior = self.get_prior_type_target(def_list)
+        prior = self.get_prior_type_target(target_fleet)
         if prior is not None:
-            assert not isinstance(prior, list)
             atk = self.normal_atk(
                 timer=self.timer,
                 atk_body=self,
-                target=prior,
-                def_list=def_list,
+                def_list=prior,
             )
-            atk.changeable = False
             return [atk]
+
+        # 优先反潜
+        elif self.anti_sub_atk is not None:
+            def_list = target_fleet.get_atk_target(atk_type=self.anti_sub_atk)
+            if len(def_list):
+                atk = self.anti_sub_atk(
+                    timer=self.timer,
+                    atk_body=self,
+                    def_list=def_list,
+                )
+                return [atk]
 
         # 常规攻击模式
         else:
+            def_list = target_fleet.get_atk_target(atk_type=self.normal_atk)
             if not len(def_list):
                 return []
 
@@ -449,7 +458,7 @@ class Ship(Time):
             )
             return [atk]
 
-    # def get_atk_type(self, target):
+    # def get_atk_type(self, target):  # 备用接口
     #     """判断攻击该对象时使用什么攻击类型"""
     #     pass
 
@@ -476,7 +485,7 @@ class Ship(Time):
                 return tmp_buff.activate(fleet)
 
     def atk_hit(self, name, atk, *args, **kwargs):
-        """处理命中后、被命中后添加buff效果（不处理反击）"""
+        """处理命中后、被命中后添加buff效果（含反击）"""
         for tmp_buff in self.temper_buff:
             if tmp_buff.name == name and \
                     tmp_buff.is_active(atk=atk, *args, **kwargs):
@@ -602,8 +611,11 @@ class Submarine(Ship):
     """水下单位"""
 
     def can_be_atk(self, atk):
-        # from src.wsgr.formulas import AntiSubAtk
-        return False
+        from src.wsgr.formulas import AntiSubAtk
+        if isinstance(atk, AntiSubAtk):
+            return True
+        else:
+            return False
 
 
 class SS(Submarine, SmallShip, CoverShip):
@@ -619,14 +631,24 @@ class SS(Submarine, SmallShip, CoverShip):
 
 
 class SC(Submarine, SmallShip, CoverShip):
-    pass
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'SC'
 
 
 class AntiSubShip(Ship):
     """反潜船"""
     def __init__(self, timer):
         super().__init__(timer)
-        self.anti_sub_atk = None  # 反潜攻击
+        self.act_phase_flag.update({'AntisubPhase': True})
+
+        self.act_phase_indicator.update({
+            'AntisubPhase': lambda:
+                (self.get_form() == 5) and (self.damaged < 4),
+        })
+
+        from src.wsgr.formulas import AntiSubAtk
+        self.anti_sub_atk = AntiSubAtk  # 反潜攻击
 
 
 class Aircraft(Ship):
@@ -635,10 +657,8 @@ class Aircraft(Ship):
     def __init__(self, timer):
         super().__init__(timer)
         self.flightparam = 0
-
-        self.act_phase_flag.update({
-            'AirPhase': True,
-        })
+        self.act_phase_flag.update({'AirPhase': True})
+        self.act_phase_indicator.update({'AirPhase': lambda: self.damaged < 3})
 
     def get_atk_plane(self):
         """检查攻击型飞机是否有载量"""
@@ -704,7 +724,7 @@ class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
         self.act_phase_indicator.update({
             'AirPhase': lambda: self.damaged < 3,
             'AntisubPhase': lambda:
-                (self.damaged < 2) and (self.get_atk_plane()),
+                (self.damaged < 2) and (self.get_atk_plane()) and (self.get_form() == 5),
             'FirstShellingPhase': lambda: self.damaged < 2,
             'SecondShellingPhase': lambda:
                 (self.damaged < 2) and (self.get_atk_plane()) and (self.get_range() >= 3),
@@ -712,7 +732,8 @@ class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
 
         from src.wsgr.formulas import AirNormalAtk
         self.normal_atk = AirNormalAtk  # 炮击战航空攻击
-        self.anti_sub_atk = None  # 反潜攻击
+        from src.wsgr.formulas import AirAntiSubAtk
+        self.anti_sub_atk = AirAntiSubAtk  # 反潜攻击
 
     def get_act_indicator(self):
         # 跳过阶段，优先级最高
@@ -770,26 +791,49 @@ class AV(Aircraft, LargeShip, MainShip):
 
 
 class BB(LargeShip, MainShip):
-    pass
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'BB'
 
 
 class BC(LargeShip, MainShip):
-    pass
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'BC'
 
 
 class BBV(Aircraft, LargeShip, MainShip):
+    """航战"""
     def __init__(self, timer):
         super().__init__(timer)
         self.type = 'BBV'
         self.flightparam = 10
 
+        self.act_phase_flag.update({
+            'SecondTorpedoPhase': False,
+        })
+
+        self.act_phase_indicator.update({
+            'SecondShellingPhase': lambda:
+                (self.get_range() >= 3) and (self.damaged < 3),
+        })
+
+        from src.wsgr.formulas import AirAntiSubAtk
+        self.anti_sub_atk = AirAntiSubAtk  # 反潜攻击
+
 
 class CAV(Aircraft, AntiSubShip, MidShip, CoverShip):
-    pass
+    """航巡"""
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'CAV'
+        self.flightparam = 10
 
 
 class CA(MidShip, CoverShip):
-    pass
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'CA'
 
 
 class CL(AntiSubShip, MidShip, CoverShip):
@@ -797,7 +841,13 @@ class CL(AntiSubShip, MidShip, CoverShip):
 
 
 class CLT(MidShip, CoverShip):
-    pass
+    """雷巡"""
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'CLT'
+
+        from src.wsgr.formulas import AntiSubAtk
+        self.anti_sub_atk = AntiSubAtk  # 反潜攻击
 
 
 class DD(AntiSubShip, SmallShip, CoverShip):
@@ -854,7 +904,12 @@ class Elite(Aircraft, LargeShip, MainShip):
 
     def __init__(self, timer):
         super().__init__(timer)
+        self.type = 'Elite'
         self.flightparam = 10
+
+        self.act_phase_flag.update({
+            'SecondTorpedoPhase': False,
+        })
 
 
 class Fortness(LandUnit, Aircraft):
@@ -862,7 +917,12 @@ class Fortness(LandUnit, Aircraft):
 
     def __init__(self, timer):
         super().__init__(timer)
+        self.type = 'Fortness'
         self.flightparam = 10
+
+        self.act_phase_flag.update({
+            'SecondTorpedoPhase': False,
+        })
 
 
 class Airfield(LandUnit, Aircraft):
@@ -870,6 +930,7 @@ class Airfield(LandUnit, Aircraft):
 
     def __init__(self, timer):
         super().__init__(timer)
+        self.type = 'Airfield'
         self.flightparam = 10
 
         self.act_phase_flag.update({

@@ -741,10 +741,12 @@ class PriorTargetBuff(Buff):
         prior = self.target.get_target(None, fleet)
         if not len(prior):
             return None
-        elif self.ordered:
+        elif self.name == 'prior_loc_target':
             return prior[0]
+        elif self.ordered:
+            return prior[:1]
         else:
-            return np.random.choice(prior)
+            return prior
 
 
 class EventBuff(Buff):
