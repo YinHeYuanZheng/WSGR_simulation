@@ -36,6 +36,10 @@ class Ship(Time):
             'luck': 0,  # 幸运
             'capacity': 0,  # 搭载
             'tag': '',  # 标签(特驱、z系等)
+            'supply_oil': 0,  # 补给油耗
+            'supply_ammo': 0,  # 补给弹耗
+            'repair_oil': 0,  # 修理油耗
+            'repair_steel': 0,  # 修理钢耗
         }
 
         self._skill = []  # 技能(未实例化)
@@ -49,7 +53,9 @@ class Ship(Time):
         self.affection = 200  # 好感
         self.damaged = 1  # 耐久状态, 1: 正常; 2: 中破; 3: 大破; 4: 撤退
         self.damage_protect = True  # 耐久保护，大破进击时消失
-        self.supply = 1.  # 补给状态
+        self.supply_oil = 1.  # 燃料补给状态
+        self.supply_ammo = 1.  # 弹药补给状态
+
         self.common_buff = []  # 永久面板加成
         self.temper_buff = []  # 临时buff
         self.active_buff = []  # 主动技能buff
@@ -564,7 +570,20 @@ class Ship(Time):
 
     def reset(self):
         """初始化当前舰船"""
-        pass
+        self.clear_buff()
+        supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
+
+        supply['oil'] += np.ceil((1 - self.supply_oil) * self.status['supply_oil'])
+        supply['ammo'] += np.ceil((1 - self.supply_ammo) * self.status['supply_ammo'])
+        got_damage = self.status['standard_health'] - self.status['health']
+        supply['oil'] += np.ceil(got_damage * self.status['repair_oil'])
+        supply['steel'] += np.ceil(got_damage * self.status['repair_steel'])
+        if len(self.load):
+            for i in range(len(self.equipment)):
+                tmp_equip = self.equipment[i]
+                if isinstance(tmp_equip, (Plane, Missile, AntiMissile)):
+                    supply_num = self.load[i] - tmp_equip.load
+                    supply['almn'] += supply_num * tmp_equip.status['supply_almn']
 
 
 class LargeShip(Ship):
@@ -701,7 +720,7 @@ class CV(Aircraft, LargeShip, MainShip):
         # 可参与阶段
         for tmp_buff in self.temper_buff:
             if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
-                return self.damaged < 2
+                return (self.damaged < 2) and (self.get_atk_plane())
 
         # 默认行动模式
         phase_name = type(self.timer.phase).__name__
@@ -744,7 +763,7 @@ class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
         # 可参与阶段
         for tmp_buff in self.temper_buff:
             if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
-                return self.damaged < 2
+                return (self.damaged < 2) and (self.get_atk_plane())
 
         # 默认行动模式
         phase_name = type(self.timer.phase).__name__
@@ -783,7 +802,7 @@ class AV(Aircraft, LargeShip, MainShip):
         # 可参与阶段
         for tmp_buff in self.temper_buff:
             if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
-                return self.damaged < 3
+                return (self.damaged < 3) and (self.get_atk_plane())
 
         # 默认行动模式
         phase_name = type(self.timer.phase).__name__
@@ -934,7 +953,6 @@ class Airfield(LandUnit, Aircraft):
         self.flightparam = 10
 
         self.act_phase_flag.update({
-            'AirPhase': True,
             'SecondTorpedoPhase': False,
             'NightPhase': False,
         })

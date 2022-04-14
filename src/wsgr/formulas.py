@@ -259,7 +259,7 @@ class ATK(Time):
             return .3
 
     def get_supply_coef(self):
-        return min(1., self.atk_body.supply * 2)
+        return min(1., self.atk_body.supply_ammo * 2)
 
     def formula(self):
         pass

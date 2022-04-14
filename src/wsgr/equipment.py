@@ -212,8 +212,12 @@ class Launcher(Equipment):
 
 
 class Missile(Equipment):
-    pass
+    def __init__(self, timer, master, enum):
+        super().__init__(timer, master, enum)
+        self.load = self.master.load[self.enum - 1]
 
 
 class AntiMissile(Equipment):
-    pass
+    def __init__(self, timer, master, enum):
+        super().__init__(timer, master, enum)
+        self.load = self.master.load[self.enum - 1]

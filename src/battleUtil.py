@@ -74,7 +74,15 @@ class BattleUtil(Time):
         self.timer.set_phase(SecondShellingPhase(self.timer, self.friend, self.enemy))
         self.timer.phase_start()
 
+    def supply_cost(self):
+        for tmp_ship in self.friend.ship:
+            tmp_ship.supply_oil = max(0., tmp_ship.supply_oil - 0.2)
+            tmp_ship.supply_ammo = max(0., tmp_ship.supply_ammo - 0.2)
+
     def end_phase(self):
+        # 资源消耗
+        self.supply_cost()
+
         # 大破进击取消保护
         for tmp_ship in self.friend.ship:
             if tmp_ship.damaged >= 3:
@@ -152,12 +160,24 @@ class BattleUtil(Time):
             self.timer.log['result'] = 'C'
 
     def report(self):
+        # 命中率
         try:
             hit_rate = self.timer.log['hit'] / \
                        (self.timer.log['hit'] + self.timer.log['miss'])
             self.timer.log['hit_rate'] = hit_rate
         except:
             self.timer.log['hit_rate'] = 0
+
+        # 消耗
+        supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
+        for tmp_ship in self.friend.ship:
+            ship_supply = tmp_ship.reset()
+            supply['oil'] += ship_supply['oil']
+            supply['ammo'] += ship_supply['ammo']
+            supply['steel'] += ship_supply['steel']
+            supply['almn'] += ship_supply['almn']
+        self.timer.log['supply'] = supply
+
         return self.timer.log
 
 
