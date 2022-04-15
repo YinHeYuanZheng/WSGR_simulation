@@ -172,10 +172,10 @@ class BattleUtil(Time):
         supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
         for tmp_ship in self.friend.ship:
             ship_supply = tmp_ship.reset()
-            supply['oil'] += ship_supply['oil']
-            supply['ammo'] += ship_supply['ammo']
-            supply['steel'] += ship_supply['steel']
-            supply['almn'] += ship_supply['almn']
+            supply['oil'] += int(ship_supply['oil'])
+            supply['ammo'] += int(ship_supply['ammo'])
+            supply['steel'] += int(ship_supply['steel'])
+            supply['almn'] += int(ship_supply['almn'])
         self.timer.log['supply'] = supply
 
         return self.timer.log

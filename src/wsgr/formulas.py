@@ -114,8 +114,8 @@ class ATK(Time):
                     tmp_buff.activate(self)
                     break
 
-        self.atk_body.atk_hit('give_atk')
-        self.target.atk_hit('get_atk')
+        self.atk_body.atk_hit('give_atk', self)
+        self.target.atk_hit('get_atk', self)
 
     def set_coef(self, coef):
         self.coef.update(coef)

@@ -573,17 +573,29 @@ class Ship(Time):
         self.clear_buff()
         supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
 
+        # 统计补给耗油并补满
         supply['oil'] += np.ceil((1 - self.supply_oil) * self.status['supply_oil'])
+        self.supply_oil = 1
+
+        # 统计补给耗弹并补满
         supply['ammo'] += np.ceil((1 - self.supply_ammo) * self.status['supply_ammo'])
+        self.supply_ammo = 1
+
+        # 统计修理费用并恢复血量
         got_damage = self.status['standard_health'] - self.status['health']
         supply['oil'] += np.ceil(got_damage * self.status['repair_oil'])
         supply['steel'] += np.ceil(got_damage * self.status['repair_steel'])
+        self.status['health'] = self.status['standard_health']
+
+        # 统计铝耗并补满
         if len(self.load):
             for i in range(len(self.equipment)):
                 tmp_equip = self.equipment[i]
                 if isinstance(tmp_equip, (Plane, Missile, AntiMissile)):
                     supply_num = self.load[i] - tmp_equip.load
                     supply['almn'] += supply_num * tmp_equip.status['supply_almn']
+                    tmp_equip.load = self.load[i]
+        return supply
 
 
 class LargeShip(Ship):
@@ -883,7 +895,10 @@ class AP(SmallShip, CoverShip):
 
 class MissileShip(Ship):
     """导弹船"""
-    pass
+
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.load = [0, 0, 0, 0]
 
 
 class ASDG(MissileShip, SmallShip, MainShip):
@@ -1045,9 +1060,6 @@ class Fleet(Time):
                     cover_speed += tmp_ship.get_final_status('speed')
                     cover_num += 1
 
-            main_speed /= main_num
-            cover_speed /= cover_num
-
             # debug
             if main_num + cover_num != len(self.ship):
                 raise ValueError('Number of ship not consist')
@@ -1056,15 +1068,15 @@ class Fleet(Time):
 
             # 主力舰与护卫舰同时存在，航速向下取整并取较小值
             elif main_num != 0 and cover_num != 0:
-                main_speed = np.floor(main_speed)
-                cover_speed = np.floor(cover_speed)
+                main_speed = np.floor(main_speed / main_num)
+                cover_speed = np.floor(cover_speed / cover_num)
                 return min(main_speed, cover_speed)
 
             # 否则不取整
             elif main_num != 0:
-                return main_speed
+                return main_speed / main_num
             else:
-                return cover_speed
+                return cover_speed / cover_num
 
         # 只有水下舰
         else:
