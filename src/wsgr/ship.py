@@ -51,6 +51,8 @@ class Ship(Time):
         self.loc = 0  # 站位, 1-6
         self.level = 110  # 等级
         self.affection = 200  # 好感
+
+        self.got_damage = 0
         self.damaged = 1  # 耐久状态, 1: 正常; 2: 中破; 3: 大破; 4: 撤退
         self.damage_protect = True  # 耐久保护，大破进击时消失
         self.supply_oil = 1.  # 燃料补给状态
@@ -73,18 +75,18 @@ class Ship(Time):
         }  # 可参与阶段
 
         self.act_phase_indicator = {
-            'AirPhase': lambda: False,
-            'FirstMissilePhase': lambda: False,
-            'AntisubPhase': lambda: False,
-            'FirstTorpedoPhase': lambda:
-                (self.level > 10) and (self.damaged < 3),
-            'FirstShellingPhase': lambda: self.damaged < 4,
-            'SecondShellingPhase': lambda:
-                (self.get_range() >= 3) and (self.damaged < 4),
-            'SecondTorpedoPhase': lambda:
-                (self.damaged < 3) and (self.get_final_status('torpedo') > 0),
-            'SecondMissilePhase': lambda: False,
-            'NightPhase': lambda: self.damaged < 3,
+            'AirPhase': lambda x: False,
+            'FirstMissilePhase': lambda x: False,
+            'AntisubPhase': lambda x: False,
+            'FirstTorpedoPhase': lambda x:
+                (x.level > 10) and (x.damaged < 3),
+            'FirstShellingPhase': lambda x: x.damaged < 4,
+            'SecondShellingPhase': lambda x:
+                (x.get_range() >= 3) and (x.damaged < 4),
+            'SecondTorpedoPhase': lambda x:
+                (x.damaged < 3) and (x.get_final_status('torpedo') > 0),
+            'SecondMissilePhase': lambda x: False,
+            'NightPhase': lambda x: x.damaged < 3,
         }  # 可行动标准
 
         from src.wsgr.formulas import NormalAtk
@@ -421,7 +423,7 @@ class Ship(Time):
 
         # 默认行动模式
         phase_name = type(self.timer.phase).__name__
-        return self.act_phase_indicator[phase_name]()
+        return self.act_phase_indicator[phase_name](self)
 
     def raise_atk(self, target_fleet):
         """判断炮击战、夜战攻击类型(todo 夜战、航战)"""
@@ -531,7 +533,9 @@ class Ship(Time):
             else:
                 damage = np.ceil(self.status['health'] - standard_health * 0.25)
 
-        self.status['health'] -= damage
+        self.status['health'] -= int(damage)
+        self.got_damage += int(damage)
+
         # 受伤状态结算
         if self.status['health'] <= 0:
             self.status['health'] = 0
@@ -674,8 +678,8 @@ class AntiSubShip(Ship):
         self.act_phase_flag.update({'AntisubPhase': True})
 
         self.act_phase_indicator.update({
-            'AntisubPhase': lambda:
-                (self.get_form() == 5) and (self.damaged < 4),
+            'AntisubPhase': lambda x:
+                (x.get_form() == 5) and (x.damaged < 4),
         })
 
         from src.wsgr.formulas import AntiSubAtk
@@ -689,7 +693,7 @@ class Aircraft(Ship):
         super().__init__(timer)
         self.flightparam = 0
         self.act_phase_flag.update({'AirPhase': True})
-        self.act_phase_indicator.update({'AirPhase': lambda: self.damaged < 3})
+        self.act_phase_indicator.update({'AirPhase': lambda x: x.damaged < 3})
 
     def get_atk_plane(self):
         """检查攻击型飞机是否有载量"""
@@ -713,11 +717,11 @@ class CV(Aircraft, LargeShip, MainShip):
         })
 
         self.act_phase_indicator.update({
-            'AirPhase': lambda: self.damaged < 3,
-            'FirstShellingPhase': lambda:
-                (self.damaged < 2) and (self.get_atk_plane()),
-            'SecondShellingPhase': lambda:
-                (self.damaged < 2) and (self.get_atk_plane()) and (self.get_range() >= 3),
+            'AirPhase': lambda x: x.damaged < 3,
+            'FirstShellingPhase': lambda x:
+                (x.damaged < 2) and (x.get_atk_plane()),
+            'SecondShellingPhase': lambda x:
+                (x.damaged < 2) and (x.get_atk_plane()) and (x.get_range() >= 3),
         })
 
         from src.wsgr.formulas import AirNormalAtk
@@ -736,7 +740,7 @@ class CV(Aircraft, LargeShip, MainShip):
 
         # 默认行动模式
         phase_name = type(self.timer.phase).__name__
-        return self.act_phase_indicator[phase_name]()
+        return self.act_phase_indicator[phase_name](self)
 
 
 class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
@@ -753,12 +757,12 @@ class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
         })
 
         self.act_phase_indicator.update({
-            'AirPhase': lambda: self.damaged < 3,
-            'AntisubPhase': lambda:
-                (self.damaged < 2) and (self.get_atk_plane()) and (self.get_form() == 5),
-            'FirstShellingPhase': lambda: self.damaged < 2,
-            'SecondShellingPhase': lambda:
-                (self.damaged < 2) and (self.get_atk_plane()) and (self.get_range() >= 3),
+            'AirPhase': lambda x: x.damaged < 3,
+            'AntisubPhase': lambda x:
+                (x.damaged < 2) and (x.get_atk_plane()) and (x.get_form() == 5),
+            'FirstShellingPhase': lambda x: x.damaged < 2,
+            'SecondShellingPhase': lambda x:
+                (x.damaged < 2) and (x.get_atk_plane()) and (x.get_range() >= 3),
         })
 
         from src.wsgr.formulas import AirNormalAtk
@@ -779,7 +783,7 @@ class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
 
         # 默认行动模式
         phase_name = type(self.timer.phase).__name__
-        return self.act_phase_indicator[phase_name]()
+        return self.act_phase_indicator[phase_name](self)
 
 
 class AV(Aircraft, LargeShip, MainShip):
@@ -795,11 +799,11 @@ class AV(Aircraft, LargeShip, MainShip):
         })
 
         self.act_phase_indicator.update({
-            'AirPhase': lambda: self.damaged < 3,
-            'FirstShellingPhase': lambda:
-                (self.damaged < 3) and (self.get_atk_plane()),
-            'SecondShellingPhase': lambda:
-                (self.damaged < 3) and (self.get_atk_plane()) and (self.get_range() >= 3),
+            'AirPhase': lambda x: x.damaged < 3,
+            'FirstShellingPhase': lambda x:
+                (x.damaged < 3) and (x.get_atk_plane()),
+            'SecondShellingPhase': lambda x:
+                (x.damaged < 3) and (x.get_atk_plane()) and (x.get_range() >= 3),
         })
 
         from src.wsgr.formulas import AirNormalAtk
@@ -818,7 +822,7 @@ class AV(Aircraft, LargeShip, MainShip):
 
         # 默认行动模式
         phase_name = type(self.timer.phase).__name__
-        return self.act_phase_indicator[phase_name]()
+        return self.act_phase_indicator[phase_name](self)
 
 
 class BB(LargeShip, MainShip):
@@ -845,8 +849,8 @@ class BBV(Aircraft, LargeShip, MainShip):
         })
 
         self.act_phase_indicator.update({
-            'SecondShellingPhase': lambda:
-                (self.get_range() >= 3) and (self.damaged < 3),
+            'SecondShellingPhase': lambda x:
+                (x.get_range() >= 3) and (x.damaged < 3),
         })
 
         from src.wsgr.formulas import AirAntiSubAtk
@@ -868,7 +872,9 @@ class CA(MidShip, CoverShip):
 
 
 class CL(AntiSubShip, MidShip, CoverShip):
-    pass
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'CL'
 
 
 class CLT(MidShip, CoverShip):
@@ -882,7 +888,9 @@ class CLT(MidShip, CoverShip):
 
 
 class DD(AntiSubShip, SmallShip, CoverShip):
-    pass
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'DD'
 
 
 class BM(SmallShip, CoverShip):
@@ -973,11 +981,11 @@ class Airfield(LandUnit, Aircraft):
         })
 
         self.act_phase_indicator.update({
-            'AirPhase': lambda: self.damaged < 3,
-            'FirstShellingPhase': lambda:
-                (self.damaged < 3) and (self.get_atk_plane()),
-            'SecondShellingPhase': lambda:
-                (self.damaged < 3) and (self.get_atk_plane()) and (self.get_range() >= 3),
+            'AirPhase': lambda x: x.damaged < 3,
+            'FirstShellingPhase': lambda x:
+                (x.damaged < 3) and (x.get_atk_plane()),
+            'SecondShellingPhase': lambda x:
+                (x.damaged < 3) and (x.get_atk_plane()) and (x.get_range() >= 3),
         })
 
         from src.wsgr.formulas import AirNormalAtk

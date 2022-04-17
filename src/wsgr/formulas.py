@@ -387,7 +387,8 @@ class AirStrikeAtk(AirAtk):
         if self.coef['plane_rest'] == 0:
             return self.end_atk(damage_flag, 'miss')
 
-        damage = self.formula()
+        real_atk = self.formula()
+        damage = self.real_damage(real_atk)
         if damage == 0:
             return self.end_atk(damage_flag, 'jump')
 

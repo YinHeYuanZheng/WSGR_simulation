@@ -26,6 +26,7 @@ class timer:
             },
             'miss': 0,
             'hit': 0,
+            'record': '',
         }
 
     def set_recon(self, recon_flag):
@@ -64,9 +65,10 @@ class timer:
         self.phase.start()
 
     def report(self, damage_value):
-        # print(f"{self.atk.atk_body.status['name']} -> "
-        #       f"{self.atk.target.status['name']}: "
-        #       f"{str(damage_value)}")
+        self.log['record'] += f"{type(self.atk).__name__}: " \
+                              f"{self.atk.atk_body.status['name']} -> " \
+                              f"{self.atk.target.status['name']}: " \
+                              f"{str(damage_value)}\n"
 
         if self.atk.atk_body.side == 1:
             if isinstance(damage_value, str):

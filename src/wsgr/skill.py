@@ -934,7 +934,8 @@ class ActiveBuff(Buff):
     """主动技能"""
 
     def __init__(self, timer, name, phase, num, rate,
-                 during_buff=None, end_buff=None, coef=None, bias_or_weight=3):
+                 during_buff: list = None, end_buff: list = None,
+                 coef=None, bias_or_weight=3):
         """
         :param num: 总攻击次数
         :param during_buff: 攻击期间buff

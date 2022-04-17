@@ -4,6 +4,7 @@
 
 # 装备特效
 from . import esid003  # 装备穿甲特效
+from . import esid004  # 超重弹特效
 
 # 未改航系
 from . import sid101191  # 皇家方舟-1
@@ -26,6 +27,7 @@ from . import sid104861  # G15-1
 from . import sid104941  # G6-1
 from . import sid104981  # 复仇-1
 from . import sid105101  # G14-1
+# from . import sid105131  # 勇猛-1
 
 # 改造航系
 from . import sid110021  # 扶桑改-1
@@ -123,3 +125,20 @@ from . import sid112072  # 南达科他-2
 from . import sid112111  # 卡约•杜伊里奥-1
 from . import sid113801  # 圣乔治-1
 from . import sid113802  # 圣乔治-2
+
+# 未改CACL
+from . import sid102431  # 得梅因-1
+from . import sid104101  # 萨勒姆-1
+
+# from . import sid104201  # 亚尔古水手-1
+from . import sid104221  # 凤凰城-1
+
+# 改造CACL
+from . import sid110391  # 威奇塔改-1
+from . import sid111371  # 波特兰改-1
+from . import sid111391  # 彭萨科拉改-1
+from . import sid112401  # 旧金山改-1
+from . import sid112411  # 巴尔的摩改-1
+from . import sid112412  # 巴尔的摩改-2
+
+from . import sid110501  # 天狼星改-1
