@@ -551,13 +551,6 @@ class Ship(Time):
 
     def remove_during_buff(self):
         """去除攻击期间的临时buff"""
-        # remove_list = []
-        # for tmp_buff in self.temper_buff:
-        #     if tmp_buff.is_during_buff():
-        #         remove_list.append(tmp_buff)
-        # for tmp_buff in remove_list:
-        #     self.temper_buff.remove(tmp_buff)
-
         i = 0
         while i < len(self.temper_buff):
             tmp_buff = self.temper_buff[i]
@@ -567,10 +560,22 @@ class Ship(Time):
             else:
                 i += 1
 
+    def reinit_health(self):
+        """战斗中更新血量状态"""
+        # 大破进击取消保护
+        if self.damaged >= 3:
+            self.damage_protect = False
+        self.got_damage = 0
+
     def clear_buff(self):
         """清空临时buff"""
         self.temper_buff = []
         self.active_buff = []
+
+    def reinit(self):
+        """道中初始化舰船状态"""
+        self.clear_buff()
+        self.reinit_health()
 
     def reset(self):
         """初始化当前舰船"""
@@ -590,6 +595,8 @@ class Ship(Time):
         supply['oil'] += np.ceil(got_damage * self.status['repair_oil'])
         supply['steel'] += np.ceil(got_damage * self.status['repair_steel'])
         self.status['health'] = self.status['standard_health']
+        self.got_damage = 0
+        self.damage_protect = True
 
         # 统计铝耗并补满
         if len(self.load):
@@ -1128,7 +1135,3 @@ class Fleet(Time):
             if isinstance(tmp_ship, shiptype):
                 c += 1
         return c
-
-    def clear_buff(self):
-        for tmp_ship in self.ship:
-            tmp_ship.clear_buff()

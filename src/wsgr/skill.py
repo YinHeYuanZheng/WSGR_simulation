@@ -505,7 +505,7 @@ class StatusTarget(Target):
 
 class EquipTarget(Target):
     """装备"""
-    def __init__(self, side, target, equiptype):
+    def __init__(self, side, target, equiptype=None):
         super().__init__(side)
         self.target = target  # Target, 描述目标装备的携带者
         self.equiptype = equiptype  # tuple, 目标装备类型
@@ -516,7 +516,8 @@ class EquipTarget(Target):
         equip_target = []
         for tmp_ship in ship_target:
             for tmp_equip in tmp_ship.equipment:
-                if isinstance(tmp_equip, self.equiptype):
+                if self.equiptype is None or \
+                        isinstance(tmp_equip, self.equiptype):
                     equip_target.append(tmp_equip)
         return equip_target
 

@@ -19,7 +19,7 @@ class Skill_104101_1(CommonSkill):
         self.buff = [
             CommonBuff(
                 timer=timer,
-                name='accuracy',
+                name='fire',
                 phase=AllPhase,
                 value=1.5,
                 bias_or_weight=0

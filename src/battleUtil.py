@@ -41,6 +41,13 @@ class BattleUtil(Time):
         self.friend.get_init_status()
         self.enemy.get_init_status()
 
+    def battle_reinit(self):
+        """道中初始化舰船状态，第一场战斗外每场战斗都要调用"""
+        self.timer.set_phase(AllPhase)
+        for tmp_ship in self.friend.ship:
+            tmp_ship.reinit()
+        self.timer.reinit()
+
     def start_phase(self):
         self.timer.log['start_health'] = {
             1: np.array([ship.status['health'] for ship in self.friend.ship]),
@@ -82,16 +89,6 @@ class BattleUtil(Time):
     def end_phase(self):
         # 资源消耗
         self.supply_cost()
-
-        # 大破进击取消保护
-        for tmp_ship in self.friend.ship:
-            if tmp_ship.damaged >= 3:
-                tmp_ship.damage_protect = False
-
-        # 清空buff
-        self.friend.clear_buff()
-        self.enemy.clear_buff()
-        self.timer.reset_queue()
 
         # 受伤记录
         self.timer.log['end_health'] = {
@@ -171,7 +168,7 @@ class BattleUtil(Time):
         # 消耗
         supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
         for tmp_ship in self.friend.ship:
-            ship_supply = tmp_ship.reset()
+            ship_supply = tmp_ship.reinit()
             supply['oil'] += int(ship_supply['oil'])
             supply['ammo'] += int(ship_supply['ammo'])
             supply['steel'] += int(ship_supply['steel'])

@@ -49,6 +49,8 @@ class Equipment(Time):
     def get_status(self, name):
         """根据属性名称获取装备属性，包含常驻面板加成"""
         status = self.status.get(name, 0)
+        status_key = ['health', 'fire', 'torpedo', 'armor', 'antisub', 'recon',
+                      'accuracy', 'range', 'evasion', 'luck', 'bomb', 'antiair']
 
         scale_add = 0
         scale_mult = 1
@@ -63,6 +65,11 @@ class Equipment(Time):
                     scale_mult *= (1 + tmp_buff.value)
                 else:
                     pass
+
+            elif name in status_key and \
+                    tmp_buff.name == 'all_status' and\
+                    tmp_buff.is_active():
+                scale_add += tmp_buff.value
         status = status * (1 + scale_add) * scale_mult + bias
         return max(0, status)
 
