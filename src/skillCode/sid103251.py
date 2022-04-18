@@ -6,7 +6,8 @@
 from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
-from src.wsgr.formulas import *
+from src.wsgr.formulas import AirAtk
+
 """蓝色幽灵(3级)：增加自身所携带轰炸机15%的威力，
 受到航空攻击时有25%概率免疫该次伤害。"""
 

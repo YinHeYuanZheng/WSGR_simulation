@@ -54,7 +54,8 @@ class SpecialAtkBuff_1(ActiveBuff):
         elif not enemy.ship[0].can_be_atk(atk):
             return False
         else:
-            return self.rate_verify()
+            return self.rate_verify() and \
+                   isinstance(self.timer.phase, self.phase)
 
     def active_start(self, atk, enemy, *args, **kwargs):
         assert self.master is not None

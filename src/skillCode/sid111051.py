@@ -63,7 +63,7 @@ class Skill_111051(Skill):
         ]
 
     def activate(self, friend, enemy):
-        buff_mul = 5
+        buff_mul = self.timer.get_dist()
         target = self.target.get_target(friend, enemy)
         for tmp_target in target:
             for tmp_buff in self.buff[:]:

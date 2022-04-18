@@ -144,7 +144,14 @@ from . import sid112412  # 巴尔的摩改-2
 # from . import sid110461  # 夕张改-1
 from . import sid110501  # 天狼星改-1
 from . import sid110541  # 重庆-1
-
+from . import sid110571  # 朱诺改-1
 from . import sid110581  # 高速射击
 from . import sid110591  # 海伦娜改-1
 from . import sid110592  # 海伦娜改-2
+from . import sid111601  # 摩尔曼斯克改-1
+from . import sid111621  # 逸仙改-1
+from . import sid114561  # 塔林-1
+
+# DD
+from . import sid113161  # 明斯克改-1
+from . import sid113351  # 伏尔塔改-1

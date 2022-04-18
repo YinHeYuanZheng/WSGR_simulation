@@ -46,6 +46,9 @@ class timer:
     def set_atk(self, atk):
         self.atk = atk
 
+    def get_dist(self):
+        return 5
+
     def queue_append(self, buff):
         if buff.name == 'tank':
             queue = self.queue['tank']

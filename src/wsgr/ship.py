@@ -499,7 +499,7 @@ class Ship(Time):
                     tmp_buff.is_active(atk=atk, *args, **kwargs):
                 tmp_buff.activate(atk=atk, *args, **kwargs)
 
-        if name == 'be_atk_hit':
+        if name == 'atk_be_hit':
             for tmp_buff in self.temper_buff:
                 if tmp_buff.name == 'hit_back' and \
                         tmp_buff.is_active(atk=atk, *args, **kwargs):

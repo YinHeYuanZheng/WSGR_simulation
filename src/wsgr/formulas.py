@@ -82,7 +82,6 @@ class ATK(Time):
     def target_init(self):
         """决定攻击目标，技能可以影响优先目标"""
         if self.target is not None:
-            self.changeable = False
             return self.target
 
         # 优先站位攻击
@@ -334,7 +333,7 @@ class ATK(Time):
             self.timer.report('miss')
         else:
             self.atk_body.atk_hit('atk_hit', self)
-            hit_back = self.target.atk_hit('be_atk_hit', self)
+            hit_back = self.target.atk_hit('atk_be_hit', self)
             self.timer.report(damage_value)
 
         self.atk_body.remove_during_buff()

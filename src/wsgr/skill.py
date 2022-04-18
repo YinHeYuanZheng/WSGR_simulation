@@ -284,7 +284,7 @@ class NearestLocTarget(Target):
     def __init__(self, side, master, radius, direction,
                  master_include=False, expand=False, shiptype=Ship):
         """
-        距离最近的(上方/下方/相邻)，可指定船型
+        距离最近的(上方/下方/相邻)，可指定船型，可以检索不完整队列
         :param side:
         :param master: 技能所有者
         :param radius: 相邻半径
@@ -317,6 +317,8 @@ class NearestLocTarget(Target):
             fleet = enemy
 
         target = []
+        if not len(fleet):
+            return target
 
         # 获取上方满足条件的目标
         if self.direction == 'up' or self.direction == 'near':
@@ -673,7 +675,7 @@ class AtkHitBuff(Buff):
                         'give_atk'      自身攻击时
                         'get_atk'       自身被攻击时
         :param buff: 施加效果内容
-        :param side: 给谁加, 0: 被攻击者; 1: 攻击者
+        :param side: 给谁加, 0: 敌方; 1: 友方
         :param atk_request: ATKRequest, 攻击判断(攻击者、被攻击者、攻击类型)
         """
         super().__init__(timer, name, phase, bias_or_weight, rate)
@@ -692,7 +694,7 @@ class AtkHitBuff(Buff):
 
     def activate(self, atk, *args, **kwargs):
         if (self.name == 'atk_hit' and self.side == 1) or \
-                (self.name == 'be_atk_hit' and self.side == 0):
+                (self.name == 'atk_be_hit' and self.side == 0):
             target = atk.atk_body
         else:
             target = atk.target
@@ -928,6 +930,7 @@ class HitBack(SpecialBuff):
             coef=self.coef,
             target=atk.atk_body
         )
+        hit_back.changable = False
         return hit_back
 
 
@@ -960,6 +963,12 @@ class ActiveBuff(Buff):
     def is_active_buff(self):
         return True
 
+    def is_active(self, atk, enemy, *args, **kwargs):
+        def_list = enemy.get_atk_target(atk_type=atk)
+        return len(def_list) and \
+               self.rate_verify() and \
+               isinstance(self.timer.phase, self.phase)
+
     def active_start(self, atk, enemy, *args, **kwargs):
         """迭代器，依次执行攻击时效果、攻击行动、攻击后效果"""
         pass
@@ -983,6 +992,7 @@ class MultipleAtkBuff(ActiveBuff):
     def active_start(self, atk, enemy, *args, **kwargs):
         assert self.master is not None
         def_list = enemy.get_atk_target(atk_type=atk)
+        assert len(def_list)
         self.add_during_buff()  # 攻击时效果
 
         for i in range(self.num):
@@ -1009,10 +1019,9 @@ class ExtraAtkBuff(ActiveBuff):
     def active_start(self, atk, enemy, *args, **kwargs):
         assert self.master is not None
         def_list = enemy.get_atk_target(atk_type=atk)
-        if not len(def_list):
-            return
-
+        assert len(def_list)
         self.add_during_buff()  # 攻击时效果
+
         atk_sample = atk(
             timer=self.timer,
             atk_body=self.master,
