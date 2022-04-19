@@ -66,12 +66,14 @@ class SecondAtkBuff(MultipleAtkBuff):
         assert self.master is not None
         def_list = enemy.get_atk_target(atk_type=atk)
 
+        buff_flag = False
         for i in range(self.num):
             if not len(def_list):
                 break
 
             if i == self.num - 1:
                 self.add_during_buff()  # 攻击时效果
+                buff_flag = True
 
             tmp_atk = atk(
                 timer=self.timer,
@@ -83,7 +85,8 @@ class SecondAtkBuff(MultipleAtkBuff):
             def_list.remove(tmp_target)
             yield tmp_atk
 
-        self.remove_during_buff()  # 去除攻击时效果
+        if buff_flag:
+            self.remove_during_buff()  # 去除攻击时效果
         self.add_end_buff()  # 攻击结束效果
 
 

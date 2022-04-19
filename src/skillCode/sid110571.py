@@ -14,7 +14,23 @@ class Skill_110571(Skill):
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
-        self.buff = []
+        self.buff = [
+            NeighborAtkBuff(
+                timer=timer,
+                name='multi_attack',
+                phase=ShellingPhase,
+                num=2,
+                rate=0.4,
+                during_buff=[
+                    FinalDamageBuff(
+                        timer=timer,
+                        name='final_damage_buff',
+                        phase=ShellingPhase,
+                        value=-0.1
+                    )
+                ]
+            )
+        ]
 
 
 class NeighborAtkBuff(ActiveBuff):
