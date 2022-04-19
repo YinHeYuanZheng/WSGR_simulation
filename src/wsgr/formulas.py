@@ -939,18 +939,19 @@ class AirNormalAtk(NormalAtk, AirAtk):
 
         # 基础命中率
         accuracy = self.atk_body.get_final_status('accuracy')
-        evasion = self.target.get_final_status('evasion')
+        # evasion = self.target.get_final_status('evasion')
 
         # 好感补正
         accuracy *= 1 + self.atk_body.affection * 0.001
-        evasion *= 1 + self.target.affection * 0.001
+        # evasion *= 1 + self.target.affection * 0.001
 
         # 梯形锁定减少闪避
 
-        if evasion == 0:
-            evasion = 1
-        hit_rate = accuracy / evasion / 2
-        # hit_rate = min(1, hit_rate)
+        # if evasion == 0:
+        #     evasion = 1
+        # hit_rate = accuracy / evasion / 2
+        hit_rate = accuracy / 50 / 2
+        hit_rate = min(1, hit_rate)
 
         # 阵型命中率补正
         hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
