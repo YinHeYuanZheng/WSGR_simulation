@@ -60,6 +60,7 @@ class Skill_112331_3(Skill):
         target = self.target.get_target(friend, enemy)
         for tmp_target in target:
             for tmp_buff in self.buff[:]:
+                tmp_buff = copy.copy(tmp_buff)
                 if tmp_target.status['country'] == 'J':
                     tmp_buff.value *= 2
                 tmp_target.add_buff(tmp_buff)

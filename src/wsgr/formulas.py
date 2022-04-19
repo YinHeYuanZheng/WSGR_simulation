@@ -194,7 +194,7 @@ class ATK(Time):
 
         # 基础命中率
         accuracy = self.atk_body.get_final_status('accuracy')
-        evasion = self.atk_body.get_final_status('evasion')
+        evasion = self.target.get_final_status('evasion')
 
         # 好感补正
         accuracy *= 1 + self.atk_body.affection * 0.001
@@ -232,10 +232,10 @@ class ATK(Time):
         hit_rate += add
 
         # 技能补正
-        _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
-        hit_rate += hitrate_bias
-        _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
-        hit_rate -= hitrate_bias
+        hitrate_scale, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
+        hit_rate *= 1 + hitrate_scale
+        hitrate_scale, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
+        hit_rate *= 1 - hitrate_scale
 
         hit_rate = cap(hit_rate)
         verify = np.random.random()
@@ -244,6 +244,7 @@ class ATK(Time):
             return
         else:
             self.coef['hit_flag'] = False
+            return
 
     def get_dmg_coef(self):
         if self.get_coef('ignore_damaged'):
@@ -436,16 +437,11 @@ class AirStrikeAtk(AirAtk):
 
         # 基础命中率
         accuracy = self.atk_body.get_final_status('accuracy')
-        evasion = self.atk_body.get_final_status('evasion')
 
         # 好感补正
         accuracy *= 1 + self.atk_body.affection * 0.001
-        evasion *= 1 + self.target.affection * 0.001
-
-        if evasion == 0:
-            evasion = 1
-        hit_rate = accuracy / evasion / 2
-        # hit_rate = min(1, hit_rate)
+        hit_rate = accuracy / 50 / 2
+        hit_rate = min(1, hit_rate)
 
         # 阵型命中率补正
         hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
@@ -475,14 +471,14 @@ class AirStrikeAtk(AirAtk):
         hit_rate *= aa_hit_coef
 
         # 装备补正
-        _, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
-        hit_rate += hitrate_bias
+        hitrate_scale, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
+        hit_rate *= 1 + hitrate_scale
 
         # 技能补正
-        _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
-        hit_rate += hitrate_bias
-        _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
-        hit_rate -= hitrate_bias
+        hitrate_scale, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
+        hit_rate *= 1 + hitrate_scale
+        hitrate_scale, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
+        hit_rate *= 1 - hitrate_scale
 
         hit_rate = cap(hit_rate)
         verify = np.random.random()
@@ -943,7 +939,7 @@ class AirNormalAtk(NormalAtk, AirAtk):
 
         # 基础命中率
         accuracy = self.atk_body.get_final_status('accuracy')
-        evasion = self.atk_body.get_final_status('evasion')
+        evasion = self.target.get_final_status('evasion')
 
         # 好感补正
         accuracy *= 1 + self.atk_body.affection * 0.001
@@ -984,10 +980,10 @@ class AirNormalAtk(NormalAtk, AirAtk):
         hit_rate *= aa_hit_coef
 
         # 技能补正
-        _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
-        hit_rate += hitrate_bias
-        _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
-        hit_rate -= hitrate_bias
+        hitrate_scale, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
+        hit_rate *= 1 + hitrate_scale
+        hitrate_scale, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
+        hit_rate *= 1 - hitrate_scale
 
         hit_rate = cap(hit_rate)
         verify = np.random.random()

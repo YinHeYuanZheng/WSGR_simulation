@@ -24,7 +24,7 @@ class Skill_110231(Skill):
         ]
 
     def activate(self, friend, enemy):
-        buff = self.buff[:]
+        buff = copy.copy(self.buff[0])
 
         # 获取航系
         target_craft = TypeTarget(
@@ -42,9 +42,8 @@ class Skill_110231(Skill):
         num_craft = len(target_craft)
         num_e_craft = len(target_e_craft)
 
-        buff_0 = buff[0]
-        buff_0.value *= (num_craft + num_e_craft)
-        self.master.add_buff(buff_0)
+        buff.value *= (num_craft + num_e_craft)
+        self.master.add_buff(buff)
 
 
 skill = [Skill_110231]

@@ -33,15 +33,9 @@ class Skill_103811(Skill):
         ]
 
     def activate(self, friend, enemy):
-        buff = self.buff[:]
-
         # 火力buff
-        buff_0 = buff[0]
-        # 获取BB
-        target_bb = TypeTarget(
-            side=1,
-            shiptype=BB
-        ).get_target(friend, enemy)
+        buff_0 = copy.copy(self.buff[0])
+        target_bb = TypeTarget(side=1, shiptype=BB).get_target(friend, enemy)  # 获取BB
         bb_num = len(target_bb)
 
         # bb均速
@@ -58,7 +52,7 @@ class Skill_103811(Skill):
         self.master.add_buff(buff_0)
 
         # 命中buff
-        buff_1 = buff[1]
+        buff_1 = copy.copy(self.buff[1])
         buff_1.value *= bb_num
         self.master.add_buff(buff_1)
 

@@ -6,6 +6,7 @@
 import numpy as np
 from src.wsgr.wsgrTimer import Time
 from src.wsgr.equipment import *
+# from src.wsgr.formulas import *
 
 
 class Ship(Time):
@@ -443,7 +444,7 @@ class Ship(Time):
             return [atk]
 
         # 优先反潜
-        elif self.anti_sub_atk is not None:
+        if self.anti_sub_atk is not None:
             def_list = target_fleet.get_atk_target(atk_type=self.anti_sub_atk)
             if len(def_list):
                 atk = self.anti_sub_atk(
@@ -454,17 +455,16 @@ class Ship(Time):
                 return [atk]
 
         # 常规攻击模式
-        else:
-            def_list = target_fleet.get_atk_target(atk_type=self.normal_atk)
-            if not len(def_list):
-                return []
+        def_list = target_fleet.get_atk_target(atk_type=self.normal_atk)
+        if not len(def_list):
+            return []
 
-            atk = self.normal_atk(
-                timer=self.timer,
-                atk_body=self,
-                def_list=def_list,
-            )
-            return [atk]
+        atk = self.normal_atk(
+            timer=self.timer,
+            atk_body=self,
+            def_list=def_list,
+        )
+        return [atk]
 
     # def get_atk_type(self, target):  # 备用接口
     #     """判断攻击该对象时使用什么攻击类型"""
@@ -472,7 +472,10 @@ class Ship(Time):
 
     def can_be_atk(self, atk):
         """判断舰船是否可被某攻击类型指定"""
-        return self.damaged <= 3
+        from src.wsgr.formulas import AntiSubAtk
+        if issubclass(atk, AntiSubAtk):
+            return False
+        return self.damaged < 4
 
     def get_prior_type_target(self, fleet, *args, **kwargs):
         """获取指定列表可被自身优先攻击船型的目标"""
@@ -654,8 +657,8 @@ class Submarine(Ship):
 
     def can_be_atk(self, atk):
         from src.wsgr.formulas import AntiSubAtk
-        if isinstance(atk, AntiSubAtk):
-            return True
+        if issubclass(atk, AntiSubAtk):
+            return self.damaged < 4
         else:
             return False
 
@@ -772,9 +775,8 @@ class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
                 (x.damaged < 2) and (x.get_atk_plane()) and (x.get_range() >= 3),
         })
 
-        from src.wsgr.formulas import AirNormalAtk
+        from src.wsgr.formulas import AirNormalAtk, AirAntiSubAtk
         self.normal_atk = AirNormalAtk  # 炮击战航空攻击
-        from src.wsgr.formulas import AirAntiSubAtk
         self.anti_sub_atk = AirAntiSubAtk  # 反潜攻击
 
     def get_act_indicator(self):
@@ -939,13 +941,13 @@ class BG(MissileShip, LargeShip, MainShip):
 class LandUnit(LargeShip, MainShip):
     """路基单位"""
     def can_be_atk(self, atk):
-        from src.wsgr.formulas import TorpedoAtk  # , AntiSubAtk
-        if isinstance(atk, TorpedoAtk):
+        from src.wsgr.formulas import TorpedoAtk, AntiSubAtk
+        if issubclass(atk, TorpedoAtk):
             return False
-        # elif isinstance(atk, AntiSubAtk):
-        #     return False
+        elif issubclass(atk, AntiSubAtk):
+            return False
         else:
-            return True
+            return self.damaged < 4
 
 
 class Elite(Aircraft, LargeShip, MainShip):

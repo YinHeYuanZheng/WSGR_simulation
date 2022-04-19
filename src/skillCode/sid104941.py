@@ -55,6 +55,7 @@ class Skill_104941_2(Skill):
             target = np.random.choice(target, 3, replace=False)
         for tmp_target in target:
             for tmp_buff in self.buff[:]:
+                tmp_buff = copy.copy(tmp_buff)
                 tmp_target.add_buff(tmp_buff)
 
 

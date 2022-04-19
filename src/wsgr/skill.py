@@ -4,6 +4,7 @@
 # 技能类
 
 import numpy as np
+import copy
 
 from src.wsgr.wsgrTimer import Time
 from src.wsgr.ship import Ship, Fleet
@@ -30,6 +31,7 @@ class Skill(Time):
         target = self.target.get_target(friend, enemy)
         for tmp_target in target:
             for tmp_buff in self.buff[:]:
+                tmp_buff = copy.copy(tmp_buff)
                 tmp_target.add_buff(tmp_buff)
 
     def is_common(self):
@@ -81,6 +83,7 @@ class EquipSkill(Skill):
         target = self.target.get_target(friend, enemy)
         for tmp_target in target:
             for tmp_buff in self.buff[:]:
+                tmp_buff = copy.copy(tmp_buff)
                 buff_type = tmp_buff.effect_type
 
                 # 2类不叠加
@@ -700,6 +703,7 @@ class AtkHitBuff(Buff):
             target = atk.target
 
         for tmp_buff in self.buff[:]:
+            tmp_buff = copy.copy(tmp_buff)
             target.add_buff(tmp_buff)
 
 

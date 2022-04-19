@@ -29,10 +29,11 @@ if __name__ == '__main__':
     result = [0] * 6
     result_flag_list = ['SS', 'S', 'A', 'B', 'C', 'D']
     supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
-    for i in range(10):
+    for i in range(1):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
+        print(log['record'])
 
         result_flag_id = result_flag_list.index(log['result'])
         result[result_flag_id] += 1

@@ -47,6 +47,7 @@ class Skill_102051(Skill):
 
         buff_num = len(target_not_e)
         for tmp_buff in self.buff[:]:
+            tmp_buff = copy.copy(tmp_buff)
             tmp_buff.value *= buff_num
             self.master.add_buff(tmp_buff)
 

@@ -25,13 +25,8 @@ class Skill_104601_1(Skill):
         ]
 
     def activate(self, friend, enemy):
-        buff = self.buff[:]
-
-        target_large = TypeTarget(
-            side=1,
-            shiptype=LargeShip
-        ).get_target(friend, enemy)
-        buff_0 = buff[0]
+        buff_0 = copy.copy(self.buff[0])
+        target_large = TypeTarget(side=1, shiptype=LargeShip).get_target(friend, enemy)  # 获取大型船
         buff_0.value *= len(target_large)
         self.master.add_buff(buff_0)
 

@@ -84,6 +84,7 @@ class Skill_104831_3(Skill):
         for tmp_target in target:
             if tmp_target.status['country'] in 'UE':
                 for tmp_buff in self.buff[:]:
+                    tmp_buff = copy.copy(tmp_buff)
                     tmp_target.add_buff(tmp_buff)
 
 

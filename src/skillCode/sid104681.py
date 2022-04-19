@@ -98,13 +98,12 @@ class Skill_104681_3(Skill):
         target = self.target.get_target(friend, enemy)
         for tmp_target in target:
             for tmp_buff in self.buff[:]:
-                if tmp_target.get_final_status('speed') > 27:
-                    tmp_target.add_buff(tmp_buff)
+                tmp_buff = copy.copy(tmp_buff)
 
                 # 对低速舰船提升数值翻倍
-                else:
+                if tmp_target.get_final_status('speed') <= 27:
                     tmp_buff.value *= 2
-                    tmp_target.add_buff(tmp_buff)
+                tmp_target.add_buff(tmp_buff)
 
 
 skill = [Skill_104681_1, Skill_104681_2, Skill_104681_3]

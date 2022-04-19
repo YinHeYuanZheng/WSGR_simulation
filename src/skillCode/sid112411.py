@@ -50,6 +50,7 @@ class Skill_112411_1(Skill):
         target = self.target.get_target(friend, enemy)
         for tmp_target in target:
             for tmp_buff in self.buff[:]:
+                tmp_buff = copy.copy(tmp_buff)
                 tmp_buff.value *= len(u_ca)
                 tmp_target.add_buff(tmp_buff)
 
@@ -83,6 +84,7 @@ class Skill_112411_2(Skill):
         target = self.target.get_target(friend, enemy)
         for tmp_target in target:
             for tmp_buff in self.buff[:]:
+                tmp_buff = copy.copy(tmp_buff)
                 tmp_buff.value *= len(u_cl)
                 tmp_target.add_buff(tmp_buff)
 

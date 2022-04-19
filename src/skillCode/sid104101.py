@@ -31,6 +31,7 @@ class Skill_104101_1(CommonSkill):
         e_accuracy = self.master.get_equip_status('accuracy')
         for tmp_target in target:
             for tmp_buff in self.buff[:]:
+                tmp_buff = copy.copy(tmp_buff)
                 tmp_buff.value *= e_accuracy
                 tmp_target.add_buff(tmp_buff)
 

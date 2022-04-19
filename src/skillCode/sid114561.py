@@ -89,6 +89,7 @@ class OnceAtkHitBuff(AtkHitBuff):
             target = atk.target
 
         for tmp_buff in self.buff[:]:
+            tmp_buff = copy.copy(tmp_buff)
             target.add_buff(tmp_buff)
 
         self.exhaust -= 1

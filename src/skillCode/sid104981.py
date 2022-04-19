@@ -25,15 +25,8 @@ class Skill_104981(Skill):
         ]
 
     def activate(self, friend, enemy):
-        buff = self.buff[:]
-
-        # 获取埃塞克斯级
-        target_essex = TagTarget(
-            side=1,
-            tag='essex'
-        ).get_target(friend, enemy)
-
-        buff_0 = buff[0]
+        buff_0 = copy.copy(self.buff[0])
+        target_essex = TagTarget(side=1, tag='essex').get_target(friend, enemy)  # 获取埃塞克斯级
         buff_0.value *= len(target_essex)
         self.master.add_buff(buff_0)
 

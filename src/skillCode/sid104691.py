@@ -46,6 +46,7 @@ class Skill_104691_2(Skill):
         target.remove(self.master)  # 去除自身
         for tmp_target in target:
             for tmp_buff in self.buff[:]:
+                tmp_buff = copy.copy(tmp_buff)
                 tmp_target.add_buff(tmp_buff)
 
 

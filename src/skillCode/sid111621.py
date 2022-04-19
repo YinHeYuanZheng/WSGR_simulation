@@ -2,7 +2,6 @@
 # Author:银河远征
 # env:py38
 # 逸仙改-1
-import copy
 
 from src.wsgr.skill import *
 from src.wsgr.ship import *

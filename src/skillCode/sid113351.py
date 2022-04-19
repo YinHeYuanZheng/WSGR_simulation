@@ -93,8 +93,10 @@ class Skill_113351_3(Skill):
             return
         target = self.target.get_target(friend, enemy)
         for tmp_buff in self.buff[:]:
-            target.add_buff(tmp_buff)
-            self.target_2.add_buff(tmp_buff)
+            tmp_buff_1 = copy.copy(tmp_buff)
+            target.add_buff(tmp_buff_1)
+            tmp_buff_2 = copy.copy(tmp_buff)
+            self.target_2.add_buff(tmp_buff_2)
 
 
 skill = [Skill_113351_1, Skill_113351_2, Skill_113351_3]

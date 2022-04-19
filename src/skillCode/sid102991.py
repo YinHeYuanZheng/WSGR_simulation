@@ -41,8 +41,9 @@ class Skill_102991_2(PrepSkill):
 
         target = np.random.choice(mid_large)
         _skill = target.get_raw_skill()  # 获得其技能
-        for tmp_skill in _skill:
-            tmp_skill.change_master(self.master)
+        for skill in _skill:
+            # tmp_skill.change_master(self.master)
+            tmp_skill = skill(self.timer, self)
             tmp_skill.change_rate(1)  # 变为100%发动
             if tmp_skill.is_active(friend, enemy):
                 tmp_skill.activate(friend, enemy)
