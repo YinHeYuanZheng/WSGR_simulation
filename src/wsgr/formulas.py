@@ -407,7 +407,8 @@ class AirStrikeAtk(AirAtk):
         team_anti_air = get_team_anti_air(self.def_list)  # 全队对空补正
         equip_anti_air = self.target.get_equip_status('antiair')  # 装备对空总和
         aa_value = target_anti_air + team_anti_air + equip_anti_air
-        aa_value *= self.get_form_coef('anti_def', self.target.get_form())  # todo 未明确
+        if self.target.function == 'cover':
+            aa_value *= self.get_form_coef('anti_def', self.target.get_form())  # todo 未明确
 
         alpha = np.random.random()
         bottom_a = 0.618
@@ -469,7 +470,7 @@ class AirStrikeAtk(AirAtk):
             aa_base = 150
             mul_rate = 0.5
         aa_hit_coef = aa_base / (aa_base + aa_value)
-        hit_rate *= aa_hit_coef
+        hit_rate *= aa_hit_coef * mul_rate
 
         # 装备补正
         hitrate_scale, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
@@ -979,7 +980,7 @@ class AirNormalAtk(NormalAtk, AirAtk):
             aa_base = 150
             mul_rate = 0.5
         aa_hit_coef = aa_base / (aa_base + aa_value)
-        hit_rate *= aa_hit_coef
+        hit_rate *= aa_hit_coef * mul_rate
 
         # 技能补正
         hitrate_scale, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)

@@ -27,7 +27,7 @@ from . import sid104861  # G15-1
 from . import sid104941  # G6-1
 from . import sid104981  # 复仇-1
 from . import sid105101  # G14-1
-# from . import sid105131  # 勇猛-1
+from . import sid105131  # 勇猛-1
 
 # 改造航系
 from . import sid110021  # 扶桑改-1
