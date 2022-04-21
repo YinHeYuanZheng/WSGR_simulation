@@ -196,9 +196,9 @@ class ATK(Time):
         accuracy = self.atk_body.get_final_status('accuracy')
         evasion = self.target.get_final_status('evasion')
 
-        # 好感补正
-        accuracy *= 1 + self.atk_body.affection * 0.001
-        evasion *= 1 + self.target.affection * 0.001
+        # 好感补正(已移入基本属性获取)
+        # accuracy *= 1 + self.atk_body.affection * 0.001
+        # evasion *= 1 + self.target.affection * 0.001
 
         # 梯形锁定减少闪避
 
@@ -438,8 +438,9 @@ class AirStrikeAtk(AirAtk):
         # 基础命中率
         accuracy = self.atk_body.get_final_status('accuracy')
 
-        # 好感补正
-        accuracy *= 1 + self.atk_body.affection * 0.001
+        # 好感补正(已移入基本属性获取)
+        # accuracy *= 1 + self.atk_body.affection * 0.001
+
         hit_rate = accuracy / 50 / 2
         hit_rate = min(1, hit_rate)
 
@@ -941,8 +942,8 @@ class AirNormalAtk(NormalAtk, AirAtk):
         accuracy = self.atk_body.get_final_status('accuracy')
         # evasion = self.target.get_final_status('evasion')
 
-        # 好感补正
-        accuracy *= 1 + self.atk_body.affection * 0.001
+        # 好感补正(已移入基本属性获取)
+        # accuracy *= 1 + self.atk_body.affection * 0.001
         # evasion *= 1 + self.target.affection * 0.001
 
         # 梯形锁定减少闪避

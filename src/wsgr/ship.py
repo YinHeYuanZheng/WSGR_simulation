@@ -281,6 +281,11 @@ class Ship(Time):
                     scale_mult *= (1 + tmp_buff.value)
                 else:
                     pass
+
+        # 好感补正
+        if name in ['accuracy', 'evasion'] and self.side == 1:
+            scale_mult *= 1 + self.affection * 0.001
+
         status = status * (1 + scale_add) * scale_mult + bias
         return max(0, status)
 
