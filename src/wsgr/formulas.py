@@ -494,6 +494,22 @@ class AirStrikeAtk(AirAtk):
     def final_damage(self, damage):
         """航空攻击终伤"""
 
+        # 对空减伤
+        aa_value = self.get_anti_air_def()
+        if self.target.size == 3:
+            aa_base = 150
+        elif self.target.size == 2:
+            aa_base = 375
+        else:
+            aa_base = 1500
+        aa_damage_coef = aa_base / (aa_base + aa_value)
+        damage = np.ceil(damage * aa_damage_coef)
+
+        # 装母对轰炸减伤75%
+        from src.wsgr.ship import AV
+        if isinstance(self.target, AV) and isinstance(self, AirBombAtk):
+            damage = np.ceil(damage * .25)
+
         # 额外伤害
         _, extra_damage = self.atk_body.get_atk_buff('extra_damage', self)
         damage += extra_damage
@@ -512,23 +528,7 @@ class AirStrikeAtk(AirAtk):
         if buff_scale:
             damage = np.ceil(damage * (1 + buff_scale))
 
-        # 对空减伤
-        aa_value = self.get_anti_air_def()
-        if self.target.size == 3:
-            aa_base = 150
-        elif self.target.size == 2:
-            aa_base = 375
-        else:
-            aa_base = 1500
-        aa_damage_coef = aa_base / (aa_base + aa_value)
-        damage = np.ceil(damage * aa_damage_coef)
-
         # 战术终伤
-
-        # 装母对轰炸减伤75%
-        from src.wsgr.ship import AV
-        if isinstance(self.target, AV) and isinstance(self, AirBombAtk):
-            damage = np.ceil(damage * .25)
 
         # 技能伤害减免
         _, reduce_damage = self.target.get_atk_buff(name='reduce_damage',
@@ -1059,6 +1059,17 @@ class AirNormalAtk(NormalAtk, AirAtk):
     def final_damage(self, damage):
         """航空炮击终伤"""
 
+        # 对空减伤
+        aa_value = self.get_anti_air_def()
+        if self.target.size == 3:
+            aa_base = 150
+        elif self.target.size == 2:
+            aa_base = 375
+        else:
+            aa_base = 1500
+        aa_damage_coef = aa_base / (aa_base + aa_value)
+        damage = np.ceil(damage * aa_damage_coef)
+
         # 额外伤害
         _, extra_damage = self.atk_body.get_atk_buff('extra_damage', self)
         damage += extra_damage
@@ -1076,17 +1087,6 @@ class AirNormalAtk(NormalAtk, AirAtk):
         buff_scale = self.get_coef('final_damage_debuff')
         if buff_scale:
             damage = np.ceil(damage * (1 + buff_scale))
-
-        # 对空减伤
-        aa_value = self.get_anti_air_def()
-        if self.target.size == 3:
-            aa_base = 150
-        elif self.target.size == 2:
-            aa_base = 375
-        else:
-            aa_base = 1500
-        aa_damage_coef = aa_base / (aa_base + aa_value)
-        damage = np.ceil(damage * aa_damage_coef)
 
         # 挡枪减伤
         tank_damage_debuff = self.get_coef('tank_damage_debuff')

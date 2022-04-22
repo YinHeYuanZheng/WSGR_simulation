@@ -98,8 +98,8 @@ class HighestTarget(Target):
         else:
             fleet = enemy
 
-        target = fleet.sort(key=lambda x: -x.status['health'])
-        return target
+        fleet.sort(key=lambda x: -x.status['health'])
+        return fleet
 
 
 skill = [Skill_111212_1, Skill_111212_2]

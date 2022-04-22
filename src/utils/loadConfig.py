@@ -83,7 +83,10 @@ def load_friend_ship(node, dataset, timer):
 
     # 调用技能并写入
     skill_num = int(node.getAttribute('skill')) - 1
-    sid = skill_list[skill_num]
+    if skill_num >= 0:
+        sid = skill_list[skill_num]
+    else:
+        sid = ''
     if sid != '':
         sid = 'sid' + sid
         skill = getattr(skillCode, sid).skill  # 根据技能设置获取技能列表，未实例化

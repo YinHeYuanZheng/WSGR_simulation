@@ -54,10 +54,10 @@ def run_avg_damage(battle, epoc):
         tmp_battle.start()
         log = tmp_battle.report()
 
-        avg_damage = (avg_damage * i + np.sum(log['create_damage'][1])) / (i + 1)
-        retreat_num = (retreat_num * i + log['enemy_retreat_num']) / (i + 1)
-        print(f"第{i + 1}次 - 平均伤害: {avg_damage:.3f}; "
-              f"平均击沉 {retreat_num:.2f}")
+        avg_damage += np.sum(log['create_damage'][1])
+        retreat_num += log['enemy_retreat_num']
+        print(f"第{i + 1}次 - 平均伤害: {avg_damage / (i + 1):.3f}; "
+              f"平均击沉 {retreat_num / (i + 1):.2f}")
 
 
 def run_supply_cost(battle, epoc):
@@ -89,6 +89,6 @@ if __name__ == '__main__':
     battle = load_config(xml_file, ds, timer_init)
 
     # run_hit_rate(battle, 1000)
-    # run_victory(battle, 10000)
-    # run_avg_damage(battle, 1000)
-    run_supply_cost(battle, 1000)
+    # run_victory(battle, 1000)
+    run_avg_damage(battle, 10000)
+    # run_supply_cost(battle, 1000)
