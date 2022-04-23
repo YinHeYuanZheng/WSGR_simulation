@@ -8,7 +8,7 @@ from src.wsgr.ship import *
 from src.wsgr.phase import *
 
 
-class Skill_110231(Skill):
+class Skill_110302(Skill):
     """队伍中每1艘自身以外的航母、装母、轻母，都会提高自身7%的舰载机威力。
     如果是E国额外提高7%"""
     def __init__(self, timer, master):
@@ -46,4 +46,4 @@ class Skill_110231(Skill):
         self.master.add_buff(buff)
 
 
-skill = [Skill_110231]
+skill = [Skill_110302]
