@@ -8,71 +8,40 @@ from src.wsgr.ship import *
 from src.wsgr.phase import *
 
 
-class Skill_111171_1(Skill):
-    """全阶段降低敌方旗舰40点火力值和40点命中值"""
+class Skill_111172(Skill):
+    """队伍中该舰下方位置的3艘航母（轻航，正规航母，装甲航母）增加回避6点
+    并且炮击战可进行二次攻击，但二次攻击的伤害减低50%。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = LocTarget(side=0, loc=[1])
+        self.target = NearestLocTarget(
+            side=1,
+            master=master,
+            radius=3,
+            direction='down',
+            expand=True,
+            shiptype=(CVL, CV, AV)
+        )
+
         self.buff = [
-            StatusBuff(
-                timer=timer,
-                name='fire',
-                phase=(AllPhase,),
-                value=-40,
-                bias_or_weight=0),
             StatusBuff(
                 timer=timer,
                 name='accuracy',
                 phase=(AllPhase,),
-                value=-40,
-                bias_or_weight=0)
-        ]
-
-
-class Skill_111171_2(Skill):
-    """降低敌方主力舰20点火力值和20点装甲值"""
-    def __init__(self, timer, master):
-        super().__init__(timer, master)
-        self.target = TypeTarget(side=0, shiptype=(MainShip,))
-        self.buff = [
-            StatusBuff(
-                timer=timer,
-                name='fire',
-                phase=(AllPhase,),
-                value=-20,
+                value=6,
                 bias_or_weight=0
             ),
-            StatusBuff(
+            ActPhaseBuff(
                 timer=timer,
-                name='armor',
-                phase=(AllPhase,),
-                value=-20,
-                bias_or_weight=0
+                name='act_phase',
+                phase=SecondShellingPhase,
+            ),
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=SecondShellingPhase,
+                value=-0.5,
             )
         ]
 
 
-class Skill_111171_3(Skill):
-    """降低敌方护卫舰15点闪避值和20点对空值"""
-    def __init__(self, timer, master):
-        super().__init__(timer, master)
-        self.target = TypeTarget(side=0, shiptype=(CoverShip,))
-        self.buff = [
-            StatusBuff(
-                timer=timer,
-                name='evasion',
-                phase=(AllPhase,),
-                value=-15,
-                bias_or_weight=0
-            ),
-            StatusBuff(
-                timer=timer,
-                name='antiair',
-                phase=(AllPhase,),
-                value=-20,
-                bias_or_weight=0
-            )
-            ]
-
-
-skill = [Skill_111171_1, Skill_111171_2, Skill_111171_3]
+skill = [Skill_111172]

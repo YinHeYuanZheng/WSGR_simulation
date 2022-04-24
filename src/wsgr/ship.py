@@ -6,7 +6,7 @@
 import numpy as np
 from src.wsgr.wsgrTimer import Time
 from src.wsgr.equipment import *
-# import src.wsgr.formulas as rform
+# from src.wsgr.formulas import *
 
 
 class Ship(Time):
@@ -15,7 +15,7 @@ class Ship(Time):
     def __init__(self, timer):
         super().__init__(timer)
         self.master = None
-        self.cid = 0  # 编号
+        self.cid = '0'  # 编号
         self.type = None  # 船型
         self.size = None  # 量级，大中小型船
         self.function = None  # 功能，主力、护卫舰
@@ -37,6 +37,10 @@ class Ship(Time):
             'luck': 0,  # 幸运
             'capacity': 0,  # 搭载
             'tag': '',  # 标签(特驱、z系等)
+            'supply_oil': 0,  # 补给油耗
+            'supply_ammo': 0,  # 补给弹耗
+            'repair_oil': 0,  # 修理油耗
+            'repair_steel': 0,  # 修理钢耗
         }
 
         self._skill = []  # 技能(未实例化)
@@ -48,9 +52,13 @@ class Ship(Time):
         self.loc = 0  # 站位, 1-6
         self.level = 110  # 等级
         self.affection = 200  # 好感
+
+        self.got_damage = 0
         self.damaged = 1  # 耐久状态, 1: 正常; 2: 中破; 3: 大破; 4: 撤退
         self.damage_protect = True  # 耐久保护，大破进击时消失
-        self.supply = 1.  # 补给状态
+        self.supply_oil = 1.  # 燃料补给状态
+        self.supply_ammo = 1.  # 弹药补给状态
+
         self.common_buff = []  # 永久面板加成
         self.temper_buff = []  # 临时buff
         self.active_buff = []  # 主动技能buff
@@ -68,22 +76,24 @@ class Ship(Time):
         }  # 可参与阶段
 
         self.act_phase_indicator = {
-            'AirPhase': lambda: False,
-            'FirstMissilePhase': lambda: False,
-            'AntisubPhase': lambda: False,
-            'FirstTorpedoPhase': lambda: False,
-            'FirstShellingPhase': lambda: self.damaged < 4,
-            'SecondShellingPhase': lambda:
-                (self.get_range() >= 3) and (self.damaged < 4),
-            'SecondTorpedoPhase': lambda:
-                (self.damaged < 3) and (self.get_final_status('torpedo') > 0),
-            'SecondMissilePhase': lambda: False,
-            'NightPhase': lambda: self.damaged < 3,
+            'AirPhase': lambda x: False,
+            'FirstMissilePhase': lambda x: False,
+            'AntisubPhase': lambda x: False,
+            'FirstTorpedoPhase': lambda x:
+                (x.level > 10) and (x.damaged < 3),
+            'FirstShellingPhase': lambda x: x.damaged < 4,
+            'SecondShellingPhase': lambda x:
+                (x.get_range() >= 3) and (x.damaged < 4),
+            'SecondTorpedoPhase': lambda x:
+                (x.damaged < 3) and (x.get_final_status('torpedo') > 0),
+            'SecondMissilePhase': lambda x: False,
+            'NightPhase': lambda x: x.damaged < 3,
         }  # 可行动标准
 
         from src.wsgr.formulas import NormalAtk
         self.normal_atk = NormalAtk
-        self.special_atk = None
+        self.anti_sub_atk = None
+        self.night_atk = None
 
     def __eq__(self, other):
         return self.cid == other.cid and \
@@ -103,7 +113,36 @@ class Ship(Time):
         self.master = master
 
     def get_form(self):
+        """阵型
+        1: 单纵; 2: 复纵; 3: 轮形; 4: 梯形; 5: 单横"""
         return self.master.form
+
+    def get_recon_flag(self):
+        """索敌"""
+        if self.timer.recon_flag is None:
+            raise ValueError('Recon flag not defined!')
+        if self.side:
+            return self.timer.recon_flag
+        else:
+            return False
+
+    def get_dir_flag(self):
+        """航向, 优同反劣分别为1-4"""
+        if self.timer.direction_flag is None:
+            raise ValueError('Direction flag not defined!')
+        if self.side:
+            return self.timer.direction_flag
+        else:
+            return 5 - self.timer.direction_flag
+
+    def get_air_con_flag(self):
+        """制空结果, 从空确到空丧分别为1-5"""
+        if self.timer.air_con_flag is None:
+            raise ValueError('Air control flag not defined!')
+        if self.side:
+            return self.timer.air_con_flag
+        else:
+            return 6 - self.timer.air_con_flag
 
     def set_cid(self, cid):
         """设置舰船编号"""
@@ -125,12 +164,20 @@ class Ship(Time):
         """设置舰船好感度"""
         self.affection = affection
 
+    def get_affection(self):
+        """获取舰船好感度"""
+        if self.side == 0:
+            return 50
+        if self.cid[0] != 1:
+            return 50
+        return self.affection
+
     def add_skill(self, skill):
         """设置舰船技能(未实例化)"""
         self._skill.extend(skill)
 
     def init_skill(self, friend, enemy):
-        """舰船技能实例化"""
+        """舰船技能实例化，并结算常驻面板技能"""
         self.skill = []
         for skill in self._skill[:]:
             tmp_skill = skill(self.timer, self)
@@ -151,6 +198,33 @@ class Ship(Time):
     def get_raw_skill(self):
         """获取技能，让巴尔可调用"""
         return self._skill[:]
+
+    def run_prepare_skill(self, friend, enemy):
+        """结算准备阶段技能，让巴尔技能可用"""
+        for tmp_skill in self.skill:
+            if tmp_skill.is_prep() and \
+                    tmp_skill.is_active(friend, enemy):
+                tmp_skill.activate(friend, enemy)
+
+    def run_raw_prepare_skill(self, friend, enemy):
+        """结算准备阶段技能，让巴尔技能不可用"""
+        for tmp_skill in self.skill:
+            # 跳过让巴尔偷取技能
+            if tmp_skill.request is None and \
+                    tmp_skill.request is None and \
+                    tmp_skill.buff is None:
+                continue
+
+            if tmp_skill.is_prep() and \
+                    tmp_skill.is_active(friend, enemy):
+                tmp_skill.activate(friend, enemy)
+
+    def run_normal_skill(self, friend, enemy):
+        """结算普通技能"""
+        for tmp_skill in self.skill:
+            if not tmp_skill.is_prep() and \
+                    tmp_skill.is_active(friend, enemy):
+                tmp_skill.activate(friend, enemy)
 
     def set_equipment(self, equipment):
         """设置舰船装备"""
@@ -198,7 +272,7 @@ class Ship(Time):
         scale_mult = 1
         bias = 0
         for tmp_buff in self.common_buff:
-            if tmp_buff.name == name and tmp_buff.is_active():
+            if tmp_buff.name == name:
                 if tmp_buff.bias_or_weight == 0:
                     bias += tmp_buff.value
                 elif tmp_buff.bias_or_weight == 1:
@@ -207,6 +281,11 @@ class Ship(Time):
                     scale_mult *= (1 + tmp_buff.value)
                 else:
                     pass
+
+        # 好感补正
+        if name in ['accuracy', 'evasion'] and self.side == 1:
+            scale_mult *= 1 + self.affection * 0.001
+
         status = status * (1 + scale_add) * scale_mult + bias
         return max(0, status)
 
@@ -220,11 +299,13 @@ class Ship(Time):
 
     def get_final_status(self, name, equip=True):
         """根据属性名称获取属性总和"""
-        buff_scale, buff_bias = self.get_buff(name)
-        status = self.get_status(name) * (1 + buff_scale) + buff_bias
+        buff_scale_1, buff_scale_2, buff_bias = self.get_buff(name)
+        status = self.get_status(name) * (1 + buff_scale_1) * buff_scale_2
 
-        if equip:
-            status += self.get_equip_status(name)
+        if equip and name != 'speed':
+            status += self.get_equip_status(name) * buff_scale_2
+
+        status += buff_bias
 
         return max(0, status)
 
@@ -275,7 +356,7 @@ class Ship(Time):
                     scale_mult *= (1 + tmp_buff.value)
                 else:
                     pass
-        return (1 + scale_add) * scale_mult - 1, bias  # 先scale后bias
+        return scale_add, scale_mult, bias  # 先scale后bias
 
     def get_atk_buff(self, name, atk, *args, **kwargs):
         """根据增益名称获取全部攻击系数增益(含攻击判断)"""
@@ -334,17 +415,6 @@ class Ship(Time):
                     tmp_buff.is_active(atk=atk):
                 yield tmp_buff.value
 
-    def atk_hit(self, name, atk, *args, **kwargs):
-        """处理命中后、被命中后添加buff效果（不处理反击）"""
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.name == name and \
-                    tmp_buff.is_active(atk=atk, *args, **kwargs):
-                tmp_buff.activate(atk=atk, *args, **kwargs)
-
-    def get_act_flag(self):
-        phase_name = type(self.timer.phase).__name__
-        return self.act_phase_flag[phase_name]
-
     def get_act_indicator(self):
         """判断舰船在指定阶段内能否行动"""
         # 跳过阶段，优先级最高
@@ -359,40 +429,58 @@ class Ship(Time):
 
         # 默认行动模式
         phase_name = type(self.timer.phase).__name__
-        return self.act_phase_indicator[phase_name]()
+        return self.act_phase_indicator[phase_name](self)
 
     def raise_atk(self, target_fleet):
-        """判断炮击战、夜战攻击类型"""
+        """判断炮击战、夜战攻击类型(todo 夜战、航战)"""
         # 技能发动特殊攻击
         for tmp_buff in self.active_buff:
-            if tmp_buff.is_active():
+            if tmp_buff.is_active(atk=self.normal_atk, enemy=target_fleet):
                 return tmp_buff.active_start(atk=self.normal_atk, enemy=target_fleet)
 
         # 技能优先攻击特定船型
-        def_list = target_fleet.get_atk_target(atk_type=self.normal_atk)
-        prior = self.get_prior_type_target(def_list)
+        prior = self.get_prior_type_target(target_fleet)
         if prior is not None:
-            assert not isinstance(prior, list)
             atk = self.normal_atk(
                 timer=self.timer,
                 atk_body=self,
-                target=prior,
-                def_list=def_list,
+                def_list=prior,
             )
-            atk.changeable = False
             return [atk]
+
+        # 优先反潜
+        if self.anti_sub_atk is not None:
+            def_list = target_fleet.get_atk_target(atk_type=self.anti_sub_atk)
+            if len(def_list):
+                atk = self.anti_sub_atk(
+                    timer=self.timer,
+                    atk_body=self,
+                    def_list=def_list,
+                )
+                return [atk]
 
         # 常规攻击模式
-        else:
-            if not len(def_list):
-                return []
+        def_list = target_fleet.get_atk_target(atk_type=self.normal_atk)
+        if not len(def_list):
+            return []
 
-            atk = self.normal_atk(
-                timer=self.timer,
-                atk_body=self,
-                def_list=def_list,
-            )
-            return [atk]
+        atk = self.normal_atk(
+            timer=self.timer,
+            atk_body=self,
+            def_list=def_list,
+        )
+        return [atk]
+
+    # def get_atk_type(self, target):  # 备用接口
+    #     """判断攻击该对象时使用什么攻击类型"""
+    #     pass
+
+    def can_be_atk(self, atk):
+        """判断舰船是否可被某攻击类型指定"""
+        from src.wsgr.formulas import AntiSubAtk
+        if issubclass(atk, AntiSubAtk):
+            return False
+        return self.damaged < 4
 
     def get_prior_type_target(self, fleet, *args, **kwargs):
         """获取指定列表可被自身优先攻击船型的目标"""
@@ -412,13 +500,22 @@ class Ship(Time):
                     tmp_buff.is_active(*args, **kwargs):
                 return tmp_buff.activate(fleet)
 
-    def get_atk_type(self, target):
-        """判断攻击该对象时使用什么攻击类型"""
-        pass
+    def atk_hit(self, name, atk, *args, **kwargs):
+        """处理命中后、被命中后添加buff效果（含反击）"""
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == name and \
+                    tmp_buff.is_active(atk=atk, *args, **kwargs):
+                tmp_buff.activate(atk=atk, *args, **kwargs)
 
-    def can_be_atk(self, atk):
-        """判断舰船是否可被某攻击类型指定"""
-        return self.damaged <= 3
+        if name == 'atk_be_hit':
+            for tmp_buff in self.temper_buff:
+                if tmp_buff.name == 'hit_back' and \
+                        tmp_buff.is_active(atk=atk, *args, **kwargs):
+                    return tmp_buff.activate(atk=atk, *args, **kwargs)
+
+    def get_act_flag(self):
+        phase_name = type(self.timer.phase).__name__
+        return self.act_phase_flag[phase_name]
 
     def get_damage(self, damage):
         """受伤结算，过伤害保护，需要返回受伤与否"""
@@ -444,7 +541,9 @@ class Ship(Time):
             else:
                 damage = np.ceil(self.status['health'] - standard_health * 0.25)
 
-        self.status['health'] -= damage
+        self.status['health'] -= int(damage)
+        self.got_damage += int(damage)
+
         # 受伤状态结算
         if self.status['health'] <= 0:
             self.status['health'] = 0
@@ -458,13 +557,64 @@ class Ship(Time):
 
         return damage
 
+    def remove_during_buff(self):
+        """去除攻击期间的临时buff"""
+        i = 0
+        while i < len(self.temper_buff):
+            tmp_buff = self.temper_buff[i]
+            if tmp_buff.is_during_buff():
+                self.temper_buff.remove(tmp_buff)
+                continue
+            else:
+                i += 1
+
+    def reinit_health(self):
+        """战斗中更新血量状态"""
+        # 大破进击取消保护
+        if self.damaged >= 3:
+            self.damage_protect = False
+        self.got_damage = 0
+
     def clear_buff(self):
         """清空临时buff"""
         self.temper_buff = []
+        self.active_buff = []
+
+    def reinit(self):
+        """道中初始化舰船状态"""
+        self.clear_buff()
+        self.reinit_health()
 
     def reset(self):
         """初始化当前舰船"""
-        pass
+        self.clear_buff()
+        supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
+
+        # 统计补给耗油并补满
+        supply['oil'] += np.ceil((1 - self.supply_oil) * self.status['supply_oil'])
+        self.supply_oil = 1
+
+        # 统计补给耗弹并补满
+        supply['ammo'] += np.ceil((1 - self.supply_ammo) * self.status['supply_ammo'])
+        self.supply_ammo = 1
+
+        # 统计修理费用并恢复血量
+        got_damage = self.status['standard_health'] - self.status['health']
+        supply['oil'] += np.ceil(got_damage * self.status['repair_oil'])
+        supply['steel'] += np.ceil(got_damage * self.status['repair_steel'])
+        self.status['health'] = self.status['standard_health']
+        self.got_damage = 0
+        self.damage_protect = True
+
+        # 统计铝耗并补满
+        if len(self.load):
+            for i in range(len(self.equipment)):
+                tmp_equip = self.equipment[i]
+                if isinstance(tmp_equip, (Plane, Missile, AntiMissile)):
+                    supply_num = self.load[i] - tmp_equip.load
+                    supply['almn'] += supply_num * tmp_equip.status['supply_almn']
+                    tmp_equip.load = self.load[i]
+        return supply
 
 
 class LargeShip(Ship):
@@ -507,168 +657,15 @@ class CoverShip(Ship):
         self.function = 'cover'
 
 
-class Aircraft(Ship):
-    """航系单位(所有可参与航空战攻击的单位)"""
-
-    def __init__(self, timer):
-        super().__init__(timer)
-        self.flightparam = 0
-
-    def get_plane(self):
-        for tmp_equip in self.equipment:
-            if isinstance(tmp_equip, (Fighter, Bomber, DiveBomber)):
-                if tmp_equip.load > 0:
-                    return True
-        return False
-
-
-class CV(Aircraft, LargeShip, MainShip):
-    def __init__(self, timer):
-        super().__init__(timer)
-        self.type = 'CV'
-        self.flightparam = 5
-
-        self.act_phase_flag.update({
-            'AirPhase': True,
-            'SecondTorpedoPhase': False
-        })
-
-        self.act_phase_indicator.update({
-            'AirPhase': lambda: self.damaged < 3,
-            'FirstShellingPhase': lambda: self.damaged < 2,
-            'SecondShellingPhase': lambda:
-                (self.damaged < 2) and (self.get_range() >= 3),
-            'NightPhase': lambda: False,
-        })
-
-    def get_act_indicator(self):
-        # 跳过阶段，优先级最高
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'not_act_phase' and tmp_buff.is_active():
-                return False
-
-        # 可参与阶段
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
-                return self.damaged < 2
-
-        # 默认行动模式
-        phase_name = type(self.timer.phase).__name__
-        return self.act_phase_indicator[phase_name]()
-
-
-class CVL(Aircraft, MidShip, CoverShip):
-    def __init__(self, timer):
-        super().__init__(timer)
-        self.type = 'CVL'
-        self.flightparam = 5
-
-        self.act_phase_flag.update({
-            'AirPhase': True,
-            'AntisubPhase': True,
-            'SecondTorpedoPhase': False
-        })
-
-        self.act_phase_indicator.update({
-            'AirPhase': lambda: self.damaged < 3,
-            'AntisubPhase': lambda:
-                (self.damaged < 2) and self.get_atk_plane(),
-            'FirstShellingPhase': lambda: self.damaged < 2,
-            'SecondShellingPhase': lambda:
-                (self.damaged < 2) and (self.get_range() >= 3),
-            'NightPhase': lambda: False,
-        })
-
-    def get_act_indicator(self):
-        # 跳过阶段，优先级最高
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'not_act_phase' and tmp_buff.is_active():
-                return False
-
-        # 可参与阶段
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
-                return self.damaged < 2
-
-        # 默认行动模式
-        phase_name = type(self.timer.phase).__name__
-        return self.act_phase_indicator[phase_name]()
-
-    def get_atk_plane(self):
-        for tmp_equip in self.equipment:
-            if isinstance(tmp_equip, (Bomber, DiveBomber)):
-                if tmp_equip.load > 0:
-                    return True
-        return False
-
-
-class AV(Aircraft, LargeShip, MainShip):
-    def __init__(self, timer):
-        super().__init__(timer)
-        self.type = 'AV'
-        self.flightparam = 5
-
-        self.act_phase_flag.update({
-            'AirPhase': True,
-            'SecondTorpedoPhase': False
-        })
-
-        self.act_phase_indicator.update({
-            'AirPhase': lambda: self.damaged < 3,
-            'FirstShellingPhase': lambda: self.damaged < 3,
-            'SecondShellingPhase': lambda:
-                (self.damaged < 3) and (self.get_range() >= 3),
-            'NightPhase': lambda: False,
-        })
-
-    def get_act_indicator(self):
-        # 跳过阶段，优先级最高
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'not_act_phase' and tmp_buff.is_active():
-                return False
-
-        # 可参与阶段
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
-                return self.damaged < 3
-
-        # 默认行动模式
-        phase_name = type(self.timer.phase).__name__
-        return self.act_phase_indicator[phase_name]()
-
-
-class BB(LargeShip, MainShip):
-    pass
-
-
-class BC(LargeShip, MainShip):
-    pass
-
-
-class BBV(Aircraft, LargeShip, MainShip):
-    def __init__(self, timer):
-        super().__init__(timer)
-        self.type = 'BBV'
-        self.flightparam = 10
-
-
-class CA(MidShip, CoverShip):
-    pass
-
-
-class CL(MidShip, CoverShip):
-    pass
-
-
-class DD(SmallShip, CoverShip):
-    pass
-
-
 class Submarine(Ship):
     """水下单位"""
 
     def can_be_atk(self, atk):
-        return False
+        from src.wsgr.formulas import AntiSubAtk
+        if issubclass(atk, AntiSubAtk):
+            return self.damaged < 4
+        else:
+            return False
 
 
 class SS(Submarine, SmallShip, CoverShip):
@@ -682,54 +679,248 @@ class SS(Submarine, SmallShip, CoverShip):
             'SecondShellingPhase': False,
         })
 
-        self.act_phase_indicator.update({
-            'FirstTorpedoPhase': lambda: (self.level > 10) and (self.damaged < 3),
-            'FirstShellingPhase': lambda: False,
-            'SecondShellingPhase': lambda: False,
-        })
-
 
 class SC(Submarine, SmallShip, CoverShip):
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'SC'
+
+
+class AntiSubShip(Ship):
+    """反潜船"""
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.act_phase_flag.update({'AntisubPhase': True})
+
+        self.act_phase_indicator.update({
+            'AntisubPhase': lambda x:
+                (x.get_form() == 5) and (x.damaged < 4),
+        })
+
+        from src.wsgr.formulas import AntiSubAtk
+        self.anti_sub_atk = AntiSubAtk  # 反潜攻击
+
+
+class Aircraft(Ship):
+    """航系单位(所有可参与航空战攻击的单位)"""
+
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.flightparam = 0
+        self.act_phase_flag.update({'AirPhase': True})
+        self.act_phase_indicator.update({'AirPhase': lambda x: x.damaged < 3})
+
+    def get_atk_plane(self):
+        """检查攻击型飞机是否有载量"""
+        for tmp_equip in self.equipment:
+            if isinstance(tmp_equip, (Bomber, DiveBomber)):
+                if tmp_equip.load > 0:
+                    return True
+        return False
+
+
+class CV(Aircraft, LargeShip, MainShip):
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'CV'
+        self.flightparam = 5
+
+        self.act_phase_flag.update({
+            'AirPhase': True,
+            'SecondTorpedoPhase': False,
+            'NightPhase': False,
+        })
+
+        self.act_phase_indicator.update({
+            'AirPhase': lambda x: x.damaged < 3,
+            'FirstShellingPhase': lambda x:
+                (x.damaged < 2) and (x.get_atk_plane()),
+            'SecondShellingPhase': lambda x:
+                (x.damaged < 2) and (x.get_atk_plane()) and (x.get_range() >= 3),
+        })
+
+        from src.wsgr.formulas import AirNormalAtk
+        self.normal_atk = AirNormalAtk  # 炮击战航空攻击
+
+    def get_act_indicator(self):
+        # 跳过阶段，优先级最高
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'not_act_phase' and tmp_buff.is_active():
+                return False
+
+        # 可参与阶段
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
+                return (self.damaged < 2) and (self.get_atk_plane())
+
+        # 默认行动模式
+        phase_name = type(self.timer.phase).__name__
+        return self.act_phase_indicator[phase_name](self)
+
+
+class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'CVL'
+        self.flightparam = 5
+
+        self.act_phase_flag.update({
+            'AirPhase': True,
+            'AntisubPhase': True,
+            'SecondTorpedoPhase': False,
+            'NightPhase': False,
+        })
+
+        self.act_phase_indicator.update({
+            'AirPhase': lambda x: x.damaged < 3,
+            'AntisubPhase': lambda x:
+                (x.damaged < 2) and (x.get_atk_plane()) and (x.get_form() == 5),
+            'FirstShellingPhase': lambda x: x.damaged < 2,
+            'SecondShellingPhase': lambda x:
+                (x.damaged < 2) and (x.get_atk_plane()) and (x.get_range() >= 3),
+        })
+
+        from src.wsgr.formulas import AirNormalAtk, AirAntiSubAtk
+        self.normal_atk = AirNormalAtk  # 炮击战航空攻击
+        self.anti_sub_atk = AirAntiSubAtk  # 反潜攻击
+
+    def get_act_indicator(self):
+        # 跳过阶段，优先级最高
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'not_act_phase' and tmp_buff.is_active():
+                return False
+
+        # 可参与阶段
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
+                return (self.damaged < 2) and (self.get_atk_plane())
+
+        # 默认行动模式
+        phase_name = type(self.timer.phase).__name__
+        return self.act_phase_indicator[phase_name](self)
+
+
+class AV(Aircraft, LargeShip, MainShip):
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'AV'
+        self.flightparam = 5
+
+        self.act_phase_flag.update({
+            'AirPhase': True,
+            'SecondTorpedoPhase': False,
+            'NightPhase': False,
+        })
+
+        self.act_phase_indicator.update({
+            'AirPhase': lambda x: x.damaged < 3,
+            'FirstShellingPhase': lambda x:
+                (x.damaged < 3) and (x.get_atk_plane()),
+            'SecondShellingPhase': lambda x:
+                (x.damaged < 3) and (x.get_atk_plane()) and (x.get_range() >= 3),
+        })
+
+        from src.wsgr.formulas import AirNormalAtk
+        self.normal_atk = AirNormalAtk  # 炮击战航空攻击
+
+    def get_act_indicator(self):
+        # 跳过阶段，优先级最高
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'not_act_phase' and tmp_buff.is_active():
+                return False
+
+        # 可参与阶段
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
+                return (self.damaged < 3) and (self.get_atk_plane())
+
+        # 默认行动模式
+        phase_name = type(self.timer.phase).__name__
+        return self.act_phase_indicator[phase_name](self)
+
+
+class BB(LargeShip, MainShip):
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'BB'
+
+
+class BC(LargeShip, MainShip):
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'BC'
+
+
+class BBV(Aircraft, LargeShip, MainShip):
+    """航战"""
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'BBV'
+        self.flightparam = 10
+
+        self.act_phase_flag.update({
+            'SecondTorpedoPhase': False,
+        })
+
+        self.act_phase_indicator.update({
+            'SecondShellingPhase': lambda x:
+                (x.get_range() >= 3) and (x.damaged < 3),
+        })
+
+        from src.wsgr.formulas import AirAntiSubAtk
+        self.anti_sub_atk = AirAntiSubAtk  # 反潜攻击
+
+
+class CAV(Aircraft, AntiSubShip, MidShip, CoverShip):
+    """航巡"""
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'CAV'
+        self.flightparam = 10
+
+
+class CA(MidShip, CoverShip):
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'CA'
+
+
+class CL(AntiSubShip, MidShip, CoverShip):
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'CL'
+
+
+class CLT(MidShip, CoverShip):
+    """雷巡"""
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'CLT'
+
+        from src.wsgr.formulas import AntiSubAtk
+        self.anti_sub_atk = AntiSubAtk  # 反潜攻击
+
+
+class DD(AntiSubShip, SmallShip, CoverShip):
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'DD'
+
+
+class BM(SmallShip, CoverShip):
     pass
 
 
-class LandUnit(LargeShip, MainShip):
-    """路基单位"""
-    pass
-
-
-class Elite(Aircraft, LargeShip, MainShip):
-    """旗舰"""
-
-    def __init__(self, timer):
-        super().__init__(timer)
-        self.flightparam = 10
-
-
-class Fortness(LandUnit, Aircraft):
-    """要塞"""
-
-    def __init__(self, timer):
-        super().__init__(timer)
-        self.flightparam = 10
-
-
-class Airfield(LandUnit, Aircraft):
-    """机场"""
-
-    def __init__(self, timer):
-        super().__init__(timer)
-        self.flightparam = 10
-
-
-class Port(LandUnit):
-    """港口"""
+class AP(SmallShip, CoverShip):
     pass
 
 
 class MissileShip(Ship):
     """导弹船"""
-    pass
+
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.load = [0, 0, 0, 0]
 
 
 class ASDG(MissileShip, SmallShip, MainShip):
@@ -749,6 +940,74 @@ class BBG(MissileShip, LargeShip, MainShip):
 
 class BG(MissileShip, LargeShip, MainShip):
     """大巡"""
+    pass
+
+
+class LandUnit(LargeShip, MainShip):
+    """路基单位"""
+    def can_be_atk(self, atk):
+        from src.wsgr.formulas import TorpedoAtk, AntiSubAtk
+        if issubclass(atk, TorpedoAtk):
+            return False
+        elif issubclass(atk, AntiSubAtk):
+            return False
+        else:
+            return self.damaged < 4
+
+
+class Elite(Aircraft, LargeShip, MainShip):
+    """旗舰"""
+
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'Elite'
+        self.flightparam = 10
+
+        self.act_phase_flag.update({
+            'SecondTorpedoPhase': False,
+        })
+
+
+class Fortness(LandUnit, Aircraft):
+    """要塞"""
+
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'Fortness'
+        self.flightparam = 10
+
+        self.act_phase_flag.update({
+            'SecondTorpedoPhase': False,
+        })
+
+
+class Airfield(LandUnit, Aircraft):
+    """机场"""
+
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'Airfield'
+        self.flightparam = 10
+
+        self.act_phase_flag.update({
+            'SecondTorpedoPhase': False,
+            'NightPhase': False,
+        })
+
+        self.act_phase_indicator.update({
+            'AirPhase': lambda x: x.damaged < 3,
+            'FirstShellingPhase': lambda x:
+                (x.damaged < 3) and (x.get_atk_plane()),
+            'SecondShellingPhase': lambda x:
+                (x.damaged < 3) and (x.get_atk_plane()) and (x.get_range() >= 3),
+        })
+
+        from src.wsgr.formulas import AirNormalAtk
+        self.normal_atk = AirNormalAtk  # 炮击战航空攻击
+
+
+class Port(LandUnit):
+    """港口"""
     pass
 
 
@@ -779,11 +1038,75 @@ class Fleet(Time):
         for tmp_ship in self.ship:
             tmp_ship.set_side(side)
 
-    def get_status(self):
+    def get_init_status(self):
         pass
 
+    def get_avg_status(self, name):
+        """获取平均数据"""
+        if not len(self.ship):
+            return 0
+
+        status = 0
+        for tmp_ship in self.ship:
+            status += tmp_ship.get_final_status(name)
+        status /= len(self.ship)
+        return status
+
+    def get_total_status(self, name):
+        """获取属性总和"""
+        if not len(self.ship):
+            return 0
+
+        status = 0
+        for tmp_ship in self.ship:
+            status += tmp_ship.get_final_status(name)
+        return status
+
+    def get_fleet_speed(self):
+        """计算舰队航速"""
+        main_type = (CV, CVL, AV, BB, BC, BBV, ASDG, AADG, BBG, BG,
+                         Elite, Fortness, Airfield, Port)
+        cover_type = (CA, CAV, CL, CLT, DD, BM, AP)
+
+        # 存在水面舰
+        if self.count(Submarine) != len(self.ship):
+            main_speed = 0
+            main_num = 0
+            cover_speed = 0
+            cover_num = 0
+            for tmp_ship in self.ship:
+                if isinstance(tmp_ship, main_type):
+                    main_speed += tmp_ship.get_final_status('speed')
+                    main_num += 1
+                elif isinstance(tmp_ship, cover_type):
+                    cover_speed += tmp_ship.get_final_status('speed')
+                    cover_num += 1
+
+            # debug
+            if main_num + cover_num != len(self.ship):
+                raise ValueError('Number of ship not consist')
+            elif main_num == 0 and cover_num == 0:
+                raise ValueError('Mainship and Covership are both 0')
+
+            # 主力舰与护卫舰同时存在，航速向下取整并取较小值
+            elif main_num != 0 and cover_num != 0:
+                main_speed = np.floor(main_speed / main_num)
+                cover_speed = np.floor(cover_speed / cover_num)
+                return min(main_speed, cover_speed)
+
+            # 否则不取整
+            elif main_num != 0:
+                return main_speed / main_num
+            else:
+                return cover_speed / cover_num
+
+        # 只有水下舰
+        else:
+            speed = self.get_avg_status('speed')
+            return np.floor(speed)
+
     def get_member_inphase(self):
-        """确定舰队中参与当前阶段的成员"""
+        """确定舰队中参与当前阶段的成员(不论是否可以行动，以满足炮序计算需求)"""
         member = []
         for tmp_ship in self.ship:
             if tmp_ship.get_act_flag():

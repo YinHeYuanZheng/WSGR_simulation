@@ -48,7 +48,8 @@ class Skill_110021_2(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return friend.form == 1 or friend.form == 4
+        return self.master.get_form() == 1 or \
+               self.master.get_form() == 4
 
 
 skill = [Skill_110021_1, Skill_110021_2]

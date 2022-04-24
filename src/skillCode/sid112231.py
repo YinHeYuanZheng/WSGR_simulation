@@ -9,9 +9,8 @@ from src.wsgr.phase import *
 from src.wsgr.formulas import *
 
 
-class Skill_112231(Skill):
-    """降低处于本舰上方位置的3艘舰船所受到的航空攻击伤害35%，
-    并提高12点对空值和索敌值。"""
+class Skill_112231_1(Skill):
+    """降低处于本舰上方位置的3艘舰船所受到的航空攻击伤害35%，并提高12点对空值。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = NearestLocTarget(
@@ -34,7 +33,26 @@ class Skill_112231(Skill):
                 phase=(AllPhase,),
                 value=12,
                 bias_or_weight=0
-            ),
+            )
+        ]
+
+
+class BuffRequest_1(ATKRequest):
+    def __bool__(self):
+        return isinstance(self.atk, AirAtk)
+
+
+class Skill_112231_2(PrepSkill):
+    """提高处于本舰上方位置的3艘舰船12点索敌值。"""
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = NearestLocTarget(
+            side=1,
+            master=master,
+            radius=3,
+            direction='up',
+        )
+        self.buff = [
             StatusBuff(
                 timer,
                 name='recon',
@@ -45,9 +63,4 @@ class Skill_112231(Skill):
         ]
 
 
-class BuffRequest_1(ATKRequest):
-    def __bool__(self):
-        return isinstance(self.atk, AirAtk)
-
-
-skill = [Skill_112231]
+skill = [Skill_112231_1, Skill_112231_2]

@@ -49,6 +49,8 @@ class Equipment(Time):
     def get_status(self, name):
         """根据属性名称获取装备属性，包含常驻面板加成"""
         status = self.status.get(name, 0)
+        status_key = ['health', 'fire', 'torpedo', 'armor', 'antisub', 'recon',
+                      'accuracy', 'range', 'evasion', 'luck', 'bomb', 'antiair']
 
         scale_add = 0
         scale_mult = 1
@@ -63,13 +65,18 @@ class Equipment(Time):
                     scale_mult *= (1 + tmp_buff.value)
                 else:
                     pass
+
+            elif name in status_key and \
+                    tmp_buff.name == 'all_status' and\
+                    tmp_buff.is_active():
+                scale_add += tmp_buff.value
         status = status * (1 + scale_add) * scale_mult + bias
         return max(0, status)
 
     def get_final_status(self, name):
         """根据属性名称获取最终属性"""
-        buff_scale, buff_bias = self.get_buff(name)
-        status = self.get_status(name) * (1 + buff_scale) + buff_bias
+        buff_scale_1, buff_scale_2, buff_bias = self.get_buff(name)
+        status = self.get_status(name) * (1 + buff_scale_1) * buff_scale_2 + buff_bias
         return max(0, status)
 
     def get_range(self):
@@ -111,7 +118,7 @@ class Equipment(Time):
                     scale_mult *= (1 + tmp_buff.value)
                 else:
                     pass
-        return (1 + scale_add) * scale_mult - 1, bias  # 先scale后bias
+        return scale_add, scale_mult, bias  # 先scale后bias
 
     def get_atk_buff(self, name, atk, *args, **kwargs):
         """根据增益名称获取全部攻击系数增益(含攻击判断)(目前只有命中调用)"""
@@ -212,8 +219,12 @@ class Launcher(Equipment):
 
 
 class Missile(Equipment):
-    pass
+    def __init__(self, timer, master, enum):
+        super().__init__(timer, master, enum)
+        self.load = self.master.load[self.enum - 1]
 
 
 class AntiMissile(Equipment):
-    pass
+    def __init__(self, timer, master, enum):
+        super().__init__(timer, master, enum)
+        self.load = self.master.load[self.enum - 1]

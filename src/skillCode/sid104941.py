@@ -32,12 +32,7 @@ class Skill_104941_2(Skill):
     """全阶段队伍中随机3艘J国舰船增加10点火力值，对敌方造成的伤害提高15%"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = StatusTarget(
-            side=1,
-            status_name='country',
-            fun='eq',
-            value='J',
-        )
+        self.target = CountryTarget(side=1, country='J')
         self.buff = [
             StatusBuff(
                 timer=timer,
@@ -60,6 +55,7 @@ class Skill_104941_2(Skill):
             target = np.random.choice(target, 3, replace=False)
         for tmp_target in target:
             for tmp_buff in self.buff[:]:
+                tmp_buff = copy.copy(tmp_buff)
                 tmp_target.add_buff(tmp_buff)
 
 

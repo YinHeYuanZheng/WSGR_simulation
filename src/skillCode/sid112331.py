@@ -31,7 +31,7 @@ class Skill_112331_2(Skill):
         self.target = Target(side=1)
         self.buff = [
             StatusBuff(
-                timer,
+                timer=timer,
                 name='accuracy',
                 phase=(AllPhase,),
                 value=12,
@@ -48,7 +48,7 @@ class Skill_112331_3(Skill):
         self.target = TypeTarget(side=1, shiptype=(MidShip,))
         self.buff = [
             CoeffBuff(
-                timer,
+                timer=timer,
                 name='crit',
                 phase=(AllPhase,),
                 value=0.1,
@@ -58,27 +58,12 @@ class Skill_112331_3(Skill):
 
     def activate(self, friend, enemy):
         target = self.target.get_target(friend, enemy)
-        for tmp_ship in target:
-            if tmp_ship.status['country'] == 'J':
-                tmp_ship.add_buff(
-                    CoeffBuff(
-                        timer=self.timer,
-                        name='crit',
-                        phase=(AllPhase,),
-                        value=0.2,
-                        bias_or_weight=0
-                    )
-                )
-            else:
-                tmp_ship.add_buff(
-                    CoeffBuff(
-                        timer=self.timer,
-                        name='crit',
-                        phase=(AllPhase,),
-                        value=0.1,
-                        bias_or_weight=0
-                    )
-                )
+        for tmp_target in target:
+            for tmp_buff in self.buff[:]:
+                tmp_buff = copy.copy(tmp_buff)
+                if tmp_target.status['country'] == 'J':
+                    tmp_buff.value *= 2
+                tmp_target.add_buff(tmp_buff)
 
 
 skill = [Skill_112331_1, Skill_112331_2, Skill_112331_3]

@@ -59,6 +59,10 @@ class Dataset:
             'equipnum': int(ship.loc['装备栏']),  # 装备栏
             'capacity': int(ship.loc['总搭载']),  # 总搭载
             'tag': ship.loc['标签'],  # 标签
+            'supply_oil': float(ship.loc['补给油耗']),  # 补给油耗
+            'supply_ammo': float(ship.loc['补给弹耗']),  # 补给弹耗
+            'repair_oil': float(ship.loc['修理油耗']),  # 修理油耗
+            'repair_steel': float(ship.loc['修理钢耗']),  # 修理钢耗
         }
 
         if status['capacity'] != 0:
@@ -146,7 +150,7 @@ class Dataset:
                      ]
         eng_name_list = ['health', 'fire', 'torpedo', 'armor', 'antisub', 'recon',
                          'accuracy', 'range', 'evasion', 'luck', 'bomb', 'antiair',
-                         'aa_scale', 'aa_coef', 'al_cost',
+                         'aa_scale', 'aa_coef', 'supply_almn',
                          # 'missile_atk', 'missile_def', 'missile_protect',
                          ]
 

@@ -27,7 +27,7 @@ class Skill_110231(Skill):
                 name='hit_rate',
                 phase=(ShellingPhase,),
                 value=0.12,
-                bias_or_weight=0
+                bias_or_weight=2
             )
         ]
 

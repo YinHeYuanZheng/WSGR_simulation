@@ -9,7 +9,7 @@ from src.wsgr.phase import *
 from src.wsgr.formulas import *
 
 
-class Skill_110231_1(Skill):
+class Skill_110232_1(Skill):
     """此技能在舰队舰船数大于等于4时生效。
     当队伍的平均航速大于加贺自身航速时，提升自身装甲值12点、对空值12点；
     当队伍的平均航速等于加贺自身航速时，两种效果皆生效。"""
@@ -40,7 +40,7 @@ class Skill_110231_1(Skill):
         return bool1 and bool2
 
 
-class Skill_110231_2(Skill):
+class Skill_110232_2(Skill):
     """此技能在舰队舰船数大于等于4时生效。
     当队伍平均航速小于加贺自身航速时，提升自身轰炸机20%的威力
     (技能加成为轰炸机终伤倍率1.2且技能系数为1.2)"""
@@ -76,4 +76,4 @@ class BuffRequest_1(ATKRequest):
         return isinstance(self.atk, AirBombAtk)
 
 
-skill = [Skill_110231_1, Skill_110231_2]
+skill = [Skill_110232_1, Skill_110232_2]

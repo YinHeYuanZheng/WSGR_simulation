@@ -27,26 +27,30 @@ if __name__ == '__main__':
     battle = load_config(xml_file, ds, timer_init)
 
     result = [0] * 6
-    resulr_flag_list = ['SS', 'S', 'A', 'B', 'C', 'D']
-    avg_damage = 0
-    retreat_num = 0
+    result_flag_list = ['SS', 'S', 'A', 'B', 'C', 'D']
+    supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
     for i in range(1):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
+        print(log['record'])
 
-        result_flag_id = resulr_flag_list.index(log['result'])
+        result_flag_id = result_flag_list.index(log['result'])
         result[result_flag_id] += 1
 
-        avg_damage = (avg_damage * i + np.sum(log['create_damage'][1])) / (i + 1)
-        retreat_num = (retreat_num * i + log['enemy_retreat_num']) / (i + 1)
-        # retreat_num += int(tmp_battle.enemy.ship[4].damaged <= 2 and
-        #                    tmp_battle.enemy.ship[5].damaged <= 2)
-        print(f"第{i+1}次 - 战果分布: SS {result[0] / (i + 1) * 100:.1f}%; "
-              f"S {result[1] / (i + 1) * 100:.1f}%; "
-              f"A {result[2] / (i + 1) * 100:.1f}%; "
-              f"B {result[3] / (i + 1) * 100:.1f}%; "
-              f"C {result[4] / (i + 1) * 100:.1f}%; "
-              f"D {result[5] / (i + 1) * 100:.1f}%; "
-              f"平均伤害 {avg_damage:.3f}; "
-              f"平均击沉 {retreat_num:.2f}")
+        supply['oil'] += log['supply']['oil']
+        supply['ammo'] += log['supply']['ammo']
+        supply['steel'] += log['supply']['steel']
+        supply['almn'] += log['supply']['almn']
+        print(f"第{i+1}次 - 战果分布: "
+              f"SS {result[0] / (i + 1) * 100:.1f}%, "
+              f"S {result[1] / (i + 1) * 100:.1f}%, "
+              f"A {result[2] / (i + 1) * 100:.1f}%, "
+              f"B {result[3] / (i + 1) * 100:.1f}%, "
+              f"C {result[4] / (i + 1) * 100:.1f}%, "
+              f"D {result[5] / (i + 1) * 100:.1f}%.\n"
+              f"资源消耗: "
+              f"油 {supply['oil'] / (i + 1):.1f}, "
+              f"弹 {supply['ammo'] / (i + 1):.1f}, "
+              f"钢 {supply['steel'] / (i + 1):.1f}, "
+              f"铝 {supply['almn'] / (i + 1):.1f}.")

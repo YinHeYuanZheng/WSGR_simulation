@@ -33,13 +33,17 @@ class Skill_104551_2(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
+            ActPhaseBuff(
+                timer=timer,
+                name='act_phase',
+                phase=SecondShellingPhase
+            ),
             StatusBuff(
                 timer=timer,
                 name='fire',
-                phase=(SecondShellingPhase,),
+                phase=SecondShellingPhase,
                 value=0.2,
-                bias_or_weight=1),
-            # todo 可参与次轮炮击
+                bias_or_weight=1)
         ]
 
 

@@ -34,7 +34,8 @@ class Skill_111212_1(CommonSkill):
 
 
 class Skill_111212_2(Skill):
-    """增加自身暴击率20%，首轮炮击必中"""
+    """增加自身暴击率20%，首轮炮击必中
+    炮击战阶段，优先攻击敌方耐久值最高的单位，被命中的单位降低装甲值10点与火力值10点"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
@@ -48,9 +49,57 @@ class Skill_111212_2(Skill):
                 value=0.20,
                 bias_or_weight=0
             ),
-            # todo 首轮炮击必中
+            SpecialBuff(
+                timer=timer,
+                name='must_hit',
+                phase=FirstShellingPhase
+            ),
+            PriorTargetBuff(
+                timer=timer,
+                name='prior_loc_target',
+                phase=ShellingPhase,
+                target=HighestTarget(side=0),
+                ordered=True
+            ),
+            AtkHitBuff(
+                timer=timer,
+                name='atk_hit',
+                phase=ShellingPhase,
+                buff=[
+                    StatusBuff(
+                        timer=timer,
+                        name='fire',
+                        phase=(AllPhase,),
+                        value=10,
+                        bias_or_weight=0
+                    ),
+                    StatusBuff(
+                        timer=timer,
+                        name='armor',
+                        phase=(AllPhase,),
+                        value=15,
+                        bias_or_weight=0
+                    )
+                ],
+                side=0
+            )
         ]
 
 
-# todo 炮击战阶段，优先攻击敌方耐久值最高的单位，被命中的单位降低装甲值10点与火力值10点
+class HighestTarget(Target):
+    def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        fleet.sort(key=lambda x: -x.status['health'])
+        return fleet
+
+
 skill = [Skill_111212_1, Skill_111212_2]

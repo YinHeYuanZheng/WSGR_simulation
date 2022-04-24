@@ -26,6 +26,7 @@ class timer:
             },
             'miss': 0,
             'hit': 0,
+            'record': '',
         }
 
     def set_recon(self, recon_flag):
@@ -37,13 +38,16 @@ class timer:
     def set_air_con(self, air_con_flag):
         self.air_con_flag = air_con_flag
         air_con_info = ['空确', '空优', '均势', '劣势', '丧失']
-        # print(f"制空结果：{air_con_info[air_con_flag - 1]}")
+        self.log['record'] += f"制空结果：{air_con_info[air_con_flag - 1]}\n"
 
     def set_phase(self, phase):
         self.phase = phase
 
     def set_atk(self, atk):
         self.atk = atk
+
+    def get_dist(self):
+        return 5
 
     def queue_append(self, buff):
         if buff.name == 'tank':
@@ -54,7 +58,20 @@ class timer:
         queue.append(buff)
         queue.sort(key=lambda x: (-x.rate, x.master.loc))
 
-    def reset_queue(self):
+    def reinit(self):
+        self.recon_flag = None      # 索敌
+        self.direction_flag = None  # 航向
+        self.air_con_flag = None    # 制空结果
+        self.atk = None
+        self.log = {
+            'create_damage': {
+                1: np.zeros((6,)),
+                0: np.zeros((6,))
+            },
+            'miss': 0,
+            'hit': 0,
+            'record': self.log['record']
+        }
         self.queue = {
             'magnet': [],
             'tank': [],
@@ -64,9 +81,10 @@ class timer:
         self.phase.start()
 
     def report(self, damage_value):
-        # print(f"{self.atk.atk_body.status['name']} -> "
-        #       f"{self.atk.target.status['name']}: "
-        #       f"{str(damage_value)}")
+        self.log['record'] += f"{type(self.atk).__name__}: " \
+                              f"{self.atk.atk_body.status['name']} -> " \
+                              f"{self.atk.target.status['name']}: " \
+                              f"{str(damage_value)}\n"
 
         if self.atk.atk_body.side == 1:
             if isinstance(damage_value, str):

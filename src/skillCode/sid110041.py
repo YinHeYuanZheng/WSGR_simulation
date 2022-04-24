@@ -21,7 +21,7 @@ class Skill_110041(Skill):
                 name='hit_rate',
                 phase=(AirPhase,),
                 value=-0.2,
-                bias_or_weight=0
+                bias_or_weight=2
             )
         ]
 

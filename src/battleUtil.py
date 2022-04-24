@@ -19,12 +19,12 @@ class BattleUtil(Time):
         """进行战斗流程"""
         self.battle_init()
         self.start_phase()
-        self.recon_phase()
-        self.get_direction()
         self.buff_phase()
-        # self.air_phase()
+        self.air_phase()
+        self.first_torpedo_phase()
         self.first_shelling_phase()
-        # self.second_shelling_phase()
+        self.second_shelling_phase()
+        self.second_torpedo_phase()
         self.end_phase()
 
     def battle_init(self):
@@ -37,18 +37,25 @@ class BattleUtil(Time):
             tmp_ship.init_skill(self.enemy, self.friend)
             tmp_ship.init_health()
 
+        # 计算索敌、航速相关舰队属性(只用于带路判断)
+        self.friend.get_init_status()
+        self.enemy.get_init_status()
+
+    def battle_reinit(self):
+        """道中初始化舰船状态，第一场战斗外每场战斗都要调用"""
+        self.timer.set_phase(AllPhase)
+        for tmp_ship in self.friend.ship:
+            tmp_ship.reinit()
+        self.timer.reinit()
+
     def start_phase(self):
         self.timer.log['start_health'] = {
             1: np.array([ship.status['health'] for ship in self.friend.ship]),
             0: np.array([ship.status['health'] for ship in self.enemy.ship])
         }
 
-    def recon_phase(self):
-        recon_flag = True  # 暂时默认索敌成功
-        self.timer.set_recon(recon_flag=recon_flag)
-
-    def get_direction(self):
-        pass
+        self.timer.set_phase(PreparePhase(self.timer, self.friend, self.enemy))
+        self.timer.phase_start()
 
     def buff_phase(self):
         self.timer.set_phase(BuffPhase(self.timer, self.friend, self.enemy))
@@ -56,6 +63,14 @@ class BattleUtil(Time):
 
     def air_phase(self):
         self.timer.set_phase(AirPhase(self.timer, self.friend, self.enemy))
+        self.timer.phase_start()
+
+    def first_torpedo_phase(self):
+        self.timer.set_phase(FirstTorpedoPhase(self.timer, self.friend, self.enemy))
+        self.timer.phase_start()
+
+    def second_torpedo_phase(self):
+        self.timer.set_phase(SecondTorpedoPhase(self.timer, self.friend, self.enemy))
         self.timer.phase_start()
 
     def first_shelling_phase(self):
@@ -66,14 +81,14 @@ class BattleUtil(Time):
         self.timer.set_phase(SecondShellingPhase(self.timer, self.friend, self.enemy))
         self.timer.phase_start()
 
-    def end_phase(self):
-        # 大破进击取消保护
+    def supply_cost(self):
         for tmp_ship in self.friend.ship:
-            if tmp_ship.damaged >= 3:
-                tmp_ship.damage_protect = False
+            tmp_ship.supply_oil = max(0., tmp_ship.supply_oil - 0.2)
+            tmp_ship.supply_ammo = max(0., tmp_ship.supply_ammo - 0.2)
 
-        # todo 清空buff
-        self.timer.reset_queue()
+    def end_phase(self):
+        # 资源消耗
+        self.supply_cost()
 
         # 受伤记录
         self.timer.log['end_health'] = {
@@ -142,12 +157,24 @@ class BattleUtil(Time):
             self.timer.log['result'] = 'C'
 
     def report(self):
+        # 命中率
         try:
             hit_rate = self.timer.log['hit'] / \
                        (self.timer.log['hit'] + self.timer.log['miss'])
             self.timer.log['hit_rate'] = hit_rate
         except:
             self.timer.log['hit_rate'] = 0
+
+        # 消耗
+        supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
+        for tmp_ship in self.friend.ship:
+            ship_supply = tmp_ship.reset()
+            supply['oil'] += int(ship_supply['oil'])
+            supply['ammo'] += int(ship_supply['ammo'])
+            supply['steel'] += int(ship_supply['steel'])
+            supply['almn'] += int(ship_supply['almn'])
+        self.timer.log['supply'] = supply
+
         return self.timer.log
 
 

@@ -32,7 +32,7 @@ class Skill_112232_1(Skill):
 class Skill_112232_2(Skill):
     def __init__(self, timer, master):
         """当队伍中除了自己，不含有其他航母、轻母、装母时，
-        增加自身装甲值35点与索敌值25点，炮击战阶段，自身被攻击概率增加35%"""
+        增加自身装甲值35点，炮击战阶段，自身被攻击概率增加35%"""
         super().__init__(timer, master)
         self.target = SelfTarget(master)
 
@@ -42,13 +42,6 @@ class Skill_112232_2(Skill):
                 name='armor',
                 phase=(AllPhase,),
                 value=35,
-                bias_or_weight=0
-            ),
-            StatusBuff(
-                timer=timer,
-                name='recon',
-                phase=(AllPhase,),
-                value=25,
                 bias_or_weight=0
             ),
             MagnetBuff(
@@ -67,4 +60,29 @@ class Skill_112232_2(Skill):
         return len(craft) == 0
 
 
-skill = [Skill_112232_1, Skill_112232_2]
+class Skill_112232_3(PrepSkill):
+    def __init__(self, timer, master):
+        """当队伍中除了自己，不含有其他航母、轻母、装母时，增加自身索敌值25点"""
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
+
+        self.buff = [
+            StatusBuff(
+                timer=timer,
+                name='recon',
+                phase=(AllPhase,),
+                value=25,
+                bias_or_weight=0
+            )
+        ]
+
+    def is_active(self, friend, enemy):
+        craft = TypeTarget(
+            side=1,
+            shiptype=(CV, CVL, AV)
+        ).get_target(friend, enemy)
+        craft.remove(self.master)
+        return len(craft) == 0
+
+
+skill = [Skill_112232_1, Skill_112232_2, Skill_112232_3]

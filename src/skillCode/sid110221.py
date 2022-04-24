@@ -28,8 +28,7 @@ class Skill_110221(Skill):
 
     def is_active(self, friend, enemy):
         return self.master.loc == 1 and \
-               self.master.side == 1 and \
-               self.timer.recon_flag
+               self.master.get_recon_flag()
 
 
 skill = [Skill_110221]

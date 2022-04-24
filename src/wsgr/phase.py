@@ -9,15 +9,23 @@ from src.wsgr.wsgrTimer import Time
 from src.wsgr.formulas import *
 import src.wsgr.formulas as rform
 from src.wsgr.equipment import *
+from src.wsgr.ship import Submarine, AntiSubShip
 
 __all__ = ['AllPhase',
+           'PreparePhase',
            'BuffPhase',
            'AirPhase',
+
+           'TorpedoPhase',
+           'FirstTorpedoPhase',
+           'SecondTorpedoPhase',
 
            'ShellingPhase',
            'FirstShellingPhase',
            'SecondShellingPhase',
-           ]
+
+           'DaytimePhase',
+           'NightPhase']
 
 
 class AllPhase(Time):
@@ -31,19 +39,106 @@ class AllPhase(Time):
     def start(self):
         pass
 
-    def get_atk_member(self, side):
-        """获取可行动单位"""
-        if side == 1:
-            fleet = self.friend.ship
-        else:
-            fleet = self.enemy.ship
+    # def get_atk_member(self, side):
+    #     """获取可行动单位(目前没有调用该接口的需求，可能需要删除)"""
+    #     if side == 1:
+    #         fleet = self.friend.ship
+    #     else:
+    #         fleet = self.enemy.ship
+    #
+    #     member = fleet.get_member_inphase()
+    #     atk_member = []
+    #     for tmp_ship in member:
+    #         if tmp_ship.get_act_indicator():
+    #             atk_member.append(tmp_ship)
+    #     return atk_member
 
-        member = fleet.get_member_inphase()
-        atk_member = []
-        for tmp_ship in member:
-            if tmp_ship.get_act_indicator():
-                atk_member.append(tmp_ship)
-        return atk_member
+
+class PreparePhase(AllPhase):
+    """准备阶段"""
+
+    def __init__(self, timer, friend, enemy):
+        super().__init__(timer, friend, enemy)
+        self.friend_fleet_speed = None
+        self.enemy_fleet_speed = None
+
+    def start(self):
+        # 结算影响队友航速、索敌的技能，结算让巴尔
+        for tmp_ship in self.friend.ship:
+            tmp_ship.run_prepare_skill(self.friend, self.enemy)
+        for tmp_ship in self.enemy.ship:
+            tmp_ship.run_prepare_skill(self.enemy, self.friend)
+
+        # 计算舰队航速
+        self.friend_fleet_speed = self.friend.get_fleet_speed()
+        self.enemy_fleet_speed = self.enemy.get_fleet_speed()
+
+        # 索敌
+        recon_flag = self.compare_recon()
+        # recon_flag = True  # 暂时默认索敌成功
+        self.timer.set_recon(recon_flag=recon_flag)
+
+        # 迂回
+
+        # 航向
+        direction_flag = self.compare_speed()
+        self.timer.set_direction(direction_flag=direction_flag)
+
+    def compare_recon(self):
+        sub_num = self.enemy.count(Submarine)
+        if sub_num != len(self.enemy.ship):
+            friend_recon = self.friend.get_total_status('recon')
+            enemy_recon = self.enemy.get_total_status('recon')
+            d_recon = friend_recon - enemy_recon
+
+            recon_rate = 0.5 + d_recon * 0.05
+            recon_rate = max(0, recon_rate)
+            recon_rate = min(1, recon_rate)
+
+            verify = np.random.random()
+            if verify <= recon_rate:
+                return True
+            else:
+                return False
+        else:
+            friend_recon = 0
+            for tmp_ship in self.friend.ship:
+                if isinstance(tmp_ship, AntiSubShip):
+                    friend_recon += tmp_ship.get_final_status('recon')
+                    friend_recon += tmp_ship.get_final_status('antisub', equip=False)
+
+            enemy_level = 0
+            for tmp_ship in self.enemy.ship:
+                enemy_level += tmp_ship.level
+
+            if friend_recon >= enemy_level:
+                return True
+            else:
+                return False
+
+    def compare_speed(self):
+        friend_leader_speed = self.friend.ship[0].get_final_status('speed')
+        enemy_leader_speed = self.enemy.ship[0].get_final_status('speed')
+        d_leader_speed = int(friend_leader_speed - enemy_leader_speed)
+        d_fleet_speed = int(self.friend_fleet_speed - self.enemy_fleet_speed)
+
+        # 航向权重，顺序为优同反劣
+        if self.timer.direction_flag:
+            speed_matrix = np.array([20, 35, 25, 5])
+        else:
+            speed_matrix = np.array([10, 30, 30, 15])
+
+        speed_matrix[0] += min(d_leader_speed, d_fleet_speed)
+        speed_matrix[0] = max(0, speed_matrix[0])
+        speed_matrix[1] += d_fleet_speed
+        speed_matrix[1] = max(5, speed_matrix[1])
+        speed_matrix[2] -= d_leader_speed
+        speed_matrix[2] = max(0, speed_matrix[2])
+        speed_matrix[3] -= d_fleet_speed
+        speed_matrix[3] = max(0, speed_matrix[3])
+
+        speed_matrix = speed_matrix / sum(speed_matrix)
+        return np.random.choice([1, 2, 3, 4], p=speed_matrix)
 
 
 class BuffPhase(AllPhase):
@@ -51,13 +146,9 @@ class BuffPhase(AllPhase):
 
     def start(self):
         for tmp_ship in self.friend.ship:
-            for tmp_skill in tmp_ship.skill:
-                if tmp_skill.is_active(self.friend, self.enemy):
-                    tmp_skill.activate(self.friend, self.enemy)
+            tmp_ship.run_normal_skill(self.friend, self.enemy)
         for tmp_ship in self.enemy.ship:
-            for tmp_skill in tmp_ship.skill:
-                if tmp_skill.is_active(self.enemy, self.friend):
-                    tmp_skill.activate(self.enemy, self.friend)
+            tmp_ship.run_normal_skill(self.enemy, self.friend)
 
 
 class DaytimePhase(AllPhase):
@@ -73,8 +164,8 @@ class AirPhase(DaytimePhase):
         atk_friend = self.friend.get_act_member_inphase()
         atk_enemy = self.enemy.get_act_member_inphase()
         # 检查可被航空攻击的对象
-        def_friend = self.friend.get_atk_target(atk_type=AirAtk)
-        def_enemy = self.enemy.get_atk_target(atk_type=AirAtk)
+        def_friend = self.friend.get_atk_target(atk_type=AirStrikeAtk)
+        def_enemy = self.enemy.get_atk_target(atk_type=AirStrikeAtk)
 
         # 如果不存在可行动对象或可攻击对象，结束本阶段
         if (len(atk_friend) and len(def_enemy)) or \
@@ -104,7 +195,7 @@ class AirPhase(DaytimePhase):
                 air_con_flag = 5
         self.timer.set_air_con(air_con_flag)
 
-        # 航空轰炸阶段
+        # 航空轰炸阶段，先结算我方
         self.air_strike(atk_friend, def_enemy, aerial_enemy, side=1)
         self.air_strike(atk_enemy, def_friend, aerial_friend, side=0)
 
@@ -161,12 +252,19 @@ class AirPhase(DaytimePhase):
                     tmp_equip.fall(air_con_fall)  # 最大击坠量可超过实际放飞量（存在洗甲板）
                     continue
 
+                # 检查是否存在优先攻击船型对象
+                prior = tmp_ship.get_prior_type_target(defend)
+                if prior is not None:
+                    def_list = prior
+                else:
+                    def_list = defend
+
                 # 轰炸机，发起轰炸攻击
-                elif isinstance(tmp_equip, Bomber):
+                if isinstance(tmp_equip, Bomber):
                     atk = AirBombAtk(
                         timer=self.timer,
                         atk_body=tmp_ship,
-                        def_list=defend,
+                        def_list=def_list,
                         equip=tmp_equip,
                         coef=coef,
                     )
@@ -178,7 +276,7 @@ class AirPhase(DaytimePhase):
                     atk = AirDiveAtk(
                         timer=self.timer,
                         atk_body=tmp_ship,
-                        def_list=defend,
+                        def_list=def_list,
                         equip=tmp_equip,
                         coef=coef,
                     )
@@ -197,6 +295,52 @@ class AirPhase(DaytimePhase):
                     if tmp_equip.load > 0:
                         return True
         return False
+    
+
+class TorpedoPhase(DaytimePhase):
+    """鱼雷战"""
+
+    def start(self):
+        # 检查可参与先制鱼雷的对象
+        atk_friend = self.friend.get_act_member_inphase()
+        atk_enemy = self.enemy.get_act_member_inphase()
+        # 检查可被鱼雷攻击的对象
+        def_friend = self.friend.get_atk_target(atk_type=TorpedoAtk)
+        def_enemy = self.enemy.get_atk_target(atk_type=TorpedoAtk)
+
+        # 如果不存在可行动对象或可攻击对象，结束本阶段
+        if (len(atk_friend) and len(def_enemy)) or \
+                (len(atk_enemy) and len(def_friend)):
+            pass
+        else:
+            return
+
+        # 按照站位依次行动，先结算我方
+        self.torpedo_strike(atk_friend, def_enemy)
+        atk_enemy = self.enemy.get_act_member_inphase()  # 重新检查敌方可行动对象
+        self.torpedo_strike(atk_enemy, def_friend)
+
+    def torpedo_strike(self, attack, defend):
+        for tmp_ship in attack:
+            # 检查是否存在优先攻击船型对象
+            prior = tmp_ship.get_prior_type_target(defend)
+            if prior is not None:
+                def_list = prior
+            else:
+                def_list = defend
+
+            # 发起鱼雷攻击
+            atk = TorpedoAtk(
+                timer=self.timer,
+                atk_body=tmp_ship,
+                def_list=def_list,
+            )
+            atk.start()
+
+
+class FirstTorpedoPhase(TorpedoPhase):
+    """先制鱼雷"""
+    pass
 
 
 class ShellingPhase(DaytimePhase):
@@ -233,7 +377,11 @@ class ShellingPhase(DaytimePhase):
 
         atk_list = source.raise_atk(target_fleet)
         for atk in atk_list:
-            atk.start()
+            hit_back = atk.start()
+            if isinstance(hit_back, ATK):
+                # hit_back_list.append(hit_back)  # todo 反击结算放在所有攻击结束后
+                hit_back.set_coef({'hit_back': True})
+                hit_back.start()
 
 
 class FirstShellingPhase(ShellingPhase):
@@ -248,4 +396,14 @@ class FirstShellingPhase(ShellingPhase):
 
 class SecondShellingPhase(ShellingPhase):
     """次轮炮击"""
+    pass
+
+
+class SecondTorpedoPhase(TorpedoPhase):
+    """闭幕鱼雷"""
+    pass
+
+
+class NightPhase(AllPhase):
+    """夜战"""
     pass

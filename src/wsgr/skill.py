@@ -4,6 +4,7 @@
 # 技能类
 
 import numpy as np
+import copy
 
 from src.wsgr.wsgrTimer import Time
 from src.wsgr.ship import Ship, Fleet
@@ -30,15 +31,43 @@ class Skill(Time):
         target = self.target.get_target(friend, enemy)
         for tmp_target in target:
             for tmp_buff in self.buff[:]:
+                tmp_buff = copy.copy(tmp_buff)
                 tmp_target.add_buff(tmp_buff)
 
     def is_common(self):
         return False
 
+    def is_prep(self):
+        return False
+
+    def change_master(self, master):
+        """让巴尔技能调用，更换技能master"""
+        self.master = master
+
+        if self.request is not None:
+            for tmp_request in self.request:
+                tmp_request.change_master(master)
+
+        if self.target is not None:
+            self.target.change_master(master)
+
+    def change_rate(self, rate):
+        """让巴尔技能调用，更改发动概率"""
+        if self.buff is None:
+            raise ValueError(f'{self.master.status["name"]}.buff should not be None!')
+        for tmp_buff in self.buff:
+            tmp_buff.change_rate(rate)
+
 
 class CommonSkill(Skill):
     """仅包含常驻面板加成的技能"""
     def is_common(self):
+        return True
+
+
+class PrepSkill(Skill):
+    """影响队友航速、索敌的技能，需要在buff阶段前结算"""
+    def is_prep(self):
         return True
 
 
@@ -54,6 +83,7 @@ class EquipSkill(Skill):
         target = self.target.get_target(friend, enemy)
         for tmp_target in target:
             for tmp_buff in self.buff[:]:
+                tmp_buff = copy.copy(tmp_buff)
                 buff_type = tmp_buff.effect_type
 
                 # 2类不叠加
@@ -98,6 +128,10 @@ class Request(Time):
     def __bool__(self):
         pass
 
+    def change_master(self, master):
+        """让巴尔技能调用，更换技能master"""
+        self.master = master
+
 
 class ATKRequest(Time):
     """判断攻击类型、攻击目标等"""
@@ -131,6 +165,9 @@ class Target:
         else:
             return enemy
 
+    def change_master(self, master):
+        pass
+
 
 class SelfTarget(Target):
     """自身buff"""
@@ -140,6 +177,10 @@ class SelfTarget(Target):
 
     def get_target(self, friend, enemy):
         return [self.master]
+
+    def change_master(self, master):
+        """让巴尔技能调用，更换技能master"""
+        self.master = master
 
 
 class TypeTarget(Target):
@@ -200,7 +241,7 @@ class RandomTypeTarget(TypeTarget):
 
 class OrderedTypeTarget(TypeTarget):
     """按照指定船型的顺序+站位顺序选择目标"""
-    def __init__(self, shiptype, side=0):
+    def __init__(self, shiptype: tuple, side=0):
         super().__init__(side, shiptype)
 
     def get_target(self, friend, enemy):
@@ -246,7 +287,7 @@ class NearestLocTarget(Target):
     def __init__(self, side, master, radius, direction,
                  master_include=False, expand=False, shiptype=Ship):
         """
-        距离最近的(上方/下方/相邻)，可指定船型
+        距离最近的(上方/下方/相邻)，可指定船型，可以检索不完整队列
         :param side:
         :param master: 技能所有者
         :param radius: 相邻半径
@@ -263,6 +304,10 @@ class NearestLocTarget(Target):
         self.expand = expand
         self.shiptype = shiptype
 
+    def change_master(self, master):
+        """让巴尔技能调用，更换技能master"""
+        self.master = master
+
     def get_target(self, friend, enemy):
         if isinstance(friend, Fleet):
             friend = friend.ship
@@ -275,6 +320,8 @@ class NearestLocTarget(Target):
             fleet = enemy
 
         target = []
+        if not len(fleet):
+            return target
 
         # 获取上方满足条件的目标
         if self.direction == 'up' or self.direction == 'near':
@@ -351,8 +398,30 @@ class NearestLocTarget(Target):
         return target
 
 
+class CountryTarget(Target):
+    """指定国籍的目标(可指定多个国籍)"""
+    def __init__(self, side, country: str):
+        super().__init__(side)
+        self.country = country
+
+    def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        target = [ship for ship in fleet
+                  if ship.status['country'] in self.country]
+        return target
+
+
 class TagTarget(Target):
-    """指定标签的目标"""
+    """指定标签的目标(可指定国籍等字符串属性)"""
 
     def __init__(self, side, tag, tag_name='tag'):
         super().__init__(side)
@@ -375,8 +444,26 @@ class TagTarget(Target):
         return target
 
 
+class NotTagTarget(TagTarget):
+    """非指定标签的目标(可指定国籍等字符串属性)"""
+    def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        target = [ship for ship in fleet
+                  if ship.status[self.tag_name] != self.tag]
+        return target
+
+
 class StatusTarget(Target):
-    """指定属性的目标"""
+    """指定属性的目标(字符串属性除外)"""
 
     def __init__(self, side, status_name, fun, value):
         """
@@ -403,19 +490,19 @@ class StatusTarget(Target):
 
         if self.fun == 'eq':
             target = [ship for ship in fleet
-                      if ship.get_status(self.status_name) == self.value]
+                      if ship.get_final_status(self.status_name) == self.value]
         elif self.fun == 'ge':
             target = [ship for ship in fleet
-                      if ship.get_status(self.status_name) >= self.value]
+                      if ship.get_final_status(self.status_name) >= self.value]
         elif self.fun == 'gt':
             target = [ship for ship in fleet
-                      if ship.get_status(self.status_name) > self.value]
+                      if ship.get_final_status(self.status_name) > self.value]
         elif self.fun == 'le':
             target = [ship for ship in fleet
-                      if ship.get_status(self.status_name) <= self.value]
+                      if ship.get_final_status(self.status_name) <= self.value]
         elif self.fun == 'lt':
             target = [ship for ship in fleet
-                      if ship.get_status(self.status_name) < self.value]
+                      if ship.get_final_status(self.status_name) < self.value]
         else:
             raise ValueError()
         return target
@@ -423,7 +510,7 @@ class StatusTarget(Target):
 
 class EquipTarget(Target):
     """装备"""
-    def __init__(self, side, target, equiptype):
+    def __init__(self, side, target, equiptype=None):
         super().__init__(side)
         self.target = target  # Target, 描述目标装备的携带者
         self.equiptype = equiptype  # tuple, 目标装备类型
@@ -434,7 +521,8 @@ class EquipTarget(Target):
         equip_target = []
         for tmp_ship in ship_target:
             for tmp_equip in tmp_ship.equipment:
-                if isinstance(tmp_equip, self.equiptype):
+                if self.equiptype is None or \
+                        isinstance(tmp_equip, self.equiptype):
                     equip_target.append(tmp_equip)
         return equip_target
 
@@ -457,6 +545,9 @@ class Buff(Time):
     def set_master(self, master):
         self.master = master
 
+    def change_rate(self, rate):
+        self.rate = rate
+
     def is_common(self):
         return False
 
@@ -470,6 +561,9 @@ class Buff(Time):
         return False
 
     def is_coef_process(self):
+        return False
+
+    def is_during_buff(self):
         return False
 
     def is_active(self, *args, **kwargs):
@@ -498,6 +592,9 @@ class StatusBuff(Buff):
 class CommonBuff(StatusBuff):
     """常驻增益(通常直接显示在面板上)"""
     def is_common(self):
+        return True
+
+    def is_active(self, *args, **kwargs):
         return True
 
 
@@ -555,13 +652,33 @@ class AtkBuff(CoeffBuff):
                self.rate_verify()
 
 
+class DuringAtkBuff(CoeffBuff):
+    """某一攻击结算期间有效"""
+    def __init__(self, timer, name, phase, bias_or_weight,
+                 value=None, rate=1):
+        super().__init__(timer, name, phase, value, bias_or_weight, rate)
+
+    def __repr__(self):
+        if self.value is None:
+            return f"{self.name}(temporal)"
+        else:
+            return f"{self.name}(temporal): {self.value}"
+
+    def is_during_buff(self):
+        return True
+
+
 class AtkHitBuff(Buff):
-    """命中后效果"""
+    """攻击时、命中后效果"""
     def __init__(self, timer, name, phase, buff, side,
                  atk_request=None, bias_or_weight=3, rate=1):
         """
+        :param name:    'atk_hit'       自身攻击命中并造成伤害后
+                        'atk_be_hit'    自身被攻击命中并造成伤害后
+                        'give_atk'      自身攻击时
+                        'get_atk'       自身被攻击时
         :param buff: 施加效果内容
-        :param side: 给谁加, 0: 被攻击者; 1: 攻击者
+        :param side: 给谁加, 0: 敌方; 1: 友方
         :param atk_request: ATKRequest, 攻击判断(攻击者、被攻击者、攻击类型)
         """
         super().__init__(timer, name, phase, bias_or_weight, rate)
@@ -569,33 +686,24 @@ class AtkHitBuff(Buff):
         self.side = side
         self.atk_request = atk_request
 
-    def is_active(self, *args, **kwargs):
+    def is_active(self, atk, *args, **kwargs):
         if self.atk_request is None:
             return isinstance(self.timer.phase, self.phase) and \
                    self.rate_verify()
-
-        try:
-            atk = kwargs['atk']
-        except:
-            atk = args[0]
 
         return isinstance(self.timer.phase, self.phase) and \
                bool(self.atk_request[0](self.timer, atk)) and \
                self.rate_verify()
 
-    def activate(self, *args, **kwargs):
-        try:
-            atk = kwargs['atk']
-        except:
-            atk = args[0]
-
+    def activate(self, atk, *args, **kwargs):
         if (self.name == 'atk_hit' and self.side == 1) or \
-                (self.name == 'be_atk_hit' and self.side == 0):
+                (self.name == 'atk_be_hit' and self.side == 0):
             target = atk.atk_body
         else:
             target = atk.target
 
         for tmp_buff in self.buff[:]:
+            tmp_buff = copy.copy(tmp_buff)
             target.add_buff(tmp_buff)
 
 
@@ -613,41 +721,11 @@ class FinalDamageBuff(AtkBuff):
     """终伤系数, 乘算, 需要判断攻击类型"""
     def __init__(self, timer, name, phase, value,
                  bias_or_weight=2, atk_request=None, rate=1):
+        """
+        :param name:    final_damage_buff
+                        final_damage_debuff
+        """
         super().__init__(timer, name, phase, value, bias_or_weight, atk_request, rate)
-
-
-class SpecialBuff(Buff):
-    """机制增益"""
-    def __init__(self, timer, name, phase,
-                 exhaust=None, atk_request=None, bias_or_weight=3, rate=1):
-        super().__init__(timer, name, phase, bias_or_weight, rate)
-        self.exhaust = exhaust
-        self.atk_request = atk_request
-
-    def is_active(self, *args, **kwargs):
-        if self.exhaust is None:
-            exhaust_flag = True
-        elif self.exhaust > 0:
-            exhaust_flag = True
-        else:
-            exhaust_flag = False
-
-        if self.atk_request is None:
-            return isinstance(self.timer.phase, self.phase) and \
-                   self.rate_verify() and exhaust_flag
-
-        try:
-            atk = kwargs['atk']
-        except:
-            atk = args[0]
-
-        return isinstance(self.timer.phase, self.phase) and \
-               bool(self.atk_request[0](self.timer, atk)) and \
-               self.rate_verify() and exhaust_flag
-
-    def activate(self, *args, **kwargs):
-        if self.exhaust is not None:
-            self.exhaust -= 1
 
 
 class ActPhaseBuff(Buff):
@@ -658,6 +736,10 @@ class ActPhaseBuff(Buff):
 class PriorTargetBuff(Buff):
     """优先攻击目标"""
     def __init__(self, timer, name, phase, target, ordered):
+        """
+        :param name:    prior_type_target
+                        prior_loc_target
+        """
         super().__init__(timer, name, phase)
         self.target = target
         self.ordered = ordered
@@ -666,10 +748,12 @@ class PriorTargetBuff(Buff):
         prior = self.target.get_target(None, fleet)
         if not len(prior):
             return None
-        elif self.ordered:
+        elif self.name == 'prior_loc_target':
             return prior[0]
+        elif self.ordered:
+            return prior[:1]
         else:
-            return np.random.choice(prior)
+            return prior
 
 
 class EventBuff(Buff):
@@ -711,6 +795,9 @@ class MagnetBuff(EventBuff):
     def activate(self, atk, *args, **kwargs):
         atk.set_target(self.master)
 
+    def change_rate(self, rate):
+        pass
+
 
 class UnMagnetBuff(EventBuff):
     """负嘲讽技能"""
@@ -740,16 +827,20 @@ class UnMagnetBuff(EventBuff):
         target = np.random.choice(atk.def_list)
         atk.set_target(target)
 
+    def change_rate(self, rate):
+        pass
+
 
 class TankBuff(EventBuff):
     """挡枪技能"""
-    def __init__(self, timer, phase, target, rate,
+    def __init__(self, timer, phase, target, value, rate,
                  name='tank', coef=None, exhaust=1, bias_or_weight=3):
         super().__init__(timer, name, phase, bias_or_weight, rate)
         self.target = target
         self.exhaust = exhaust
 
-        self.coef = {'must_hit': True}
+        self.coef = {'must_hit': True,
+                     'tank_damage_debuff': value}
         if coef is None:
             coef = {}
         self.coef.update(coef)
@@ -758,28 +849,106 @@ class TankBuff(EventBuff):
         return f"挡枪: {self.rate * 100}%"
 
     def is_active(self, atk, *args, **kwargs):
-        if not self.exhaust:
+        if self.exhaust is not None and self.exhaust == 0:
             return False
-        if self.master.damaged >= 3:
+        if self.master.damaged >= 3:  # 大破状态不能发动
             return False
 
-        def_target = self.target.get_target(atk.def_list, None)
+        def_target = self.target.get_target(atk.target.master, None)
         return isinstance(self.timer.phase, self.phase) and \
                self.master != atk.target and \
-               self.master in atk.def_list and \
                atk.target in def_target and \
                self.rate_verify()
+               # self.master in atk.def_list and \
 
     def activate(self, atk, *args, **kwargs):
         atk.set_target(self.master)
         atk.set_coef(self.coef)
 
 
+class SpecialBuff(Buff):
+    """机制增益"""
+    def __init__(self, timer, name, phase,
+                 exhaust=None, atk_request=None, bias_or_weight=3, rate=1):
+        super().__init__(timer, name, phase, bias_or_weight, rate)
+        self.exhaust = exhaust
+        self.atk_request = atk_request
+
+    def is_active(self, *args, **kwargs):
+        if self.exhaust is not None and self.exhaust == 0:
+            return False
+
+        if self.atk_request is None:
+            return isinstance(self.timer.phase, self.phase) and \
+                   self.rate_verify()
+
+        try:
+            atk = kwargs['atk']
+        except:
+            atk = args[0]
+
+        return isinstance(self.timer.phase, self.phase) and \
+               bool(self.atk_request[0](self.timer, atk)) and \
+               self.rate_verify()
+
+    def activate(self, *args, **kwargs):
+        if self.exhaust is not None:
+            self.exhaust -= 1
+
+
+class HitBack(SpecialBuff):
+    def __init__(self, timer, phase,
+                 name='hit_back', coef=None, exhaust=1,
+                 atk_request=None, bias_or_weight=3, rate=1):
+        super().__init__(timer, name, phase, exhaust, atk_request, bias_or_weight, rate)
+        if coef is None:
+            coef = {}
+        self.coef = coef
+
+    def is_active(self, atk, *args, **kwargs):
+        if atk.get_coef('hit_back'):  # 无法反击反击
+            return False
+        if self.exhaust is not None and self.exhaust == 0:
+            return False
+        if self.master.damaged >= 3:  # 大破状态不能发动
+            return False
+
+        if self.atk_request is None:
+            return isinstance(self.timer.phase, self.phase) and \
+                   self.rate_verify()
+
+        return isinstance(self.timer.phase, self.phase) and \
+               bool(self.atk_request[0](self.timer, atk)) and \
+               self.rate_verify()
+
+    def activate(self, atk, *args, **kwargs):
+        assert atk.atk_body.side != self.master.side
+
+        if self.exhaust is not None:
+            self.exhaust -= 1
+
+        hit_back = self.master.normal_atk(
+            timer=self.timer,
+            atk_body=self.master,
+            def_list=None,
+            coef=self.coef,
+            target=atk.atk_body
+        )
+        hit_back.changable = False
+        return hit_back
+
+
 class ActiveBuff(Buff):
     """主动技能"""
 
     def __init__(self, timer, name, phase, num, rate,
-                 during_buff=None, end_buff=None, coef=None, bias_or_weight=3):
+                 during_buff: list = None, end_buff: list = None,
+                 coef=None, bias_or_weight=3):
+        """
+        :param num: 总攻击次数
+        :param during_buff: 攻击期间buff
+        :param end_buff: 攻击结束后buff
+        """
         super().__init__(timer, name, phase, bias_or_weight, rate)
         if during_buff is None:
             during_buff = []
@@ -792,8 +961,17 @@ class ActiveBuff(Buff):
         self.num = num
         self.coef = coef
 
+    def __repr__(self):
+        return f'{self.name}: {self.rate}'
+
     def is_active_buff(self):
         return True
+
+    def is_active(self, atk, enemy, *args, **kwargs):
+        def_list = enemy.get_atk_target(atk_type=atk)
+        return len(def_list) and \
+               self.rate_verify() and \
+               isinstance(self.timer.phase, self.phase)
 
     def active_start(self, atk, enemy, *args, **kwargs):
         """迭代器，依次执行攻击时效果、攻击行动、攻击后效果"""
@@ -818,6 +996,7 @@ class MultipleAtkBuff(ActiveBuff):
     def active_start(self, atk, enemy, *args, **kwargs):
         assert self.master is not None
         def_list = enemy.get_atk_target(atk_type=atk)
+        assert len(def_list)
         self.add_during_buff()  # 攻击时效果
 
         for i in range(self.num):
@@ -844,10 +1023,9 @@ class ExtraAtkBuff(ActiveBuff):
     def active_start(self, atk, enemy, *args, **kwargs):
         assert self.master is not None
         def_list = enemy.get_atk_target(atk_type=atk)
-        if not len(def_list):
-            return
-
+        assert len(def_list)
         self.add_during_buff()  # 攻击时效果
+
         atk_sample = atk(
             timer=self.timer,
             atk_body=self.master,
@@ -869,3 +1047,7 @@ class ExtraAtkBuff(ActiveBuff):
 
         self.remove_during_buff()  # 去除攻击时效果
         self.add_end_buff()  # 攻击结束效果
+
+
+class SpecialAtkBuff(ActiveBuff):
+    pass
