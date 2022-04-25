@@ -3,7 +3,6 @@
 # env:py38
 # 克劳塞维茨
 
-from audioop import bias
 from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *

@@ -19,13 +19,13 @@ class Skill_110182_1(Skill):
             CoeffBuff(timer=timer,
                 name="hit_rate",
                 phase=FirstShellingPhase,
-                value=0.2,
+                value=0.1,
                 bias_or_weight=0
             ),
-            CoeffBuff(timer=timer,
-                name="crit",
+            FinalDamageBuff(timer=timer,
+                name="final_damage_buff",
                 phase=FirstShellingPhase,
-                value=0.1,
+                value=0.2,
                 bias_or_weight=0
             ),
             PriorTargetBuff(timer=timer,

@@ -19,7 +19,7 @@ class Skill_104361_1(Skill):
         self.buff=[
             StatusBuff(timer=timer,
                 name="fire",
-                phase=ShellingPhase,
+                phase=AllPhase,
                 value=0,
                 bias_or_weight=0,
             )

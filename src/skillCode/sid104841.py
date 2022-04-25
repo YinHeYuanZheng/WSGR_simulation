@@ -30,9 +30,9 @@ class Skill_104841_1(Skill):
         ]
     def activate(self, friend, enemy):
         num = len(TypeTarget(side=1,shiptype=BC).get_target(friend,enemy))
-        buff = copy.copy(self.buff[0])
-        buff.value *= num
-        target = self.target.get_target(friend,enemy)[0]
-        target.add_buff(buff)
+        for this_buff in self.buff:
+            buff = copy.copy(this_buff)
+            buff.value *= num
+            self.master.add_buff(buff)
         
 skill = [Skill_104841_1]
