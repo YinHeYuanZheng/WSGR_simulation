@@ -72,10 +72,10 @@ def run_supply_cost(battle, epoc):
         supply['steel'] += log['supply']['steel']
         supply['almn'] += log['supply']['almn']
         print(f"第{i + 1}次 - 资源消耗: "
-              f"油 {supply['oil'] / (i + 1):.1f}, "
-              f"弹 {supply['ammo'] / (i + 1):.1f}, "
-              f"钢 {supply['steel'] / (i + 1):.1f}, "
-              f"铝 {supply['almn'] / (i + 1):.1f}.")
+              f"油 {supply['oil'] / (i + 1):.1f} "
+              f"弹 {supply['ammo'] / (i + 1):.1f} "
+              f"钢 {supply['steel'] / (i + 1):.1f} "
+              f"铝 {supply['almn'] / (i + 1):.1f}")
 
 
 if __name__ == '__main__':
@@ -89,6 +89,6 @@ if __name__ == '__main__':
     battle = load_config(xml_file, ds, timer_init)
 
     # run_hit_rate(battle, 1000)
-    # run_victory(battle, 1000)
-    run_avg_damage(battle, 10000)
-    # run_supply_cost(battle, 1000)
+    # run_victory(battle, 5000)
+    # run_avg_damage(battle, 10000)
+    run_supply_cost(battle, 5000)
