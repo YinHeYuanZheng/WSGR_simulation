@@ -7,11 +7,12 @@ import numpy as np
 import copy
 
 from src.wsgr.wsgrTimer import Time
-from src.wsgr.ship import Ship, Fleet
+from src.wsgr.ship import  Fleet,Ship
 
 
 class Skill(Time):
     def __init__(self, timer, master):
+        # 这里的 master 是 Ship 类，成员函数参照 src.wsgr.ship
         super().__init__(timer)
         self.master = master
 
@@ -745,6 +746,7 @@ class PriorTargetBuff(Buff):
         self.ordered = ordered
 
     def activate(self, fleet, *args, **kwargs):
+        """target 属性为一个筛选器，即 TypeTarget 类"""
         prior = self.target.get_target(None, fleet)
         if not len(prior):
             return None

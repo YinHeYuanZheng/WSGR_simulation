@@ -149,7 +149,7 @@ class ATK(Time):
                 self.target.get_special_buff('must_not_crit', self):
             self.coef['crit_flag'] = False
             return
-
+        
         # 基础暴击率
         crit = 0.05 + (self.atk_body.affection - 50) * 0.001 + \
                self.get_coef_value('crit') + \

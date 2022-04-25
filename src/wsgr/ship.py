@@ -96,6 +96,7 @@ class Ship(Time):
         self.night_atk = None
 
     def __eq__(self, other):
+        #可以用于判断
         return self.cid == other.cid and \
                self.loc == other.loc and \
                self.side == other.side
@@ -327,7 +328,7 @@ class Ship(Time):
         return ship_range
 
     def add_buff(self, buff):
-        """添加增益"""
+        """添加增益,只做标记，不真正添加到实际属性上"""
         buff.set_master(self)
         if buff.is_common():
             self.common_buff.append(buff)
@@ -342,7 +343,7 @@ class Ship(Time):
             self.temper_buff.append(buff)
 
     def get_buff(self, name, *args, **kwargs):
-        """根据增益名称获取全部属性增益"""
+        """根据增益名称获取全部属性增益，只计算总量，不添加到面板上"""
         scale_add = 0
         scale_mult = 1
         bias = 0
@@ -359,7 +360,7 @@ class Ship(Time):
         return scale_add, scale_mult, bias  # 先scale后bias
 
     def get_atk_buff(self, name, atk, *args, **kwargs):
-        """根据增益名称获取全部攻击系数增益(含攻击判断)"""
+        """根据增益名称获取全部攻击系数增益(含攻击判断)，只计算，不添加到面板"""
         scale_add = 0
         scale_mult = 1
         bias = 0
