@@ -88,6 +88,7 @@ def run_supply_cost(battle, epoc, q:Queue):
             f"钢 {supply['steel'] / (i + 1):.1f} "
             f"铝 {supply['almn'] / (i + 1):.1f}")"""
     q.put(info_list)
+    #向通信队列中放数据
 def main_function(times,q,type:str):
     #这里写原本的 main 部分
     configDir = os.path.join(os.path.dirname(srcDir), 'config')
@@ -103,11 +104,18 @@ def main_function(times,q,type:str):
     if(type=="victory"):run_victory(battle,times,q)
     if(type=="damage"):run_avg_damage(battle,times,q)
 def output(type,process_list,queue_list):
+    """
+    信息输出函数
+    """
     print("simulation complted,start counting")
     info = []
     for i in range(len(queue_list)):
         x = queue_list[i].get()
+        #等待子进程向通信队列中放入数据并取出
+
         process_list[i].join()
+        #等待子进程终止
+
         for element in x:
             info.append(element)
     if(type == "damage"):
@@ -148,19 +156,27 @@ def output(type,process_list,queue_list):
             hit_rate+=x
             print(f"第{i + 1}次 - 命中率: {hit_rate / (i + 1) * 100: .4f}%")
 def run_with_multiprocessing(times:int,type:str,process_count = 4):
-    """
+    """多线程函数
+    由于程序没做多线程设计，所以会存在内存抢占等不利情况，实际时间并不会 /process_count
     times:实际执行次数   
     type:"supply","damage","hit_rate","victory"
+    process_count:线程数,一般填 4,计算机线程较多且运算规模较大可以填 2^n
+
     """
     process_list = []
+    #存线程
+    
     queue_list = []
+    #存用于和主进程通信的队列
+    
     times_list = []
+    #存每个线程的执行次数
 
     for i in range(process_count):
         num = int(times/(process_count-i))
         print(num)
         times_list.append(num)
-        q = Queue(maxsize=65536)
+        q = Queue()
         queue_list.append(q)
         process_list.append(Process(target=main_function,args=(num,q,type)))
         times -= num
