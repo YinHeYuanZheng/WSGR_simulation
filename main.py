@@ -168,12 +168,6 @@ def run_with_multiprocessing(times:int,type:str,process_count = 4):
         x.start()
     output(type,process_list,queue_list)
     
-    
-    # run_hit_rate(battle, 1000)
-    # run_victory(battle, 5000)
-    # run_avg_damage(battle, 10000)
-    
-    
 if(__name__ == "__main__"):
     starttime = time.time()
     run_with_multiprocessing(4000,"supply",4)
