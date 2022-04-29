@@ -28,7 +28,7 @@ class Skill_103051(Skill):
 
 class BuffRequest_1(ATKRequest):
     def __bool__(self):
-       return self.atk.target.get_final_status(name='armor') > 50
+        return self.atk.target.get_final_status(name='armor') > 50
 
 
 skill = [Skill_103051]

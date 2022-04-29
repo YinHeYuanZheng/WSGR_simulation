@@ -96,7 +96,6 @@ class Ship(Time):
         self.night_atk = None
 
     def __eq__(self, other):
-        #可以用于判断
         return self.cid == other.cid and \
                self.loc == other.loc and \
                self.side == other.side

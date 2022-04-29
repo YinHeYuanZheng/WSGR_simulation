@@ -7,12 +7,15 @@ import numpy as np
 import copy
 
 from src.wsgr.wsgrTimer import Time
-from src.wsgr.ship import  Fleet,Ship
+from src.wsgr.ship import Fleet, Ship
 
 
 class Skill(Time):
     def __init__(self, timer, master):
-        # 这里的 master 是 Ship 类，成员函数参照 src.wsgr.ship
+        """
+        :param timer: src.wsgr.wsgrTimer.timer
+        :param master: src.wsgr.ship.Ship
+        """
         super().__init__(timer)
         self.master = master
 
@@ -740,6 +743,7 @@ class PriorTargetBuff(Buff):
         """
         :param name:    prior_type_target
                         prior_loc_target
+        :param ordered: bool
         """
         super().__init__(timer, name, phase)
         self.target = target

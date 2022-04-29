@@ -47,6 +47,11 @@ class timer:
         self.atk = atk
 
     def get_dist(self):
+        # 特殊点位手动置为5
+        return 5
+
+    def get_dist_from_start(self):
+        # 特殊点位手动置为5
         return 5
 
     def queue_append(self, buff):
