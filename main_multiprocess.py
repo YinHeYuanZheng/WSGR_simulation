@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 # Author:银河远征
 # env:py38
+
 from multiprocessing import Process, Queue
 import time
 import os
@@ -12,7 +13,6 @@ curDir = os.path.dirname(__file__)
 srcDir = os.path.join(curDir, 'src')
 sys.path.append(srcDir)
 
-from multiprocessing import Process, Queue
 from src.utils.loadConfig import load_config
 from src.utils.loadDataset import Dataset
 from src.wsgr.wsgrTimer import timer

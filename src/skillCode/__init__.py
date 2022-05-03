@@ -148,6 +148,8 @@ from . import sid113621  # 星座-1
 from . import sid113622  # 星座-2
 
 # 未改CACL
+from . import sid110581  # 高速射击
+
 from . import sid102431  # 得梅因-1
 from . import sid104101  # 萨勒姆-1
 
@@ -166,7 +168,6 @@ from . import sid112412  # 巴尔的摩改-2
 from . import sid110501  # 天狼星改-1
 from . import sid110541  # 重庆-1
 from . import sid110571  # 朱诺改-1
-from . import sid110581  # 高速射击
 from . import sid110591  # 海伦娜改-1
 from . import sid110592  # 海伦娜改-2
 from . import sid111601  # 摩尔曼斯克改-1
