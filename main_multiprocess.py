@@ -50,7 +50,7 @@ def run_hit_rate(battle, epoc, q: Queue):
 
         # hit_rate += log['hit_rate']
         info_list.append(log["hit_rate"])
-        print(f"第{i + 1}次 - 命中率: {hit_rate / (i + 1) * 100: .4f}%")
+        # print(f"第{i + 1}次 - 命中率: {hit_rate / (i + 1) * 100: .4f}%")
     q.put(info_list)
 
 
@@ -65,7 +65,7 @@ def run_avg_damage(battle, epoc, q: Queue):
 
         # avg_damage += np.sum(log['create_damage'][1])
         # retreat_num += log['enemy_retreat_num']
-        info_list.append((np.sum(log['create_damage'][1], log['enemy_retreat_num'])))
+        info_list.append((np.sum(log['create_damage'][1]), log['enemy_retreat_num']))
         # print(f"第{i + 1}次 - 平均伤害: {avg_damage / (i + 1):.3f}; "
         #      f"平均击沉 {retreat_num / (i + 1):.2f}")
 
@@ -136,8 +136,8 @@ def output(fun_type, process_list, queue_list):
         avg_damage = 0
         retreat_num = 0
         for (i, x) in enumerate(info):
-            avg_damage += info[0]
-            retreat_num += info[1]
+            avg_damage += x[0]
+            retreat_num += x[1]
             print(f"第{i + 1}次 - 平均伤害: {avg_damage / (i + 1):.3f}; "
                   f"平均击沉 {retreat_num / (i + 1):.2f}")
 
@@ -206,5 +206,5 @@ def run_with_multiprocessing(times: int, fun_type: str, process_count=4):
 
 if __name__ == "__main__":
     starttime = time.time()
-    run_with_multiprocessing(4000, "supply", 4)
+    run_with_multiprocessing(4000, "damage", 4)
     print(time.time() - starttime)
