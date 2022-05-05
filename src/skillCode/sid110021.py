@@ -15,14 +15,16 @@ class Skill_110021_1(CommonSkill):
         super().__init__(timer, master)
         self.target = EquipTarget(side=1,
                                   target=SelfTarget(master),
-                                  equiptype=(MainGun, ))
-        self.buff = [CommonBuff(
-            timer=timer,
-            name='fire',
-            phase=(AllPhase,),
-            value=5,
-            bias_or_weight=0
-        )]
+                                  equiptype=(MainGun,))
+        self.buff = [
+            CommonBuff(
+                timer=timer,
+                name='fire',
+                phase=(AllPhase,),
+                value=5,
+                bias_or_weight=0
+            )
+        ]
 
 
 class Skill_110021_2(Skill):

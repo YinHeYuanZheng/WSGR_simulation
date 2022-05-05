@@ -53,7 +53,7 @@ class Equipment(Time):
                       'accuracy', 'range', 'evasion', 'luck', 'bomb', 'antiair']
 
         scale_add = 0
-        scale_mult = 1
+        # scale_mult = 1
         bias = 0
         for tmp_buff in self.common_buff:
             if tmp_buff.name == name and tmp_buff.is_active():
@@ -61,16 +61,16 @@ class Equipment(Time):
                     bias += tmp_buff.value
                 elif tmp_buff.bias_or_weight == 1:
                     scale_add += tmp_buff.value
-                elif tmp_buff.bias_or_weight == 2:
-                    scale_mult *= (1 + tmp_buff.value)
-                else:
-                    pass
+                # elif tmp_buff.bias_or_weight == 2:
+                #     scale_mult *= (1 + tmp_buff.value)
+                # else:
+                #     pass
 
             elif name in status_key and \
                     tmp_buff.name == 'all_status' and\
                     tmp_buff.is_active():
                 scale_add += tmp_buff.value
-        status = status * (1 + scale_add) * scale_mult + bias
+        status = status * (1 + scale_add) + bias
         return max(0, status)
 
     def get_final_status(self, name):
@@ -114,10 +114,10 @@ class Equipment(Time):
                     bias += tmp_buff.value
                 elif tmp_buff.bias_or_weight == 1:
                     scale_add += tmp_buff.value
-                elif tmp_buff.bias_or_weight == 2:
-                    scale_mult *= (1 + tmp_buff.value)
-                else:
-                    pass
+                # elif tmp_buff.bias_or_weight == 2:
+                #     scale_mult *= (1 + tmp_buff.value)
+                # else:
+                #     pass
         return scale_add, scale_mult, bias  # 先scale后bias
 
     def get_atk_buff(self, name, atk, *args, **kwargs):
