@@ -283,7 +283,7 @@ class ATK(Time):
                 return 0
             else:  # 50% 擦伤
                 real_dmg = np.ceil(
-                    min(real_atk, self.target.get_status('health')) * 0.1
+                    min(real_atk, self.target.status['health']) * 0.1
                 )
         return real_dmg
 

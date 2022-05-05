@@ -13,13 +13,15 @@ class Skill_111211_1(CommonSkill):
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
-        self.buff = [CommonBuff(
-            timer=timer,
-            name='evasion',
-            phase=(AllPhase,),
-            value=20,
-            bias_or_weight=0
-        )]
+        self.buff = [
+            CommonBuff(
+                timer=timer,
+                name='evasion',
+                phase=(AllPhase,),
+                value=20,
+                bias_or_weight=0
+            )
+        ]
 
 
 class Skill_111211_2(Skill):

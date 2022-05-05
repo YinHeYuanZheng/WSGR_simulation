@@ -277,10 +277,10 @@ class Ship(Time):
                     bias += tmp_buff.value
                 elif tmp_buff.bias_or_weight == 1:
                     scale_add += tmp_buff.value
-                elif tmp_buff.bias_or_weight == 2:
-                    scale_mult *= (1 + tmp_buff.value)
-                else:
-                    pass
+                # elif tmp_buff.bias_or_weight == 2:
+                #     scale_mult *= (1 + tmp_buff.value)
+                # else:
+                #     pass
 
         # 好感补正
         if name in ['accuracy', 'evasion'] and self.side == 1:
@@ -300,12 +300,12 @@ class Ship(Time):
     def get_final_status(self, name, equip=True):
         """根据属性名称获取属性总和"""
         buff_scale_1, buff_scale_2, buff_bias = self.get_buff(name)
-        status = self.get_status(name) * (1 + buff_scale_1) * buff_scale_2
+        status = self.get_status(name) * (1 + buff_scale_1)
 
         if equip and name != 'speed':
-            status += self.get_equip_status(name) * buff_scale_2
+            status += self.get_equip_status(name)
 
-        status += buff_bias
+        status = status * buff_scale_2 + buff_bias
 
         return max(0, status)
 
@@ -342,7 +342,7 @@ class Ship(Time):
             self.temper_buff.append(buff)
 
     def get_buff(self, name, *args, **kwargs):
-        """根据增益名称获取全部属性增益，只计算总量，不添加到面板上"""
+        """根据增益名称获取全部属性增益，对于属性倍率，搜索全部buff内容"""
         scale_add = 0
         scale_mult = 1
         bias = 0
@@ -354,8 +354,11 @@ class Ship(Time):
                     scale_add += tmp_buff.value
                 elif tmp_buff.bias_or_weight == 2:
                     scale_mult *= (1 + tmp_buff.value)
-                else:
-                    pass
+
+        for tmp_buff in self.common_buff:
+            if tmp_buff.name == name and tmp_buff.bias_or_weight == 2:
+                scale_mult *= (1 + tmp_buff.value)
+
         return scale_add, scale_mult, bias  # 先scale后bias
 
     def get_atk_buff(self, name, atk, *args, **kwargs):

@@ -157,6 +157,10 @@ from . import sid104101  # 萨勒姆-1
 from . import sid104221  # 凤凰城-1
 
 # 改造CACL
+from . import sid110321  # 高雄-1
+from . import sid110331  # 爱宕-1
+from . import sid110341  # 摩耶-1
+from . import sid110351  # 鸟海-1
 from . import sid110391  # 威奇塔改-1
 from . import sid111371  # 波特兰改-1
 from . import sid111391  # 彭萨科拉改-1
