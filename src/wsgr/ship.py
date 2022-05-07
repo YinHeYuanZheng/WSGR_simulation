@@ -713,7 +713,7 @@ class Aircraft(Ship):
         self.act_phase_flag.update({'AirPhase': True})
         self.act_phase_indicator.update({'AirPhase': lambda x: x.damaged < 3})
 
-    def get_atk_plane(self):
+    def check_atk_plane(self):
         """检查攻击型飞机是否有载量"""
         for tmp_equip in self.equipment:
             if isinstance(tmp_equip, (Bomber, DiveBomber)):
@@ -737,9 +737,9 @@ class CV(Aircraft, LargeShip, MainShip):
         self.act_phase_indicator.update({
             'AirPhase': lambda x: x.damaged < 3,
             'FirstShellingPhase': lambda x:
-                (x.damaged < 2) and (x.get_atk_plane()),
+                (x.damaged < 2) and (x.check_atk_plane()),
             'SecondShellingPhase': lambda x:
-                (x.damaged < 2) and (x.get_atk_plane()) and (x.get_range() >= 3),
+                (x.damaged < 2) and (x.check_atk_plane()) and (x.get_range() >= 3),
         })
 
         from src.wsgr.formulas import AirNormalAtk
@@ -754,7 +754,7 @@ class CV(Aircraft, LargeShip, MainShip):
         # 可参与阶段
         for tmp_buff in self.temper_buff:
             if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
-                return (self.damaged < 2) and (self.get_atk_plane())
+                return (self.damaged < 2) and (self.check_atk_plane())
 
         # 默认行动模式
         phase_name = type(self.timer.phase).__name__
@@ -777,10 +777,10 @@ class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
         self.act_phase_indicator.update({
             'AirPhase': lambda x: x.damaged < 3,
             'AntisubPhase': lambda x:
-                (x.damaged < 2) and (x.get_atk_plane()) and (x.get_form() == 5),
+                (x.damaged < 2) and (x.check_atk_plane()) and (x.get_form() == 5),
             'FirstShellingPhase': lambda x: x.damaged < 2,
             'SecondShellingPhase': lambda x:
-                (x.damaged < 2) and (x.get_atk_plane()) and (x.get_range() >= 3),
+                (x.damaged < 2) and (x.check_atk_plane()) and (x.get_range() >= 3),
         })
 
         from src.wsgr.formulas import AirNormalAtk, AirAntiSubAtk
@@ -796,7 +796,7 @@ class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
         # 可参与阶段
         for tmp_buff in self.temper_buff:
             if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
-                return (self.damaged < 2) and (self.get_atk_plane())
+                return (self.damaged < 2) and (self.check_atk_plane())
 
         # 默认行动模式
         phase_name = type(self.timer.phase).__name__
@@ -818,9 +818,9 @@ class AV(Aircraft, LargeShip, MainShip):
         self.act_phase_indicator.update({
             'AirPhase': lambda x: x.damaged < 3,
             'FirstShellingPhase': lambda x:
-                (x.damaged < 3) and (x.get_atk_plane()),
+                (x.damaged < 3) and (x.check_atk_plane()),
             'SecondShellingPhase': lambda x:
-                (x.damaged < 3) and (x.get_atk_plane()) and (x.get_range() >= 3),
+                (x.damaged < 3) and (x.check_atk_plane()) and (x.get_range() >= 3),
         })
 
         from src.wsgr.formulas import AirNormalAtk
@@ -835,7 +835,7 @@ class AV(Aircraft, LargeShip, MainShip):
         # 可参与阶段
         for tmp_buff in self.temper_buff:
             if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
-                return (self.damaged < 3) and (self.get_atk_plane())
+                return (self.damaged < 3) and (self.check_atk_plane())
 
         # 默认行动模式
         phase_name = type(self.timer.phase).__name__
@@ -920,28 +920,62 @@ class AP(SmallShip, CoverShip):
 
 class MissileShip(Ship):
     """导弹船"""
+    def check_missile(self):
+        """检查导弹装备是否有载量、是否有发射器"""
+
+        # 检查是否有发射器
+        launcher_flag = False
+        for tmp_equip in self.equipment:
+            if isinstance(tmp_equip, Launcher):
+                launcher_flag = True
+        if not launcher_flag:
+            return False
+
+        # 检查导弹装备是否有载量
+        for tmp_equip in self.equipment:
+            if isinstance(tmp_equip, (Missile, AntiMissile)):
+                if tmp_equip.load > 0:
+                    return True
+        return False
+
+
+class AtkMissileShip(MissileShip):
+    """反舰导弹船"""
 
     def __init__(self, timer):
         super().__init__(timer)
-        self.load = [0, 0, 0, 0]
+        self.act_phase_flag.update({
+            'FirstMissilePhase': True,
+            'SecondTorpedoPhase': False,  # 大巡可参与
+        })
+
+        self.act_phase_indicator.update({
+            'FirstMissilePhase': lambda x:
+                (x.damaged < 3) and x.check_missile(),
+        })
 
 
-class ASDG(MissileShip, SmallShip, MainShip):
+class DefMissileShip(MissileShip):
+    """防空导弹船"""
+    pass
+
+
+class ASDG(AtkMissileShip, SmallShip, MainShip):
     """导驱"""
     pass
 
 
-class AADG(MissileShip, SmallShip, CoverShip):
+class AADG(DefMissileShip, SmallShip, CoverShip):
     """防驱"""
     pass
 
 
-class BBG(MissileShip, LargeShip, MainShip):
+class BBG(AtkMissileShip, LargeShip, MainShip):
     """导战"""
     pass
 
 
-class BG(MissileShip, LargeShip, MainShip):
+class BG(DefMissileShip, LargeShip, MainShip):
     """大巡"""
     pass
 
@@ -1000,9 +1034,9 @@ class Airfield(LandUnit, Aircraft):
         self.act_phase_indicator.update({
             'AirPhase': lambda x: x.damaged < 3,
             'FirstShellingPhase': lambda x:
-                (x.damaged < 3) and (x.get_atk_plane()),
+                (x.damaged < 3) and (x.check_atk_plane()),
             'SecondShellingPhase': lambda x:
-                (x.damaged < 3) and (x.get_atk_plane()) and (x.get_range() >= 3),
+                (x.damaged < 3) and (x.check_atk_plane()) and (x.get_range() >= 3),
         })
 
         from src.wsgr.formulas import AirNormalAtk

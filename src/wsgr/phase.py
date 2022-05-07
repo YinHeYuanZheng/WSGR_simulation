@@ -16,6 +16,8 @@ __all__ = ['AllPhase',
            'BuffPhase',
            'AirPhase',
 
+           'FirstMissilePhase',
+
            'TorpedoPhase',
            'FirstTorpedoPhase',
            'SecondTorpedoPhase',
@@ -295,6 +297,42 @@ class AirPhase(DaytimePhase):
                     if tmp_equip.load > 0:
                         return True
         return False
+
+
+class FirstMissilePhase(DaytimePhase):
+    """开幕导弹"""
+    def start(self):
+        # 检查可参与开幕导弹战的对象
+        atk_friend = self.friend.get_act_member_inphase()
+        atk_enemy = self.enemy.get_act_member_inphase()
+        # 检查可被导弹攻击的对象
+        def_friend = self.friend.get_atk_target(atk_type=None)
+        def_enemy = self.enemy.get_atk_target(atk_type=None)
+
+        # 如果不存在可行动对象或可攻击对象，结束本阶段
+        if (len(atk_friend) and len(def_enemy)) or \
+                (len(atk_enemy) and len(def_friend)):
+            pass
+        else:
+            return
+
+    def get_atk_missile(self, shiplist):
+        """获取反舰导弹"""
+        msl_list = []
+        for tmp_ship in shiplist:
+            for tmp_equip in tmp_ship.equipment:
+                if isinstance(tmp_equip, Missile) and tmp_equip.load > 0:
+                    msl_list.append(tmp_equip)
+        return msl_list
+
+    def get_def_missile(self, shiplist):
+        """获取防空导弹"""
+        msl_list = []
+        for tmp_ship in shiplist:
+            for tmp_equip in tmp_ship.equipment:
+                if isinstance(tmp_equip, AntiMissile) and tmp_equip.load > 0:
+                    msl_list.append(tmp_equip)
+        return msl_list
     
 
 class TorpedoPhase(DaytimePhase):
