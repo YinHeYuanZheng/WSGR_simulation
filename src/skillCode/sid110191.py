@@ -17,42 +17,42 @@ class Skill_110191(Skill):
         self.buff = [
             StatusBuff(
                 timer=timer,
-                name="fire",
+                name='fire',
                 phase=AllPhase,
                 value=3,
                 bias_or_weight=0
             ),
             StatusBuff(
                 timer=timer,
-                name="armor",
+                name='armor',
                 phase=AllPhase,
                 value=3,
                 bias_or_weight=0
             ),
             StatusBuff(
                 timer=timer,
-                name="accuracy",
+                name='accuracy',
                 phase=AllPhase,
                 value=3,
                 bias_or_weight=0
             ),
             StatusBuff(
                 timer=timer,
-                name="antiair",
+                name='antiair',
                 phase=AllPhase,
                 value=3,
                 bias_or_weight=0
             ),
             StatusBuff(
                 timer=timer,
-                name="evasion",
+                name='evasion',
                 phase=AllPhase,
                 value=3,
                 bias_or_weight=0
             ),
             CoeffBuff(
                 timer=timer,
-                name="crit",
+                name='crit',
                 phase=AllPhase,
                 value=0.03,
                 bias_or_weight=0

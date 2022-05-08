@@ -30,16 +30,26 @@ class BattleUtil(Time):
     def battle_init(self):
         """战斗初始化, 只在第一场战斗进行调用"""
         self.timer.set_phase(AllPhase)
+        self.friend_init()
+        self.enemy_init()
+
+    def friend_init(self):
+        # 初始化技能
         for tmp_ship in self.friend.ship:
             tmp_ship.init_skill(self.friend, self.enemy)
             tmp_ship.init_health()
+
+        # 计算索敌、航速相关舰队属性(只用于带路判断)
+        self.friend.get_init_status(enemy=self.enemy)
+
+    def enemy_init(self):
+        # 初始化技能
         for tmp_ship in self.enemy.ship:
             tmp_ship.init_skill(self.enemy, self.friend)
             tmp_ship.init_health()
 
         # 计算索敌、航速相关舰队属性(只用于带路判断)
-        self.friend.get_init_status()
-        self.enemy.get_init_status()
+        self.enemy.get_init_status(enemy=self.friend)
 
     def battle_reinit(self):
         """道中初始化舰船状态，第一场战斗外每场战斗都要调用"""

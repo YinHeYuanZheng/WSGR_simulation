@@ -27,7 +27,7 @@ class Skill_104901_1(Skill):
         ]
 
     def activate(self, friend, enemy):
-        num = len(CountryTarget(side=1, country="G").get_target(friend, enemy))
+        num = len(CountryTarget(side=1, country='G').get_target(friend, enemy))
         buff = copy.copy(self.buff[0])
         buff.rate += num * 0.1
         buff.rate = min(1., buff.rate)

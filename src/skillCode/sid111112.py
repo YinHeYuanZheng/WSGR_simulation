@@ -59,7 +59,7 @@ class Skill_111112_2(Skill):
         self.buff = [
             ActPhaseBuff(
                 timer=timer,
-                name="not_act_phase",
+                name='not_act_phase',
                 phase=NightPhase
             )
         ]
@@ -87,12 +87,12 @@ class Skill_111112_3(Skill):
         self.buff = [
             SpecialBuff(
                 timer=timer,
-                name="must_hit",
+                name='must_hit',
                 phase=NightPhase
             ),
             SpecialBuff(
                 timer=timer,
-                name="must_crit",
+                name='must_crit',
                 phase=NightPhase
             ),
             PriorTargetBuff(

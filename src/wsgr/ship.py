@@ -1075,8 +1075,27 @@ class Fleet(Time):
         for tmp_ship in self.ship:
             tmp_ship.set_side(side)
 
-    def get_init_status(self):
-        pass
+    def get_init_status(self, enemy):
+        """计算带路相关属性"""
+        # 结算影响队友航速、索敌的技能，不结算让巴尔
+        for tmp_ship in self.ship:
+            tmp_ship.run_raw_prepare_skill(self, enemy)
+
+        low_speed, high_speed = self.get_low_high_status('speed')  # 舰队最低速、最高速
+
+        self.status.update({
+            'speed': self.get_fleet_speed(),
+            'avg_speed': self.get_avg_status('speed'),
+            'leader_speed': self.ship[0].get_final_status('speed'),
+            'low_speed': low_speed,
+            'high_speed': high_speed,
+            'recon': self.get_total_status('recon'),
+            'antisub_recon': self.get_antisub_recon(),
+            'luck': self.get_total_status('luck'),
+        })
+
+        for tmp_ship in self.ship:
+            tmp_ship.clear_buff()
 
     def get_avg_status(self, name):
         """获取平均数据"""
@@ -1088,6 +1107,21 @@ class Fleet(Time):
             status += tmp_ship.get_final_status(name)
         status /= len(self.ship)
         return status
+
+    def get_low_high_status(self, name):
+        """获取最高、最低数据"""
+        if not len(self.ship):
+            return 0, 0
+
+        low_status = np.inf
+        high_status = -np.inf
+        for tmp_ship in self.ship:
+            status = tmp_ship.get_final_status(name)
+            if status > high_status:
+                high_status = status
+            if status < low_status:
+                low_status = status
+        return low_status, high_status
 
     def get_total_status(self, name):
         """获取属性总和"""
@@ -1141,6 +1175,15 @@ class Fleet(Time):
         else:
             speed = self.get_avg_status('speed')
             return np.floor(speed)
+
+    def get_antisub_recon(self):
+        """反潜船索敌"""
+        antisub_recon = 0
+        for tmp_ship in self.ship:
+            if isinstance(tmp_ship, AntiSubShip):
+                antisub_recon += tmp_ship.get_final_status('recon')
+                antisub_recon += tmp_ship.get_final_status('antisub', equip=False)
+        return antisub_recon
 
     def get_member_inphase(self):
         """确定舰队中参与当前阶段的成员(不论是否可以行动，以满足炮序计算需求)"""

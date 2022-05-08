@@ -59,28 +59,19 @@ class AllPhase(Time):
 class PreparePhase(AllPhase):
     """准备阶段"""
 
-    def __init__(self, timer, friend, enemy):
-        super().__init__(timer, friend, enemy)
-        self.friend_fleet_speed = None
-        self.enemy_fleet_speed = None
-
     def start(self):
-        # 结算影响队友航速、索敌的技能，结算让巴尔
-        for tmp_ship in self.friend.ship:
-            tmp_ship.run_prepare_skill(self.friend, self.enemy)
-        for tmp_ship in self.enemy.ship:
-            tmp_ship.run_prepare_skill(self.enemy, self.friend)
-
-        # 计算舰队航速
-        self.friend_fleet_speed = self.friend.get_fleet_speed()
-        self.enemy_fleet_speed = self.enemy.get_fleet_speed()
-
         # 索敌
         recon_flag = self.compare_recon()
         # recon_flag = True  # 暂时默认索敌成功
         self.timer.set_recon(recon_flag=recon_flag)
 
         # 迂回
+
+        # 结算影响队友航速、索敌的技能，结算让巴尔
+        for tmp_ship in self.friend.ship:
+            tmp_ship.run_prepare_skill(self.friend, self.enemy)
+        for tmp_ship in self.enemy.ship:
+            tmp_ship.run_prepare_skill(self.enemy, self.friend)
 
         # 航向
         direction_flag = self.compare_speed()
@@ -89,8 +80,8 @@ class PreparePhase(AllPhase):
     def compare_recon(self):
         sub_num = self.enemy.count(Submarine)
         if sub_num != len(self.enemy.ship):
-            friend_recon = self.friend.get_total_status('recon')
-            enemy_recon = self.enemy.get_total_status('recon')
+            friend_recon = self.friend.status['recon']
+            enemy_recon = self.enemy.status['recon']
             d_recon = friend_recon - enemy_recon
 
             recon_rate = 0.5 + d_recon * 0.05
@@ -103,12 +94,7 @@ class PreparePhase(AllPhase):
             else:
                 return False
         else:
-            friend_recon = 0
-            for tmp_ship in self.friend.ship:
-                if isinstance(tmp_ship, AntiSubShip):
-                    friend_recon += tmp_ship.get_final_status('recon')
-                    friend_recon += tmp_ship.get_final_status('antisub', equip=False)
-
+            friend_recon = self.friend.status['antisub_recon']
             enemy_level = 0
             for tmp_ship in self.enemy.ship:
                 enemy_level += tmp_ship.level
@@ -119,10 +105,15 @@ class PreparePhase(AllPhase):
                 return False
 
     def compare_speed(self):
+        # 旗舰航速差
         friend_leader_speed = self.friend.ship[0].get_final_status('speed')
         enemy_leader_speed = self.enemy.ship[0].get_final_status('speed')
         d_leader_speed = int(friend_leader_speed - enemy_leader_speed)
-        d_fleet_speed = int(self.friend_fleet_speed - self.enemy_fleet_speed)
+
+        # 舰队航速差
+        friend_fleet_speed = self.friend.get_fleet_speed()
+        enemy_fleet_speed = self.enemy.get_fleet_speed()
+        d_fleet_speed = int(friend_fleet_speed - enemy_fleet_speed)
 
         # 航向权重，顺序为优同反劣
         if self.timer.direction_flag:
@@ -306,8 +297,8 @@ class FirstMissilePhase(DaytimePhase):
         atk_friend = self.friend.get_act_member_inphase()
         atk_enemy = self.enemy.get_act_member_inphase()
         # 检查可被导弹攻击的对象
-        def_friend = self.friend.get_atk_target(atk_type=None)
-        def_enemy = self.enemy.get_atk_target(atk_type=None)
+        def_friend = self.friend.get_atk_target(atk_type=MissileAtk)
+        def_enemy = self.enemy.get_atk_target(atk_type=MissileAtk)
 
         # 如果不存在可行动对象或可攻击对象，结束本阶段
         if (len(atk_friend) and len(def_enemy)) or \
@@ -315,6 +306,15 @@ class FirstMissilePhase(DaytimePhase):
             pass
         else:
             return
+
+        # 按照站位依次行动，先结算我方
+        self.missile_strike(atk_friend, def_enemy)
+        atk_enemy = self.enemy.get_act_member_inphase()  # 重新检查敌方可行动对象
+        self.missile_strike(atk_enemy, def_friend)
+
+    def missile_strike(self, attack, defend):
+        atk_missile = self.get_atk_missile(attack)
+        def_missile = self.get_def_missile(defend)
 
     def get_atk_missile(self, shiplist):
         """获取反舰导弹"""
@@ -333,7 +333,7 @@ class FirstMissilePhase(DaytimePhase):
                 if isinstance(tmp_equip, AntiMissile) and tmp_equip.load > 0:
                     msl_list.append(tmp_equip)
         return msl_list
-    
+
 
 class TorpedoPhase(DaytimePhase):
     """鱼雷战"""

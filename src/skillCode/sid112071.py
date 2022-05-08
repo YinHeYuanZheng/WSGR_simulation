@@ -29,7 +29,7 @@ class Skill_112071_1(Skill):
             ),
             ActPhaseBuff_1(
                 timer=timer,
-                name="not_act_phase",
+                name='not_act_phase',
                 phase=AllPhase
             )
         ]

@@ -13,7 +13,7 @@ __all__ = ['ATK',
            'AirStrikeAtk',
            'AirBombAtk',
            'AirDiveAtk',
-
+           'MissileAtk',
            'AntiSubAtk',
            'AirAntiSubAtk',
            'TorpedoAtk',
@@ -671,6 +671,10 @@ class AirDiveAtk(AirStrikeAtk):
                     self.coef['random_coef'] *
                     self.coef['dive_random_coef'])
         return real_atk
+
+
+class MissileAtk(ATK):
+    pass
 
 
 class AntiSubAtk(ATK):
