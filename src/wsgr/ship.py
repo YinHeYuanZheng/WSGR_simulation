@@ -933,9 +933,8 @@ class MissileShip(Ship):
 
         # 检查导弹装备是否有载量
         for tmp_equip in self.equipment:
-            if isinstance(tmp_equip, (Missile, AntiMissile)):
-                if tmp_equip.load > 0:
-                    return True
+            if isinstance(tmp_equip, (Missile, AntiMissile)) and tmp_equip.load > 0:
+                return True
         return False
 
 

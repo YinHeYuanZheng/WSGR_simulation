@@ -313,8 +313,24 @@ class FirstMissilePhase(DaytimePhase):
         self.missile_strike(atk_enemy, def_friend)
 
     def missile_strike(self, attack, defend):
-        atk_missile = self.get_atk_missile(attack)
-        def_missile = self.get_def_missile(defend)
+        atk_missile_list = self.get_atk_missile(attack)  # 反舰导弹
+        def_missile_list = self.get_def_missile(defend)  # 防空导弹
+
+        total_msl_def = sum([msl.get_final_status('missile_def')
+                             for msl in def_missile_list])  # 总拦截
+
+        for tmp_atk_msl in atk_missile_list:
+            single_msl_atk = tmp_atk_msl.get_final_status('missile_atk')
+
+            # 拦截条件：总拦截大于突防，且存在可用防空导弹
+            if total_msl_def >= single_msl_atk and len(def_missile_list):
+                total_msl_def -= single_msl_atk
+                tmp_atk_msl.load -= 1
+                tmp_def_msl = def_missile_list.pop(0)
+                tmp_def_msl.load -= 1
+            else:
+                atk = None
+                tmp_atk_msl.load -= 1
 
     def get_atk_missile(self, shiplist):
         """获取反舰导弹"""
@@ -323,15 +339,19 @@ class FirstMissilePhase(DaytimePhase):
             for tmp_equip in tmp_ship.equipment:
                 if isinstance(tmp_equip, Missile) and tmp_equip.load > 0:
                     msl_list.append(tmp_equip)
+        msl_list.sort(key=lambda x: (x.get_final_status('missile_atk'),
+                                     -(x.enum + 4 * x.master.loc))
+                      )  # 按照突防从小到大+顺位倒序排序
         return msl_list
 
     def get_def_missile(self, shiplist):
         """获取防空导弹"""
         msl_list = []
         for tmp_ship in shiplist:
-            for tmp_equip in tmp_ship.equipment:
-                if isinstance(tmp_equip, AntiMissile) and tmp_equip.load > 0:
-                    msl_list.append(tmp_equip)
+            if tmp_ship.check_missile():
+                for tmp_equip in tmp_ship.equipment:
+                    if isinstance(tmp_equip, AntiMissile) and tmp_equip.load > 0:
+                        msl_list.append(tmp_equip)
         return msl_list
 
 
