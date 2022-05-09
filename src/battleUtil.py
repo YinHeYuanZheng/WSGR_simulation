@@ -19,12 +19,14 @@ class BattleUtil(Time):
         """进行战斗流程"""
         self.battle_init()
         self.start_phase()
-        self.buff_phase()
-        self.air_phase()
-        self.first_torpedo_phase()
-        self.first_shelling_phase()
-        self.second_shelling_phase()
-        self.second_torpedo_phase()
+        self.run_phase(BuffPhase)
+        self.run_phase(AirPhase)
+        self.run_phase(FirstMissilePhase)
+        self.run_phase(FirstTorpedoPhase)
+        self.run_phase(FirstShellingPhase)
+        self.run_phase(SecondShellingPhase)
+        self.run_phase(SecondTorpedoPhase)
+        self.run_phase(SecondMissilePhase)
         self.end_phase()
 
     def battle_init(self):
@@ -63,32 +65,14 @@ class BattleUtil(Time):
             1: np.array([ship.status['health'] for ship in self.friend.ship]),
             0: np.array([ship.status['health'] for ship in self.enemy.ship])
         }
+        self.run_phase(PreparePhase)
 
-        self.timer.set_phase(PreparePhase(self.timer, self.friend, self.enemy))
-        self.timer.phase_start()
-
-    def buff_phase(self):
-        self.timer.set_phase(BuffPhase(self.timer, self.friend, self.enemy))
-        self.timer.phase_start()
-
-    def air_phase(self):
-        self.timer.set_phase(AirPhase(self.timer, self.friend, self.enemy))
-        self.timer.phase_start()
-
-    def first_torpedo_phase(self):
-        self.timer.set_phase(FirstTorpedoPhase(self.timer, self.friend, self.enemy))
-        self.timer.phase_start()
-
-    def second_torpedo_phase(self):
-        self.timer.set_phase(SecondTorpedoPhase(self.timer, self.friend, self.enemy))
-        self.timer.phase_start()
-
-    def first_shelling_phase(self):
-        self.timer.set_phase(FirstShellingPhase(self.timer, self.friend, self.enemy))
-        self.timer.phase_start()
-
-    def second_shelling_phase(self):
-        self.timer.set_phase(SecondShellingPhase(self.timer, self.friend, self.enemy))
+    def run_phase(self, phase_class):
+        """
+        运行指定阶段
+        :param phase_class: class src.wsgr.phase.AllPhase
+        """
+        self.timer.set_phase(phase_class(self.timer, self.friend, self.enemy))
         self.timer.phase_start()
 
     def supply_cost(self):

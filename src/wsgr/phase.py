@@ -16,7 +16,9 @@ __all__ = ['AllPhase',
            'BuffPhase',
            'AirPhase',
 
+           'MissilePhase',
            'FirstMissilePhase',
+           'SecondMissilePhase',
 
            'TorpedoPhase',
            'FirstTorpedoPhase',
@@ -290,10 +292,10 @@ class AirPhase(DaytimePhase):
         return False
 
 
-class FirstMissilePhase(DaytimePhase):
-    """开幕导弹"""
+class MissilePhase(DaytimePhase):
+    """导弹战"""
     def start(self):
-        # 检查可参与开幕导弹战的对象
+        # 检查可参与导弹战的对象
         atk_friend = self.friend.get_act_member_inphase()
         atk_enemy = self.enemy.get_act_member_inphase()
         # 检查可被导弹攻击的对象
@@ -313,24 +315,7 @@ class FirstMissilePhase(DaytimePhase):
         self.missile_strike(atk_enemy, def_friend)
 
     def missile_strike(self, attack, defend):
-        atk_missile_list = self.get_atk_missile(attack)  # 反舰导弹
-        def_missile_list = self.get_def_missile(defend)  # 防空导弹
-
-        total_msl_def = sum([msl.get_final_status('missile_def')
-                             for msl in def_missile_list])  # 总拦截
-
-        for tmp_atk_msl in atk_missile_list:
-            single_msl_atk = tmp_atk_msl.get_final_status('missile_atk')
-
-            # 拦截条件：总拦截大于突防，且存在可用防空导弹
-            if total_msl_def >= single_msl_atk and len(def_missile_list):
-                total_msl_def -= single_msl_atk
-                tmp_atk_msl.load -= 1
-                tmp_def_msl = def_missile_list.pop(0)
-                tmp_def_msl.load -= 1
-            else:
-                atk = None
-                tmp_atk_msl.load -= 1
+        pass
 
     def get_atk_missile(self, shiplist):
         """获取反舰导弹"""
@@ -353,6 +338,51 @@ class FirstMissilePhase(DaytimePhase):
                     if isinstance(tmp_equip, AntiMissile) and tmp_equip.load > 0:
                         msl_list.append(tmp_equip)
         return msl_list
+
+
+class FirstMissilePhase(MissilePhase):
+    """开幕导弹"""
+
+    def missile_strike(self, attack, defend):
+        atk_missile_list = self.get_atk_missile(attack)  # 反舰导弹
+        def_missile_list = self.get_def_missile(defend)  # 防空导弹
+
+        total_msl_def = sum([msl.get_final_status('missile_def')
+                             for msl in def_missile_list])  # 总拦截
+
+        for tmp_atk_msl in atk_missile_list:
+            single_msl_atk = tmp_atk_msl.get_final_status('missile_atk')
+
+            # 拦截条件：总拦截大于突防，且存在可用防空导弹
+            if total_msl_def >= single_msl_atk and len(def_missile_list):
+                total_msl_def -= single_msl_atk
+                tmp_atk_msl.load -= 1
+                tmp_def_msl = def_missile_list.pop(0)
+                tmp_def_msl.load -= 1
+            else:
+                atk = MissileAtk(
+                    timer=self.timer,
+                    atk_body=tmp_atk_msl.master,
+                    def_list=defend,
+                    equip=tmp_atk_msl
+                )
+                atk.start()
+                tmp_atk_msl.load -= 1
+
+
+class SecondMissilePhase(MissilePhase):
+    """闭幕导弹"""
+    def missile_strike(self, attack, defend):
+        missile_list = self.get_def_missile(attack)  # 防空导弹
+        for tmp_atk_msl in missile_list:
+            atk = MissileAtk(
+                timer=self.timer,
+                atk_body=tmp_atk_msl.master,
+                def_list=defend,
+                equip=tmp_atk_msl
+            )
+            atk.start()
+            tmp_atk_msl.load -= 1
 
 
 class TorpedoPhase(DaytimePhase):

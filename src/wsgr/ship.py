@@ -945,7 +945,7 @@ class AtkMissileShip(MissileShip):
         super().__init__(timer)
         self.act_phase_flag.update({
             'FirstMissilePhase': True,
-            'SecondTorpedoPhase': False,  # 大巡可参与
+            'SecondTorpedoPhase': False,
         })
 
         self.act_phase_indicator.update({
@@ -956,7 +956,18 @@ class AtkMissileShip(MissileShip):
 
 class DefMissileShip(MissileShip):
     """防空导弹船"""
-    pass
+
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.act_phase_flag.update({
+            'SecondTorpedoPhase': False,  # 大巡可参与
+            'SecondMissilePhase': True,
+        })
+
+        self.act_phase_indicator.update({
+            'SecondMissilePhase': lambda x:
+                (x.damaged < 3) and x.check_missile(),
+        })
 
 
 class ASDG(AtkMissileShip, SmallShip, MainShip):
@@ -976,7 +987,13 @@ class BBG(AtkMissileShip, LargeShip, MainShip):
 
 class BG(DefMissileShip, LargeShip, MainShip):
     """大巡"""
-    pass
+
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'BG'
+        self.act_phase_flag.update({
+            'SecondTorpedoPhase': True,  # 大巡可参与
+        })
 
 
 class LandUnit(LargeShip, MainShip):
