@@ -20,6 +20,8 @@ __all__ = ['AllPhase',
            'FirstMissilePhase',
            'SecondMissilePhase',
 
+           'AntiSubPhase',
+
            'TorpedoPhase',
            'FirstTorpedoPhase',
            'SecondTorpedoPhase',
@@ -385,6 +387,43 @@ class SecondMissilePhase(MissilePhase):
             tmp_atk_msl.load -= 1
 
 
+class AntiSubPhase(DaytimePhase):
+    """先制反潜"""
+
+    def start(self):
+        # 检查可参与先制反潜的对象
+        atk_friend = self.friend.get_act_member_inphase()
+        atk_enemy = self.enemy.get_act_member_inphase()
+        # 检查可被反潜攻击的对象
+        def_friend = self.friend.get_atk_target(atk_type=AntiSubAtk)
+        def_enemy = self.enemy.get_atk_target(atk_type=AntiSubAtk)
+
+        # 如果不存在可行动对象或可攻击对象，结束本阶段
+        if (len(atk_friend) and len(def_enemy)) or \
+                (len(atk_enemy) and len(def_friend)):
+            pass
+        else:
+            return
+
+        # 按照站位依次行动，先结算我方
+        self.anti_sub_strike(atk_friend, def_enemy)
+        self.anti_sub_strike(atk_enemy, def_friend)
+
+    def anti_sub_strike(self, attack, defend):
+        for tmp_ship in attack:
+            # 发起反潜攻击
+            atk = tmp_ship.anti_sub_atk(
+                timer=self.timer,
+                atk_body=self,
+                def_list=defend,
+            )
+            atk.start()
+
+            # 去除被击沉目标
+            if atk.target.damaged == 4:
+                defend.remove(atk.target)
+
+
 class TorpedoPhase(DaytimePhase):
     """鱼雷战"""
 
@@ -428,6 +467,11 @@ class TorpedoPhase(DaytimePhase):
 
 class FirstTorpedoPhase(TorpedoPhase):
     """先制鱼雷"""
+    pass
+
+
+class SecondTorpedoPhase(TorpedoPhase):
+    """闭幕鱼雷"""
     pass
 
 
@@ -484,11 +528,6 @@ class FirstShellingPhase(ShellingPhase):
 
 class SecondShellingPhase(ShellingPhase):
     """次轮炮击"""
-    pass
-
-
-class SecondTorpedoPhase(TorpedoPhase):
-    """闭幕鱼雷"""
     pass
 
 
