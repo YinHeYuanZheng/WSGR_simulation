@@ -25,7 +25,7 @@ class Skill_110391(Skill):
             CoeffBuff(
                 timer=timer,
                 name='crit_coef',
-                phase=AllPhase,
+                phase=ShellingPhase,
                 value=0.3,
                 bias_or_weight=0
             )
