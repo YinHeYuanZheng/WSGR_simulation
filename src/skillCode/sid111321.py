@@ -15,33 +15,31 @@ class Skill_111321(Skill):
         self.buff = [
             StatusBuff(
                 timer=timer,
-                name="fire",
+                name='fire',
                 phase=AllPhase,
                 value=6,
                 bias_or_weight=0
             ),
             StatusBuff(
                 timer=timer,
-                name="torpedo",
+                name='torpedo',
                 phase=AllPhase,
                 value=6,
                 bias_or_weight=0
             )
         ]
 
-    def is_active(self, friend, enemy):
-        buff = copy.copy(self.buff)
-
+    def activate(self, friend, enemy):
         target_craft = TypeTarget(
             side=1,
             shiptype=(CL, BC, CA, CAV, CLT)
         ).get_target(friend, enemy)
-
         num_craft = len(target_craft)
 
-        buff[0].value *= num_craft
-        buff[1].value *= num_craft
-        self.master.add_buff(buff)
+        for tmp_buff in self.buff[:]:
+            tmp_buff = copy.copy(tmp_buff)
+            tmp_buff.value *= num_craft
+            self.master.add_buff(tmp_buff)
 
 
 skill = [Skill_111321]

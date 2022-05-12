@@ -14,26 +14,13 @@ class Skill_110361(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            AtkHitBuff(
+            SpecialAtkBuff(
                 timer=timer,
-                name="give_atk",
+                name='special_attack',
                 phase=ShellingPhase,
-                buff=[
-                    SpecialBuff(
-                        timer=timer,
-                        name="must_hit",
-                        phase=ShellingPhase,
-                    ),
-                    PriorTargetBuff(
-                        timer=timer,
-                        name="prior_type_target",
-                        phase=ShellingPhase,
-                        target=DD,
-                        ordered=True
-                    )
-                ],
-                side=1,
-                rate=0.3
+                rate=0.3,
+                target=TypeTarget(side=0, shiptype=DD),
+                coef={'must_hit': True}
             )
         ]
 

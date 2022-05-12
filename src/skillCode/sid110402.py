@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 # Author:zzhh225
 # env:py38
-# 昆西-1
+# 昆西-2
 
 from src.wsgr.skill import *
 from src.wsgr.ship import *
@@ -14,28 +14,22 @@ class Skill_110402(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            AtkHitBuff(
+            SpecialAtkBuff(
                 timer=timer,
-                name="give_atk",
+                name='special_attack',
                 phase=ShellingPhase,
-                buff=[
-                    PriorTargetBuff(
-                        timer=timer,
-                        name="prior_loc_target",
-                        phase=ShellingPhase,
-                        target=1,
-                        ordered=True
-                    ),
+                rate=0.3,
+                during_buff=[
                     CoeffBuff(
                         timer=timer,
-                        name="extra_damage",
+                        name='extra_damage',
                         phase=ShellingPhase,
                         value=15,
                         bias_or_weight=0
                     )
                 ],
-                side=1,
-                rate=0.3
+                target=LocTarget(side=0, loc=[0]),
+                coef={'must_hit': True}
             )
         ]
 

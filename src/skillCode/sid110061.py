@@ -12,15 +12,14 @@ from src.wsgr.phase import *
 
 
 class Skill_110061(Skill):
-    def __init__(self, master, timer):
-        super().__init__(master, timer)
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            SpecialAtkBuff_1(
+            SpecialAtkBuff(
                 timer=timer,
                 name='special_attack',
                 phase=ShellingPhase,
-                num=1,
                 rate=0.4,
                 during_buff=[
                     CoeffBuff(
@@ -38,6 +37,7 @@ class Skill_110061(Skill):
                         bias_or_weight=0
                     )
                 ],
+                target=LocTarget(side=0, loc=[0]),
                 coef={'must_hit': True}
             )
         ]
@@ -46,31 +46,31 @@ class Skill_110061(Skill):
         return self.master.loc == 1
 
 
-class SpecialAtkBuff_1(ActiveBuff):
-    def is_active(self, atk, enemy, *args, **kwargs):
-        # 对方旗舰不存活，不发动技能
-        if enemy.ship[0].damaged == 4:
-            return False
-        elif not enemy.ship[0].can_be_atk(atk):
-            return False
-        else:
-            return self.rate_verify() and \
-                   isinstance(self.timer.phase, self.phase)
-
-    def active_start(self, atk, enemy, *args, **kwargs):
-        assert self.master is not None
-        self.add_during_buff()  # 攻击时效果
-        spetial_atk = atk(
-            timer=self.timer,
-            atk_body=self.master,
-            def_list=[enemy.ship[0]],
-            coef=self.coef,
-            target=enemy.ship[0],
-        )
-        yield spetial_atk
-
-        self.remove_during_buff()  # 去除攻击时效果
-        self.add_end_buff()  # 攻击结束效果
+# class SpecialAtkBuff_1(ActiveBuff):
+#     def is_active(self, atk, enemy, *args, **kwargs):
+#         # 对方旗舰不存活，不发动技能
+#         if enemy.ship[0].damaged == 4:
+#             return False
+#         elif not enemy.ship[0].can_be_atk(atk):
+#             return False
+#         else:
+#             return self.rate_verify() and \
+#                    isinstance(self.timer.phase, self.phase)
+#
+#     def active_start(self, atk, enemy, *args, **kwargs):
+#         assert self.master is not None
+#         self.add_during_buff()  # 攻击时效果
+#         spetial_atk = atk(
+#             timer=self.timer,
+#             atk_body=self.master,
+#             def_list=[enemy.ship[0]],
+#             coef=self.coef,
+#             target=enemy.ship[0],
+#         )
+#         yield spetial_atk
+#
+#         self.remove_during_buff()  # 去除攻击时效果
+#         self.add_end_buff()  # 攻击结束效果
 
 
 skill = [Skill_110061]

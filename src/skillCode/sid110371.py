@@ -16,14 +16,14 @@ class Skill_110371(Skill):
         self.buff = [
             CoeffBuff(
                 timer=timer,
-                name="crit",
+                name='crit',
                 phase=AllPhase,
                 value=0.4,
                 bias_or_weight=0
             ),
             CoeffBuff(
                 timer=timer,
-                name="be_crit",
+                name='be_crit',
                 phase=AllPhase,
                 value=0.4,
                 bias_or_weight=0
