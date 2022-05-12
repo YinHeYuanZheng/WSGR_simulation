@@ -74,3 +74,6 @@ class CapShield(CoeffBuff):
     def is_active(self, damage, *args, **kwargs):
         self.value = max(0, damage - self.cap_value)
         return True
+
+
+skill = [Skill_111052_1, Skill_111052_2]

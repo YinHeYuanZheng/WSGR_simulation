@@ -739,7 +739,7 @@ class ActPhaseBuff(Buff):
 
 class PriorTargetBuff(Buff):
     """优先攻击目标"""
-    def __init__(self, timer, name, phase, target, ordered):
+    def __init__(self, timer, name, phase, target: Target, ordered):
         """
         :param name:    prior_type_target
                         prior_loc_target
@@ -750,7 +750,7 @@ class PriorTargetBuff(Buff):
         self.ordered = ordered
 
     def activate(self, fleet, *args, **kwargs):
-        """target 属性为一个筛选器，即 TypeTarget 类"""
+        """target属性为一个筛选器，即 Target类"""
         prior = self.target.get_target(None, fleet)
         if not len(prior):
             return None
@@ -951,6 +951,9 @@ class ActiveBuff(Buff):
                  during_buff: list = None, end_buff: list = None,
                  coef=None, bias_or_weight=3):
         """
+        :param name:    multi_attack
+                        extra_attack
+                        special_attack
         :param num: 总攻击次数
         :param during_buff: 攻击期间buff
         :param end_buff: 攻击结束后buff
@@ -1056,4 +1059,58 @@ class ExtraAtkBuff(ActiveBuff):
 
 
 class SpecialAtkBuff(ActiveBuff):
-    pass
+    """特殊攻击(在一次攻击内执行多个不同效果，可能同时包含攻击前攻击后)"""
+
+    def __init__(self, timer, name, phase, rate, num=1,
+                 during_buff: list = None, end_buff: list = None,
+                 target: Target = None, atk_type=None,
+                 coef=None, bias_or_weight=3):
+        super().__init__(timer, name, phase, num, rate,
+                         during_buff, end_buff, coef, bias_or_weight)
+        self.target = target
+        self.atk_type = atk_type
+
+    def get_def_list(self, atk_type, enemy):
+        # 获取可被攻击的对象
+        def_list = enemy.get_atk_target(atk_type=atk_type)
+
+        # 如果指定了攻击目标，筛选出对应敌舰
+        if self.target is not None:
+            def_list = self.target.get_target(None, def_list)
+
+        return def_list
+
+    def is_active(self, atk, enemy, *args, **kwargs):
+        # 如果技能指定了攻击类型，使用对应攻击类型
+        if self.atk_type is not None:
+            atk_type = self.atk_type
+        else:
+            atk_type = atk
+
+        def_list = self.get_def_list(atk_type, enemy)  # 可被攻击目标
+
+        return len(def_list) and \
+               self.rate_verify() and \
+               isinstance(self.timer.phase, self.phase)
+
+    def active_start(self, atk, enemy, *args, **kwargs):
+        assert self.master is not None
+
+        # 如果技能指定了攻击类型，使用对应攻击类型
+        if self.atk_type is not None:
+            atk_type = self.atk_type
+        else:
+            atk_type = atk
+
+        self.add_during_buff()  # 攻击时效果
+        def_list = self.get_def_list(atk_type, enemy)  # 可被攻击目标
+        spetial_atk = atk_type(
+            timer=self.timer,
+            atk_body=self.master,
+            def_list=def_list,
+            coef=self.coef,
+        )
+        yield spetial_atk
+
+        self.remove_during_buff()  # 去除攻击时效果
+        self.add_end_buff()  # 攻击结束效果
