@@ -30,3 +30,6 @@ class Skill_110391(Skill):
                 bias_or_weight=0
             )
         ]
+
+
+skill = [Skill_110391]

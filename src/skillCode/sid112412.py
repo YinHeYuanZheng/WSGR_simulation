@@ -90,4 +90,3 @@ class Dur_AtkHitBuff(AtkHitBuff):
 
 
 skill = [Skill_112412_1, Skill_112412_2]
-

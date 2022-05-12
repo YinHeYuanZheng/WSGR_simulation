@@ -90,4 +90,3 @@ class Skill_112411_2(Skill):
 
 
 skill = [Skill_112411_1, Skill_112411_2]
-
