@@ -15,12 +15,12 @@ class Skill_111411(Skill):
         self.target = NearestLocTarget(side=1,
                                        master=master,
                                        radius=1,
-                                       direction="near",
+                                       direction='near',
                                        master_include=True)
         self.buff = [
             StatusBuff(
                 timer=timer,
-                name="evasion",
+                name='evasion',
                 phase=AllPhase,
                 value=10,
                 bias_or_weight=0
