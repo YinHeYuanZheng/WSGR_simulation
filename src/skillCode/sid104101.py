@@ -79,7 +79,7 @@ class SecondAtkBuff(MultipleAtkBuff):
                 timer=self.timer,
                 atk_body=self.master,
                 def_list=def_list,
-                coef=self.coef,
+                coef=copy.copy(self.coef),
             )
             tmp_target = tmp_atk.target_init()
             def_list.remove(tmp_target)

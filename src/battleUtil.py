@@ -32,6 +32,12 @@ class BattleUtil(Time):
     def battle_init(self):
         """战斗初始化, 只在第一场战斗进行调用"""
         self.timer.set_phase(AllPhase)
+
+        from src.utils.envBuffUtil import env
+        for skill in env[:]:
+            tmp_skill = skill(self.timer)
+            self.timer.env_skill.append(tmp_skill)
+
         self.friend_init()
         self.enemy_init()
 

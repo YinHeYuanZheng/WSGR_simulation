@@ -72,6 +72,7 @@ class PreparePhase(AllPhase):
         # 迂回
 
         # 结算影响队友航速、索敌的技能，结算让巴尔
+        self.timer.run_prepare_skill(self.friend, self.enemy)
         for tmp_ship in self.friend.ship:
             tmp_ship.run_prepare_skill(self.friend, self.enemy)
         for tmp_ship in self.enemy.ship:
@@ -142,6 +143,7 @@ class BuffPhase(AllPhase):
     """buff阶段"""
 
     def start(self):
+        self.timer.run_normal_skill(self.friend, self.enemy)
         for tmp_ship in self.friend.ship:
             tmp_ship.run_normal_skill(self.friend, self.enemy)
         for tmp_ship in self.enemy.ship:

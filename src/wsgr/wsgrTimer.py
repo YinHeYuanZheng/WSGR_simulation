@@ -15,6 +15,7 @@ class timer:
         self.air_con_flag = None    # 制空结果, 从空确到空丧分别为1-5
         self.phase = None           # 阶段
         self.atk = None
+        self.env_skill = []         # 环境效果
         self.queue = {              # 有时点依赖的技能
             'magnet': [],           # 嘲讽
             'tank': [],             # 挡枪
@@ -45,6 +46,18 @@ class timer:
 
     def set_atk(self, atk):
         self.atk = atk
+
+    def run_prepare_skill(self, friend, enemy):
+        """结算准备阶段技能"""
+        for tmp_skill in self.env_skill:
+            if tmp_skill.is_prep():
+                tmp_skill.activate(friend, enemy)
+
+    def run_normal_skill(self, friend, enemy):
+        """结算普通技能"""
+        for tmp_skill in self.env_skill:
+            if not tmp_skill.is_prep():
+                tmp_skill.activate(friend, enemy)
 
     def get_dist(self):
         # 特殊点位手动置为5
