@@ -47,7 +47,7 @@ class NeighborAtkBuff(ActiveBuff):
             coef=self.coef,
         )
         tmp_target = atk_sample.target_init()
-        def_list.remove(tmp_target)
+        # def_list.remove(tmp_target)
         yield atk_sample
 
         neighbor_target = NearestLocTarget(

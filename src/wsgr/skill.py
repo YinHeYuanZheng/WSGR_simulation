@@ -380,7 +380,7 @@ class NearestLocTarget(Target):
         index = fleet.index(self.master)  # 技能所有者在list内的索引
         loc = self.master.loc  # 技能所有者的实际站位
         gap = loc - index  # 实际列表索引与编队索引的差距
-        while count > 0 and index < len(fleet):
+        while count > 0 and index < len(fleet) - 1:
             index += 1  # 向后推进一位
             tmp_ship = fleet[index]
 
