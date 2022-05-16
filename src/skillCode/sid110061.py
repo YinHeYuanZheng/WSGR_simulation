@@ -64,7 +64,7 @@ class Skill_110061(Skill):
 #             timer=self.timer,
 #             atk_body=self.master,
 #             def_list=[enemy.ship[0]],
-#             coef=self.coef,
+#             coef=copy.copy(self.coef),
 #             target=enemy.ship[0],
 #         )
 #         yield spetial_atk

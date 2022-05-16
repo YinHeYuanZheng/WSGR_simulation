@@ -44,16 +44,16 @@ class Skill(Time):
     def is_prep(self):
         return False
 
-    def change_master(self, master):
-        """让巴尔技能调用，更换技能master"""
-        self.master = master
-
-        if self.request is not None:
-            for tmp_request in self.request:
-                tmp_request.change_master(master)
-
-        if self.target is not None:
-            self.target.change_master(master)
+    # def change_master(self, master):
+    #     """让巴尔技能调用，更换技能master"""
+    #     self.master = master
+    #
+    #     if self.request is not None:
+    #         for tmp_request in self.request:
+    #             tmp_request.change_master(master)
+    #
+    #     if self.target is not None:
+    #         self.target.change_master(master)
 
     def change_rate(self, rate):
         """让巴尔技能调用，更改发动概率"""
@@ -132,9 +132,9 @@ class Request(Time):
     def __bool__(self):
         pass
 
-    def change_master(self, master):
-        """让巴尔技能调用，更换技能master"""
-        self.master = master
+    # def change_master(self, master):
+    #     """让巴尔技能调用，更换技能master"""
+    #     self.master = master
 
 
 class ATKRequest(Time):
@@ -169,8 +169,8 @@ class Target:
         else:
             return enemy
 
-    def change_master(self, master):
-        pass
+    # def change_master(self, master):
+    #     pass
 
 
 class SelfTarget(Target):
@@ -182,9 +182,9 @@ class SelfTarget(Target):
     def get_target(self, friend, enemy):
         return [self.master]
 
-    def change_master(self, master):
-        """让巴尔技能调用，更换技能master"""
-        self.master = master
+    # def change_master(self, master):
+    #     """让巴尔技能调用，更换技能master"""
+    #     self.master = master
 
 
 class TypeTarget(Target):
@@ -308,9 +308,9 @@ class NearestLocTarget(Target):
         self.expand = expand
         self.shiptype = shiptype
 
-    def change_master(self, master):
-        """让巴尔技能调用，更换技能master"""
-        self.master = master
+    # def change_master(self, master):
+    #     """让巴尔技能调用，更换技能master"""
+    #     self.master = master
 
     def get_target(self, friend, enemy):
         if isinstance(friend, Fleet):
@@ -937,7 +937,7 @@ class HitBack(SpecialBuff):
             timer=self.timer,
             atk_body=self.master,
             def_list=None,
-            coef=self.coef,
+            coef=copy.copy(self.coef),
             target=atk.atk_body
         )
         hit_back.changable = False
@@ -1016,7 +1016,7 @@ class MultipleAtkBuff(ActiveBuff):
                 timer=self.timer,
                 atk_body=self.master,
                 def_list=def_list,
-                coef=self.coef,
+                coef=copy.copy(self.coef),
             )
             tmp_target = tmp_atk.target_init()
             def_list.remove(tmp_target)
@@ -1039,7 +1039,7 @@ class ExtraAtkBuff(ActiveBuff):
             timer=self.timer,
             atk_body=self.master,
             def_list=def_list,
-            coef=self.coef,
+            coef=copy.copy(self.coef),
         )
         tmp_target = atk_sample.target_init()
         yield atk_sample
@@ -1049,7 +1049,7 @@ class ExtraAtkBuff(ActiveBuff):
                 timer=self.timer,
                 atk_body=self.master,
                 def_list=def_list,
-                coef=self.coef,
+                coef=copy.copy(self.coef),
                 target=tmp_target,
             )
             yield tmp_atk
@@ -1108,7 +1108,7 @@ class SpecialAtkBuff(ActiveBuff):
             timer=self.timer,
             atk_body=self.master,
             def_list=def_list,
-            coef=self.coef,
+            coef=copy.copy(self.coef),
         )
         yield spetial_atk
 
