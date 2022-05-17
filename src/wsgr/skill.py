@@ -102,20 +102,16 @@ class EquipSkill(Skill):
                 elif buff_type in [3, 4]:
                     type34 = tmp_target.get_unique_effect(effect_type=[3, 4])
 
-                    # 无3和4类特效
-                    if type34 is None:
-                        pass
-
-                    # 特效类型不同，跳过
-                    elif type34.effect_type != buff_type:
-                        continue
-
                     # 特效类型相同，取最高值
-                    else:
+                    if type34 is not None:
                         value1 = tmp_buff.value
                         value2 = type34.value
                         type34.set_value(max(value1, value2))
                         continue
+
+                    # 特效类型不同，跳过(现版本已取消)
+                    # elif type34.effect_type != buff_type:
+                    #     continue
 
                 tmp_target.add_buff(tmp_buff)
 

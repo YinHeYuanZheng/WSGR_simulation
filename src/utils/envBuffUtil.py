@@ -44,4 +44,4 @@ class EnvSkill_1(Skill):
         ]
 
 
-env = [EnvSkill_1]
+env = []
