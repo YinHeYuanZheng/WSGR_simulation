@@ -155,6 +155,7 @@ from . import sid104101  # 萨勒姆-1
 
 # from . import sid104201  # 亚尔古水手-1
 from . import sid104221  # 凤凰城-1
+from . import sid104821  # 大淀(苍青)-1
 
 # 改造CACL
 from . import sid110321  # 高雄-1
@@ -166,8 +167,9 @@ from . import sid110371  # 布吕歇尔-1
 
 from . import sid110391  # 威奇塔改-1
 from . import sid110402  # 昆西-2
+from . import sid111311  # 古鹰-1
 from . import sid111321  # 加古-1
-
+from . import sid111331  # 青叶-1
 from . import sid111351  # 过度击穿: 伦敦-1、肯特-1
 from . import sid111371  # 波特兰改-1
 from . import sid111391  # 彭萨科拉改-1

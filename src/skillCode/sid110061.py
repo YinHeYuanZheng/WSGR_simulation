@@ -37,7 +37,7 @@ class Skill_110061(Skill):
                         bias_or_weight=0
                     )
                 ],
-                target=LocTarget(side=0, loc=[0]),
+                target=LocTarget(side=0, loc=[1]),
                 coef={'must_hit': True}
             )
         ]

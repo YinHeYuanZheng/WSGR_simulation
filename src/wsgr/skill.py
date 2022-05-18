@@ -261,9 +261,33 @@ class OrderedTypeTarget(TypeTarget):
         return target
 
 
+class CidTarget(Target):
+    """指定cid的目标"""
+    def __init__(self, side, cid_list: list):
+        super().__init__(side)
+        self.cid_list = cid_list
+
+    def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        target = [ship for ship in fleet if ship.cid in self.cid_list]
+        return target
+
+
 class LocTarget(Target):
     """指定站位的目标"""
     def __init__(self, side, loc: list):
+        """
+        :param loc: list, 站位, 数值范围1-6
+        """
         super().__init__(side)
         self.loc = loc
 
@@ -735,13 +759,14 @@ class ActPhaseBuff(Buff):
 
 class PriorTargetBuff(Buff):
     """优先攻击目标"""
-    def __init__(self, timer, name, phase, target: Target, ordered):
+    def __init__(self, timer, name, phase, target: Target, ordered,
+                 bias_or_weight=3, rate=1):
         """
         :param name:    prior_type_target
                         prior_loc_target
         :param ordered: bool
         """
-        super().__init__(timer, name, phase)
+        super().__init__(timer, name, phase, bias_or_weight, rate)
         self.target = target
         self.ordered = ordered
 
@@ -837,15 +862,19 @@ class TankBuff(EventBuff):
     """挡枪技能"""
     def __init__(self, timer, phase, target, value, rate,
                  name='tank', coef=None, exhaust=1, bias_or_weight=3):
+        """
+        :param target: 保护对象，class Target
+        :param value: float, -1~0, 减伤率(负数)
+        :param rate: float, 0~1, 发动率
+        """
         super().__init__(timer, name, phase, bias_or_weight, rate)
         self.target = target
         self.exhaust = exhaust
 
         self.coef = {'must_hit': True,
                      'tank_damage_debuff': value}
-        if coef is None:
-            coef = {}
-        self.coef.update(coef)
+        if coef is not None:
+            self.coef.update(coef)
 
     def __repr__(self):
         return f"挡枪: {self.rate * 100}%"
