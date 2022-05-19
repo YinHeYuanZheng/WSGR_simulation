@@ -177,7 +177,7 @@ from . import sid111411  # 北安普顿-1
 from . import sid112401  # 旧金山改-1
 from . import sid112411  # 巴尔的摩改-1
 from . import sid112412  # 巴尔的摩改-2
-
+from . import sid114311  # 什罗普郡-1
 # from . import sid110461  # 夕张改-1
 from . import sid110501  # 天狼星改-1
 from . import sid110541  # 重庆-1
