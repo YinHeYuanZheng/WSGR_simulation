@@ -164,7 +164,8 @@ from . import sid110341  # 摩耶-1
 from . import sid110351  # 鸟海-1
 from . import sid110361  # 希佩尔海军上将-1
 from . import sid110371  # 布吕歇尔-1
-
+from . import sid110381  # 欧根亲王改-1
+from . import sid110382  # 欧根亲王改-2
 from . import sid110391  # 威奇塔改-1
 from . import sid110402  # 昆西-2
 from . import sid111311  # 古鹰-1

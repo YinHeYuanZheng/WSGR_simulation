@@ -169,6 +169,35 @@ class Target:
     #     pass
 
 
+class CombinedTarget(Target):
+    """多个Target类组合筛选"""
+
+    def __init__(self, side, target_list: list):
+        """
+        :param target_list: list of Target, 筛选将按照列表内顺序依次进行
+        """
+        super().__init__(side)
+        # 检查列表内target的side是否与自身一致
+        for target in target_list:
+            if target.side != self.side:
+                raise ValueError('"side" of one CombinedTarget should be the same!')
+        self.target_list = target_list
+
+    def get_target(self, friend, enemy):
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        for tmp_target in self.target_list:
+            if self.side == 1:
+                fleet = tmp_target.get_target(fleet, None)
+            else:
+                fleet = tmp_target.get_target(None, fleet)
+
+        return fleet
+
+
 class SelfTarget(Target):
     """自身buff"""
     def __init__(self, master, side=1):

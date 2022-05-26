@@ -146,6 +146,10 @@ class Equipment(Time):
                     return True
         return False
 
+    def clear_buff(self):
+        """清空临时buff"""
+        self.temper_buff = []
+
 
 class Plane(Equipment):
     """飞机"""

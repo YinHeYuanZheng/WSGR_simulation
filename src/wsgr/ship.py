@@ -582,6 +582,8 @@ class Ship(Time):
         """清空临时buff"""
         self.temper_buff = []
         self.active_buff = []
+        for equip in self.equipment:
+            equip.clear_buff()
 
     def reinit(self):
         """道中初始化舰船状态"""
