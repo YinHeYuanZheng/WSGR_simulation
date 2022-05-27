@@ -1115,7 +1115,8 @@ class ExtraAtkBuff(ActiveBuff):
 class SpecialAtkBuff(ActiveBuff):
     """特殊攻击(在一次攻击内执行多个不同效果，可能同时包含攻击前攻击后)"""
 
-    def __init__(self, timer, name, phase, rate, num=1,
+    def __init__(self, timer, phase, rate,
+                 name='special_attack', num=1,
                  during_buff: list = None, end_buff: list = None,
                  target: Target = None, atk_type=None,
                  coef=None, bias_or_weight=3):

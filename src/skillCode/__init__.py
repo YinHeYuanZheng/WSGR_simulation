@@ -151,8 +151,12 @@ from . import sid113622  # 星座-2
 from . import sid110581  # 高速射击
 
 from . import sid102431  # 得梅因-1
+from . import sid103521  # 莫斯科-1
+from . import sid103571  # 羽黑-1
+from . import sid103881  # 纽波特纽斯-1
 from . import sid104101  # 萨勒姆-1
-
+from . import sid104381  # 梅肯-1
+from . import sid104511  # 伊吹-1
 # from . import sid104201  # 亚尔古水手-1
 from . import sid104221  # 凤凰城-1
 from . import sid104821  # 大淀(苍青)-1

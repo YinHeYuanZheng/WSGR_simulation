@@ -17,7 +17,7 @@ class Skill_111211_1(CommonSkill):
             CommonBuff(
                 timer=timer,
                 name='evasion',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=20,
                 bias_or_weight=0
             )
@@ -32,16 +32,16 @@ class Skill_111211_2(Skill):
         self.request = [Request_1]
         self.buff = [
             StatusBuff(
-                timer,
+                timer=timer,
                 name='range',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=3,
                 bias_or_weight=0
             ),
             StatusBuff(
-                timer,
+                timer=timer,
                 name='fire',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=55,
                 bias_or_weight=0
             )

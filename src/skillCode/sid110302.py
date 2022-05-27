@@ -13,11 +13,12 @@ class Skill_110302(Skill):
     如果是E国额外提高7%"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
+        self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
-                timer=self.timer,
+                timer=timer,
                 name='air_atk_buff',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=0.07,
                 bias_or_weight=2
             )
@@ -26,18 +27,11 @@ class Skill_110302(Skill):
     def activate(self, friend, enemy):
         buff = copy.copy(self.buff[0])
 
-        # 获取航系
-        target_craft = TypeTarget(
-            side=1,
-            shiptype=(CV, AV, CVL)
-        ).get_target(friend, enemy)
-
-        # 去掉自身
-        target_craft.remove(self.master)
-
-        # 获取E国航系
+        target_craft = TypeTarget(side=1, shiptype=(CV, AV, CVL)
+                                  ).get_target(friend, enemy)   # 获取航系
+        target_craft.remove(self.master)                        # 去掉自身
         target_e_craft = [ship for ship in target_craft
-                          if ship.status['country'] == 'E']
+                          if ship.status['country'] == 'E']     # 获取E国航系
 
         num_craft = len(target_craft)
         num_e_craft = len(target_e_craft)
