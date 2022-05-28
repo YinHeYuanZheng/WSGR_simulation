@@ -3,7 +3,6 @@
 # env:py38
 # 鲃鱼
 
-from tkinter import ALL
 from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
