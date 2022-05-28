@@ -186,7 +186,9 @@ class SelfTarget(Target):
 class TypeTarget(Target):
     """指定船型的目标"""
     def __init__(self, side, shiptype):
-        super().__init__(side)
+        """:praram shiptype:list,Ship
+        """
+        super().__init__(side)        
         self.shiptype = shiptype
 
     def get_target(self, friend, enemy):
