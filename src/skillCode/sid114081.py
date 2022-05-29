@@ -14,7 +14,7 @@ class Skill_114081_1(Skill):
     """首轮炮击阶段敌方要塞、机场、港口无法行动"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = TypeTarget(side=0, shiptype=LandUnit)
+        self.target = TypeTarget(side=0, shiptype=(Fortness, Airfield, Port))
         self.buff = [
             ActPhaseBuff(
                 timer=timer,
@@ -22,18 +22,21 @@ class Skill_114081_1(Skill):
                 phase=FirstShellingPhase,
             )
         ]
+
+
 class Skill_114081_2(Skill):
+    """先制鱼雷阶段自身60%概率额外发射一枚鱼雷"""
     def __init__(self, timer, master):
-        """先制鱼雷阶段自身60%概率额外发射一枚鱼雷"""
-        self.target = SelfTarget(master=master, side=1)
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
         self.buff = [
-            MultipleAtkBuff(
+            SpecialBuff(
                 timer=timer,
                 name='multi_attack',
                 phase=FirstTorpedoPhase,
-                num=2,
                 rate=.6,
             )
         ]
-skill = [Skill_114081_1,]
 
+
+skill = [Skill_114081_1, Skill_114081_2]

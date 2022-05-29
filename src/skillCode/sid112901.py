@@ -14,7 +14,7 @@ class Skill_112901_1(Skill):
     """队伍中每有一个潜艇和炮潜单位，都会增加自身3点鱼雷值和4点回避值"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = SelfTarget(master, side=1)
+        self.target = SelfTarget(master)
         self.buff = [
             StatusBuff(
                 timer=timer,
@@ -31,19 +31,21 @@ class Skill_112901_1(Skill):
                 bias_or_weight=0,
             ),
         ]
+
     def activate(self, friend, enemy):
-        count = len(TypeTarget(side=1, shiptype=(SS, SC)).get_target(friend, enemy))
-        target = self.target.get_target(friend, enemy)
-        for tmp_target in target:
-            for tmp_buff in self.buff[:]:
-                tmp_buff = copy.copy(tmp_buff)
-                tmp_buff.value *= count
-                tmp_target.add_buff(tmp_buff)
+        ss = TypeTarget(side=1, shiptype=(SS, SC)).get_target(friend, enemy)
+        count = len(ss)
+        for tmp_buff in self.buff[:]:
+            tmp_buff = copy.copy(tmp_buff)
+            tmp_buff.value *= count
+            self.master.add_buff(tmp_buff)
+
+
 class Skill_112901_2(Skill):
     """昼战阶段自身暴击伤害增加30%。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = SelfTarget(master, side=1)
+        self.target = SelfTarget(master)
         self.buff = [
             AtkBuff(
                 timer=timer,
@@ -53,5 +55,6 @@ class Skill_112901_2(Skill):
                 bias_or_weight=0
             ),
         ]
-skill = [Skill_112901_1, Skill_112901_2]
 
+
+skill = [Skill_112901_1, Skill_112901_2]

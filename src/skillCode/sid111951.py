@@ -7,26 +7,62 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""必定优先攻击正规航母和装甲航母，攻击航母类单位(轻航，正规航母，装甲航母)时，命中值增加 10 点，且暴击时伤害为习得技能前的 1.2 倍。"""
+"""必定优先攻击航母、轻母和装母，
+攻击航母类单位(航母、轻母和装母)时，命中值增加10点，且暴击时伤害为习得技能前的1.2倍。"""
 
 
-class Skill_111951_1(Skill):
-    """必定优先攻击正规航母和装甲航母"""
+class Skill_111951(Skill):
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = SelfTarget(master, side=1)
+        self.target = SelfTarget(master)
         self.buff = [
             PriorTargetBuff(
                 timer=timer,
                 name='prior_type_target',
                 phase=AllPhase,
-                target=TypeTarget(side=0, shiptype=[CV,CVL,AV]),
+                target=TypeTarget(side=0, shiptype=(CV, CVL, AV)),
                 ordered=False
             ),
+            AtkHitBuff(
+                timer=timer,
+                name='give_atk',
+                phase=AllPhase,
+                buff=[
+                    Dur_StatusBuff(
+                        timer=timer,
+                        name='accuracy',
+                        phase=AllPhase,
+                        value=10,
+                        bias_or_weight=0
+                    )
+                ],
+                side=1,
+                atk_request=[BuffRequest_1]
+            ),
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=AllPhase,
+                value=0.2,
+                atk_request=[BuffRequest_2]
+            )
         ]
-class Skill_111951_2(Skill):
-    def __init__(self, timer, master):
-        "攻击航母类单位(轻航，正规航母，装甲航母)时，命中值增加 10 点，且暴击时伤害为习得技能前的 1.2 倍。"
-        super().__init__(timer, master)
-        "wait to be done"
-skill = [Skill_111951_1,]
+
+
+class Dur_StatusBuff(StatusBuff):
+    def is_during_buff(self):
+        return True
+
+
+class BuffRequest_1(ATKRequest):
+    def __bool__(self):
+        return isinstance(self.atk.target, (CV, CVL, AV))
+
+
+class BuffRequest_2(ATKRequest):
+    def __bool__(self):
+        return isinstance(self.atk.target, (CV, CVL, AV)) and \
+               self.atk.coef['crit_flag']
+
+
+skill = [Skill_111951]

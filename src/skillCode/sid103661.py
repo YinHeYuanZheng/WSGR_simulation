@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 # Author:huan_yp
 # env:py38
-# 鹦鹉螺
+# 鹦鹉螺-1
 
 from src.wsgr.skill import *
 from src.wsgr.ship import *
@@ -43,26 +43,22 @@ class Skill_103661_2(Skill):
     """提升自身火力 *0.5% 的暴击率。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = SelfTarget(master, side=1)
-        #value will be calculated in function activate
+        self.target = SelfTarget(master)
         self.buff = [
             CoeffBuff(
                 timer=timer,
                 name='crit',
                 phase=AllPhase,
-                value=0,
+                value=0.005,
                 bias_or_weight=0
             )
         ]
 
     def activate(self, friend, enemy):
-        target = self.target.get_target(friend, enemy)[0]
-        fire = target.get_final_status('fire')
-        for tmp_target in target:
-            for tmp_buff in self.buff[:]:
-                tmp_buff = copy.copy(tmp_buff)
-                tmp_buff.value = fire * 0.005
-                tmp_target.add_buff(tmp_buff)
+        fire = self.master.get_final_status('fire')
+        buff0 = copy.copy(self.buff[0])
+        buff0.value *= fire
+        self.master.add_buff(buff0)
 
 
 skill = [Skill_103661_1, Skill_103661_2]
