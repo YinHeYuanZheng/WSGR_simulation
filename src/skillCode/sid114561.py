@@ -7,29 +7,39 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""坚持奋战(3级)：降低自身2点闪避值，增加自身15点火力值；
+"""坚持奋战(3级)：降低自身4点闪避值，增加自身15点火力值；
 战斗中自身被命中过一次之后增加自身20%暴击率、20点火力值，20点装甲值（限昼战阶段）。"""
 
 
-class Skill_114561(Skill):
+class Skill_114561_1(CommonSkill):
+    """坚持奋战(3级)：降低自身4点闪避值，增加自身15点火力值"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            StatusBuff(
+            CommonBuff(
                 timer=timer,
                 name='evasion',
                 phase=AllPhase,
-                value=-2,
+                value=-4,
                 bias_or_weight=0
             ),
-            StatusBuff(
+            CommonBuff(
                 timer=timer,
                 name='fire',
                 phase=AllPhase,
                 value=15,
                 bias_or_weight=0
-            ),
+            )
+        ]
+
+
+class Skill_114561_2(Skill):
+    """战斗中自身被命中过一次之后增加自身20%暴击率、20点火力值，20点装甲值（限昼战阶段）"""
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
+        self.buff = [
             OnceAtkHitBuff(
                 timer=timer,
                 name='atk_be_hit',
@@ -95,4 +105,4 @@ class OnceAtkHitBuff(AtkHitBuff):
         self.exhaust -= 1
 
 
-skill = [Skill_114561]
+skill = [Skill_114561_1,Skill_114561_2]

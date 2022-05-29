@@ -458,13 +458,22 @@ class TorpedoPhase(DaytimePhase):
             else:
                 def_list = defend
 
+            # 检查是否有多发鱼雷技能
+            if tmp_ship.get_special_buff('multi_attack'):
+                num = 2
+            else:
+                num = 1
+
+            # 雁行雷击
+
             # 发起鱼雷攻击
-            atk = TorpedoAtk(
-                timer=self.timer,
-                atk_body=tmp_ship,
-                def_list=def_list,
-            )
-            atk.start()
+            for i in range(num):
+                atk = TorpedoAtk(
+                    timer=self.timer,
+                    atk_body=tmp_ship,
+                    def_list=def_list,
+                )
+                atk.start()
 
 
 class FirstTorpedoPhase(TorpedoPhase):
