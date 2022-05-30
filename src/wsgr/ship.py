@@ -418,6 +418,16 @@ class Ship(Time):
                     tmp_buff.is_active(atk=atk):
                 yield tmp_buff.value
 
+    def get_act_flag(self):
+        # 可参与阶段，优先级最高
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
+                return True
+
+        # 默认行动模式
+        phase_name = type(self.timer.phase).__name__
+        return self.act_phase_flag[phase_name]
+
     def get_act_indicator(self):
         """判断舰船在指定阶段内能否行动"""
         # 跳过阶段，优先级最高
@@ -425,7 +435,7 @@ class Ship(Time):
             if tmp_buff.name == 'not_act_phase' and tmp_buff.is_active():
                 return False
 
-        # 可参与阶段
+        # 可参与阶段(不用检测，如果判断条件与默认行动模式不同，则重新定义)
         # for tmp_buff in self.temper_buff:
         #     if tmp_buff.name == 'act_phase' and tmp_buff.is_active():
         #         return True
@@ -515,10 +525,6 @@ class Ship(Time):
                 if tmp_buff.name == 'hit_back' and \
                         tmp_buff.is_active(atk=atk, *args, **kwargs):
                     return tmp_buff.activate(atk=atk, *args, **kwargs)
-
-    def get_act_flag(self):
-        phase_name = type(self.timer.phase).__name__
-        return self.act_phase_flag[phase_name]
 
     def get_damage(self, damage):
         """受伤结算，过伤害保护，需要返回受伤与否"""

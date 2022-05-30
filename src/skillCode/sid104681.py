@@ -10,7 +10,7 @@ from src.wsgr.equipment import *
 
 """自身携带主炮类装备的增加3点火力值；
 单纵阵和梯形阵时降低自身5点闪避值，增加自身15点火力值与20点装甲值
-同时，队伍内其他战列舰增加10点火力值与10点装甲值（对低速舰船提升数值翻倍）。"""
+同时，队伍内其他战列舰增加10点火力值与15点装甲值（对低速舰船提升数值翻倍）。"""
 
 
 class Skill_104681_1(CommonSkill):
@@ -68,7 +68,7 @@ class Skill_104681_2(Skill):
 
 
 class Skill_104681_3(Skill):
-    """单纵阵和梯形阵时, 队伍内其他战列舰增加10点火力值与10点装甲值（对低速舰船提升数值翻倍）"""
+    """单纵阵和梯形阵时, 队伍内其他战列舰增加10点火力值与15点装甲值（对低速舰船提升数值翻倍）"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
@@ -85,7 +85,7 @@ class Skill_104681_3(Skill):
                 timer=timer,
                 name='armor',
                 phase=AllPhase,
-                value=10,
+                value=15,
                 bias_or_weight=0
             )
         ]

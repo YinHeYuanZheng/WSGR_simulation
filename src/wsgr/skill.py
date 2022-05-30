@@ -215,7 +215,10 @@ class SelfTarget(Target):
 class TypeTarget(Target):
     """指定船型的目标"""
     def __init__(self, side, shiptype):
-        super().__init__(side)
+        """
+        :praram shiptype: tuple or class Ship
+        """
+        super().__init__(side)        
         self.shiptype = shiptype
 
     def get_target(self, friend, enemy):
@@ -1056,6 +1059,13 @@ class ActiveBuff(Buff):
         return True
 
     def is_active(self, atk, enemy, *args, **kwargs):
+        # if isinstance(enemy, list):
+        #     def_list = enemy
+        # elif isinstance(enemy, Fleet):
+        #     def_list = enemy.get_atk_target(atk_type=atk)
+        # else:
+        #     raise TypeError('Enemy should be in form of list or Fleet')
+
         def_list = enemy.get_atk_target(atk_type=atk)
         return len(def_list) and \
                self.rate_verify() and \
