@@ -3,12 +3,12 @@
 # env:py38
 # 关岛
 
-"""舰队防御伞(3级)：炮击战阶段，炮击会对敌方大型船单位造成额外25%的伤害。降低敌方开幕航空战与开幕导弹15%命中率。
-"""
-
 from src.wsgr.phase import *
 from src.wsgr.ship import *
 from src.wsgr.skill import *
+
+"""舰队防御伞(3级)：炮击战阶段，炮击会对敌方大型船单位造成额外25%的伤害。
+降低敌方开幕航空战与开幕导弹15%命中率。"""
 
 
 class Skill_110211_1(Skill):
@@ -23,8 +23,7 @@ class Skill_110211_1(Skill):
                 name='final_damage_buff',
                 phase=ShellingPhase,
                 value=0.25,
-                bias_or_weight=0,
-                atk_request=(Request_1)
+                atk_request=[Request_1]
             )
         ]
 
@@ -42,7 +41,7 @@ class Skill_110211_2(Skill):
         self.target = Target(side=0)
         self.buff = [
             CoeffBuff(
-                timer,
+                timer=timer,
                 name='hit_rate',
                 phase=(FirstMissilePhase, AirPhase),
                 value=-0.15,

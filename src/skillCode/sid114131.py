@@ -3,12 +3,12 @@
 # env:py38
 # 加里波第
 
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+
 """北极星威慑(3级)：炮击战阶段自身命中过的目标不再行动(限炮击战阶段)。
     炮击战阶段有70%概率增加最小30%，最多100%的额外伤害。本角色无法装备大口径主炮。"""
-
-import numpy
-from src.wsgr.phase import *
-from src.wsgr.skill import *
 
 
 class Skill_114131_1(Skill):
@@ -20,17 +20,18 @@ class Skill_114131_1(Skill):
             AtkHitBuff(
                 timer=timer,
                 name='atk_hit',
-                phase=(ShellingPhase,),
+                phase=ShellingPhase,
                 buff=[
                     ActPhaseBuff(
-                        timer,
+                        timer=timer,
                         name='not_act_phase',
-                        phase=(ShellingPhase,)
+                        phase=ShellingPhase
                     )
                 ],
                 side=0
             )
         ]
+
 
 class Skill_114131_2(Skill):
     """炮击战阶段有70%概率增加最小30%，最多100%的额外伤害。"""
@@ -38,13 +39,21 @@ class Skill_114131_2(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            FinalDamageBuff(
+            RandomFinalDamage(
                 timer=timer,
+                name='final_damage_buff',
                 phase=ShellingPhase,
-                value=numpy.random.uniform(0.3, 1),
+                value=0.3,
                 rate=0.7
             )
         ]
+
+
+class RandomFinalDamage(FinalDamageBuff):
+    def is_active(self, *args, **kwargs):
+        self.value = np.random.uniform(0.3, 1.)
+        return isinstance(self.timer.phase, self.phase)
+
 
 skill = [Skill_114131_1, Skill_114131_2]
 

@@ -250,6 +250,31 @@ class AntiTypeTarget(TypeTarget):
         return target
 
 
+class RandomTarget(Target):
+    """随机选择n个目标"""
+    def __init__(self, side, num):
+        super().__init__(side)
+        self.num = num
+
+    def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        if len(fleet) > self.num:
+            target = np.random.choice(fleet, self.num, replace=False)
+        else:
+            target = fleet
+        return target
+
+
+
 class RandomTypeTarget(TypeTarget):
     """指定船型内随机选择一个目标"""
     def get_target(self, friend, enemy):

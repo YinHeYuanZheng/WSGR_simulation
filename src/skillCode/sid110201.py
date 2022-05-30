@@ -3,12 +3,13 @@
 # env:py38
 # 阿拉斯加
 
-"""先锋(3级)：炮击命中敌方航速大于等于27的单位时造成额外15点固定伤害。自身相邻上下单位开闭幕导弹、航空战时所受到的伤害降低20%。"""
-
-
-import numpy as np
-from src.wsgr.phase import *
 from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+
+"""先锋(3级)：炮击命中敌方航速大于等于27的单位时造成额外15点固定伤害。
+自身相邻上下单位开闭幕导弹、航空战时所受到的伤害降低20%。"""
+
 
 class Skill_110201_1(Skill):
     """炮击命中敌方航速大于等于27的单位时造成额外15点固定伤害。"""
@@ -22,7 +23,8 @@ class Skill_110201_1(Skill):
                 name='extra_damage',
                 phase=ShellingPhase,
                 value=15,
-                atk_request=[Request],
+                atk_request=[BuffRequest_1],
+                bias_or_weight=0
             )
         ]
 
@@ -39,25 +41,18 @@ class Skill_110201_2(Skill):
             direction='near'
         )
         self.buff = [
-            CoeffBuff_1(
-                timer=timer
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_debuff',
+                phase=(FirstMissilePhase, SecondMissilePhase, AirPhase),
+                value=-0.2
             )
         ]
 
 
-class Request(ATKRequest):
+class BuffRequest_1(ATKRequest):
     def __bool__(self):
-        return self.atk.atk_body.get_final_status('speed') >= 27
-
-
-class CoeffBuff_1(CoeffBuff):
-    def __init__(self, timer, phase=(MissilePhase, AirPhase), name='reduce_damage',
-                 value=0, bias_or_weight=0, rate=1):
-        super().__init__(timer, name, phase, value, bias_or_weight, rate)
-
-    def is_active(self, damage, *args, **kwargs):
-        self.value = np.floor(damage * 0.2)
-        return True
+        return self.atk.target.get_final_status('speed') >= 27
 
 
 skill = [Skill_110201_1, Skill_110201_2]

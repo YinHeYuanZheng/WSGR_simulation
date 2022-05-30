@@ -3,12 +3,11 @@
 # env:py38
 # 重雷装舰突袭
 
-"""重雷装舰突袭(3级)：解锁开幕雷击，对单个目标造成伤害，威力为鱼雷战的110%。
-"""
-
-from src.wsgr import *
-from src.wsgr.phase import *
 from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+
+"""重雷装舰突袭(3级)：解锁开幕雷击，对单个目标造成伤害，威力为鱼雷战的110%。"""
 
 
 class Skill_103771(Skill):
@@ -29,5 +28,6 @@ class Skill_103771(Skill):
                 bias_or_weight=0
             )
         ]
+
 
 skill = [Skill_103771]
