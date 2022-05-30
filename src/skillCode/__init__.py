@@ -197,8 +197,15 @@ from . import sid114561  # 塔林-1
 from . import sid113161  # 明斯克改-1
 from . import sid113351  # 伏尔塔改-1
 
-# BG
+# 导弹
+from . import sid104671  # 鞍山-1
+from . import sid110201  # 阿拉斯加改-1
+from . import sid110211  # 关岛改-1
+from . import sid110941  # 基阿特改-1
+from . import sid110971  # 长春改-1
 from . import sid112092  # 密苏里改-2
+from . import sid112992  # 让巴尔改-2
+from . import sid114131  # 加里波第改-1
 
 # SSSC
 from . import sid103661  # 鹦鹉螺
@@ -213,3 +220,7 @@ from . import sid112901  # U-96
 from . import sid112931  # U-1206
 from . import sid113511  # U-1405
 from . import sid114081  # 鲃鱼
+
+# 其他
+from . import sid103071  # 女灶神
+from . import sid103771  # 重雷装舰突袭(木曾、北上改-1、大井改-1)
