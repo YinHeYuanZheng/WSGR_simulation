@@ -232,12 +232,17 @@ class Launcher(Equipment):
 
 
 class Missile(Equipment):
+    """导弹总类"""
     def __init__(self, timer, master, enum):
         super().__init__(timer, master, enum)
         self.load = self.master.load[self.enum - 1]
 
 
-class AntiMissile(Equipment):
-    def __init__(self, timer, master, enum):
-        super().__init__(timer, master, enum)
-        self.load = self.master.load[self.enum - 1]
+class NormalMissile(Missile):
+    """通用型导弹"""
+    pass
+
+
+class AntiMissile(Missile):
+    """防空型导弹"""
+    pass

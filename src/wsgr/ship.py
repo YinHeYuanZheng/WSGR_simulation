@@ -621,7 +621,7 @@ class Ship(Time):
         if len(self.load):
             for i in range(len(self.equipment)):
                 tmp_equip = self.equipment[i]
-                if isinstance(tmp_equip, (Plane, Missile, AntiMissile)):
+                if isinstance(tmp_equip, (Plane, Missile)):
                     supply_num = self.load[i] - tmp_equip.load
                     supply['almn'] += supply_num * tmp_equip.status['supply_almn']
                     tmp_equip.load = self.load[i]
@@ -941,7 +941,7 @@ class MissileShip(Ship):
 
         # 检查导弹装备是否有载量
         for tmp_equip in self.equipment:
-            if isinstance(tmp_equip, (Missile, AntiMissile)) and tmp_equip.load > 0:
+            if isinstance(tmp_equip, Missile) and tmp_equip.load > 0:
                 return True
         return False
 

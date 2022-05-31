@@ -224,3 +224,4 @@ from . import sid114081  # 鲃鱼
 # 其他
 from . import sid103071  # 女灶神
 from . import sid103771  # 重雷装舰突袭(木曾、北上改-1、大井改-1)
+from . import sid110432  # 渐减雷击(北上改-2、大井改-2)

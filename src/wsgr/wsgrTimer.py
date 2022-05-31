@@ -50,13 +50,15 @@ class timer:
     def run_prepare_skill(self, friend, enemy):
         """结算准备阶段技能"""
         for tmp_skill in self.env_skill:
-            if tmp_skill.is_prep():
+            if tmp_skill.is_prep() and \
+                    tmp_skill.is_active(friend, enemy):
                 tmp_skill.activate(friend, enemy)
 
     def run_normal_skill(self, friend, enemy):
         """结算普通技能"""
         for tmp_skill in self.env_skill:
-            if not tmp_skill.is_prep():
+            if not tmp_skill.is_prep() and \
+                    tmp_skill.is_active(friend, enemy):
                 tmp_skill.activate(friend, enemy)
 
     def get_dist(self):

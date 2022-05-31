@@ -326,7 +326,7 @@ class MissilePhase(DaytimePhase):
         msl_list = []
         for tmp_ship in shiplist:
             for tmp_equip in tmp_ship.equipment:
-                if isinstance(tmp_equip, Missile) and tmp_equip.load > 0:
+                if isinstance(tmp_equip, NormalMissile) and tmp_equip.load > 0:
                     msl_list.append(tmp_equip)
         msl_list.sort(key=lambda x: (x.get_final_status('missile_atk'),
                                      -(x.enum + 4 * x.master.loc))

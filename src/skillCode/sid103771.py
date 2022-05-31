@@ -24,8 +24,7 @@ class Skill_103771(Skill):
                 timer=timer,
                 name='final_damage_buff',
                 phase=FirstTorpedoPhase,
-                value=0.1,
-                bias_or_weight=0
+                value=0.1
             )
         ]
 
