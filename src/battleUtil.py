@@ -64,6 +64,7 @@ class BattleUtil(Time):
         self.timer.set_phase(AllPhase)
         for tmp_ship in self.friend.ship:
             tmp_ship.reinit()
+        self.enemy_init()
         self.timer.reinit()
 
     def start_phase(self):
