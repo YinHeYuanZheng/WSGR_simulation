@@ -18,7 +18,14 @@ __all__ = ['ATK',
            'AirAntiSubAtk',
            'TorpedoAtk',
            'NormalAtk',
-           'AirNormalAtk'
+           'AirNormalAtk',
+           'NightAtk',
+           'NightNormalAtk',
+           'NightFirelAtk',
+           'NightFireTorpedolAtk',
+           'NightTorpedoAtk',
+           'NightMissileAtk',
+           'NightAntiSubAtk'
            ]
 
 
@@ -888,35 +895,6 @@ class AntiSubAtk(ATK):
         })  # 阵型系数
         self.pierce_base = 2  # 穿甲基础值
 
-    def process_coef(self):
-        # 技能系数
-        skill_scale, _ = self.atk_body.get_atk_buff('power_buff', self)
-        self.coef['skill_coef'] = 1 + skill_scale
-
-        # 船损系数
-        self.coef['dmg_coef'] = self.get_dmg_coef()
-
-        # 弹损系数
-        self.coef['supply_coef'] = self.get_supply_coef()
-
-        # 暴击系数
-        if self.coef['crit_flag']:
-            _, crit_bias = self.atk_body.get_atk_buff('crit_coef', self)
-            self.coef['crit_coef'] = 1.5 + crit_bias
-        else:
-            self.coef['crit_coef'] = 1.
-
-        # 浮动系数
-        self.coef['random_coef'] = np.random.uniform(self.random_range[0],
-                                                     self.random_range[1])
-
-        # 穿甲系数
-        _, pierce_bias = self.atk_body.get_atk_buff('pierce_coef', self)
-        self.coef['pierce_coef'] = 2 + pierce_bias
-
-        # 攻击者对系数进行最终修正（最高优先级）
-        self.atk_body.atk_coef_process(self)
-
     def formula(self):
         # 基础攻击力
         s_antisub = self.atk_body.get_final_status('antisub', equip=False)  # 裸反潜
@@ -1307,6 +1285,46 @@ class NightMissileAtk(NightAtk, MissileAtk):
                          equip=equip, coef=coef, target=target)
         self.random_range = [1.2, 1.5]  # 浮动系数上下限
         self.pierce_base = 1  # 穿甲基础值
+
+
+class NightAntiSubAtk(AntiSubAtk, NightAtk):
+    """夜战反潜"""
+
+    def final_damage(self, damage):
+        damage = np.ceil(damage * 0.1)
+
+        # 额外伤害
+        _, extra_damage = self.atk_body.get_atk_buff('extra_damage', self)
+        damage += extra_damage
+
+        # 终伤增伤系数
+        for buff_scale in self.atk_body.get_final_damage_buff(self):
+            damage = np.ceil(damage * (1 + buff_scale))
+        buff_scale = self.get_coef('final_damage_buff')
+        if buff_scale:
+            damage = np.ceil(damage * (1 + buff_scale))
+
+        # 终伤减伤系数
+        for debuff_scale in self.target.get_final_damage_debuff(self):
+            damage = np.ceil(damage * (1 + debuff_scale))
+        buff_scale = self.get_coef('final_damage_debuff')
+        if buff_scale:
+            damage = np.ceil(damage * (1 + buff_scale))
+
+        # 挡枪减伤
+        tank_damage_debuff = self.get_coef('tank_damage_debuff')
+        if tank_damage_debuff is not None:
+            damage = np.ceil(damage * (1 + tank_damage_debuff))
+
+        # 战术终伤
+
+        # 技能伤害减免
+        _, reduce_damage = self.target.get_atk_buff(name='reduce_damage',
+                                                    atk=self,
+                                                    damage=damage)
+        damage -= reduce_damage
+
+        return max(0, damage)
 
 
 def cap(x):

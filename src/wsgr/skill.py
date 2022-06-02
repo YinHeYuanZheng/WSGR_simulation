@@ -1015,7 +1015,13 @@ class HitBack(SpecialBuff):
         if self.exhaust is not None:
             self.exhaust -= 1
 
-        hit_back = self.master.normal_atk(
+        from src.wsgr.phase import DaytimePhase
+        if issubclass(self.phase, DaytimePhase):
+            normal_atk = self.master.normal_atk
+        else:
+            normal_atk = self.master.night_atk
+
+        hit_back = normal_atk(
             timer=self.timer,
             atk_body=self.master,
             def_list=None,
