@@ -27,6 +27,7 @@ class BattleUtil(Time):
         self.run_phase(SecondShellingPhase)
         self.run_phase(SecondTorpedoPhase)
         self.run_phase(SecondMissilePhase)
+        self.run_phase(NightPhase)
         self.end_phase()
 
     def battle_init(self):

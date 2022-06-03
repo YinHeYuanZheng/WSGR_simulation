@@ -4,9 +4,9 @@
 # 舰船类
 
 import numpy as np
+
 from src.wsgr.wsgrTimer import Time
 from src.wsgr.equipment import *
-# from src.wsgr.formulas import *
 
 
 class Ship(Time):
@@ -521,6 +521,11 @@ class Ship(Time):
                 )
                 return [atk]
 
+        # 夜战导弹舰攻击
+        from src.wsgr.formulas import NightMissileAtk
+        if isinstance(self.night_atk, NightMissileAtk):
+            return self.raise_night_missile_atk(target_fleet)
+
         # 常规攻击模式
         def_list = target_fleet.get_atk_target(atk_type=self.night_atk)
         if not len(def_list):
@@ -532,6 +537,9 @@ class Ship(Time):
             def_list=def_list,
         )
         return [atk]
+
+    def raise_night_missile_atk(self, target_fleet):
+        raise UserWarning(f'Wrong call of missile attack from {self.status["name"]}!')
 
     def check_night_atk_type(self):
         if isinstance(self, (CA, CL, CAV)):
@@ -1024,6 +1032,34 @@ class MissileShip(Ship):
             if isinstance(tmp_equip, Missile) and tmp_equip.load > 0:
                 return True
         return False
+
+    def raise_night_missile_atk(self, target_fleet):
+        if self.check_missile():  # 可以发射导弹时，获取全部有存量的导弹，并排序
+            msl_list = [equip for equip in self.equipment
+                        if isinstance(equip, Missile) and equip.load > 0]
+            msl_list.sort(key=lambda x: (x.get_final_status('missile_atk'), x.enum)
+                          )  # 按照突防从小到大+顺位顺序排序
+
+        else:  # 无法发射导弹时，生成一枚0火力导弹
+            zero_missile = NormalMissile(timer=self.timer,
+                                         master=self,
+                                         enum=1)
+            zero_missile.set_status('fire', 0)
+            msl_list = [zero_missile]
+
+        for tmp_msl in msl_list:
+            def_enemy = target_fleet.get_atk_target(atk_type=self.night_atk)
+            if not len(def_enemy):
+                break
+
+            atk = self.night_atk(
+                timer=self.timer,
+                atk_body=self,
+                def_list=def_enemy,
+                equip=tmp_msl
+            )
+            yield atk
+            tmp_msl.load -= 1
 
 
 class AtkMissileShip(MissileShip):

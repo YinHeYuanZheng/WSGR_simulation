@@ -335,9 +335,10 @@ class MissilePhase(DaytimePhase):
 
     def get_def_missile(self, shiplist):
         """获取防空导弹"""
+        from src.wsgr.ship import DefMissileShip
         msl_list = []
         for tmp_ship in shiplist:
-            if tmp_ship.check_missile():
+            if isinstance(tmp_ship, DefMissileShip) and tmp_ship.check_missile():
                 for tmp_equip in tmp_ship.equipment:
                     if isinstance(tmp_equip, AntiMissile) and tmp_equip.load > 0:
                         msl_list.append(tmp_equip)
@@ -509,7 +510,7 @@ class ShellingPhase(DaytimePhase):
             if i < len(ordered_enemy):
                 self.normal_atk(ordered_enemy[i], self.friend)
 
-    def get_order(self, fleet):
+    def get_order(self, fleet: list):
         """炮序"""
         fleet.sort(key=lambda x: x.loc)
         return fleet

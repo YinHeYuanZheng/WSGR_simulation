@@ -186,12 +186,14 @@ class ATK(Time):
     def crit_verify(self):
         """暴击检定"""
         if self.get_coef('must_crit') or \
-                self.atk_body.get_special_buff('must_crit', self):
+                self.atk_body.get_special_buff('must_crit', self) or \
+                self.target.get_special_buff('must_be_crit', self):
             self.coef['crit_flag'] = True
             return
 
         if self.get_coef('must_not_crit') or \
-                self.target.get_special_buff('must_not_crit', self):
+                self.atk_body.get_special_buff('must_not_crit', self) or \
+                self.target.get_special_buff('must_not_be_crit', self):
             self.coef['crit_flag'] = False
             return
 
@@ -738,12 +740,14 @@ class MissileAtk(ATK):
         """暴击检定"""
         if self.get_coef('must_crit') or \
                 self.atk_body.get_special_buff('must_crit', self) or \
+                self.target.get_special_buff('must_be_crit', self) or \
                 self.equip.get_special_buff('must_crit', self):
             self.coef['crit_flag'] = True
             return
 
         if self.get_coef('must_not_crit') or \
-                self.target.get_special_buff('must_not_crit', self) or \
+                self.atk_body.get_special_buff('must_not_crit', self) or \
+                self.target.get_special_buff('must_not_be_crit', self) or \
                 self.equip.get_special_buff('must_not_crit', self):
             self.coef['crit_flag'] = False
             return
@@ -992,6 +996,18 @@ class NormalAtk(ATK):
                     self.coef['supply_coef'] *
                     self.coef['crit_coef'] *
                     self.coef['random_coef'])
+        return real_atk
+
+
+class SpecialAtk(NormalAtk):
+    """技能特殊攻击(只包含固定伤害，不过甲)"""
+
+    def formula(self):
+        return 0
+
+    def real_damage(self, real_atk):
+        if real_atk is None:
+            raise ValueError(f'Formula of "{type(self).__name__}" is not defined!')
         return real_atk
 
 

@@ -30,7 +30,7 @@ class Skill_110111(Skill):
                     ),
                     DuringAtkBuff(
                         timer=timer,
-                        name='must_not_crit',
+                        name='must_not_be_crit',
                         phase=AllPhase,
                         bias_or_weight=3
                     )

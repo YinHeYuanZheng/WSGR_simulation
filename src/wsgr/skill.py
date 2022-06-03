@@ -952,6 +952,8 @@ class TankBuff(EventBuff):
     def activate(self, atk, *args, **kwargs):
         atk.set_target(self.master)
         atk.set_coef(self.coef)
+        if self.exhaust is not None:
+            self.exhaust -= 1
 
 
 class SpecialBuff(Buff):
