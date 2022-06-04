@@ -33,7 +33,8 @@ __all__ = ['ATK',
 class ATK(Time):
     """攻击总类"""
 
-    def __init__(self, timer, atk_body, def_list, coef=None, target=None):
+    def __init__(self, timer, atk_body, def_list, coef=None, target=None,
+                 *args, **kwargs):
         super().__init__(timer)
         self.timer.set_atk(self)
         self.atk_body = atk_body
@@ -1206,7 +1207,8 @@ class NightAtk(ATK):
 
     def __init__(self, timer, atk_body, def_list, coef=None, target=None,
                  *args, **kwargs):
-        super().__init__(timer, atk_body, def_list, coef, target)
+        super().__init__(timer, atk_body, def_list, coef=coef, target=target,
+                         *args, **kwargs)
 
         self.form_coef.update({
             'power': [1.1, .9, 1, 1, 1],

@@ -26,6 +26,8 @@ if __name__ == '__main__':
     timer_init = timer()
     battle = load_config(xml_file, ds, timer_init)
 
+    print(battle.friend.ship)
+
     result = [0] * 6
     result_flag_list = ['SS', 'S', 'A', 'B', 'C', 'D']
     # supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
@@ -34,7 +36,7 @@ if __name__ == '__main__':
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
-        print(log['record'])
+        # print(log['record'])
 
         result_flag_id = result_flag_list.index(log['result'])
         result[result_flag_id] += 1
@@ -47,10 +49,10 @@ if __name__ == '__main__':
         avg_damage += np.sum(log['got_damage'][0])
 
         print(f"第{i+1}次 - 战果分布: "
-              f"SS {result[0] / (i + 1) * 100:.1f}%, "
-              f"S {result[1] / (i + 1) * 100:.1f}%, "
-              f"A {result[2] / (i + 1) * 100:.1f}%, "
-              f"B {result[3] / (i + 1) * 100:.1f}%, "
-              f"C {result[4] / (i + 1) * 100:.1f}%, "
-              f"D {result[5] / (i + 1) * 100:.1f}%.\n"
+              f"SS {result[0] / (i + 1) * 100:.1f}% "
+              f"S {result[1] / (i + 1) * 100:.1f}% "
+              f"A {result[2] / (i + 1) * 100:.1f}% "
+              f"B {result[3] / (i + 1) * 100:.1f}% "
+              f"C {result[4] / (i + 1) * 100:.1f}% "
+              f"D {result[5] / (i + 1) * 100:.1f}%\n"
               f"平均有效伤害: {avg_damage / (i + 1):.3f}")

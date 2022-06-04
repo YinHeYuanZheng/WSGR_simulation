@@ -523,7 +523,7 @@ class Ship(Time):
 
         # 夜战导弹舰攻击
         from src.wsgr.formulas import NightMissileAtk
-        if isinstance(self.night_atk, NightMissileAtk):
+        if issubclass(self.night_atk, NightMissileAtk):
             return self.raise_night_missile_atk(target_fleet)
 
         # 常规攻击模式

@@ -3,4 +3,5 @@
 /Pipfile.lock
 /.idea
 /.vscode
+/config/event
 *.pyc

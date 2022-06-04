@@ -194,6 +194,7 @@ from . import sid111621  # 逸仙改-1
 from . import sid114561  # 塔林-1
 
 # DD
+from . import sid110822  # 萤火虫改-2
 from . import sid113161  # 明斯克改-1
 from . import sid113351  # 伏尔塔改-1
 

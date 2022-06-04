@@ -23,6 +23,11 @@ class Skill_110432(Skill):
                 name='multi_attack',
                 phase=FirstTorpedoPhase,
             ),
+            ActPhaseBuff(
+                timer=timer,
+                name='act_phase',
+                phase=FirstTorpedoPhase
+            ),
             CoeffBuff(
                 timer=timer,
                 name='power_buff',
