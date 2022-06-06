@@ -22,8 +22,8 @@ if __name__ == '__main__':
 
     dependDir = os.path.join(os.path.dirname(srcDir), 'depend')
     data_file = os.path.join(dependDir, r'ship\database.xlsx')
-    ds = Dataset(data_file)
-    timer_init = timer()
+    ds = Dataset(data_file)  # 舰船数据
+    timer_init = timer()  # 创建时钟
     battle = load_config(xml_file, ds, timer_init)
 
     print(battle.friend.ship)

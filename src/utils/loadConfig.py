@@ -4,7 +4,7 @@
 
 import xml.dom.minidom
 
-from src import battleUtil
+from src.utils import battleUtil
 from src.wsgr.ship import *
 import src.wsgr.ship as rship
 import src.wsgr.equipment as requip
@@ -19,14 +19,20 @@ def load_config(config, dataset, timer):
     friend_root = root.getElementsByTagName('Fleet')[0]
     friend = load_fleet(friend_root, dataset, timer)
 
-    enemy_root = root.getElementsByTagName('Fleet')[1]
-    enemy = load_fleet(enemy_root, dataset, timer)
-
     # 根据战斗类型调用不同流程类
     battle_type = root.getAttribute('type')
-    battle = getattr(battleUtil, battle_type)
+    if battle_type != 'Map':
+        try:
+            battle = getattr(battleUtil, battle_type)
+        except:
+            raise ValueError(f'Battle type {battle_type} is not defined!')
 
-    return battle(timer, friend, enemy)
+        enemy_root = root.getElementsByTagName('Fleet')[1]
+        enemy = load_fleet(enemy_root, dataset, timer)
+        return battle(timer, friend, enemy)
+    else:
+        map_root = root.getElementsByTagName('Map')[0]
+        mapid = map_root.getAttribute('mapid')
 
 
 def load_fleet(node, dataset, timer):

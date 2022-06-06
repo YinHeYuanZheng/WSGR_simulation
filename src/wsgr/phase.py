@@ -547,21 +547,32 @@ class NightPhase(AllPhase):
     """夜战"""
 
     def start(self):
+        act_flag_0 = False  # 记录夜战内是否有单位行动过
+
         # 按照站位顺序依次行动
         for i in range(6):
             if i < len(self.friend.ship):
-                self.night_atk(self.friend.ship[i], self.enemy)
+                act_flag_1 = self.night_atk(self.friend.ship[i], self.enemy)
+                act_flag_0 = act_flag_0 or act_flag_1
 
             if i < len(self.enemy.ship):
-                self.night_atk(self.enemy.ship[i], self.friend)
+                act_flag_1 = self.night_atk(self.enemy.ship[i], self.friend)
+                act_flag_0 = act_flag_0 or act_flag_1
+
+        if act_flag_0:  # 进行过夜战，扣除对应弹药
+            for tmp_ship in self.friend.ship:
+                tmp_ship.supply_ammo = max(0., tmp_ship.supply_ammo - 0.1)
 
     def night_atk(self, source, target_fleet):
         if not source.get_act_flag() or not source.get_act_indicator():
-            return
+            return False
 
+        act_flag = False
         atk_list = source.raise_night_atk(target_fleet)
         for atk in atk_list:
+            act_flag = True
             hit_back = atk.start()  # 技能反击
             if isinstance(hit_back, ATK):
                 hit_back.set_coef({'hit_back': True})
                 hit_back.start()
+        return act_flag
