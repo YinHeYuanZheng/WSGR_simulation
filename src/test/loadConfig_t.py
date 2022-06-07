@@ -7,7 +7,6 @@ import xml.dom.minidom
 
 from src.utils import battleUtil
 from src.utils.mapUtil import MapUtil
-from src.wsgr.ship import *
 import src.wsgr.ship as rship
 import src.wsgr.equipment as requip
 from src import skillCode
@@ -39,7 +38,7 @@ def load_config(config, mapdir, dataset, timer):
 
 
 def load_fleet(node, dataset, timer):
-    fleet = Fleet(timer)
+    fleet = rship.Fleet(timer)
     fleet.set_form(int(node.getAttribute('form')))
 
     shiplist = []

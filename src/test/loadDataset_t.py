@@ -190,9 +190,9 @@ class Dataset:
             raise ValueError(f"pid error with '{pid}'")
 
         status = {
-            'type': point.loc['type'],
-            'level': int(point.loc['class']),
-            'round': bool(point.loc['round']),
+            'type': point.loc['种类'],
+            'level': int(point.loc['点位等级']),
+            'roundabout': bool(int(point.loc['迂回'])),
             'enemy': [list(point.iloc[4:11]),
                       list(point.iloc[17:24]),
                       list(point.iloc[30:37])],

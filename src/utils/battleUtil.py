@@ -180,5 +180,25 @@ class BattleUtil(Time):
         return self.timer.log
 
 
+class Entrance(BattleUtil):
+    pass
+
+
+class NormalBattle(BattleUtil):
+    pass
+
+
+class AirBattle(BattleUtil):
+    pass
+
+
+class NightBattle(BattleUtil):
+    pass
+
+
+class Resource(BattleUtil):
+    pass
+
+
 if __name__ == "__main__":
     pass
