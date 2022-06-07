@@ -11,20 +11,22 @@ curDir = os.path.dirname(__file__)
 srcDir = os.path.dirname(curDir)
 sys.path.append(srcDir)
 
-from src.utils.loadConfig import load_config
-from src.utils.loadDataset import Dataset
+from src.test.loadConfig_t import load_config
+from src.test.loadDataset_t import Dataset
 from src.wsgr.wsgrTimer import timer
 
 
 if __name__ == '__main__':
     configDir = os.path.join(os.path.dirname(srcDir), 'config')
-    xml_file = os.path.join(configDir, r'event\config_1.xml')
+    xml_file = os.path.join(configDir, r'config_map.xml')
 
     dependDir = os.path.join(os.path.dirname(srcDir), 'depend')
     data_file = os.path.join(dependDir, r'ship\database.xlsx')
     ds = Dataset(data_file)  # 舰船数据
+
+    mapDir = os.path.join(dependDir, r'map')
     timer_init = timer()  # 创建时钟
-    battle = load_config(xml_file, ds, timer_init)
+    battle = load_config(xml_file, mapDir, ds, timer_init)
 
     print(battle.friend.ship)
 
