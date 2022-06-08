@@ -47,6 +47,7 @@ class MapUtil(Time):
 
             # 生成后继节点及带路
             suc = self.load_suc(n)
+            p.set_suc(suc)
 
             if name in ['a', 'b']:
                 self.point['entrance'] = p
@@ -124,7 +125,13 @@ class MapUtil(Time):
         return ship
 
     def load_suc(self, node):
-        pass
+        suc_list = node.getElementsByTagName('point')
+        suc = {}
+        for suc_node in suc_list:
+            name = suc_node.getAttribute('name')
+            weight = suc_node.getAttribute('weight')
+            suc[name] = Successor(weight, suc_node)
+        return suc
 
     def start(self):
         pass
@@ -139,6 +146,7 @@ class Point:
         self.level = 0
         self.roundabout = None
         self.enemy_list = []
+        self.suc = {}
 
     def __repr__(self):
         return f'{self.name}({self.level})'
@@ -165,3 +173,26 @@ class Point:
 
     def set_enemy(self, enemy_list):
         self.enemy_list = enemy_list
+
+    def set_suc(self, suc_dic):
+        self.suc = suc_dic
+
+
+class Successor:
+    def __init__(self, weight, request):
+        self.weight = weight
+        self.request = request
+
+    def bool(self, friend_fleet):
+        if not len(self.request):
+            return False
+
+        flag = True
+        for tmp_request in self.request:
+            flag = flag and tmp_request.bool(friend_fleet)
+        return flag
+
+
+class LeadRequest:
+    def __init__(self):
+        pass
