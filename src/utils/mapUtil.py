@@ -21,18 +21,17 @@ class MapUtil(Time):
     def init_map(self, entrance, dataset):
         """根据xml结构和数据库，构建海图"""
         points = entrance.getElementsByTagName('point')
-        for n in points:
+        for node in points:
             # 读取节点属性
-            name = n.getAttribute('name')
-            pid = n.getAttribute('pid')
+            name = node.getAttribute('name')
+            pid = node.getAttribute('pid')
             status = dataset.get_point_status(pid)
-            p = Point(name)
+            level = int(node.getAttribute('level'))
+            p = Point(name, level)
 
             # 写入节点属性
             battle_type = status.pop('type')
             p.set_type(getattr(battleUtil, battle_type))
-            p_level = status.pop('level')
-            p.set_level(p_level)
             roundabout = status.pop('roundabout')
             p.set_roundabout(roundabout)
 
@@ -46,7 +45,9 @@ class MapUtil(Time):
             p.set_enemy(enemy_list)
 
             # 生成后继节点及带路
-            suc = self.load_suc(n)
+            suc = self.load_suc(node)
+            if (p.level in [0, 1, 2, 3]) and (len(suc) == 0):
+                raise ValueError('')
             p.set_suc(suc)
 
             if name in ['a', 'b']:
@@ -125,13 +126,29 @@ class MapUtil(Time):
         return ship
 
     def load_suc(self, node):
-        suc_list = node.getElementsByTagName('point')
+        suc_list = node.getElementsByTagName('suc')
         suc = {}
         for suc_node in suc_list:
             name = suc_node.getAttribute('name')
             weight = suc_node.getAttribute('weight')
-            suc[name] = Successor(weight, suc_node)
+            relation = suc_node.getAttribute('relation')
+            request = self.load_request(suc_node)
+            suc[name] = Successor(weight, request, relation)
         return suc
+
+    def load_request(self, node):
+        req_list = node.getElementsByTagName('request')
+        request = []
+        for req_node in req_list:
+            request.append(
+                LeadRequest(
+                    request_type=req_node.getAttribute('type'),
+                    name=req_node.getAttribute('name'),
+                    fun=req_node.getAttribute('fun'),
+                    value=float(req_node.getAttribute('value')),
+                )
+            )
+        return request
 
     def start(self):
         pass
@@ -140,10 +157,10 @@ class MapUtil(Time):
 class Point:
     """节点基类"""
 
-    def __init__(self, name):
+    def __init__(self, name, level):
         self.name = name
+        self.level = level  # 节点等级, 0: 起点, 1: 出门, 2: 道中, 3: 门神, 4: 非boss地图终点, 5: boss
         self.type = None
-        self.level = 0
         self.roundabout = None
         self.enemy_list = []
         self.suc = {}
@@ -156,13 +173,6 @@ class Point:
         :param battle_type: class battleUtil.BattleUtil
         """
         self.type = battle_type
-
-    def set_level(self, level):
-        """
-        节点等级
-        :param level: 0: 起点, 1: 出门, 2: 道中, 3: 门神, 4: 非boss地图终点, 5: boss
-        """
-        self.level = level
 
     def set_roundabout(self, roundabout):
         """
@@ -179,20 +189,77 @@ class Point:
 
 
 class Successor:
-    def __init__(self, weight, request):
+    def __init__(self, weight, request, relation):
         self.weight = weight
         self.request = request
+        self.relation = relation
 
     def bool(self, friend_fleet):
-        if not len(self.request):
+        if len(self.request) == 0:
             return False
 
-        flag = True
-        for tmp_request in self.request:
-            flag = flag and tmp_request.bool(friend_fleet)
-        return flag
+        elif len(self.request) == 1:
+            return self.request[0].bool(friend_fleet)
+
+        elif self.relation == 'or':
+            flag = False
+            for tmp_request in self.request:
+                flag = flag or tmp_request.bool(friend_fleet)
+            return flag
+
+        else:
+            flag = True
+            for tmp_request in self.request:
+                flag = flag and tmp_request.bool(friend_fleet)
+            return flag
 
 
 class LeadRequest:
-    def __init__(self):
-        pass
+    def __init__(self, request_type, name, fun, value):
+        self.request_type = request_type
+        self.name = name
+        self.fun_name = fun
+        self.value = value
+
+        self._request = None
+        self._fun = None
+
+        self.gen_request()
+        self.gen_fun()
+
+    def gen_request(self):
+        if self.request_type == 'num':
+            name = self.name.split(',')
+            self._request = lambda x: \
+                len([ship for ship in x.ship
+                     if type(ship).__name__ in name])
+
+        elif self.request_type == 'leader':
+            name = self.name.split(',')
+            self._request = lambda x: \
+                type(x.ship[0]).__name__ in name
+
+        elif self.request_type == 'status':
+            self._request = lambda x: x.status[self.name]
+
+        else:
+            raise ValueError(f'Wrong request type {self.request_type}')
+
+    def gen_fun(self):
+        if self.fun_name == 'lt':
+            self._fun = lambda x, y: x < y
+
+        if self.fun_name == 'le':
+            self._fun = lambda x, y: x <= y
+
+        if self.fun_name == 'eq':
+            self._fun = lambda x, y: x == y
+
+        if self.fun_name == 'ge':
+            self._fun = lambda x, y: x >= y
+
+        if self.fun_name == 'gt':
+            self._fun = lambda x, y: x > y
+
+    def bool(self, friend_fleet):
+        return self._fun(self._request(friend_fleet), self.value)
