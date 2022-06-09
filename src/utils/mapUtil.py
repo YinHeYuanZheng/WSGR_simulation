@@ -47,7 +47,7 @@ class MapUtil(Time):
             # 生成后继节点及带路
             suc = self.load_suc(node)
             if (p.level in [0, 1, 2, 3]) and (len(suc) == 0):
-                raise ValueError('')
+                raise ValueError(f'Point {name} should have successor(s)!')
             p.set_suc(suc)
 
             if name in ['a', 'b']:
@@ -153,6 +153,9 @@ class MapUtil(Time):
     def start(self):
         pass
 
+    def report(self):
+        pass
+
 
 class Point:
     """节点基类"""
@@ -202,16 +205,16 @@ class Successor:
             return self.request[0].bool(friend_fleet)
 
         elif self.relation == 'or':
-            flag = False
             for tmp_request in self.request:
-                flag = flag or tmp_request.bool(friend_fleet)
-            return flag
+                if tmp_request.bool(friend_fleet):
+                    return True
+            return False
 
         else:
-            flag = True
             for tmp_request in self.request:
-                flag = flag and tmp_request.bool(friend_fleet)
-            return flag
+                if not tmp_request.bool(friend_fleet):
+                    return False
+            return True
 
 
 class LeadRequest:

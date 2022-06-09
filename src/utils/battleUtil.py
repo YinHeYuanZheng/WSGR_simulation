@@ -31,13 +31,14 @@ class BattleUtil(Time):
         self.end_phase()
 
     def battle_init(self):
-        """战斗初始化, 只在第一场战斗进行调用"""
+        """战斗初始化, 只在地图入口进行调用"""
         self.timer.set_phase(AllPhase)
 
-        from src.utils.envBuffUtil import env
-        for skill in env[:]:
-            tmp_skill = skill(self.timer)
-            self.timer.env_skill.append(tmp_skill)
+        # 环境buff
+        # from src.utils.envBuffUtil import env
+        # for skill in env[:]:
+        #     tmp_skill = skill(self.timer)
+        #     self.timer.env_skill.append(tmp_skill)
 
         self.friend_init()
         self.enemy_init()
@@ -61,7 +62,7 @@ class BattleUtil(Time):
         self.enemy.get_init_status(enemy=self.friend)
 
     def battle_reinit(self):
-        """道中初始化舰船状态，第一场战斗外每场战斗都要调用"""
+        """道中初始化舰船状态，地图入口外每场战斗都要调用"""
         self.timer.set_phase(AllPhase)
         for tmp_ship in self.friend.ship:
             tmp_ship.reinit()
@@ -181,23 +182,63 @@ class BattleUtil(Time):
 
 
 class Entrance(BattleUtil):
-    pass
+    """地图入口"""
+    def start(self):
+        self.battle_init()
+
+    def enemy_init(self):
+        pass
 
 
 class NormalBattle(BattleUtil):
-    pass
+    """常规战斗点"""
+
+    def start(self):
+        """进行战斗流程"""
+        self.battle_reinit()
+        self.start_phase()
+        self.run_phase(BuffPhase)
+        self.run_phase(AirPhase)
+        self.run_phase(FirstMissilePhase)
+        self.run_phase(FirstTorpedoPhase)
+        self.run_phase(FirstShellingPhase)
+        self.run_phase(SecondShellingPhase)
+        self.run_phase(SecondTorpedoPhase)
+        self.run_phase(SecondMissilePhase)
+        self.run_phase(NightPhase)
+        self.end_phase()
 
 
 class AirBattle(BattleUtil):
-    pass
+    """航空战点"""
+
+    def start(self):
+        """进行战斗流程"""
+        self.battle_reinit()
+        self.start_phase()
+        self.run_phase(BuffPhase)
+        self.run_phase(AirPhase)
+        self.run_phase(NightPhase)
+        self.end_phase()
 
 
 class NightBattle(BattleUtil):
-    pass
+    """夜战点"""
+
+    def start(self):
+        """进行战斗流程"""
+        self.battle_reinit()
+        self.start_phase()
+        self.run_phase(BuffPhase)
+        self.run_phase(NightPhase)
+        self.end_phase()
 
 
 class Resource(BattleUtil):
-    pass
+    """资源点"""
+
+    def enemy_init(self):
+        pass
 
 
 if __name__ == "__main__":
