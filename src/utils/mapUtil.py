@@ -2,6 +2,8 @@
 # Author:银河远征
 # env:py38
 
+import numpy as np
+
 from src.wsgr.wsgrTimer import Time
 from src.utils import battleUtil
 import src.wsgr.ship as rship
@@ -151,7 +153,9 @@ class MapUtil(Time):
         return request
 
     def start(self):
-        pass
+        start_point = self.point['entrance']
+        point_name = start_point.start(self.timer, self.friend)
+        point = self.point[point_name]
 
     def report(self):
         pass
@@ -189,6 +193,25 @@ class Point:
 
     def set_suc(self, suc_dic):
         self.suc = suc_dic
+
+    def start(self, timer, friend):
+        timer.set_point_level(self.level)
+        if len(self.enemy_list) != 0:
+            enemy = np.random.choice(self.enemy_list)
+            battle = self.type(timer, friend, enemy)
+        else:
+            battle = self.type(timer, friend, None)
+        battle.start()
+        return self.move(friend)
+
+    def move(self, friend):
+        if not len(self.suc):  # 地图终点
+            assert self.level in [4, 5]
+            return None
+
+        for name, point in self.suc.items():
+            if point.bool(friend):
+                return name
 
 
 class Successor:
@@ -233,14 +256,14 @@ class LeadRequest:
     def gen_request(self):
         if self.request_type == 'num':
             name = self.name.split(',')
+            shiptype = tuple([getattr(rship, type_name) for type_name in name])
             self._request = lambda x: \
-                len([ship for ship in x.ship
-                     if type(ship).__name__ in name])
+                len([ship for ship in x.ship if isinstance(ship, shiptype)])
 
         elif self.request_type == 'leader':
             name = self.name.split(',')
-            self._request = lambda x: \
-                type(x.ship[0]).__name__ in name
+            shiptype = tuple([getattr(rship, type_name) for type_name in name])
+            self._request = lambda x: isinstance(x.ship[0], shiptype)
 
         elif self.request_type == 'status':
             self._request = lambda x: x.status[self.name]
@@ -252,17 +275,20 @@ class LeadRequest:
         if self.fun_name == 'lt':
             self._fun = lambda x, y: x < y
 
-        if self.fun_name == 'le':
+        elif self.fun_name == 'le':
             self._fun = lambda x, y: x <= y
 
-        if self.fun_name == 'eq':
+        elif self.fun_name == 'eq':
             self._fun = lambda x, y: x == y
 
-        if self.fun_name == 'ge':
+        elif self.fun_name == 'ge':
             self._fun = lambda x, y: x >= y
 
-        if self.fun_name == 'gt':
+        elif self.fun_name == 'gt':
             self._fun = lambda x, y: x > y
+
+        else:
+            raise ValueError()
 
     def bool(self, friend_fleet):
         return self._fun(self._request(friend_fleet), self.value)

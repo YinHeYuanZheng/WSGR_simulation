@@ -10,6 +10,8 @@ class timer:
     """战斗时点依赖"""
 
     def __init__(self):
+        self.point_level = 0        # 节点等级, 0: 起点, 1: 出门, 2: 道中, 3: 门神, 4: 非boss地图终点, 5: boss
+
         self.recon_flag = None      # 索敌
         self.direction_flag = None  # 航向, 优同反劣分别为1-4
         self.air_con_flag = None    # 制空结果, 从空确到空丧分别为1-5
@@ -29,6 +31,9 @@ class timer:
             'hit': 0,
             'record': '',
         }
+
+    def set_point_level(self, level):
+        self.point_level = level
 
     def set_recon(self, recon_flag):
         self.recon_flag = recon_flag
