@@ -85,9 +85,12 @@ class MapUtil(Time):
 
         # 写入固有属性
         ship.set_loc(int(loc))
-        ship.set_level(50)
+        # ship.set_level(50)
         ship.set_affection(50)
 
+        # 写入非属性变量
+        level = status.pop('level')
+        ship.set_level(level)
         if status['capacity'] != 0:
             load = status.pop('load')
             ship.set_load(load)
@@ -132,7 +135,7 @@ class MapUtil(Time):
         suc = {}
         for suc_node in suc_list:
             name = suc_node.getAttribute('name')
-            weight = suc_node.getAttribute('weight')
+            weight = float(suc_node.getAttribute('weight'))
             relation = suc_node.getAttribute('relation')
             request = self.load_request(suc_node)
             suc[name] = Successor(weight, request, relation)
@@ -153,12 +156,31 @@ class MapUtil(Time):
         return request
 
     def start(self):
-        start_point = self.point['entrance']
-        point_name = start_point.start(self.timer, self.friend)
-        point = self.point[point_name]
+        name = 'entrance'
+        while name is not None:
+            point = self.point[name]
+            name = point.start(self.timer, self.friend)
 
     def report(self):
-        pass
+        # 命中率
+        try:
+            hit_rate = self.timer.log['hit'] / \
+                       (self.timer.log['hit'] + self.timer.log['miss'])
+            self.timer.log['hit_rate'] = hit_rate
+        except:
+            self.timer.log['hit_rate'] = 0
+
+        # 消耗
+        supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
+        for tmp_ship in self.friend.ship:
+            ship_supply = tmp_ship.reset()
+            supply['oil'] += int(ship_supply['oil'])
+            supply['ammo'] += int(ship_supply['ammo'])
+            supply['steel'] += int(ship_supply['steel'])
+            supply['almn'] += int(ship_supply['almn'])
+        self.timer.log['supply'] = supply
+
+        return self.timer.log
 
 
 class Point:
@@ -171,6 +193,8 @@ class Point:
         self.roundabout = None
         self.enemy_list = []
         self.suc = {}
+
+        self.battle = None
 
     def __repr__(self):
         return f'{self.name}({self.level})'
@@ -195,13 +219,14 @@ class Point:
         self.suc = suc_dic
 
     def start(self, timer, friend):
-        timer.set_point_level(self.level)
+        """创建战斗类并移动到下个点"""
+        timer.set_point(self)
         if len(self.enemy_list) != 0:
             enemy = np.random.choice(self.enemy_list)
-            battle = self.type(timer, friend, enemy)
+            self.battle = self.type(timer, friend, enemy)
         else:
-            battle = self.type(timer, friend, None)
-        battle.start()
+            self.battle = self.type(timer, friend, None)
+        self.battle.start()
         return self.move(friend)
 
     def move(self, friend):
@@ -209,9 +234,14 @@ class Point:
             assert self.level in [4, 5]
             return None
 
-        for name, point in self.suc.items():
-            if point.bool(friend):
+        for name, suc_point in self.suc.items():
+            if suc_point.bool(friend):
                 return name
+
+        weight = np.array([suc.weight for suc in self.suc.values()])
+        normalized_weight = weight / np.sum(weight)
+        next_name = np.random.choice(list(self.suc.keys()), p=normalized_weight)
+        return next_name
 
 
 class Successor:

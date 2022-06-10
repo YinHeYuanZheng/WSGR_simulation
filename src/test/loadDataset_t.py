@@ -92,6 +92,7 @@ class Dataset:
             'type': ship.loc['舰种'],  # 舰种
             'name': ship.loc['名称'],  # 船名
             'country': ship.loc['国籍'],  # 国籍
+            'level': int(ship.loc['等级']),  # 等级
             'total_health': int(ship.loc['耐久']),  # 总耐久
             'health': int(ship.loc['耐久']),  # 当前耐久
             'fire': int(ship.loc['火力']),  # 火力

@@ -88,6 +88,7 @@ def load_friend_ship(node, dataset, timer):
     ship.set_level(int(node.getAttribute('level')))
     ship.set_affection(int(node.getAttribute('affection')))
 
+    # 写入非属性变量
     if status['capacity'] != 0:
         load = status.pop('load')
         ship.set_load(load)
@@ -139,9 +140,12 @@ def load_enemy_ship(node, dataset, timer):
 
     # 写入节点属性
     ship.set_loc(int(node.getAttribute('loc')))
-    ship.set_level(int(node.getAttribute('level')))
+    # ship.set_level(int(node.getAttribute('level')))
     ship.set_affection(int(node.getAttribute('affection')))
 
+    # 写入非属性变量
+    level = status.pop('level')
+    ship.set_level(level)
     if status['capacity'] != 0:
         load = status.pop('load')
         ship.set_load(load)

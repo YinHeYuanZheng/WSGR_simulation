@@ -610,8 +610,13 @@ class Ship(Time):
 
         # 友方非大破状态下，受到足以大破的伤害
         elif self.status['health'] - damage < standard_health * 0.25:
-            if self.status['health'] == standard_health:
+            # 满血且为昼战，满血保护
+            from src.wsgr.phase import DaytimePhase
+            if self.status['health'] == standard_health and \
+                    isinstance(self.timer.phase, DaytimePhase):
                 damage = np.ceil(standard_health * np.random.uniform(0.5, 0.75))
+
+            # 否则只有中破保护
             else:
                 damage = np.ceil(self.status['health'] - standard_health * 0.25)
 
@@ -1299,7 +1304,7 @@ class Fleet(Time):
                     cover_num += 1
 
             # debug
-            if main_num + cover_num != len(self.ship):
+            if main_num + cover_num > 6:
                 raise ValueError('Number of ship not consist')
             elif main_num == 0 and cover_num == 0:
                 raise ValueError('Mainship and Covership are both 0')

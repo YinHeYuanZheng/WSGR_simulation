@@ -10,7 +10,7 @@ class timer:
     """战斗时点依赖"""
 
     def __init__(self):
-        self.point_level = 0        # 节点等级, 0: 起点, 1: 出门, 2: 道中, 3: 门神, 4: 非boss地图终点, 5: boss
+        self.point = None           # 节点
 
         self.recon_flag = None      # 索敌
         self.direction_flag = None  # 航向, 优同反劣分别为1-4
@@ -32,8 +32,9 @@ class timer:
             'record': '',
         }
 
-    def set_point_level(self, level):
-        self.point_level = level
+    def set_point(self, point):
+        self.point = point
+        self.log['record'] += f'-> {point}: {point.type.__name__}\n'
 
     def set_recon(self, recon_flag):
         self.recon_flag = recon_flag
@@ -53,20 +54,21 @@ class timer:
         self.atk = atk
 
     def run_prepare_skill(self, friend, enemy):
-        """结算准备阶段技能"""
+        """结算地图准备阶段技能"""
         for tmp_skill in self.env_skill:
             if tmp_skill.is_prep() and \
                     tmp_skill.is_active(friend, enemy):
                 tmp_skill.activate(friend, enemy)
 
     def run_normal_skill(self, friend, enemy):
-        """结算普通技能"""
+        """结算地图普通技能"""
         for tmp_skill in self.env_skill:
             if not tmp_skill.is_prep() and \
                     tmp_skill.is_active(friend, enemy):
                 tmp_skill.activate(friend, enemy)
 
     def get_dist(self):
+        # return self.point.level
         # 特殊点位手动置为5
         return 5
 
