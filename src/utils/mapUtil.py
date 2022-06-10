@@ -230,14 +230,27 @@ class Point:
         return self.move(friend)
 
     def move(self, friend):
-        if not len(self.suc):  # 地图终点
+        # 地图终点
+        if not len(self.suc):
             assert self.level in [4, 5]
             return None
 
+        for tmp_ship in friend.ship:
+            # 大破不再前进
+            if tmp_ship.damaged >= 3:
+                self.battle.timer.log['result'] = 'D'
+                return None
+
+            # 油弹耗尽不再前进
+            if tmp_ship.supply_oil <= 0 or tmp_ship.supply_ammo <= 0:
+                return None
+
+        # 带路检定
         for name, suc_point in self.suc.items():
             if suc_point.bool(friend):
                 return name
 
+        # 随机沟
         weight = np.array([suc.weight for suc in self.suc.values()])
         normalized_weight = weight / np.sum(weight)
         next_name = np.random.choice(list(self.suc.keys()), p=normalized_weight)

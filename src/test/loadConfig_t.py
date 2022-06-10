@@ -42,8 +42,7 @@ def load_fleet(node, dataset, timer):
     fleet.set_form(int(node.getAttribute('form')))
 
     shiplist = []
-    for i in range(len(node.getElementsByTagName('Ship'))):
-        s_node = node.getElementsByTagName('Ship')[i]
+    for s_node in node.getElementsByTagName('Ship'):
         ship = load_ship(s_node, dataset, timer)
         ship.set_master(fleet)
         shiplist.append(ship)
@@ -115,15 +114,19 @@ def load_friend_ship(node, dataset, timer):
         del skill
 
     # 读取装备属性并写入
-    enodes = node.getElementsByTagName('Equipment')
-    for i in range(len(enodes)):
-        e_node = enodes[i]
+    for e_node in node.getElementsByTagName('Equipment'):
         enum = int(e_node.getAttribute('loc'))
         if enum > equip_num:  # 装备所在栏位超出舰船装备限制
             continue
 
         equip = load_equip(e_node, dataset, ship, timer)
         ship.set_equipment(equip)
+
+    # 读取战术并写入
+    for st_node in node.getElementsByTagName('Strategy'):
+        stid = 'stid' + st_node.getAttribute('stid')
+        strategy = getattr(skillCode, stid).skill
+        ship.add_strategy(strategy)
 
     return ship
 

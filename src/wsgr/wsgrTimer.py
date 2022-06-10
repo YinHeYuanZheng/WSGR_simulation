@@ -29,6 +29,7 @@ class timer:
             },
             'miss': 0,
             'hit': 0,
+            'dcitem': 0,  # 使用损管数量
             'record': '',
         }
 

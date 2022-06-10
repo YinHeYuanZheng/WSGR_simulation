@@ -15,38 +15,39 @@ class Ship(Time):
     def __init__(self, timer):
         super().__init__(timer)
         self.master = None
-        self.cid = '0'  # 编号
-        self.type = None  # 船型
-        self.size = None  # 量级，大中小型船
-        self.function = None  # 功能，主力、护卫舰
+        self.cid = '0'          # 编号
+        self.type = None        # 船型
+        self.size = None        # 量级，大中小型船
+        self.function = None    # 功能，主力、护卫舰
         self.status = {
-            'name': None,  # 船名
-            'country': None,  # 国籍
+            'name': None,       # 船名
+            'country': None,    # 国籍
             'total_health': 0,  # 总耐久
-            'health': 0,  # 当前耐久
-            'fire': 0,  # 火力
-            'torpedo': 0,  # 鱼雷
-            'armor': 0,  # 装甲
-            'antiair': 0,  # 对空
-            'antisub': 0,  # 对潜
-            'accuracy': 0,  # 命中
-            'evasion': 0,  # 回避
-            'recon': 0,  # 索敌
-            'speed': 0,  # 航速
-            'range': 0,  # 射程, 1: 短; 2: 中; 3: 长; 4: 超长
-            'luck': 0,  # 幸运
-            'capacity': 0,  # 搭载
-            'tag': '',  # 标签(特驱、z系等)
-            'supply_oil': 0,  # 补给油耗
-            'supply_ammo': 0,  # 补给弹耗
-            'repair_oil': 0,  # 修理油耗
+            'health': 0,        # 当前耐久
+            'fire': 0,          # 火力
+            'torpedo': 0,       # 鱼雷
+            'armor': 0,         # 装甲
+            'antiair': 0,       # 对空
+            'antisub': 0,       # 对潜
+            'accuracy': 0,      # 命中
+            'evasion': 0,       # 回避
+            'recon': 0,         # 索敌
+            'speed': 0,         # 航速
+            'range': 0,         # 射程, 1: 短; 2: 中; 3: 长; 4: 超长
+            'luck': 0,          # 幸运
+            'capacity': 0,      # 搭载
+            'tag': '',          # 标签(特驱、z系等)
+            'supply_oil': 0,    # 补给油耗
+            'supply_ammo': 0,   # 补给弹耗
+            'repair_oil': 0,    # 修理油耗
             'repair_steel': 0,  # 修理钢耗
         }
 
-        self._skill = []  # 技能(未实例化)
-        self.skill = []  # 技能
-        self.equipment = []  # 装备
-        self.load = []
+        self._skill = []        # 技能(未实例化)
+        self.skill = []         # 技能
+        self.equipment = []     # 装备
+        self.load = []          # 搭载
+        self.strategy = []      # 战术
 
         self.side = 0  # 敌我识别; 1: 友方; 0: 敌方
         self.loc = 0  # 站位, 1-6
@@ -240,6 +241,9 @@ class Ship(Time):
         else:
             raise AttributeError(f"'load' should be list, got {type(load)} instead.")
 
+    def add_strategy(self, strategy):
+        self.strategy.append(strategy)
+
     def init_health(self):
         """初始化血量"""
         # standard_health 血量战损状态计算标准
@@ -249,6 +253,11 @@ class Ship(Time):
                 self.status['standard_health'] += tmp_buff.value
         self.status['standard_health'] += self.get_equip_status('health')
         self.status['health'] = self.status['standard_health']
+
+    def init_supply(self):
+        """初始化补给"""
+        if self.get_special_buff('strategy_ammo'):
+            self.supply_ammo += 0.2
 
     def set_status(self, name=None, value=None, status=None):
         """根据属性名称设置本体属性"""
@@ -625,8 +634,11 @@ class Ship(Time):
 
         # 受伤状态结算
         if self.status['health'] <= 0:
-            self.status['health'] = 0
-            self.damaged = 4
+            if self.use_dcitem():  # 检测能否损管
+                self.status['health'] = standard_health
+            else:
+                self.status['health'] = 0
+                self.damaged = 4
         elif self.damaged < 3 and \
                 self.status['health'] < standard_health * 0.25:
             self.damaged = 3
@@ -635,6 +647,18 @@ class Ship(Time):
             self.damaged = 2
 
         return damage
+
+    def use_dcitem(self):
+        """检测能否损管"""
+        if self.side == 1:  # 友方可损管
+            self.timer.log['dcitem'] += 1
+            return True
+
+        elif self.get_special_buff('damage_control'):  # 深海需要检查技能
+            return True
+
+        else:
+            return False
 
     def remove_during_buff(self):
         """去除攻击期间的临时buff"""
@@ -676,8 +700,9 @@ class Ship(Time):
         self.supply_oil = 1
 
         # 统计补给耗弹并补满
-        supply['ammo'] += np.ceil((1 - self.supply_ammo) * self.status['supply_ammo'])
-        self.supply_ammo = 1
+        strategy_ammo = 0.2 if self.get_special_buff('strategy_ammo') else 0
+        supply['ammo'] += np.ceil((1 + strategy_ammo - self.supply_ammo) * self.status['supply_ammo'])
+        self.supply_ammo = 1 + strategy_ammo
 
         # 统计修理费用并恢复血量
         got_damage = self.status['standard_health'] - self.status['health']

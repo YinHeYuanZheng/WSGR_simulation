@@ -44,10 +44,11 @@ class BattleUtil(Time):
         self.enemy_init()
 
     def friend_init(self):
-        # 初始化技能
+        # 初始化技能、耐久、补给
         for tmp_ship in self.friend.ship:
             tmp_ship.init_skill(self.friend, self.enemy)
             tmp_ship.init_health()
+            tmp_ship.init_supply()
 
         # 计算索敌、航速相关舰队属性(只用于带路判断)
         self.friend.get_init_status(enemy=self.enemy)

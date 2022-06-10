@@ -6,6 +6,9 @@
 from . import esid003  # 装备穿甲特效
 from . import esid004  # 超重弹特效
 
+# 战术效果
+from . import stid131  # 大角度规避
+
 # 未改航系
 from . import sid101191  # 皇家方舟-1
 from . import sid102241  # 可畏-1

@@ -116,6 +116,14 @@ class EquipSkill(Skill):
                 tmp_target.add_buff(tmp_buff)
 
 
+class Strategy(Skill):
+    """战术"""
+
+    def activate(self, *args, **kwargs):
+        buff = copy.copy(self.buff[0])
+        self.master.add_buff(buff)
+
+
 class Request(Time):
     """技能发动条件"""
 
