@@ -11,9 +11,10 @@ from src.wsgr.formulas import *
 """炮击战阶段受到炮击时，有15%概率免疫此攻击"""
 
 
-class Strategy_131(Strategy):
+class Strategy_131(SelfStrategy):
     def __init__(self, timer, master):
         super().__init__(timer, master)
+        self.stid = '131'
         self.buff = [
             SpecialBuff(
                 timer=timer,

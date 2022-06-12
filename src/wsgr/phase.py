@@ -146,6 +146,7 @@ class BuffPhase(AllPhase):
         self.timer.run_normal_skill(self.friend, self.enemy)
         for tmp_ship in self.friend.ship:
             tmp_ship.run_normal_skill(self.friend, self.enemy)
+            tmp_ship.run_strategy()
         for tmp_ship in self.enemy.ship:
             tmp_ship.run_normal_skill(self.enemy, self.friend)
 

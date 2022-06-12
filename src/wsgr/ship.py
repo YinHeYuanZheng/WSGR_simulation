@@ -63,6 +63,7 @@ class Ship(Time):
         self.common_buff = []  # 永久面板加成
         self.temper_buff = []  # 临时buff
         self.active_buff = []  # 主动技能buff
+        self.strategy_buff = []  # 战术buff
 
         self.act_phase_flag = {
             'AirPhase': False,
@@ -174,12 +175,29 @@ class Ship(Time):
             return 50
         return self.affection
 
+    def set_equipment(self, equipment):
+        """设置舰船装备"""
+        if isinstance(equipment, list):
+            self.equipment = equipment
+        else:
+            self.equipment.append(equipment)
+
+    def set_load(self, load):
+        if isinstance(load, list):
+            self.load = load
+        else:
+            raise AttributeError(f"'load' should be list, got {type(load)} instead.")
+
     def add_skill(self, skill):
         """设置舰船技能(未实例化)"""
         self._skill.extend(skill)
 
+    def add_strategy(self, strategy):
+        """增加战术技能(已实例化)"""
+        self.strategy.append(strategy)
+
     def init_skill(self, friend, enemy):
-        """舰船技能实例化，并结算常驻面板技能"""
+        """舰船技能实例化，并结算常驻面板技能和战术"""
         self.skill = []
         for skill in self._skill[:]:
             tmp_skill = skill(self.timer, self)
@@ -196,6 +214,26 @@ class Ship(Time):
                 assert len(e_skill) == 1
                 tmp_skill = e_skill[0](self.timer, self, e_value)
                 self.skill.append(tmp_skill)
+
+        # 战术
+        self.strategy_buff = []
+        for tmp_strategy in self.strategy:
+            tmp_strategy.activate(friend, enemy)
+
+    def init_health(self):
+        """初始化血量"""
+        # standard_health 血量战损状态计算标准
+        self.status['standard_health'] = self.status['total_health']
+        for tmp_buff in self.common_buff:
+            if tmp_buff.name == 'health':
+                self.status['standard_health'] += tmp_buff.value
+        self.status['standard_health'] += self.get_equip_status('health')
+        self.status['health'] = self.status['standard_health']
+
+    def init_supply(self):
+        """初始化补给"""
+        if self.get_strategy_buff('strategy_ammo'):  # 检测是否携带后备弹
+            self.supply_ammo += 0.2
 
     def get_raw_skill(self):
         """获取技能，让巴尔可调用"""
@@ -228,36 +266,9 @@ class Ship(Time):
                     tmp_skill.is_active(friend, enemy):
                 tmp_skill.activate(friend, enemy)
 
-    def set_equipment(self, equipment):
-        """设置舰船装备"""
-        if isinstance(equipment, list):
-            self.equipment = equipment
-        else:
-            self.equipment.append(equipment)
-
-    def set_load(self, load):
-        if isinstance(load, list):
-            self.load = load
-        else:
-            raise AttributeError(f"'load' should be list, got {type(load)} instead.")
-
-    def add_strategy(self, strategy):
-        self.strategy.append(strategy)
-
-    def init_health(self):
-        """初始化血量"""
-        # standard_health 血量战损状态计算标准
-        self.status['standard_health'] = self.status['total_health']
-        for tmp_buff in self.common_buff:
-            if tmp_buff.name == 'health':
-                self.status['standard_health'] += tmp_buff.value
-        self.status['standard_health'] += self.get_equip_status('health')
-        self.status['health'] = self.status['standard_health']
-
-    def init_supply(self):
-        """初始化补给"""
-        if self.get_special_buff('strategy_ammo'):
-            self.supply_ammo += 0.2
+    def run_strategy(self):
+        """结算战术效果"""
+        self.temper_buff.append(self.strategy_buff)
 
     def set_status(self, name=None, value=None, status=None):
         """根据属性名称设置本体属性"""
@@ -351,6 +362,10 @@ class Ship(Time):
         else:
             self.temper_buff.append(buff)
 
+    def add_strategy_buff(self, buff):
+        """增加战术效果"""
+        self.strategy_buff.append(buff)
+
     def get_buff(self, name, *args, **kwargs):
         """根据增益名称获取全部属性增益，对于属性倍率，搜索全部buff内容"""
         scale_add = 0
@@ -401,6 +416,14 @@ class Ship(Time):
             if tmp_buff.name == name:
                 if tmp_buff.is_active(*args, **kwargs):
                     tmp_buff.activate(*args, **kwargs)
+                    return True
+        return False
+
+    def get_strategy_buff(self, name, *args, **kwargs):
+        """查询战术增益"""
+        for tmp_buff in self.strategy_buff:
+            if tmp_buff.name == name:
+                if tmp_buff.is_active(*args, **kwargs):
                     return True
         return False
 
@@ -1259,6 +1282,7 @@ class Fleet(Time):
         low_speed, high_speed = self.get_low_high_status('speed')  # 舰队最低速、最高速
 
         self.status.update({
+            'level': sum([ship.level for ship in self.ship]),
             'speed': self.get_fleet_speed(),
             'avg_speed': self.get_avg_status('speed'),
             'leader_speed': self.ship[0].get_final_status('speed'),

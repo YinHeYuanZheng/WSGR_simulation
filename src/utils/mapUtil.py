@@ -171,7 +171,7 @@ class MapUtil(Time):
             self.timer.log['hit_rate'] = 0
 
         # 消耗
-        supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
+        supply = self.timer.log['supply']
         for tmp_ship in self.friend.ship:
             ship_supply = tmp_ship.reset()
             supply['oil'] += int(ship_supply['oil'])
@@ -230,6 +230,7 @@ class Point:
         return self.move(friend)
 
     def move(self, friend):
+        self.battle.timer.log['end'] = self.name
         # 地图终点
         if not len(self.suc):
             assert self.level in [4, 5]
@@ -238,7 +239,6 @@ class Point:
         for tmp_ship in friend.ship:
             # 大破不再前进
             if tmp_ship.damaged >= 3:
-                self.battle.timer.log['result'] = 'D'
                 return None
 
             # 油弹耗尽不再前进

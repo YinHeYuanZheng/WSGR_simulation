@@ -119,9 +119,27 @@ class EquipSkill(Skill):
 class Strategy(Skill):
     """战术"""
 
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.stid = '000'  # 战术编号
+
+
+class FleetStrategy(Strategy):
+    """光环战术"""
+
+    def activate(self, friend, enemy):
+        target = self.target.get_target(friend, enemy)
+        for tmp_target in target:
+            buff = copy.copy(self.buff[0])
+            tmp_target.add_strategy_buff(buff)
+
+
+class SelfStrategy(Strategy):
+    """单体战术"""
+
     def activate(self, *args, **kwargs):
         buff = copy.copy(self.buff[0])
-        self.master.add_buff(buff)
+        self.master.add_strategy_buff(buff)
 
 
 class Request(Time):

@@ -125,7 +125,7 @@ def load_friend_ship(node, dataset, timer):
     # 读取战术并写入
     for st_node in node.getElementsByTagName('Strategy'):
         stid = 'stid' + st_node.getAttribute('stid')
-        strategy = getattr(skillCode, stid).skill
+        strategy = getattr(skillCode, stid).skill[0](timer, ship)
         ship.add_strategy(strategy)
 
     return ship

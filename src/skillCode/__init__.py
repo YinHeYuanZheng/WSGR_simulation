@@ -8,6 +8,7 @@ from . import esid004  # 超重弹特效
 
 # 战术效果
 from . import stid131  # 大角度规避
+from . import stid233  # 后备弹
 
 # 未改航系
 from . import sid101191  # 皇家方舟-1

@@ -32,6 +32,9 @@ class BattleUtil(Time):
 
     def battle_init(self):
         """战斗初始化, 只在地图入口进行调用"""
+        if self.timer.point is not None and self.timer.point.level != 0:
+            return self.battle_reinit()
+
         self.timer.set_phase(AllPhase)
 
         # 环境buff
@@ -170,7 +173,7 @@ class BattleUtil(Time):
             self.timer.log['hit_rate'] = 0
 
         # 消耗
-        supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
+        supply = self.timer.log['supply']
         for tmp_ship in self.friend.ship:
             ship_supply = tmp_ship.reset()
             supply['oil'] += int(ship_supply['oil'])
@@ -196,7 +199,7 @@ class NormalBattle(BattleUtil):
 
     def start(self):
         """进行战斗流程"""
-        self.battle_reinit()
+        self.battle_init()
         self.start_phase()
         self.run_phase(BuffPhase)
         self.run_phase(AirPhase)
@@ -215,7 +218,7 @@ class AirBattle(BattleUtil):
 
     def start(self):
         """进行战斗流程"""
-        self.battle_reinit()
+        self.battle_init()
         self.start_phase()
         self.run_phase(BuffPhase)
         self.run_phase(AirPhase)
@@ -228,15 +231,17 @@ class NightBattle(BattleUtil):
 
     def start(self):
         """进行战斗流程"""
-        self.battle_reinit()
+        self.battle_init()
         self.start_phase()
         self.run_phase(BuffPhase)
         self.run_phase(NightPhase)
         self.end_phase()
 
 
-class Resource(BattleUtil):
-    """资源点"""
+class MidPoint(BattleUtil):
+    """无战斗点"""
+    def start(self):
+        pass
 
     def enemy_init(self):
         pass

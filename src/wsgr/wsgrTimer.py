@@ -31,6 +31,7 @@ class timer:
             'hit': 0,
             'dcitem': 0,  # 使用损管数量
             'record': '',
+            'supply': {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0},
         }
 
     def set_point(self, point):
@@ -91,15 +92,14 @@ class timer:
         self.direction_flag = None  # 航向
         self.air_con_flag = None    # 制空结果
         self.atk = None
-        self.log = {
+        self.log.update({
             'create_damage': {
                 1: np.zeros((6,)),
                 0: np.zeros((6,))
             },
             'miss': 0,
             'hit': 0,
-            'record': self.log['record']
-        }
+        })
         self.queue = {
             'magnet': [],
             'tank': [],
