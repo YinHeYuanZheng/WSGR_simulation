@@ -221,6 +221,13 @@ class Point:
     def start(self, timer, friend):
         """创建战斗类并移动到下个点"""
         timer.set_point(self)
+
+        # todo 阵型策略（道中复纵 boss梯形）
+        if self.level != 5:
+            friend.set_form(2)
+        else:
+            friend.set_form(4)
+
         if len(self.enemy_list) != 0:
             enemy = np.random.choice(self.enemy_list)
             self.battle = self.type(timer, friend, enemy)

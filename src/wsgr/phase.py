@@ -121,7 +121,7 @@ class PreparePhase(AllPhase):
         d_fleet_speed = int(friend_fleet_speed - enemy_fleet_speed)
 
         # 航向权重，顺序为优同反劣
-        if self.timer.direction_flag:
+        if self.timer.recon_flag:
             speed_matrix = np.array([20, 35, 25, 5])
         else:
             speed_matrix = np.array([10, 30, 30, 15])

@@ -35,7 +35,7 @@ class BattleUtil(Time):
         if self.timer.point is not None and self.timer.point.level != 0:
             return self.battle_reinit()
 
-        self.timer.set_phase(AllPhase)
+        self.timer.set_phase(AllPhase(self.timer, self.friend, self.enemy))
 
         # 环境buff
         # from src.utils.envBuffUtil import env
@@ -67,7 +67,7 @@ class BattleUtil(Time):
 
     def battle_reinit(self):
         """道中初始化舰船状态，地图入口外每场战斗都要调用"""
-        self.timer.set_phase(AllPhase)
+        self.timer.set_phase(AllPhase(self.timer, self.friend, self.enemy))
         for tmp_ship in self.friend.ship:
             tmp_ship.reinit()
         self.enemy_init()
