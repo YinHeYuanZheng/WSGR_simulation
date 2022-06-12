@@ -20,3 +20,6 @@ class Strategy_233(SelfStrategy):
                 phase=AllPhase
             )
         ]
+
+
+skill = [Strategy_233]

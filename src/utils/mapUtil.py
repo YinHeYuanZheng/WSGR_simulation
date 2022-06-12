@@ -230,10 +230,12 @@ class Point:
         return self.move(friend)
 
     def move(self, friend):
-        self.battle.timer.log['end'] = self.name
+        self.battle.timer.log['end_with'] = self.name
         # 地图终点
         if not len(self.suc):
             assert self.level in [4, 5]
+            if self.level == 5:
+                self.battle.timer.log['end_with_boss'] = True
             return None
 
         for tmp_ship in friend.ship:

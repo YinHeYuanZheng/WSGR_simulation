@@ -268,7 +268,7 @@ class Ship(Time):
 
     def run_strategy(self):
         """结算战术效果"""
-        self.temper_buff.append(self.strategy_buff)
+        self.temper_buff.extend(self.strategy_buff)
 
     def set_status(self, name=None, value=None, status=None):
         """根据属性名称设置本体属性"""
@@ -635,6 +635,13 @@ class Ship(Time):
 
         # 友方大破时受伤, 非大破进击
         elif self.damaged == 3:
+            if self.status['health'] == 1:  # 剩余血量为1，强制miss
+                damage = 0
+            else:
+                damage = np.ceil(self.status['health'] * 0.1)
+
+        # 如果血量刚好在中保线，变为大破保护
+        elif self.status['health'] == standard_health * 0.25:
             if self.status['health'] == 1:  # 剩余血量为1，强制miss
                 damage = 0
             else:

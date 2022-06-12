@@ -29,9 +29,11 @@ class timer:
             },
             'miss': 0,
             'hit': 0,
-            'dcitem': 0,  # 使用损管数量
+            'dcitem': 0,                # 使用损管数量
             'record': '',
             'supply': {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0},
+            'end_with': '',             # 退出时抵达位置
+            'end_with_boss': False,     # 是否抵达boss点
         }
 
     def set_point(self, point):
@@ -70,13 +72,16 @@ class timer:
                 tmp_skill.activate(friend, enemy)
 
     def get_dist(self):
-        # return self.point.level
-        # 特殊点位手动置为5
-        return 5
+        if self.point is not None:
+            return self.point.level
+        else:
+            return 5  # 特殊点位手动置为5
 
     def get_dist_from_start(self):
-        # 特殊点位手动置为5
-        return 5
+        if self.point is not None:
+            return 6 - self.point.level
+        else:
+            return 5  # 特殊点位手动置为5
 
     def queue_append(self, buff):
         if buff.name == 'tank':

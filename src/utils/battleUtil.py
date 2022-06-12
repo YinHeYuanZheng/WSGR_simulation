@@ -209,7 +209,8 @@ class NormalBattle(BattleUtil):
         self.run_phase(SecondShellingPhase)
         self.run_phase(SecondTorpedoPhase)
         self.run_phase(SecondMissilePhase)
-        self.run_phase(NightPhase)
+        if (self.timer.point is None) or (self.timer.point.level == 5):
+            self.run_phase(NightPhase)
         self.end_phase()
 
 
@@ -222,7 +223,8 @@ class AirBattle(BattleUtil):
         self.start_phase()
         self.run_phase(BuffPhase)
         self.run_phase(AirPhase)
-        self.run_phase(NightPhase)
+        if (self.timer.point is None) or (self.timer.point.level == 5):
+            self.run_phase(NightPhase)
         self.end_phase()
 
 

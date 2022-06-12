@@ -226,7 +226,7 @@ class ATK(Time):
             return
 
         # 大角度
-        if self.target.get_special_buff('strategy_shield', self):
+        if self.target.get_strategy_buff('strategy_shield', self):
             self.coef['hit_flag'] = False
             return
 
@@ -474,7 +474,7 @@ class AirStrikeAtk(AirAtk):
             return
 
         # 对空预警
-        if self.target.get_special_buff('strategy_shield', self):
+        if self.target.get_strategy_buff('strategy_shield', self):
             self.coef['hit_flag'] = False
             return
 
@@ -1029,7 +1029,7 @@ class AirNormalAtk(NormalAtk, AirAtk):
             return
 
         # 大角度
-        if self.target.get_special_buff('strategy_shield', self):
+        if self.target.get_strategy_buff('strategy_shield', self):
             self.coef['hit_flag'] = False
             return
 
