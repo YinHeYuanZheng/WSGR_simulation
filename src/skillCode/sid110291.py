@@ -18,14 +18,14 @@ class Skill_110291(Skill):
             radius=1,
             direction='near',
             master_include=True,
-            shiptype=(Aircraft,)
+            shiptype=Aircraft
         )
 
         self.buff = [
             CoeffBuff(
                 timer=timer,
                 name='air_atk_buff',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=0.15,
                 bias_or_weight=2
             )
