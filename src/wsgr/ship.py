@@ -649,10 +649,8 @@ class Ship(Time):
 
         # 友方非大破状态下，受到足以大破的伤害
         elif self.status['health'] - damage < standard_health * 0.25:
-            # 满血且为昼战，满血保护
-            from src.wsgr.phase import DaytimePhase
-            if self.status['health'] == standard_health and \
-                    isinstance(self.timer.phase, DaytimePhase):
+            # 满血保护
+            if self.status['health'] == standard_health:
                 damage = np.ceil(standard_health * np.random.uniform(0.5, 0.75))
 
             # 否则只有中破保护
