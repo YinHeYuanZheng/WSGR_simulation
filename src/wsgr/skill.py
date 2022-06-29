@@ -850,11 +850,10 @@ class PriorTargetBuff(Buff):
         :param ordered: bool
         """
         super().__init__(timer, name, phase, bias_or_weight, rate)
-        self.target = target
+        self.target = target  # 筛选器，即 Target类
         self.ordered = ordered
 
     def activate(self, fleet, *args, **kwargs):
-        """target属性为一个筛选器，即 Target类"""
         prior = self.target.get_target(None, fleet)
         if not len(prior):
             return None
@@ -1106,7 +1105,8 @@ class ActiveBuff(Buff):
                isinstance(self.timer.phase, self.phase)
 
     def active_start(self, atk, enemy, *args, **kwargs):
-        """迭代器，依次执行攻击时效果、攻击行动、攻击后效果"""
+        """迭代器，依次执行攻击时效果、攻击行动、攻击后效果
+        攻击结算时替换atk_list"""
         pass
 
     def add_during_buff(self):
@@ -1183,16 +1183,18 @@ class ExtraAtkBuff(ActiveBuff):
 
 class SpecialAtkBuff(ActiveBuff):
     """特殊攻击(在一次攻击内执行多个不同效果，可能同时包含攻击前攻击后)"""
-    """这个东西在对应阶段会被塞进 atk_list 里面,会替换掉原有的攻击"""
+
     def __init__(self, timer, phase, rate,
                  name='special_attack', num=1,
                  during_buff: list = None, end_buff: list = None,
                  target: Target = None, atk_type=None,
+                 undamaged=False,
                  coef=None, bias_or_weight=3):
         super().__init__(timer, name, phase, num, rate,
                          during_buff, end_buff, coef, bias_or_weight)
         self.target = target
         self.atk_type = atk_type
+        self.undamaged = undamaged
 
     def get_def_list(self, atk_type, enemy):
         # 获取可被攻击的对象
@@ -1210,6 +1212,8 @@ class SpecialAtkBuff(ActiveBuff):
             atk_type = self.atk_type
         else:
             atk_type = atk
+        if self.undamaged and self.master.damaged >= 3:  # 大破状态不能发动
+            return False
 
         def_list = self.get_def_list(atk_type, enemy)  # 可被攻击目标
 
@@ -1228,13 +1232,20 @@ class SpecialAtkBuff(ActiveBuff):
 
         self.add_during_buff()  # 攻击时效果
         def_list = self.get_def_list(atk_type, enemy)  # 可被攻击目标
-        spetial_atk = atk_type(
-            timer=self.timer,
-            atk_body=self.master,
-            def_list=def_list,
-            coef=copy.copy(self.coef),
-        )
-        yield spetial_atk
+
+        # 技能优先攻击特定船型
+        prior = self.master.get_prior_type_target(enemy)
+        if prior is not None:
+            def_list = prior
+
+        if len(def_list) > 0:
+            spetial_atk = atk_type(
+                timer=self.timer,
+                atk_body=self.master,
+                def_list=def_list,
+                coef=copy.copy(self.coef),
+            )
+            yield spetial_atk
 
         self.remove_during_buff()  # 去除攻击时效果
         self.add_end_buff()  # 攻击结束效果

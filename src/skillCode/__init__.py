@@ -210,6 +210,7 @@ from . import sid114561  # 塔林-1
 from .DD import sid110641  # 吹雪改-1
 from .DD import sid110642  # 吹雪改-2
 from .DD import sid110651  # 白雪改-1
+from .DD import sid110661  # 初雪改-1
 from .DD import sid110822  # 萤火虫改-2
 from .DD import sid112691  # z-17改-1
 from .DD import sid113161  # 明斯克改-1
