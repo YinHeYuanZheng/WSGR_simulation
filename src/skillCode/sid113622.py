@@ -40,7 +40,7 @@ class Skill_113622_2(Skill):
     自身命中敌方航速≥27节的舰船时增加 20% 伤害。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = SelfTarget(master),
+        self.target = SelfTarget(master)
         self.buff = [
             SpecialBuff(
                 timer=timer,

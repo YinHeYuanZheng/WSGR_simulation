@@ -7,43 +7,74 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""增加自身暴击率9%。中破、大破或暴击时，攻击无视目标装甲值。"""
+"""增加自己命中值10点，回避10点。
+反航战时，自己攻击造成的最终伤害提高40%。
+T劣时，自己攻击造成的最终伤害提高70%。"""
 
 
-class Skill_111132(Skill):
+class Skill_111132_1(CommonSkill):
+    """增加自己命中值10点，回避10点"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
 
         self.buff = [
-            CoeffBuff(
+            CommonBuff(
                 timer=timer,
-                name='crit',
+                name='accuracy',
                 phase=AllPhase,
-                value=0.09,
+                value=10,
                 bias_or_weight=0
             ),
-            AtkBuff(
+            CommonBuff(
                 timer=timer,
-                name='ignore_armor',
+                name='evasion',
                 phase=AllPhase,
-                value=-1,
-                bias_or_weight=1,
-                atk_request=[BuffRequest_1]
+                value=10,
+                bias_or_weight=0
             )
         ]
 
 
-class BuffRequest_1(ATKRequest):
-    def __bool__(self):
-        if self.atk.atk_body.damaged == 2 or \
-                self.atk.atk_body.damaged == 3:
-            return True
-        if self.atk.get_coef('crit_flag'):
-            return True
+class Skill_111132_2(Skill):
+    """反航战时，自己攻击造成的最终伤害提高40%"""
 
-        return False
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
+
+        self.buff = [
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=AllPhase,
+                value=0.4
+            )
+        ]
+
+    def is_active(self, friend, enemy):
+        return self.master.get_dir_flag() == 3
 
 
-skill = [Skill_111132]
+class Skill_111132_3(Skill):
+    """T劣时，自己攻击造成的最终伤害提高70%"""
+
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
+
+        self.buff = [
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=AllPhase,
+                value=0.7
+            )
+        ]
+
+    def is_active(self, friend, enemy):
+        return self.master.get_dir_flag() == 4
+
+
+skill = [Skill_111132_1, Skill_111132_2, Skill_111132_3]

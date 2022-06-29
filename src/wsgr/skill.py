@@ -116,6 +116,32 @@ class EquipSkill(Skill):
                 tmp_target.add_buff(tmp_buff)
 
 
+class Strategy(Skill):
+    """战术"""
+
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.stid = '000'  # 战术编号
+
+
+class FleetStrategy(Strategy):
+    """光环战术"""
+
+    def activate(self, friend, enemy):
+        target = self.target.get_target(friend, enemy)
+        for tmp_target in target:
+            buff = copy.copy(self.buff[0])
+            tmp_target.add_strategy_buff(buff)
+
+
+class SelfStrategy(Strategy):
+    """单体战术"""
+
+    def activate(self, *args, **kwargs):
+        buff = copy.copy(self.buff[0])
+        self.master.add_strategy_buff(buff)
+
+
 class Request(Time):
     """技能发动条件"""
 
@@ -251,6 +277,31 @@ class AntiTypeTarget(TypeTarget):
 
         target = [ship for ship in fleet if not isinstance(ship, self.shiptype)]
         return target
+
+
+class RandomTarget(Target):
+    """随机选择n个目标"""
+    def __init__(self, side, num):
+        super().__init__(side)
+        self.num = num
+
+    def get_target(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
+        if isinstance(enemy, Fleet):
+            enemy = enemy.ship
+
+        if self.side == 1:
+            fleet = friend
+        else:
+            fleet = enemy
+
+        if len(fleet) > self.num:
+            target = np.random.choice(fleet, self.num, replace=False)
+        else:
+            target = fleet
+        return target
+
 
 
 class RandomTypeTarget(TypeTarget):
@@ -927,6 +978,8 @@ class TankBuff(EventBuff):
     def activate(self, atk, *args, **kwargs):
         atk.set_target(self.master)
         atk.set_coef(self.coef)
+        if self.exhaust is not None:
+            self.exhaust -= 1
 
 
 class SpecialBuff(Buff):
@@ -990,7 +1043,13 @@ class HitBack(SpecialBuff):
         if self.exhaust is not None:
             self.exhaust -= 1
 
-        hit_back = self.master.normal_atk(
+        from src.wsgr.phase import DaytimePhase
+        if issubclass(self.phase, DaytimePhase):
+            normal_atk = self.master.normal_atk
+        else:
+            normal_atk = self.master.night_atk
+
+        hit_back = normal_atk(
             timer=self.timer,
             atk_body=self.master,
             def_list=None,

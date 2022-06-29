@@ -121,7 +121,7 @@ class PreparePhase(AllPhase):
         d_fleet_speed = int(friend_fleet_speed - enemy_fleet_speed)
 
         # 航向权重，顺序为优同反劣
-        if self.timer.direction_flag:
+        if self.timer.recon_flag:
             speed_matrix = np.array([20, 35, 25, 5])
         else:
             speed_matrix = np.array([10, 30, 30, 15])
@@ -146,6 +146,7 @@ class BuffPhase(AllPhase):
         self.timer.run_normal_skill(self.friend, self.enemy)
         for tmp_ship in self.friend.ship:
             tmp_ship.run_normal_skill(self.friend, self.enemy)
+            tmp_ship.run_strategy()
         for tmp_ship in self.enemy.ship:
             tmp_ship.run_normal_skill(self.enemy, self.friend)
 
@@ -326,7 +327,7 @@ class MissilePhase(DaytimePhase):
         msl_list = []
         for tmp_ship in shiplist:
             for tmp_equip in tmp_ship.equipment:
-                if isinstance(tmp_equip, Missile) and tmp_equip.load > 0:
+                if isinstance(tmp_equip, NormalMissile) and tmp_equip.load > 0:
                     msl_list.append(tmp_equip)
         msl_list.sort(key=lambda x: (x.get_final_status('missile_atk'),
                                      -(x.enum + 4 * x.master.loc))
@@ -335,9 +336,10 @@ class MissilePhase(DaytimePhase):
 
     def get_def_missile(self, shiplist):
         """获取防空导弹"""
+        from src.wsgr.ship import DefMissileShip
         msl_list = []
         for tmp_ship in shiplist:
-            if tmp_ship.check_missile():
+            if isinstance(tmp_ship, DefMissileShip) and tmp_ship.check_missile():
                 for tmp_equip in tmp_ship.equipment:
                     if isinstance(tmp_equip, AntiMissile) and tmp_equip.load > 0:
                         msl_list.append(tmp_equip)
@@ -509,7 +511,7 @@ class ShellingPhase(DaytimePhase):
             if i < len(ordered_enemy):
                 self.normal_atk(ordered_enemy[i], self.friend)
 
-    def get_order(self, fleet):
+    def get_order(self, fleet: list):
         """炮序"""
         fleet.sort(key=lambda x: x.loc)
         return fleet
@@ -544,4 +546,34 @@ class SecondShellingPhase(ShellingPhase):
 
 class NightPhase(AllPhase):
     """夜战"""
-    pass
+
+    def start(self):
+        act_flag_0 = False  # 记录夜战内是否有单位行动过
+
+        # 按照站位顺序依次行动
+        for i in range(6):
+            if i < len(self.friend.ship):
+                act_flag_1 = self.night_atk(self.friend.ship[i], self.enemy)
+                act_flag_0 = act_flag_0 or act_flag_1
+
+            if i < len(self.enemy.ship):
+                act_flag_1 = self.night_atk(self.enemy.ship[i], self.friend)
+                act_flag_0 = act_flag_0 or act_flag_1
+
+        if act_flag_0:  # 进行过夜战，扣除对应弹药
+            for tmp_ship in self.friend.ship:
+                tmp_ship.supply_ammo = max(0., tmp_ship.supply_ammo - 0.1)
+
+    def night_atk(self, source, target_fleet):
+        if not source.get_act_flag() or not source.get_act_indicator():
+            return False
+
+        act_flag = False
+        atk_list = source.raise_night_atk(target_fleet)
+        for atk in atk_list:
+            act_flag = True
+            hit_back = atk.start()  # 技能反击
+            if isinstance(hit_back, ATK):
+                hit_back.set_coef({'hit_back': True})
+                hit_back.start()
+        return act_flag

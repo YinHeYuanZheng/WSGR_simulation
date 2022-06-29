@@ -27,25 +27,31 @@ class BattleUtil(Time):
         self.run_phase(SecondShellingPhase)
         self.run_phase(SecondTorpedoPhase)
         self.run_phase(SecondMissilePhase)
+        self.run_phase(NightPhase)
         self.end_phase()
 
     def battle_init(self):
-        """战斗初始化, 只在第一场战斗进行调用"""
-        self.timer.set_phase(AllPhase)
+        """战斗初始化, 只在地图入口进行调用"""
+        if self.timer.point is not None and self.timer.point.level != 0:
+            return self.battle_reinit()
 
-        from src.utils.envBuffUtil import env
-        for skill in env[:]:
-            tmp_skill = skill(self.timer)
-            self.timer.env_skill.append(tmp_skill)
+        self.timer.set_phase(AllPhase(self.timer, self.friend, self.enemy))
+
+        # 环境buff
+        # from src.utils.envBuffUtil import env
+        # for skill in env[:]:
+        #     tmp_skill = skill(self.timer)
+        #     self.timer.env_skill.append(tmp_skill)
 
         self.friend_init()
         self.enemy_init()
 
     def friend_init(self):
-        # 初始化技能
+        # 初始化技能、耐久、补给
         for tmp_ship in self.friend.ship:
             tmp_ship.init_skill(self.friend, self.enemy)
             tmp_ship.init_health()
+            tmp_ship.init_supply()
 
         # 计算索敌、航速相关舰队属性(只用于带路判断)
         self.friend.get_init_status(enemy=self.enemy)
@@ -60,10 +66,11 @@ class BattleUtil(Time):
         self.enemy.get_init_status(enemy=self.friend)
 
     def battle_reinit(self):
-        """道中初始化舰船状态，第一场战斗外每场战斗都要调用"""
-        self.timer.set_phase(AllPhase)
+        """道中初始化舰船状态，地图入口外每场战斗都要调用"""
+        self.timer.set_phase(AllPhase(self.timer, self.friend, self.enemy))
         for tmp_ship in self.friend.ship:
             tmp_ship.reinit()
+        self.enemy_init()
         self.timer.reinit()
 
     def start_phase(self):
@@ -166,7 +173,7 @@ class BattleUtil(Time):
             self.timer.log['hit_rate'] = 0
 
         # 消耗
-        supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
+        supply = self.timer.log['supply']
         for tmp_ship in self.friend.ship:
             ship_supply = tmp_ship.reset()
             supply['oil'] += int(ship_supply['oil'])
@@ -176,6 +183,70 @@ class BattleUtil(Time):
         self.timer.log['supply'] = supply
 
         return self.timer.log
+
+
+class Entrance(BattleUtil):
+    """地图入口"""
+    def start(self):
+        self.battle_init()
+
+    def enemy_init(self):
+        pass
+
+
+class NormalBattle(BattleUtil):
+    """常规战斗点"""
+
+    def start(self):
+        """进行战斗流程"""
+        self.battle_init()
+        self.start_phase()
+        self.run_phase(BuffPhase)
+        self.run_phase(AirPhase)
+        self.run_phase(FirstMissilePhase)
+        self.run_phase(FirstTorpedoPhase)
+        self.run_phase(FirstShellingPhase)
+        self.run_phase(SecondShellingPhase)
+        self.run_phase(SecondTorpedoPhase)
+        self.run_phase(SecondMissilePhase)
+        if (self.timer.point is None) or (self.timer.point.level == 5):
+            self.run_phase(NightPhase)
+        self.end_phase()
+
+
+class AirBattle(BattleUtil):
+    """航空战点"""
+
+    def start(self):
+        """进行战斗流程"""
+        self.battle_init()
+        self.start_phase()
+        self.run_phase(BuffPhase)
+        self.run_phase(AirPhase)
+        if (self.timer.point is None) or (self.timer.point.level == 5):
+            self.run_phase(NightPhase)
+        self.end_phase()
+
+
+class NightBattle(BattleUtil):
+    """夜战点"""
+
+    def start(self):
+        """进行战斗流程"""
+        self.battle_init()
+        self.start_phase()
+        self.run_phase(BuffPhase)
+        self.run_phase(NightPhase)
+        self.end_phase()
+
+
+class MidPoint(BattleUtil):
+    """无战斗点"""
+    def start(self):
+        pass
+
+    def enemy_init(self):
+        pass
 
 
 if __name__ == "__main__":

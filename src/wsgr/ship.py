@@ -4,9 +4,9 @@
 # 舰船类
 
 import numpy as np
+
 from src.wsgr.wsgrTimer import Time
 from src.wsgr.equipment import *
-# from src.wsgr.formulas import *
 
 
 class Ship(Time):
@@ -15,38 +15,39 @@ class Ship(Time):
     def __init__(self, timer):
         super().__init__(timer)
         self.master = None
-        self.cid = '0'  # 编号
-        self.type = None  # 船型
-        self.size = None  # 量级，大中小型船
-        self.function = None  # 功能，主力、护卫舰
+        self.cid = '0'          # 编号
+        self.type = None        # 船型
+        self.size = None        # 量级，大中小型船
+        self.function = None    # 功能，主力、护卫舰
         self.status = {
-            'name': None,  # 船名
-            'country': None,  # 国籍
+            'name': None,       # 船名
+            'country': None,    # 国籍
             'total_health': 0,  # 总耐久
-            'health': 0,  # 当前耐久
-            'fire': 0,  # 火力
-            'torpedo': 0,  # 鱼雷
-            'armor': 0,  # 装甲
-            'antiair': 0,  # 对空
-            'antisub': 0,  # 对潜
-            'accuracy': 0,  # 命中
-            'evasion': 0,  # 回避
-            'recon': 0,  # 索敌
-            'speed': 0,  # 航速
-            'range': 0,  # 射程, 1: 短; 2: 中; 3: 长; 4: 超长
-            'luck': 0,  # 幸运
-            'capacity': 0,  # 搭载
-            'tag': '',  # 标签(特驱、z系等)
-            'supply_oil': 0,  # 补给油耗
-            'supply_ammo': 0,  # 补给弹耗
-            'repair_oil': 0,  # 修理油耗
+            'health': 0,        # 当前耐久
+            'fire': 0,          # 火力
+            'torpedo': 0,       # 鱼雷
+            'armor': 0,         # 装甲
+            'antiair': 0,       # 对空
+            'antisub': 0,       # 对潜
+            'accuracy': 0,      # 命中
+            'evasion': 0,       # 回避
+            'recon': 0,         # 索敌
+            'speed': 0,         # 航速
+            'range': 0,         # 射程, 1: 短; 2: 中; 3: 长; 4: 超长
+            'luck': 0,          # 幸运
+            'capacity': 0,      # 搭载
+            'tag': '',          # 标签(特驱、z系等)
+            'supply_oil': 0,    # 补给油耗
+            'supply_ammo': 0,   # 补给弹耗
+            'repair_oil': 0,    # 修理油耗
             'repair_steel': 0,  # 修理钢耗
         }
 
-        self._skill = []  # 技能(未实例化)
-        self.skill = []  # 技能
-        self.equipment = []  # 装备
-        self.load = []
+        self._skill = []        # 技能(未实例化)
+        self.skill = []         # 技能
+        self.equipment = []     # 装备
+        self.load = []          # 搭载
+        self.strategy = []      # 战术
 
         self.side = 0  # 敌我识别; 1: 友方; 0: 敌方
         self.loc = 0  # 站位, 1-6
@@ -62,6 +63,7 @@ class Ship(Time):
         self.common_buff = []  # 永久面板加成
         self.temper_buff = []  # 临时buff
         self.active_buff = []  # 主动技能buff
+        self.strategy_buff = []  # 战术buff
 
         self.act_phase_flag = {
             'AirPhase': False,
@@ -90,10 +92,11 @@ class Ship(Time):
             'NightPhase': lambda x: x.damaged < 3,
         }  # 可行动标准
 
-        from src.wsgr.formulas import NormalAtk
-        self.normal_atk = NormalAtk
-        self.anti_sub_atk = None
-        self.night_atk = None
+        from src.wsgr.formulas import NormalAtk, NightNormalAtk
+        self.normal_atk = NormalAtk  # 普通炮击
+        self.anti_sub_atk = None  # 反潜攻击
+        self.night_atk = NightNormalAtk  # 夜战普通炮击
+        self.night_anti_sub_atk = None  # 夜战反潜攻击
 
     def __eq__(self, other):
         return self.cid == other.cid and \
@@ -172,12 +175,29 @@ class Ship(Time):
             return 50
         return self.affection
 
+    def set_equipment(self, equipment):
+        """设置舰船装备"""
+        if isinstance(equipment, list):
+            self.equipment = equipment
+        else:
+            self.equipment.append(equipment)
+
+    def set_load(self, load):
+        if isinstance(load, list):
+            self.load = load
+        else:
+            raise AttributeError(f"'load' should be list, got {type(load)} instead.")
+
     def add_skill(self, skill):
         """设置舰船技能(未实例化)"""
         self._skill.extend(skill)
 
+    def add_strategy(self, strategy):
+        """增加战术技能(已实例化)"""
+        self.strategy.append(strategy)
+
     def init_skill(self, friend, enemy):
-        """舰船技能实例化，并结算常驻面板技能"""
+        """舰船技能实例化，并结算常驻面板技能和战术"""
         self.skill = []
         for skill in self._skill[:]:
             tmp_skill = skill(self.timer, self)
@@ -194,6 +214,26 @@ class Ship(Time):
                 assert len(e_skill) == 1
                 tmp_skill = e_skill[0](self.timer, self, e_value)
                 self.skill.append(tmp_skill)
+
+        # 战术
+        self.strategy_buff = []
+        for tmp_strategy in self.strategy:
+            tmp_strategy.activate(friend, enemy)
+
+    def init_health(self):
+        """初始化血量"""
+        # standard_health 血量战损状态计算标准
+        self.status['standard_health'] = self.status['total_health']
+        for tmp_buff in self.common_buff:
+            if tmp_buff.name == 'health':
+                self.status['standard_health'] += tmp_buff.value
+        self.status['standard_health'] += self.get_equip_status('health')
+        self.status['health'] = self.status['standard_health']
+
+    def init_supply(self):
+        """初始化补给"""
+        if self.get_strategy_buff('strategy_ammo'):  # 检测是否携带后备弹
+            self.supply_ammo += 0.2
 
     def get_raw_skill(self):
         """获取技能，让巴尔可调用"""
@@ -226,28 +266,9 @@ class Ship(Time):
                     tmp_skill.is_active(friend, enemy):
                 tmp_skill.activate(friend, enemy)
 
-    def set_equipment(self, equipment):
-        """设置舰船装备"""
-        if isinstance(equipment, list):
-            self.equipment = equipment
-        else:
-            self.equipment.append(equipment)
-
-    def set_load(self, load):
-        if isinstance(load, list):
-            self.load = load
-        else:
-            raise AttributeError(f"'load' should be list, got {type(load)} instead.")
-
-    def init_health(self):
-        """初始化血量"""
-        # standard_health 血量战损状态计算标准
-        self.status['standard_health'] = self.status['total_health']
-        for tmp_buff in self.common_buff:
-            if tmp_buff.name == 'health':
-                self.status['standard_health'] += tmp_buff.value
-        self.status['standard_health'] += self.get_equip_status('health')
-        self.status['health'] = self.status['standard_health']
+    def run_strategy(self):
+        """结算战术效果"""
+        self.temper_buff.extend(self.strategy_buff)
 
     def set_status(self, name=None, value=None, status=None):
         """根据属性名称设置本体属性"""
@@ -341,6 +362,10 @@ class Ship(Time):
         else:
             self.temper_buff.append(buff)
 
+    def add_strategy_buff(self, buff):
+        """增加战术效果"""
+        self.strategy_buff.append(buff)
+
     def get_buff(self, name, *args, **kwargs):
         """根据增益名称获取全部属性增益，对于属性倍率，搜索全部buff内容"""
         scale_add = 0
@@ -391,6 +416,14 @@ class Ship(Time):
             if tmp_buff.name == name:
                 if tmp_buff.is_active(*args, **kwargs):
                     tmp_buff.activate(*args, **kwargs)
+                    return True
+        return False
+
+    def get_strategy_buff(self, name, *args, **kwargs):
+        """查询战术增益"""
+        for tmp_buff in self.strategy_buff:
+            if tmp_buff.name == name:
+                if tmp_buff.is_active(*args, **kwargs):
                     return True
         return False
 
@@ -445,7 +478,10 @@ class Ship(Time):
         return self.act_phase_indicator[phase_name](self)
 
     def raise_atk(self, target_fleet):
-        """判断炮击战、夜战攻击类型(todo 夜战、航战)"""
+        """
+        判断炮击战攻击类型(todo 航战)
+        :param target_fleet: Fleet
+        """
         # 技能发动特殊攻击
         for tmp_buff in self.active_buff:
             if tmp_buff.is_active(atk=self.normal_atk, enemy=target_fleet):
@@ -483,6 +519,67 @@ class Ship(Time):
             def_list=def_list,
         )
         return [atk]
+
+    def raise_night_atk(self, target_fleet):
+        """
+        夜间攻击模式
+        :param target_fleet: Fleet"""
+        # 确定常规攻击类型
+        self.check_night_atk_type()
+
+        # 技能发动特殊攻击
+        for tmp_buff in self.active_buff:
+            if tmp_buff.is_active(atk=self.night_atk, enemy=target_fleet):
+                return tmp_buff.active_start(atk=self.night_atk, enemy=target_fleet)
+
+        # 技能优先攻击特定船型
+        prior = self.get_prior_type_target(target_fleet)
+        if prior is not None:
+            atk = self.night_atk(
+                timer=self.timer,
+                atk_body=self,
+                def_list=prior,
+            )
+            return [atk]
+
+        # 优先反潜
+        if self.night_anti_sub_atk is not None:
+            def_list = target_fleet.get_atk_target(atk_type=self.night_anti_sub_atk)
+            if len(def_list):
+                atk = self.night_anti_sub_atk(
+                    timer=self.timer,
+                    atk_body=self,
+                    def_list=def_list,
+                )
+                return [atk]
+
+        # 夜战导弹舰攻击
+        from src.wsgr.formulas import NightMissileAtk
+        if issubclass(self.night_atk, NightMissileAtk):
+            return self.raise_night_missile_atk(target_fleet)
+
+        # 常规攻击模式
+        def_list = target_fleet.get_atk_target(atk_type=self.night_atk)
+        if not len(def_list):
+            return []
+
+        atk = self.night_atk(
+            timer=self.timer,
+            atk_body=self,
+            def_list=def_list,
+        )
+        return [atk]
+
+    def raise_night_missile_atk(self, target_fleet):
+        raise UserWarning(f'Wrong call of missile attack from {self.status["name"]}!')
+
+    def check_night_atk_type(self):
+        if isinstance(self, (CA, CL, CAV)):
+            from src.wsgr.formulas import NightFirelAtk, NightFireTorpedolAtk
+            if self.status['torpedo'] == 0:
+                self.night_atk = NightFirelAtk
+            else:
+                self.night_atk = NightFireTorpedolAtk
 
     # def get_atk_type(self, target):  # 备用接口
     #     """判断攻击该对象时使用什么攻击类型"""
@@ -543,10 +640,20 @@ class Ship(Time):
             else:
                 damage = np.ceil(self.status['health'] * 0.1)
 
+        # 如果血量刚好在中保线，变为大破保护
+        elif self.status['health'] == standard_health * 0.25:
+            if self.status['health'] == 1:  # 剩余血量为1，强制miss
+                damage = 0
+            else:
+                damage = np.ceil(self.status['health'] * 0.1)
+
         # 友方非大破状态下，受到足以大破的伤害
         elif self.status['health'] - damage < standard_health * 0.25:
+            # 满血保护
             if self.status['health'] == standard_health:
                 damage = np.ceil(standard_health * np.random.uniform(0.5, 0.75))
+
+            # 否则只有中破保护
             else:
                 damage = np.ceil(self.status['health'] - standard_health * 0.25)
 
@@ -555,8 +662,11 @@ class Ship(Time):
 
         # 受伤状态结算
         if self.status['health'] <= 0:
-            self.status['health'] = 0
-            self.damaged = 4
+            if self.use_dcitem():  # 检测能否损管
+                self.status['health'] = standard_health
+            else:
+                self.status['health'] = 0
+                self.damaged = 4
         elif self.damaged < 3 and \
                 self.status['health'] < standard_health * 0.25:
             self.damaged = 3
@@ -565,6 +675,18 @@ class Ship(Time):
             self.damaged = 2
 
         return damage
+
+    def use_dcitem(self):
+        """检测能否损管"""
+        if self.side == 1:  # 友方可损管
+            self.timer.log['dcitem'] += 1
+            return True
+
+        elif self.get_special_buff('damage_control'):  # 深海需要检查技能
+            return True
+
+        else:
+            return False
 
     def remove_during_buff(self):
         """去除攻击期间的临时buff"""
@@ -606,8 +728,9 @@ class Ship(Time):
         self.supply_oil = 1
 
         # 统计补给耗弹并补满
-        supply['ammo'] += np.ceil((1 - self.supply_ammo) * self.status['supply_ammo'])
-        self.supply_ammo = 1
+        strategy_ammo = 0.2 if self.get_special_buff('strategy_ammo') else 0
+        supply['ammo'] += np.ceil((1 + strategy_ammo - self.supply_ammo) * self.status['supply_ammo'])
+        self.supply_ammo = 1 + strategy_ammo
 
         # 统计修理费用并恢复血量
         got_damage = self.status['standard_health'] - self.status['health']
@@ -621,7 +744,7 @@ class Ship(Time):
         if len(self.load):
             for i in range(len(self.equipment)):
                 tmp_equip = self.equipment[i]
-                if isinstance(tmp_equip, (Plane, Missile, AntiMissile)):
+                if isinstance(tmp_equip, (Plane, Missile)):
                     supply_num = self.load[i] - tmp_equip.load
                     supply['almn'] += supply_num * tmp_equip.status['supply_almn']
                     tmp_equip.load = self.load[i]
@@ -670,6 +793,11 @@ class CoverShip(Ship):
 
 class Submarine(Ship):
     """水下单位"""
+    def __init__(self, timer):
+        super().__init__(timer)
+
+        from src.wsgr.formulas import NightTorpedoAtk
+        self.night_atk = NightTorpedoAtk  # 夜战普通炮击
 
     def can_be_atk(self, atk):
         from src.wsgr.formulas import AntiSubAtk
@@ -708,8 +836,9 @@ class AntiSubShip(Ship):
                 (x.get_form() == 5) and (x.damaged < 4),
         })
 
-        from src.wsgr.formulas import AntiSubAtk
+        from src.wsgr.formulas import AntiSubAtk, NightAntiSubAtk
         self.anti_sub_atk = AntiSubAtk  # 反潜攻击
+        self.night_anti_sub_atk = NightAntiSubAtk  # 夜战反潜攻击
 
 
 class Aircraft(Ship):
@@ -908,8 +1037,10 @@ class CLT(MidShip, CoverShip):
         super().__init__(timer)
         self.type = 'CLT'
 
-        from src.wsgr.formulas import AntiSubAtk
+        from src.wsgr.formulas import AntiSubAtk, NightTorpedoAtk, NightAntiSubAtk
         self.anti_sub_atk = AntiSubAtk  # 反潜攻击
+        self.night_atk = NightTorpedoAtk  # 夜战普通炮击
+        self.night_anti_sub_atk = NightAntiSubAtk  # 夜战反潜攻击
 
 
 class DD(AntiSubShip, SmallShip, CoverShip):
@@ -917,17 +1048,32 @@ class DD(AntiSubShip, SmallShip, CoverShip):
         super().__init__(timer)
         self.type = 'DD'
 
+        from src.wsgr.formulas import NightTorpedoAtk
+        self.night_atk = NightTorpedoAtk  # 夜战普通炮击
+
 
 class BM(SmallShip, CoverShip):
     pass
 
 
 class AP(SmallShip, CoverShip):
-    pass
+    """补给"""
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'AP'
+
+        self.act_phase_flag.update({
+            'NightPhase': False,
+        })
 
 
 class MissileShip(Ship):
     """导弹船"""
+    def __init__(self, timer):
+        super().__init__(timer)
+        from src.wsgr.formulas import NightMissileAtk
+        self.night_atk = NightMissileAtk
+
     def check_missile(self):
         """检查导弹装备是否有载量、是否有发射器"""
 
@@ -941,9 +1087,37 @@ class MissileShip(Ship):
 
         # 检查导弹装备是否有载量
         for tmp_equip in self.equipment:
-            if isinstance(tmp_equip, (Missile, AntiMissile)) and tmp_equip.load > 0:
+            if isinstance(tmp_equip, Missile) and tmp_equip.load > 0:
                 return True
         return False
+
+    def raise_night_missile_atk(self, target_fleet):
+        if self.check_missile():  # 可以发射导弹时，获取全部有存量的导弹，并排序
+            msl_list = [equip for equip in self.equipment
+                        if isinstance(equip, Missile) and equip.load > 0]
+            msl_list.sort(key=lambda x: (x.get_final_status('missile_atk'), x.enum)
+                          )  # 按照突防从小到大+顺位顺序排序
+
+        else:  # 无法发射导弹时，生成一枚0火力导弹
+            zero_missile = NormalMissile(timer=self.timer,
+                                         master=self,
+                                         enum=1)
+            zero_missile.set_status('fire', 0)
+            msl_list = [zero_missile]
+
+        for tmp_msl in msl_list:
+            def_enemy = target_fleet.get_atk_target(atk_type=self.night_atk)
+            if not len(def_enemy):
+                break
+
+            atk = self.night_atk(
+                timer=self.timer,
+                atk_body=self,
+                def_list=def_enemy,
+                equip=tmp_msl
+            )
+            yield atk
+            tmp_msl.load -= 1
 
 
 class AtkMissileShip(MissileShip):
@@ -990,7 +1164,12 @@ class AADG(DefMissileShip, SmallShip, CoverShip):
 
 class BBG(AtkMissileShip, LargeShip, MainShip):
     """导战"""
-    pass
+
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'BBG'
+        from src.wsgr.formulas import NightNormalAtk
+        self.night_atk = NightNormalAtk  # 夜战普通炮击
 
 
 class BG(DefMissileShip, LargeShip, MainShip):
@@ -1108,6 +1287,7 @@ class Fleet(Time):
         low_speed, high_speed = self.get_low_high_status('speed')  # 舰队最低速、最高速
 
         self.status.update({
+            'level': sum([ship.level for ship in self.ship]),
             'speed': self.get_fleet_speed(),
             'avg_speed': self.get_avg_status('speed'),
             'leader_speed': self.ship[0].get_final_status('speed'),
@@ -1178,7 +1358,7 @@ class Fleet(Time):
                     cover_num += 1
 
             # debug
-            if main_num + cover_num != len(self.ship):
+            if main_num + cover_num > 6:
                 raise ValueError('Number of ship not consist')
             elif main_num == 0 and cover_num == 0:
                 raise ValueError('Mainship and Covership are both 0')
