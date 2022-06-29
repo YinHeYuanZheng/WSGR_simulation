@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 # Author:huan_yp
 # env:py38
-# 吹雪水雷战队
+# 吹雪改-1
 
 from src.wsgr.formulas import TorpedoAtk
 from src.wsgr.skill import *
@@ -27,11 +27,18 @@ class Skill_110641_1(Skill):
                 atk_request=ATK_request_1
             )
         ]
+
+
+class ATK_request_1(ATKRequest):
+    def __bool__(self):
+        return isinstance(self.atk, TorpedoAtk)
+
+
 class Skill_110641_2(Skill):
+    """当队伍中特型驱逐舰的数量在4艘或4艘以上时，提升队伍中所有特型驱逐舰的鱼雷，命中，回避 7 点。"""
     def __init__(self, timer, master):
-        "当队伍中特型驱逐舰的数量在4艘或4艘以上时，提升队伍中所有特型驱逐舰的鱼雷，命中，回避 7 点。"
         super().__init__(timer, master)
-        self.target = TagTarget(side=1, tag="fubuki")
+        self.target = TagTarget(side=1, tag='fubuki')
         self.buff = [
             StatusBuff(
                 timer=timer,
@@ -54,12 +61,12 @@ class Skill_110641_2(Skill):
                 value=7,
                 bias_or_weight=0,
             )
-            
         ]
+
     def is_active(self, friend, enemy):
         count = len(self.target.get_target(friend, enemy))
         return count >= 4
+
+
+name = '水雷战队'
 skill = [Skill_110641_1, Skill_110641_2]
-class ATK_request_1(ATKRequest):
-    def __bool__(self):
-        return isinstance(self.atk, TorpedoAtk)

@@ -194,8 +194,11 @@ from . import sid111621  # 逸仙改-1
 from . import sid114561  # 塔林-1
 
 # DD
-from . import sid113161  # 明斯克改-1
-from . import sid113351  # 伏尔塔改-1
+from .DD import sid110641  # 吹雪改-1
+from .DD import sid110642  # 吹雪改-2
+from .DD import sid110651  # 白雪改-1
+from .DD import sid113161  # 明斯克改-1
+from .DD import sid113351  # 伏尔塔改-1
 
 # BG
 from . import sid112092  # 密苏里改-2
