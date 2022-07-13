@@ -1194,7 +1194,7 @@ class SpecialAtkBuff(ActiveBuff):
                          during_buff, end_buff, coef, bias_or_weight)
         self.target = target
         self.atk_type = atk_type
-        self.undamaged = undamaged
+        self.undamaged = undamaged  # True: 大破状态不能发动, False: 大破状态可以发动
 
     def get_def_list(self, atk_type, enemy):
         # 获取可被攻击的对象

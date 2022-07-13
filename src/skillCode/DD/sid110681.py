@@ -18,15 +18,17 @@ class Skill_110681_1(Skill):
         self.buff = [
             StatusBuff(
                 timer=timer,
-                name="accuracy",
+                name='accuracy',
                 phase=NightPhase,
                 value=10,
                 bias_or_weight=0
             )
         ]
+
+
 class Skill_110681_2(Skill):
+    """夜战时增加自身被攻击概率 40%。"""
     def __init__(self, timer, master):
-        "夜战时增加自身被攻击概率 40%。"
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
@@ -36,4 +38,7 @@ class Skill_110681_2(Skill):
                 rate=.4,
             )
         ]
+
+
+name = '强行侦察'
 skill = [Skill_110681_1, Skill_110681_2]

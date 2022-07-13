@@ -1010,6 +1010,20 @@ class NormalAtk(ATK):
 class SpecialAtk(NormalAtk):
     """技能特殊攻击(只包含固定伤害，不过甲)"""
 
+    def hit_verify(self):
+        # 护盾
+        if self.target.get_special_buff('shield', self):
+            self.coef['hit_flag'] = False
+            return
+
+        # 大角度
+        if self.target.get_strategy_buff('strategy_shield', self):
+            self.coef['hit_flag'] = False
+            return
+
+        self.coef['hit_flag'] = True
+        return
+
     def formula(self):
         return 0
 

@@ -44,4 +44,7 @@ class Skill_110691_1(Skill):
                 bias_or_weight=0
             )
         ]
+
+
+name = '不死鸟的守护'
 skill = [Skill_110691_1]

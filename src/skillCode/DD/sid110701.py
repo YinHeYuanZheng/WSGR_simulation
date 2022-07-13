@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 # Author:huan_yp
 # env:py38
-# 雷
+# 水雷魂
 
 from src.wsgr.skill import *
 from src.wsgr.ship import *
@@ -19,9 +19,12 @@ class Skill_110701_1(Skill):
             CoeffBuff(
                 timer=timer,
                 name='crit',
-                phase=(NightPhase,SecondTorpedoPhase),
+                phase=(NightPhase, SecondTorpedoPhase),
                 value=.28,
                 bias_or_weight=0
             )
         ]
+
+
+name = '水雷魂'
 skill = [Skill_110701_1]
