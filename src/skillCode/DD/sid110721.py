@@ -50,4 +50,7 @@ class Skill_110721_1(Skill):
                 bias_or_weight=1
             )
         ]
+
+
+name = '所罗门的鬼神'
 skill = [Skill_110721_1]

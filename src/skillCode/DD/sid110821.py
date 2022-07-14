@@ -31,4 +31,4 @@ class SpecialAtk_1(SpecialAtk):
 
 
 name = '无畏撞击'
-skill = []
+skill = [Skill_110821]

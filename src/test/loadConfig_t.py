@@ -113,6 +113,13 @@ def load_friend_ship(node, dataset, timer):
         ship.add_skill(skill)
         del skill
 
+        # 获取技能名称并输出
+        try:
+            skill_name = getattr(skillCode, sid).name
+            print(f"{ship.status['name']} {skill_name}")
+        except:
+            print(f"{ship.status['name']} 未获取到技能名称")
+
     # 读取装备属性并写入
     for e_node in node.getElementsByTagName('Equipment'):
         enum = int(e_node.getAttribute('loc'))

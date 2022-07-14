@@ -20,11 +20,12 @@ class Skill_103771(Skill):
                 name='act_phase',
                 phase=FirstTorpedoPhase
             ),
-            FinalDamageBuff(
+            CoeffBuff(
                 timer=timer,
-                name='final_damage_buff',
+                name='power_buff',
                 phase=FirstTorpedoPhase,
-                value=0.1
+                value=0.1,
+                bias_or_weight=2
             )
         ]
 

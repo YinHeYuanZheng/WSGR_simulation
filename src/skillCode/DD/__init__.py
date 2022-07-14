@@ -1,3 +1,27 @@
 # -*- coding:utf-8 -*-
 # Author:银河远征
 # env:py38
+
+# DD
+from . import sid110641  # 吹雪改-1
+from . import sid110642  # 吹雪改-2
+from . import sid110651  # 白雪改-1
+from . import sid110661  # 初雪改-1
+from . import sid110671  # 深雪改-1
+from . import sid110681  # 晓改-1
+from . import sid110691  # 信赖-1
+from . import sid110701  # 水雷魂: 雷改-1, 敷波改-1
+from . import sid110711  # 电改-1
+from . import sid110721  # 绫波改-1
+from . import sid110741  # Z1改-1
+from . import sid110751  # Z16改-1
+from . import sid110752  # Z16改-2
+from . import sid110761  # Z21改-1
+from . import sid110771  # Z22改-1
+from . import sid110801  # Z31改-1
+from . import sid110811  # 紫石英改-1
+from . import sid110821  # 萤火虫改-1
+from . import sid110822  # 萤火虫改-2
+from . import sid112691  # z-17改-1
+from . import sid113161  # 明斯克改-1
+from . import sid113351  # 伏尔塔改-1

@@ -38,4 +38,7 @@ class Skill_110741_1(Skill):
                 bias_or_weight=1
             )
         ]
+
+
+name = 'Z驱领舰'
 skill = [Skill_110741_1]

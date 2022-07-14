@@ -831,6 +831,7 @@ class FinalDamageBuff(AtkBuff):
         """
         :param name:    final_damage_buff
                         final_damage_debuff
+        :param value:   倍数减 1，如 1.5倍填 0.5, 减伤填负数
         """
         super().__init__(timer, name, phase, value, bias_or_weight, atk_request, rate)
 

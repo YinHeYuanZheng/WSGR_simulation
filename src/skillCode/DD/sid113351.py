@@ -7,7 +7,7 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""高速小队(3级)：增加相邻两个单位（限驱逐舰和轻巡）的航速4点和回避值12点，命中敌方时会造成额外20点伤害；
+"""增加相邻两个单位（限驱逐舰和轻巡）的航速4点和回避值12点，命中敌方时会造成额外20点伤害；
 当伟大的庞贝位于舰队中时，额外增加自身和伟大的庞贝两个单位的命中值15点和15暴击率。"""
 
 
@@ -99,4 +99,5 @@ class Skill_113351_3(Skill):
             self.target_2.add_buff(tmp_buff_2)
 
 
+name = '高速小队'
 skill = [Skill_113351_1, Skill_113351_2, Skill_113351_3]

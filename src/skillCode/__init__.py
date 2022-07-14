@@ -207,21 +207,7 @@ from . import sid111621  # 逸仙改-1
 from . import sid114561  # 塔林-1
 
 # DD
-from .DD import sid110641  # 吹雪改-1
-from .DD import sid110642  # 吹雪改-2
-from .DD import sid110651  # 白雪改-1
-from .DD import sid110661  # 初雪改-1
-from .DD import sid110671  # 深雪改-1
-from .DD import sid110681  # 晓改-1
-from .DD import sid110691  # 信赖-1
-from .DD import sid110701  # 水雷魂: 雷改-1, 敷波改-1
-from .DD import sid110711  # 电改-1
-
-from .DD import sid110821  # 萤火虫改-1
-from .DD import sid110822  # 萤火虫改-2
-from .DD import sid112691  # z-17改-1
-from .DD import sid113161  # 明斯克改-1
-from .DD import sid113351  # 伏尔塔改-1
+from .DD import *
 
 # 导弹
 from . import sid104671  # 鞍山-1

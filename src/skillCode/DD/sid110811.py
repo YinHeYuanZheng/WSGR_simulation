@@ -7,8 +7,9 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""
-自身被攻击概率提高 22%，自身回避 11。"""
+"""自身被攻击概率提高 22%，自身回避 +11。"""
+
+
 class Skill_110811_1(Skill):
     """自身被攻击概率提高 22%"""
     def __init__(self, timer, master):
@@ -19,9 +20,10 @@ class Skill_110811_1(Skill):
                 timer=timer,
                 phase=AllPhase,
                 rate=.22
-            ),
-            
+            )
         ]
+
+
 class Skill_110811_2(CommonSkill):
     """自身回避 +11。"""
     def __init__(self, timer, master):
@@ -34,8 +36,9 @@ class Skill_110811_2(CommonSkill):
                 phase=AllPhase,
                 value=11,
                 bias_or_weight=0
-            ),
-            
+            )
         ]
-            
+
+
+name = '迷之嘲讽'
 skill = [Skill_110811_1, Skill_110811_2]

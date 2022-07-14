@@ -18,7 +18,7 @@ from src.wsgr.wsgrTimer import timer
 
 if __name__ == '__main__':
     configDir = os.path.join(os.path.dirname(srcDir), 'config')
-    xml_file = os.path.join(configDir, r'event\event03\config_11.xml')
+    xml_file = os.path.join(configDir, r'config.xml')
 
     dependDir = os.path.join(os.path.dirname(srcDir), 'depend')
     data_file = os.path.join(dependDir, r'ship\database.xlsx')

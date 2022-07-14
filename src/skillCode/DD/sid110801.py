@@ -7,12 +7,11 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""
-31根据队伍中Z系驱逐的数量(包括自身)增加不同的能力，每多一艘额外增加一种能力，顺序为装甲，火力，鱼雷，回避，命中，对空。增加幅度为10/15/20%。"""
+"""根据队伍中Z系驱逐的数量(包括自身)增加不同的能力，每多一艘额外增加一种能力，
+顺序为装甲，火力，鱼雷，回避，命中，对空。增加幅度为 20%。"""
 
 
 class Skill_110801_1(Skill):
-    """31根据队伍中Z系驱逐的数量(包括自身)增加不同的能力，每多一艘额外增加一种能力，顺序为装甲，火力，鱼雷，回避，命中，对空。增加幅度为10/15/20%。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
@@ -60,10 +59,13 @@ class Skill_110801_1(Skill):
                 bias_or_weight=1
             ),
         ]
+
     def activate(self, friend, enemy):
         count = len(TagTarget(side=1, tag='z-ship').get_target(friend, enemy))
         for i in range(count):
             tmp_buff = copy.copy(self.buff[i])
             self.master.add_buff(tmp_buff)
-            
+
+
+name = 'Z驱菁英'
 skill = [Skill_110801_1]

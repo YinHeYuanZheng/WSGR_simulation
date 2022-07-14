@@ -8,7 +8,7 @@ from src.wsgr.ship import *
 from src.wsgr.phase import *
 from src.wsgr.formulas import AirAtk
 
-"""漫长战役(3级)：免疫自身受到的第一次航空攻击（限昼战）；
+"""免疫自身受到的第一次航空攻击（限昼战）；
 根据战斗点距离出发点的位置降低敌方战斗力，离初始点越远降低越多（最高5层），
 每阶段降低敌方全体3点命中值、5点闪避值、4点装甲值。
 """
@@ -75,4 +75,5 @@ class Skill_113161_2(Skill):
                 tmp_target.add_buff(tmp_buff)
 
 
+name = '漫长战役'
 skill = [Skill_113161_1, Skill_113161_2]

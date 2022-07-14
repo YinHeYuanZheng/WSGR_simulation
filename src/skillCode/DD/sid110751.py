@@ -23,6 +23,8 @@ class Skill_110751_1(Skill):
                 value=10,
                 bias_or_weight=0
             ),
-            
         ]
+
+
+name = '水雷布置'
 skill = [Skill_110751_1]

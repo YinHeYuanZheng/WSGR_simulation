@@ -7,7 +7,7 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""重装刺客(3级)：炮击战时，优先攻击中、大型船，攻击时无视敌方100%的护甲，同时有30%概率造成2倍伤害。"""
+"""炮击战时，优先攻击中、大型船，攻击时无视敌方100%的护甲，同时有30%概率造成2倍伤害。"""
 
 
 class Skill_110822(Skill):
@@ -46,4 +46,5 @@ class BuffRequest_1(ATKRequest):
         return isinstance(self.atk.target, (MidShip, LargeShip))
 
 
+name = '重装刺客'
 skill = [Skill_110822]
