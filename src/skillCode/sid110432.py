@@ -20,7 +20,7 @@ class Skill_110432(Skill):
         self.buff = [
             SpecialBuff(
                 timer=timer,
-                name='multi_attack',
+                name='multi_torpedo_attack',
                 phase=FirstTorpedoPhase,
             ),
             ActPhaseBuff(

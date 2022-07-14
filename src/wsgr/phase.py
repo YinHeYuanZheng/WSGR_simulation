@@ -461,7 +461,7 @@ class TorpedoPhase(DaytimePhase):
                 def_list = defend
 
             # 检查是否有多发鱼雷技能
-            if tmp_ship.get_special_buff('multi_attack'):
+            if tmp_ship.get_special_buff('multi_torpedo_attack'):
                 num = 2
             else:
                 num = 1

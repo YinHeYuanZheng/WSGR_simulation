@@ -25,7 +25,7 @@ class Skill_110642_1(CommonSkill):
                 value=2,
                 bias_or_weight=0,
             ),
-            StatusBuff(
+            CommonBuff(
                 timer=timer,
                 name='range',
                 phase=AllPhase,

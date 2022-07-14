@@ -8,11 +8,11 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""舰队前卫(3级)：增加自身10点闪避值，鱼雷战阶段增加20%伤害；增加队伍内高速舰9点火力值。
-"""
+"""舰队前卫(3级)：增加自身10点闪避值，鱼雷战阶段增加20%伤害；
+增加队伍内航速>=27节的舰船9点火力值。"""
 
 
-class Skill_113231_1(CommonBuff):
+class Skill_113231_1(CommonSkill):
     """增加自身10点闪避值"""
 
     def __init__(self, timer, master):
@@ -46,7 +46,7 @@ class Skill_113231_2(Skill):
 
 
 class Skill_113231_3(Skill):
-    """增加队伍内高速舰9点火力值"""
+    """增加队伍内航速>=27节的舰船9点火力值"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
@@ -65,5 +65,5 @@ class Skill_113231_3(Skill):
         ]
 
 
-name = "舰队前卫"
+name = '舰队前卫'
 skill = [Skill_113231_1, Skill_113231_2, Skill_113231_3]

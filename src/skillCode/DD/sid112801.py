@@ -7,8 +7,8 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""萨马岛斗士(3级)：提升自身10点装甲值，11点鱼雷值。鱼雷战阶段，命中中型或大型船时造成45%的额外伤害。
-"""
+"""萨马岛斗士(3级)：提升自身10点装甲值，11点鱼雷值。
+鱼雷战阶段，命中中型或大型船时造成45%的额外伤害。"""
 
 
 class Skill_112801_1(CommonSkill):
@@ -45,12 +45,17 @@ class Skill_112801_2(Skill):
             FinalDamageBuff(
                 timer=timer,
                 name='final_damage_buff',
-                phase=TorpedoPhase,
+                phase=SecondTorpedoPhase,
                 value=.45,
-                bias_or_weight=0
+                atk_request=[BuffRequest_1]
             )
         ]
 
 
-name = "萨马岛斗士"
+class BuffRequest_1(ATKRequest):
+    def __bool__(self):
+        return isinstance(self.atk.target, (MidShip, LargeShip))
+
+
+name = '萨马岛斗士'
 skill = [Skill_112801_1, Skill_112801_2]

@@ -7,8 +7,8 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""舰队屏护(3级)：增加自身20点反潜值、12点命中值。昼战阶段降低敌方队伍内小、中型船15点命中值。
-"""
+"""舰队屏护(3级)：增加自身20点反潜值、12点命中值。
+昼战阶段降低敌方队伍内小、中型船15点命中值。"""
 
 
 class Skill_113441_1(CommonSkill):
@@ -52,5 +52,5 @@ class Skill_113441_2(Skill):
         ]
 
 
-name = "舰队屏护"
+name = '舰队屏护'
 skill = [Skill_113441_1, Skill_113441_2]

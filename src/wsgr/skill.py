@@ -303,7 +303,6 @@ class RandomTarget(Target):
         return target
 
 
-
 class RandomTypeTarget(TypeTarget):
     """指定船型内随机选择一个目标"""
     def get_target(self, friend, enemy):

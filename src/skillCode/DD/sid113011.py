@@ -7,8 +7,8 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""航母援护(3级)：随机增加编队内两艘航空母舰的闪避值12点，雷击战时有40%概率造成30点额外固定伤害
-"""
+"""航母援护(3级)：随机增加编队内两艘航空母舰的闪避值12点，
+雷击战时有40%概率造成30点额外固定伤害"""
 
 
 class Skill_113011_1(Skill):
@@ -16,7 +16,7 @@ class Skill_113011_1(Skill):
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = TypeTarget(master, CV)
+        self.target = TypeTarget(side=1, shiptype=CV)
         self.buff = [
             StatusBuff(
                 timer=timer,
@@ -46,13 +46,13 @@ class Skill_113011_2(Skill):
             CoeffBuff(
                 timer=timer,
                 name='extra_damage',
-                phase=TorpedoPhase,
-                value=20,
+                phase=SecondTorpedoPhase,
+                value=30,
                 bias_or_weight=0,
                 rate=0.4
             )
         ]
 
 
-name = "航母援护"
+name = '航母援护'
 skill = [Skill_113011_1, Skill_113011_2]

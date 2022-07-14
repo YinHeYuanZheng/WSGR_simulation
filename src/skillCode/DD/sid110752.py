@@ -37,7 +37,7 @@ class Skill_110752_2(Skill):
         self.buff = [
             SpecialBuff_z16(
                 timer=timer,
-                name='multi_attack',
+                name='multi_torpedo_attack',
                 phase=SecondTorpedoPhase,
                 rate=.3,
             )

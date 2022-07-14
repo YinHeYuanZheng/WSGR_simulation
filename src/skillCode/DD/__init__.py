@@ -22,6 +22,16 @@ from . import sid110801  # Z31改-1
 from . import sid110811  # 紫石英改-1
 from . import sid110821  # 萤火虫改-1
 from . import sid110822  # 萤火虫改-2
+
 from . import sid112691  # z-17改-1
+
+from . import sid112791  # 塞缪尔•罗伯茨改-1
+from . import sid112801  # 约翰斯顿改-1
+from . import sid113011  # 马汉改-1
+from . import sid113061  # 巴夫勒尔改-1
 from . import sid113161  # 明斯克改-1
+from . import sid113231  # 基辅改-1
 from . import sid113351  # 伏尔塔改-1
+from . import sid113421  # 江原改-1
+from . import sid113441  # 忠武改-1
+from . import sid113721  # 早春改-1

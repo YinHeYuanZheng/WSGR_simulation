@@ -1,15 +1,14 @@
 # -*- coding:utf-8 -*-
 # Author:stars
 # env:py38
-# 忠武
+# 江原
 
 from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
 """新装上阵(3级)：旗舰为航母、装母、战列或战巡时增加自身火力值9点和对空值12点；
-旗舰不为航母、装母、战列或战巡时增加自身回避值12点和鱼雷值15点。
-"""
+旗舰不为航母、装母、战列或战巡时增加自身回避值12点和鱼雷值15点。"""
 
 
 class Skill_113421(Skill):
