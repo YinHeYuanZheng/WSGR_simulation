@@ -7,8 +7,7 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""烟雾掩护(3级)：降低上方相邻一个单位30%被攻击概率，并且减少该单位命中值4点
-"""
+"""烟雾掩护(3级)：降低上方相邻一个单位30%被攻击概率，并且减少该单位命中值4点"""
 
 
 class Skill_112781(Skill):

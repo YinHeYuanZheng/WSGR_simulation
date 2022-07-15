@@ -23,8 +23,11 @@ from . import sid110811  # 紫石英改-1
 from . import sid110821  # 萤火虫改-1
 from . import sid110822  # 萤火虫改-2
 
+from . import sid112651  # 岚改-1
 from . import sid112691  # z-17改-1
-
+from . import sid112701  # z-18改-1
+from . import sid112781  # 霍埃尔改-1
+from . import sid112782  # 大卫·塔菲3
 from . import sid112791  # 塞缪尔•罗伯茨改-1
 from . import sid112801  # 约翰斯顿改-1
 from . import sid113011  # 马汉改-1

@@ -7,8 +7,8 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""威瑟堡行动(3级)：Z18增加自己索敌20点，增加对应位置敌舰火力10点、暴击率5%、被攻击概率降低30%（水下单位或自身旗舰时无效）。
-"""
+"""威瑟堡行动(3级)：Z18增加自己索敌20点，
+增加对应位置敌舰火力10点、暴击率5%、被攻击概率降低30%（水下单位或自身旗舰时无效）。"""
 
 
 class Skill_112701_1(CommonSkill):
@@ -60,16 +60,17 @@ class Skill_112701_2(Skill):
 
 class SkillTarget(SelfTarget):
     def get_target(self, friend, enemy):
-        lead = LocTarget(side=0, loc=[1])\
-            .get_target(friend=friend, enemy=enemy)
+        if self.master.loc == 1:
+            return []
+
         opposite = LocTarget(side=0, loc=[self.master.loc])\
             .get_target(friend=friend, enemy=enemy)
-
-        target = []
-        if opposite != lead and not isinstance(opposite, Submarine):
-            target.append(opposite)
-
-        return target
+        if not len(opposite):
+            return []
+        elif isinstance(opposite[0], Submarine):
+            return []
+        else:
+            return opposite
 
 
 name = '威瑟堡行动'

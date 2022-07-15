@@ -1,14 +1,13 @@
 # -*- coding:utf-8 -*-
 # Author:stars
 # env:py38
-# 霍埃尔-2
+# 大卫·塔菲3
 
 from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""大卫·塔菲3(3级)：增加自身回避、命中、幸运20点。
-"""
+"""大卫·塔菲3(3级)：增加自身回避、命中、幸运20点。"""
 
 
 class Skill_112782(CommonSkill):

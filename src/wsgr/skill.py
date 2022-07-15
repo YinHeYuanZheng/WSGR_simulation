@@ -877,6 +877,9 @@ class MagnetBuff(EventBuff):
     """嘲讽技能"""
     def __init__(self, timer, phase, rate,
                  name='magnet', atk_request=None, bias_or_weight=3):
+        """
+        :param rate:  嘲讽概率, 填入正数(30%填0.3)
+        """
         super().__init__(timer, name, phase, bias_or_weight, rate)
         self.atk_request = atk_request
 
@@ -912,6 +915,9 @@ class UnMagnetBuff(EventBuff):
     """负嘲讽技能"""
     def __init__(self, timer, phase, rate,
                  name='un_magnet', atk_request=None, bias_or_weight=3):
+        """
+        :param rate:  负嘲讽概率, 填入正数(30%填0.3)
+        """
         super().__init__(timer, name, phase, bias_or_weight, rate)
         self.atk_request = atk_request
 
