@@ -8,8 +8,8 @@ from src.wsgr.ship import *
 from src.wsgr.phase import *
 
 
-class Eskill_021(EquipSkill):
-    """增加X1%护甲穿透(同类弹药效果只生效一个)，济南装备时提高X2%伤害"""
+class Eskill_581(EquipSkill):
+    """增加10%护甲穿透(同类弹药效果只生效一个)，济南装备时提高10%伤害"""
     def __init__(self, timer, master, value):
         super().__init__(timer, master, value)
         self.target = SelfTarget(master)
@@ -19,7 +19,7 @@ class Eskill_021(EquipSkill):
                 effect_type=3,
                 name='pierce_coef',
                 phase=AllPhase,
-                value=self.value[0],
+                value=0.1,
                 bias_or_weight=0
             )
         ]
@@ -27,13 +27,13 @@ class Eskill_021(EquipSkill):
             self.buff.append(
                 EquipEffect(
                     timer=timer,
-                    effect_type=21,
+                    effect_type=581,
                     name='final_damage_buff',
                     phase=AllPhase,
-                    value=self.value[1],
+                    value=0.1,
                     bias_or_weight=2
                 )
             )
 
 
-skill = [Eskill_021]
+skill = [Eskill_581]

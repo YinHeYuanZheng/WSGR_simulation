@@ -8,8 +8,8 @@ from src.wsgr.ship import *
 from src.wsgr.phase import *
 
 
-class Eskill_020(EquipSkill):
-    """济南装备时提高X%回避率"""
+class Eskill_582(EquipSkill):
+    """济南装备时提高10%回避率"""
     def __init__(self, timer, master, value):
         super().__init__(timer, master, value)
         self.target = SelfTarget(master)
@@ -18,13 +18,13 @@ class Eskill_020(EquipSkill):
             self.buff = [
                 EquipEffect(
                     timer=timer,
-                    effect_type=20,
+                    effect_type=582,
                     name='miss_rate',
                     phase=AllPhase,
-                    value=self.value[0],
+                    value=0.1,
                     bias_or_weight=0
                 )
             ]
 
 
-skill = [Eskill_020]
+skill = [Eskill_582]

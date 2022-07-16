@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 # Author:银河远征
 # env:py38
-# # 暴击率特效
+# 暴击率特效
 
 from src.wsgr.skill import *
 from src.wsgr.ship import *

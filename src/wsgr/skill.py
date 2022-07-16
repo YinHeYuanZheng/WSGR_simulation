@@ -79,6 +79,10 @@ class EquipSkill(Skill):
     """装备携带特效"""
 
     def __init__(self, timer, master, value: list):
+        """
+        :param master: 装备携带者, Ship
+        :param value: 技能数值，可以为空，数据库内以','分隔，读取后为list
+        """
         super().__init__(timer, master)
         self.value = value
 

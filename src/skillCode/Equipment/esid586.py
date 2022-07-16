@@ -8,29 +8,29 @@ from src.wsgr.ship import *
 from src.wsgr.phase import *
 
 
-class Eskill_016(EquipSkill):
-    """先制鱼雷和鱼雷战阶段提高X1%伤害和X2%命中率"""
+class Eskill_586(EquipSkill):
+    """先制鱼雷和鱼雷战阶段提高10%伤害和10%命中率"""
     def __init__(self, timer, master, value):
         super().__init__(timer, master, value)
         self.target = SelfTarget(master)
         self.buff = [
             EquipEffect(
                 timer=timer,
-                effect_type=16.1,
+                effect_type=586.1,
                 name='final_damage_buff',
                 phase=TorpedoPhase,
-                value=self.value[0],
+                value=0.1,
                 bias_or_weight=2
             ),
             EquipEffect(
                 timer=timer,
-                effect_type=16.2,
+                effect_type=586.2,
                 name='hit_rate',
                 phase=TorpedoPhase,
-                value=self.value[1],
+                value=0.1,
                 bias_or_weight=0
             )
         ]
 
 
-skill = [Eskill_016]
+skill = [Eskill_586]
