@@ -88,4 +88,5 @@ class Skill_104831_3(Skill):
                     tmp_target.add_buff(tmp_buff)
 
 
+name = '协同出击'
 skill = [Skill_104831_1, Skill_104831_2, Skill_104831_3]

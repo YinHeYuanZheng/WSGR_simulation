@@ -5,14 +5,13 @@
 import os
 import sys
 import copy
-import numpy as np
 
 curDir = os.path.dirname(__file__)
 srcDir = os.path.dirname(curDir)
 sys.path.append(srcDir)
 
-from src.test.loadConfig_t import load_config
-from src.test.loadDataset_t import Dataset
+from src.utils.loadConfig_t import load_config
+from src.utils.loadDataset_t import Dataset
 from src.wsgr.wsgrTimer import timer
 
 

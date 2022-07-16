@@ -5,6 +5,8 @@
 from .Equipment import *  # 装备特效
 from .Strategy import *  # 战术效果
 
+from .AV import *
+
 # 未改航系
 from . import sid101191  # 皇家方舟-1
 from . import sid102241  # 可畏-1
@@ -21,7 +23,6 @@ from . import sid104551  # 皇家方舟(R09)-1
 from . import sid104691  # 本宁顿-1
 from . import sid104711  # 欧罗巴-1
 from . import sid104741  # 72工程-1
-from . import sid104831  # 胜利-1
 from . import sid104861  # G15-1
 from . import sid104941  # G6-1
 from . import sid104981  # 复仇-1
