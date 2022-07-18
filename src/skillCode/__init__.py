@@ -43,8 +43,6 @@ from . import sid110281  # 突击者改
 from . import sid110291  # 航空战术先驱：列克星敦改-1、萨拉托加改-1
 from . import sid110302  # 罗宾：萨拉托加改-2
 from . import sid110311  # 大黄蜂改-1
-from . import sid111171  # 大凤改-1
-from . import sid111172  # 大凤改-2
 from . import sid111181  # 齐柏林伯爵改-1
 from . import sid111201  # 约克城改-1
 from . import sid111211  # 企业改-1

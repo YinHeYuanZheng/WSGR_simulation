@@ -11,8 +11,8 @@ curDir = os.path.dirname(__file__)
 srcDir = os.path.join(curDir, 'src')
 sys.path.append(srcDir)
 
-from src.utils.loadConfig import load_config
-from src.utils.loadDataset import Dataset
+from src.utils.loadConfig_t import load_config
+from src.utils.loadDataset_t import Dataset
 from src.wsgr.wsgrTimer import timer
 
 
@@ -80,15 +80,18 @@ def run_supply_cost(battle, epoc):
 
 if __name__ == '__main__':
     configDir = os.path.join(os.path.dirname(srcDir), 'config')
-    xml_file = os.path.join(configDir, 'config.xml')
+    xml_file = os.path.join(configDir, r'config.xml')
 
     dependDir = os.path.join(os.path.dirname(srcDir), 'depend')
     data_file = os.path.join(dependDir, r'ship\database.xlsx')
-    ds = Dataset(data_file)
-    timer_init = timer()
-    battle = load_config(xml_file, ds, timer_init)
+    ds = Dataset(data_file)  # 舰船数据
+
+    mapDir = os.path.join(dependDir, r'map')
+    timer_init = timer()  # 创建时钟
+    battle = load_config(xml_file, mapDir, ds, timer_init)
+    del ds
 
     # run_hit_rate(battle, 1000)
-    # run_victory(battle, 1000)
-    run_avg_damage(battle, 10000)
+    run_victory(battle, 1000)
+    # run_avg_damage(battle, 10000)
     # run_supply_cost(battle, 1000)

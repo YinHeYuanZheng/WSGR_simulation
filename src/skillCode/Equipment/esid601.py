@@ -14,7 +14,7 @@ class Eskill_601(EquipSkill):
         super().__init__(timer, master, value)
         self.target = SelfTarget(master)
         self.buff = []
-        if master.cid in ['10488', '11488', '10455', '11455']:
+        if master.cid in ['10483', '11483', '10455', '11455']:
             self.buff = [
                 EquipEffect(
                     timer=timer,

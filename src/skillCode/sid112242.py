@@ -113,4 +113,5 @@ class BuffRequest_2(ATKRequest):
         return isinstance(self.atk.target, BB)
 
 
+name = '重磅突袭'
 skill = [Skill_112242_1, Skill_112242_2, Skill_112242_3, Skill_112242_4]

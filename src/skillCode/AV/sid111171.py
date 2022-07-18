@@ -75,4 +75,5 @@ class Skill_111171_3(Skill):
             ]
 
 
+name = '航空压制'
 skill = [Skill_111171_1, Skill_111171_2, Skill_111171_3]

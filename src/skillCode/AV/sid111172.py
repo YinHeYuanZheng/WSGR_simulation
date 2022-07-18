@@ -44,4 +44,5 @@ class Skill_111172(Skill):
         ]
 
 
+name = '穿梭轰炸'
 skill = [Skill_111172]
