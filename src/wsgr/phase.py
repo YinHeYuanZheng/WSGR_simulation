@@ -300,24 +300,36 @@ class AirPhase(DaytimePhase):
 class MissilePhase(DaytimePhase):
     """导弹战"""
     def start(self):
-        # 检查可参与导弹战的对象
-        atk_friend = self.friend.get_act_member_inphase()
+        # 友方导弹攻击
+        atk_friend = self.friend.get_act_member_inphase()           # 检查友方可参与导弹战的对象
+        def_enemy = self.enemy.get_atk_target(atk_type=MissileAtk)  # 检查敌方可被导弹攻击的对象
+        if len(atk_friend) and len(def_enemy):                      # 同时存在可发动攻击和可被攻击对象，结算导弹攻击
+            self.missile_strike(atk_friend, def_enemy)
+
+        # 敌方导弹攻击
         atk_enemy = self.enemy.get_act_member_inphase()
-        # 检查可被导弹攻击的对象
         def_friend = self.friend.get_atk_target(atk_type=MissileAtk)
-        def_enemy = self.enemy.get_atk_target(atk_type=MissileAtk)
+        if len(atk_enemy) and len(def_friend):
+            self.missile_strike(atk_enemy, def_friend)
 
-        # 如果不存在可行动对象或可攻击对象，结束本阶段
-        if (len(atk_friend) and len(def_enemy)) or \
-                (len(atk_enemy) and len(def_friend)):
-            pass
-        else:
-            return
-
-        # 按照站位依次行动，先结算我方
-        self.missile_strike(atk_friend, def_enemy)
-        atk_enemy = self.enemy.get_act_member_inphase()  # 重新检查敌方可行动对象
-        self.missile_strike(atk_enemy, def_friend)
+        # # 检查可参与导弹战的对象
+        # atk_friend = self.friend.get_act_member_inphase()
+        # atk_enemy = self.enemy.get_act_member_inphase()
+        # # 检查可被导弹攻击的对象
+        # def_friend = self.friend.get_atk_target(atk_type=MissileAtk)
+        # def_enemy = self.enemy.get_atk_target(atk_type=MissileAtk)
+        #
+        # # 如果不存在可行动对象或可攻击对象，结束本阶段
+        # if (len(atk_friend) and len(def_enemy)) or \
+        #         (len(atk_enemy) and len(def_friend)):
+        #     pass
+        # else:
+        #     return
+        #
+        # # 按照站位依次行动，先结算我方
+        # self.missile_strike(atk_friend, def_enemy)
+        # atk_enemy = self.enemy.get_act_member_inphase()  # 重新检查敌方可行动对象
+        # self.missile_strike(atk_enemy, def_friend)
 
     def missile_strike(self, attack, defend):
         pass
@@ -395,23 +407,17 @@ class AntiSubPhase(DaytimePhase):
     """先制反潜"""
 
     def start(self):
-        # 检查可参与先制反潜的对象
-        atk_friend = self.friend.get_act_member_inphase()
+        # 友方反潜攻击
+        atk_friend = self.friend.get_act_member_inphase()           # 检查友方可参与先制反潜的对象
+        def_enemy = self.enemy.get_atk_target(atk_type=AntiSubAtk)  # 检查敌方可被反潜攻击的对象
+        if len(atk_friend) and len(def_enemy):                      # 同时存在可发动攻击和可被攻击对象，结算反潜攻击
+            self.anti_sub_strike(atk_friend, def_enemy)
+
+        # 敌方反潜攻击
         atk_enemy = self.enemy.get_act_member_inphase()
-        # 检查可被反潜攻击的对象
         def_friend = self.friend.get_atk_target(atk_type=AntiSubAtk)
-        def_enemy = self.enemy.get_atk_target(atk_type=AntiSubAtk)
-
-        # 如果不存在可行动对象或可攻击对象，结束本阶段
-        if (len(atk_friend) and len(def_enemy)) or \
-                (len(atk_enemy) and len(def_friend)):
-            pass
-        else:
-            return
-
-        # 按照站位依次行动，先结算我方
-        self.anti_sub_strike(atk_friend, def_enemy)
-        self.anti_sub_strike(atk_enemy, def_friend)
+        if len(atk_enemy) and len(def_friend):
+            self.anti_sub_strike(atk_enemy, def_friend)
 
     def anti_sub_strike(self, attack, defend):
         for tmp_ship in attack:
@@ -432,24 +438,17 @@ class TorpedoPhase(DaytimePhase):
     """鱼雷战"""
 
     def start(self):
-        # 检查可参与先制鱼雷的对象
-        atk_friend = self.friend.get_act_member_inphase()
+        # 友方鱼雷攻击
+        atk_friend = self.friend.get_act_member_inphase()           # 检查友方可参与先制鱼雷的对象
+        def_enemy = self.enemy.get_atk_target(atk_type=TorpedoAtk)  # 检查敌方可被鱼雷攻击的对象
+        if len(atk_friend) and len(def_enemy):                      # 同时存在可发动攻击和可被攻击对象，结算鱼雷攻击
+            self.torpedo_strike(atk_friend, def_enemy)
+
+        # 敌方鱼雷攻击
         atk_enemy = self.enemy.get_act_member_inphase()
-        # 检查可被鱼雷攻击的对象
         def_friend = self.friend.get_atk_target(atk_type=TorpedoAtk)
-        def_enemy = self.enemy.get_atk_target(atk_type=TorpedoAtk)
-
-        # 如果不存在可行动对象或可攻击对象，结束本阶段
-        if (len(atk_friend) and len(def_enemy)) or \
-                (len(atk_enemy) and len(def_friend)):
-            pass
-        else:
-            return
-
-        # 按照站位依次行动，先结算我方
-        self.torpedo_strike(atk_friend, def_enemy)
-        atk_enemy = self.enemy.get_act_member_inphase()  # 重新检查敌方可行动对象
-        self.torpedo_strike(atk_enemy, def_friend)
+        if len(atk_enemy) and len(def_friend):
+            self.torpedo_strike(atk_enemy, def_friend)
 
     def torpedo_strike(self, attack, defend):
         for tmp_ship in attack:
