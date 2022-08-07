@@ -60,3 +60,7 @@ class Skill_111871_2(Skill):
     def is_active(self, friend, enemy):
         return enemy.get_avg_status('recon') > \
             friend.get_avg_status('recon')
+
+
+name = '灵活作战'
+skill = [Skill_111871_1, Skill_111871_2]

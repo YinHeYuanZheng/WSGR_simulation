@@ -48,8 +48,9 @@ class Skill_111851_2(Skill):
                 timer=timer,
                 name='final_damage_buff',
                 phase=ShellingPhase,
-                value=0.3,
-                atk_request=[ATKRequest_1]
+                value=0.25,
+                atk_request=[ATKRequest_1],
+                rate=0.5
             )
         ]
 

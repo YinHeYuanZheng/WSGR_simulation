@@ -23,6 +23,10 @@ from . import sid110811  # 紫石英改-1
 from . import sid110821  # 萤火虫改-1
 from . import sid110822  # 萤火虫改-2
 
+from . import sid111851  # 机灵改-1
+from . import sid111871  # 安东尼奥·达诺利改-1
+from . import sid111881  # 乌戈里尼·维瓦尔迪改-1
+from . import sid111921  # 塔什干改-1
 from . import sid112651  # 岚改-1
 from . import sid112691  # z-17改-1
 from . import sid112701  # z-18改-1
