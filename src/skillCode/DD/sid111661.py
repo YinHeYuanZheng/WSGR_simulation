@@ -17,7 +17,7 @@ class Skill_111661_1(Skill):
         self.target = SelfTarget(master)
         self.buff = [
             ActPhaseBuff(
-                timer,
+                timer=timer,
                 name='act_phase',
                 phase=FirstTorpedoPhase,
                 rate=.5

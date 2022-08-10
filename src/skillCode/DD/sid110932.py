@@ -36,11 +36,11 @@ class Skill_110932_1(CommonSkill):
     def activate(self, friend, enemy):
         
         target = self.target.get_target(friend, enemy)
-        e_accuracy = self.master.get_equip_status('recon')
+        e_recon = self.master.get_equip_status('recon')
         for tmp_target in target:
             for tmp_buff in self.buff[:]:
                 tmp_buff = copy.copy(tmp_buff)
-                tmp_buff.value *= e_accuracy
+                tmp_buff.value *= e_recon
                 tmp_target.add_buff(tmp_buff)
 
 class Skill_110932_2(Skill):

@@ -20,7 +20,8 @@ class Skill_110991(Skill):
                 name='shield',
                 phase=(AllPhase,),
                 atk_request=None,
-                rate=0.25)
+                rate=0.25
+            )
         ]
 
 name = '高速机动'

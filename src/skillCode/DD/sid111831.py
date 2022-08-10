@@ -3,6 +3,7 @@
 # env:py38
 # 拉菲
 
+from src.wsgr.formulas import AirAtk
 from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
@@ -18,21 +19,35 @@ class Skill_111831(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            StatusBuff(
+            SpecialBuff(
                 timer=timer,
-                name='torpedo',
-                phase=AllPhase,
-                value=6,
-                bias_or_weight=0
+                name='ignore_damaged',
+                phase=DaytimePhase,
             ),
-            StatusBuff(
+            HealthCoeffBuff(
                 timer=timer,
-                name='accuracy',
-                phase=AllPhase,
-                value=6,
-                bias_or_weight=0
+                name='crit',
+                value=.75,
+                bias_or_weight=0,
             ),
+            SpecialBuff(
+                timer=timer,
+                name='shield',
+                phase=AllPhase,
+                atk_request=[ATKRequest1],
+            )
         ]
+    
+class HealthCoeffBuff(CoeffBuff):
+    def is_active(self, *args, **kwargs):
+        self.value = 0.75 * \
+                     (self.master.status["standard_health"] - self.master.status["health"]) / \
+                     (self.master.status["standard_health"] - 1)
+        return super().is_active(*args, **kwargs)
+    
+class ATKRequest1(ATKRequest):
+    def __bool__(self):
+        return isinstance(self.atk, AirAtk) and self.atk.target.damaged == 2
     
 name = '不惧神风'
 skill = [Skill_111831]

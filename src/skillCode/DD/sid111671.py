@@ -42,7 +42,8 @@ class Skill_111671_2(Skill):
             CoeffBuff(
                 timer=timer,
                 name='crit',
-                value=.12,
+                phase=SecondTorpedoPhase,
+                value=.15,
                 bias_or_weight=0,
             )
         ]

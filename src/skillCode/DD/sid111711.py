@@ -18,7 +18,7 @@ class Skill_111711_1(Skill):
     """
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = LocTarget(side=1, loc=[1, 2, 3, 4, 5, 6])
+        self.target = TypeTarget(side=0, shiptype=Ship)
         self.buff = [
             FinalDamageBuff(
                 timer=timer,
@@ -54,6 +54,7 @@ class Skill_111711_3(Skill):
             FinalDamageBuff(
                 timer=timer,
                 name='final_damage_buff',
+                phase=SecondTorpedoPhase,
                 value=.2,
                 atk_request=[ATK_Request2]
             )

@@ -8,9 +8,21 @@ from src.wsgr.ship import *
 from src.wsgr.phase import *
 
 """增加 8 点索敌值，60% 的索敌视为火力和对空。"""
+class Skill_110921_1(CommonSkill):
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
+        self.buff = [
+            CommonBuff(
+                timer=timer,
+                name='recon',
+                phase=AllPhase,
+                value=8,
+                bias_or_weight=0    
+            ),
+        ]
 
-
-class Skill_110921(CommonSkill):
+class Skill_110921_2(CommonSkill):
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
@@ -37,7 +49,6 @@ class Skill_110921(CommonSkill):
            Answer:
 
         """
-        
         target = self.target.get_target(friend, enemy)
         recon = self.master.get_final_status('recon')
         for tmp_target in target:
@@ -49,4 +60,4 @@ class Skill_110921(CommonSkill):
 
 
 name = '冷战先锋'
-skill = [Skill_110921]
+skill = [Skill_110921_1, Skill_110921_2]

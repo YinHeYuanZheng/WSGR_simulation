@@ -16,7 +16,7 @@ class Skill_111641_1(Skill):
     """加自身及相邻船只对空值8点"""
     def __init__(self, timer, master):
         self.target = NearestLocTarget(
-            side=1, master=master, radius=1, direction='near', master_include=True, shiptype=(DD)
+            side=1, master=master, radius=1, direction='near', master_include=True
         )
         self.buff = [
             EquipEffect(
