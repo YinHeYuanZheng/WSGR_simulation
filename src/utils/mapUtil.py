@@ -47,7 +47,7 @@ class MapUtil(Time):
             p.set_enemy(enemy_list)
 
             # 生成后继节点及带路
-            suc = self.load_suc(node)
+            suc = self.load_suc(node)  # 带路包含在节点属性内
             if (p.level in [0, 1, 2, 3]) and (len(suc) == 0):
                 raise ValueError(f'Point {name} should have successor(s)!')
             p.set_suc(suc)
@@ -150,7 +150,7 @@ class MapUtil(Time):
                     request_type=req_node.getAttribute('type'),
                     name=req_node.getAttribute('name'),
                     fun=req_node.getAttribute('fun'),
-                    value=float(req_node.getAttribute('value')),
+                    value=req_node.getAttribute('value'),
                 )
             )
         return request
@@ -297,7 +297,10 @@ class LeadRequest:
         self.request_type = request_type
         self.name = name
         self.fun_name = fun
-        self.value = value
+        if value == '':
+            self.value = value
+        else:
+            self.value = float(value)
 
         self._request = None
         self._fun = None
@@ -338,6 +341,12 @@ class LeadRequest:
 
         elif self.fun_name == 'gt':
             self._fun = lambda x, y: x > y
+
+        elif self.fun_name == 'is':
+            self._fun = lambda x, y: x
+
+        elif self.fun_name == 'not':
+            self._fun = lambda x, y: not x
 
         else:
             raise ValueError()
