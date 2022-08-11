@@ -1,8 +1,15 @@
 # WSGR_simulation
+
 ## 战舰少女R战斗系统模拟
 包含全部战斗流程
 以及技能基础逻辑
+
+## 配置步骤
+
+
+
 ## 代码执行步骤简介:
+
 高度建议打开你的 `IDE` 对着代码看这个简介。
 
 先看 `main.py`，其它函数的不用管，看 `load_config`。
@@ -116,4 +123,7 @@ Map -+- (id)
                                                 +- (value) 判断式数值，如果type填写'leader'，没有value属性
 ```
 如果谬误，请联系 `huan-yp` 更正。
+
+### 碎碎念
+- 一些激活条件随战斗变化的 BUFF,除非是 `ATK_buff`,条件一定要写在 `is_activate` 里面, **不要写在 activate 里**,除了 `ATK_buff` 会在攻击时根据 `activate` 的描述进行操作外,其它 BUFF 的 `activate` 都只会在最开始执行一次,而是否激活由 `is_activate` 在战斗时判断。如果有技能的效果随战斗改变的情况,只能写 `ATKBuff`。
 
