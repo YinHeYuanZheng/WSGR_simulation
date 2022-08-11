@@ -690,14 +690,18 @@ class Ship(Time):
 
     def remove_during_buff(self):
         """去除攻击期间的临时buff"""
-        i = 0
-        while i < len(self.temper_buff):
-            tmp_buff = self.temper_buff[i]
-            if tmp_buff.is_during_buff():
-                self.temper_buff.remove(tmp_buff)
-                continue
-            else:
-                i += 1
+        # i = 0
+        # while i < len(self.temper_buff):
+        #     tmp_buff = self.temper_buff[i]
+        #     if tmp_buff.is_during_buff():
+        #         self.temper_buff.remove(tmp_buff)
+        #         continue
+        #     else:
+        #         i += 1
+
+        tmp_buff_list = [tmp_buff for tmp_buff in self.temper_buff
+                         if not tmp_buff.is_during_buff()]
+        self.temper_buff = tmp_buff_list
 
     def reinit_health(self):
         """战斗中更新血量状态"""

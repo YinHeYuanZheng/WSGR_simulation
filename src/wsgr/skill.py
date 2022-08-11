@@ -94,8 +94,9 @@ class EquipSkill(Skill):
                 tmp_buff = copy.copy(tmp_buff)
                 buff_type = tmp_buff.effect_type
 
-                # 2类不叠加
-                if buff_type in [2.1, 2.2]:
+                # 2类不叠加(2类为舰船技能，标注为多个单位携带此技能不重复生效)
+                # 注意2类每个buff标识数字各不相同
+                if 2 <= buff_type < 3:
                     type2 = tmp_target.get_unique_effect(effect_type=buff_type)
 
                     # 有2类特效，跳过

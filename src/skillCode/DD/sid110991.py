@@ -18,11 +18,11 @@ class Skill_110991(Skill):
             SpecialBuff(
                 timer=timer,
                 name='shield',
-                phase=(AllPhase,),
-                atk_request=None,
+                phase=AllPhase,
                 rate=0.25
             )
         ]
+
 
 name = '高速机动'
 skill = [Skill_110991]

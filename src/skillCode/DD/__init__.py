@@ -23,6 +23,12 @@ from . import sid110811  # 紫石英改-1
 from . import sid110821  # 萤火虫改-1
 from . import sid110822  # 萤火虫改-2
 
+from . import sid110921  # 冷战先锋: 布雷恩改-1、基林改-1
+from . import sid110932  # 基林改-2
+from . import sid110981  # 沃克兰改-1
+from . import sid110991  # 空想改-1
+from . import sid111641  # 对空直卫: 秋月改-1、凉月改-1
+
 from . import sid111851  # 机灵改-1
 from . import sid111871  # 安东尼奥·达诺利改-1
 from . import sid111881  # 乌戈里尼·维瓦尔迪改-1

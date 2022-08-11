@@ -18,7 +18,12 @@ class Skill_110981_1(Skill):
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = NearestLocTarget(
-            side=1, master=master, radius=1, direction='near', master_include=True, shiptype=(DD)
+            side=1,
+            master=master,
+            radius=1,
+            direction='near',
+            master_include=True,
+            shiptype=DD
         )
 
         self.buff = [
@@ -49,8 +54,9 @@ class Skill_110981_2(Skill):
             AtkHitBuff(
                 timer=timer,
                 name='get_atk',
+                phase=AllPhase,
                 buff=[
-                    StatusBuff(
+                    DuringAtkBuff(
                         timer=timer,
                         name='evasion',
                         phase=AllPhase,

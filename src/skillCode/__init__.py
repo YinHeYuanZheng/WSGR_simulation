@@ -107,7 +107,7 @@ from . import sid111022  # 陆奥-2
 from . import sid111051  # 前卫-1
 from . import sid111052  # 前卫-2
 from . import sid111061  # 田纳西-1
-from . import sid111071  # 田纳西-1
+from . import sid111071  # 加利福尼亚-1
 from . import sid111091  # 马里兰-1
 from . import sid111101  # 西弗吉尼亚-1
 from . import sid111102  # 西弗吉尼亚-2
