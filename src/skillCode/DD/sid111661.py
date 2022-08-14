@@ -14,6 +14,7 @@ from src.wsgr.phase import *
 class Skill_111661_1(Skill):
     """自身有50%的概率参与开幕雷击。"""
     def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             ActPhaseBuff(
@@ -24,9 +25,11 @@ class Skill_111661_1(Skill):
             )
         ]
 
+
 class Skill_111661_2(Skill):
     """闭幕鱼雷阶段有50%的概率额外发射一枚鱼雷。"""
     def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
             SpecialBuff(
@@ -36,6 +39,7 @@ class Skill_111661_2(Skill):
                 rate=.5
             )
         ]
+
 
 name = '甲型驱逐舰'
 skill = [Skill_111661_1, Skill_111661_2]

@@ -20,6 +20,7 @@ class Strategy_131(SelfStrategy):
                 timer=timer,
                 name='strategy_shield',
                 phase=ShellingPhase,
+                atk_request=[BuffRequest_1],
                 rate=0.15
             )
         ]

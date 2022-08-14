@@ -13,6 +13,7 @@ from src.wsgr.phase import *
 class Strategy_233(SelfStrategy):
     def __init__(self, timer, master):
         super().__init__(timer, master)
+        self.stid = '233'
         self.buff = [
             SpecialBuff(
                 timer=timer,

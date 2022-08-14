@@ -24,7 +24,7 @@ class Skill_111641_1(Skill):
             master_include=True
         )
         self.buff = [
-            EquipEffect(
+            UniqueEffect(
                 timer=timer,
                 effect_type=2.3,
                 name='antiair',

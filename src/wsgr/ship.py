@@ -63,7 +63,7 @@ class Ship(Time):
         self.common_buff = []  # 永久面板加成
         self.temper_buff = []  # 临时buff
         self.active_buff = []  # 主动技能buff
-        self.strategy_buff = []  # 战术buff
+        self.strategy_buff = {}  # 战术buff
 
         self.act_phase_flag = {
             'AirPhase': False,
@@ -216,7 +216,7 @@ class Ship(Time):
                 self.skill.append(tmp_skill)
 
         # 战术
-        self.strategy_buff = []
+        self.strategy_buff = {}
         for tmp_strategy in self.strategy:
             tmp_strategy.activate(friend, enemy)
 
@@ -268,7 +268,7 @@ class Ship(Time):
 
     def run_strategy(self):
         """结算战术效果"""
-        self.temper_buff.extend(self.strategy_buff)
+        self.temper_buff.extend(list(self.strategy_buff.values()))
 
     def set_status(self, name=None, value=None, status=None):
         """根据属性名称设置本体属性"""
@@ -331,6 +331,7 @@ class Ship(Time):
         return max(0, status)
 
     def get_range(self):
+        """获取射程(本体、装备、buff中取最大值)"""
         ship_range = self.status['range']
 
         for tmp_buff in self.common_buff:
@@ -348,7 +349,7 @@ class Ship(Time):
         return ship_range
 
     def add_buff(self, buff):
-        """添加增益,只做标记，不真正添加到实际属性上"""
+        """分类添加增益"""
         buff.set_master(self)
         if buff.is_common():
             self.common_buff.append(buff)
@@ -359,15 +360,39 @@ class Ship(Time):
         elif buff.is_event():
             self.timer.queue_append(buff)
 
+        elif buff.is_unique_effect():  # 唯一效果(技能不叠加效果、装备特效)
+            buff_type = buff.effect_type
+
+            # 2类不叠加(2类为舰船技能，标注为多个单位携带此技能不重复生效)
+            # 注意2类每个buff标识数字各不相同
+            if 2 <= buff_type < 3:
+                type2 = self.get_unique_effect(effect_type=buff_type)
+                if type2 is not None:  # 有相同特效，跳过
+                    return
+
+            # 3和4类不叠加
+            elif buff_type in [3, 4]:
+                type34 = self.get_unique_effect(effect_type=buff_type)
+
+                # 特效类型相同，取最高值
+                if type34 is not None:
+                    value1 = buff.value
+                    value2 = type34.value
+                    type34.set_value(max(value1, value2))
+                    return
+
+            self.temper_buff.append(buff)
+
         else:
             self.temper_buff.append(buff)
 
-    def add_strategy_buff(self, buff):
+    def add_strategy_buff(self, buff, stid):
         """增加战术效果"""
-        self.strategy_buff.append(buff)
+        if stid not in self.strategy_buff.keys():
+            self.strategy_buff[stid] = buff
 
     def get_buff(self, name, *args, **kwargs):
-        """根据增益名称获取全部属性增益，对于属性倍率，搜索全部buff内容"""
+        """根据增益名称获取全部属性增益(分别统计加法系数、乘法系数、数值增益)"""
         scale_add = 0
         scale_mult = 1
         bias = 0
@@ -384,10 +409,14 @@ class Ship(Time):
             if tmp_buff.name == name and tmp_buff.bias_or_weight == 2:
                 scale_mult *= (1 + tmp_buff.value)
 
+        for tmp_buff in self.strategy_buff.values():
+            if tmp_buff.name == name and tmp_buff.bias_or_weight == 0:
+                bias += tmp_buff.value
+
         return scale_add, scale_mult, bias  # 先scale后bias
 
     def get_atk_buff(self, name, atk, *args, **kwargs):
-        """根据增益名称获取全部攻击系数增益(含攻击判断)，只计算，不添加到面板"""
+        """根据增益名称获取全部攻击系数增益(含攻击判断)"""
         scale_add = 0
         scale_mult = 1
         bias = 0
@@ -421,18 +450,21 @@ class Ship(Time):
 
     def get_strategy_buff(self, name, *args, **kwargs):
         """查询战术增益"""
-        for tmp_buff in self.strategy_buff:
+        for tmp_buff in self.strategy_buff.values():
             if tmp_buff.name == name:
                 if tmp_buff.is_active(*args, **kwargs):
                     return True
         return False
+
+    def get_strategy_final_damage(self):
+        pass  # todo 战术终伤
 
     def get_unique_effect(self, effect_type):
         if not isinstance(effect_type, list):
             effect_type = [effect_type]
 
         for tmp_buff in self.temper_buff:
-            if tmp_buff.is_equip_effect():
+            if tmp_buff.is_unique_effect():
                 if tmp_buff.effect_type in effect_type:
                     return tmp_buff
         return None

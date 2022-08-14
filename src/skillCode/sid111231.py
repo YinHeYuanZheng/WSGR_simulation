@@ -15,7 +15,7 @@ class Skill_110231(Skill):
         super().__init__(timer, master)
         self.target = TypeTarget(side=0, shiptype=(SS, SC))
         self.buff = [
-            EquipEffect(
+            UniqueEffect(
                 timer=timer,
                 effect_type=2.1,
                 name='accuracy',
@@ -23,7 +23,7 @@ class Skill_110231(Skill):
                 value=-8,
                 bias_or_weight=0
             ),
-            EquipEffect(
+            UniqueEffect(
                 timer=timer,
                 effect_type=2.2,
                 name='evasion',

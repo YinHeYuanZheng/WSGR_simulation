@@ -82,6 +82,10 @@ class PreparePhase(AllPhase):
         direction_flag = self.compare_speed()
         self.timer.set_direction(direction_flag=direction_flag)
 
+        # 结算战术
+        for tmp_ship in self.friend.ship:
+            tmp_ship.run_strategy()
+
     def compare_recon(self):
         sub_num = self.enemy.count(Submarine)
         if sub_num != len(self.enemy.ship):
@@ -146,7 +150,6 @@ class BuffPhase(AllPhase):
         self.timer.run_normal_skill(self.friend, self.enemy)
         for tmp_ship in self.friend.ship:
             tmp_ship.run_normal_skill(self.friend, self.enemy)
-            tmp_ship.run_strategy()
         for tmp_ship in self.enemy.ship:
             tmp_ship.run_normal_skill(self.enemy, self.friend)
 

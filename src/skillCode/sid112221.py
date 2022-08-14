@@ -17,22 +17,22 @@ class Skill_110231(Skill):
             CoeffBuff(
                 timer=timer,
                 name='crit',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=0.10,
                 bias_or_weight=0
             ),
             CoeffBuff(
                 timer=timer,
                 name='be_crit',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=0.05,
                 bias_or_weight=0
             ),
-            EquipEffect(
+            UniqueEffect(
                 timer=timer,
                 effect_type=3,
                 name='pierce_coef',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=0.25,
                 bias_or_weight=0
             )

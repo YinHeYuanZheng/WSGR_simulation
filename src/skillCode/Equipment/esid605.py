@@ -18,7 +18,7 @@ class Eskill_605(EquipSkill):
             self.buff = [
                 EquipEffect(
                     timer=timer,
-                    effect_type=3,
+                    effect_type=605.1,
                     name='pierce_coef',
                     phase=AllPhase,
                     value=0.1,
@@ -26,7 +26,7 @@ class Eskill_605(EquipSkill):
                 ),
                 EquipEffect(
                     timer=timer,
-                    effect_type=605,
+                    effect_type=605.2,
                     name='miss_rate',
                     phase=AllPhase,
                     value=0.1,

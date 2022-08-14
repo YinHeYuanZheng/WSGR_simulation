@@ -86,39 +86,39 @@ class EquipSkill(Skill):
         super().__init__(timer, master)
         self.value = value
 
-    def activate(self, friend, enemy):
-        """技能生效时, 给所有满足条件的目标套上所有buff"""
-        target = self.target.get_target(friend, enemy)
-        for tmp_target in target:
-            for tmp_buff in self.buff[:]:
-                tmp_buff = copy.copy(tmp_buff)
-                buff_type = tmp_buff.effect_type
-
-                # 2类不叠加(2类为舰船技能，标注为多个单位携带此技能不重复生效)
-                # 注意2类每个buff标识数字各不相同
-                if 2 <= buff_type < 3:
-                    type2 = tmp_target.get_unique_effect(effect_type=buff_type)
-
-                    # 有2类特效，跳过
-                    if type2 is not None:
-                        continue
-
-                # 3和4类不叠加
-                elif buff_type in [3, 4]:
-                    type34 = tmp_target.get_unique_effect(effect_type=[3, 4])
-
-                    # 特效类型相同，取最高值
-                    if type34 is not None:
-                        value1 = tmp_buff.value
-                        value2 = type34.value
-                        type34.set_value(max(value1, value2))
-                        continue
-
-                    # 特效类型不同，跳过(现版本已取消)
-                    # elif type34.effect_type != buff_type:
-                    #     continue
-
-                tmp_target.add_buff(tmp_buff)
+    # def activate(self, friend, enemy):  # 特效叠加判定目前已转移到ship内
+    #     """技能生效时, 给所有满足条件的目标套上所有buff"""
+    #     target = self.target.get_target(friend, enemy)
+    #     for tmp_target in target:
+    #         for tmp_buff in self.buff[:]:
+    #             tmp_buff = copy.copy(tmp_buff)
+    #             buff_type = tmp_buff.effect_type
+    #
+    #             # 2类不叠加(2类为舰船技能，标注为多个单位携带此技能不重复生效)
+    #             # 注意2类每个buff标识数字各不相同
+    #             if 2 <= buff_type < 3:
+    #                 type2 = tmp_target.get_unique_effect(effect_type=buff_type)
+    #
+    #                 # 有2类特效，跳过
+    #                 if type2 is not None:
+    #                     continue
+    #
+    #             # 3和4类不叠加
+    #             elif buff_type in [3, 4]:
+    #                 type34 = tmp_target.get_unique_effect(effect_type=buff_type)
+    #
+    #                 # 特效类型相同，取最高值
+    #                 if type34 is not None:
+    #                     value1 = tmp_buff.value
+    #                     value2 = type34.value
+    #                     type34.set_value(max(value1, value2))
+    #                     continue
+    #
+    #                 # 特效类型不同，跳过(现版本已取消)
+    #                 # elif type34.effect_type != buff_type:
+    #                 #     continue
+    #
+    #             tmp_target.add_buff(tmp_buff)
 
 
 class Strategy(Skill):
@@ -136,7 +136,7 @@ class FleetStrategy(Strategy):
         target = self.target.get_target(friend, enemy)
         for tmp_target in target:
             buff = copy.copy(self.buff[0])
-            tmp_target.add_strategy_buff(buff)
+            tmp_target.add_strategy_buff(buff, self.stid)
 
 
 class SelfStrategy(Strategy):
@@ -144,7 +144,7 @@ class SelfStrategy(Strategy):
 
     def activate(self, *args, **kwargs):
         buff = copy.copy(self.buff[0])
-        self.master.add_strategy_buff(buff)
+        self.master.add_strategy_buff(buff, self.stid)
 
 
 class Request(Time):
@@ -668,7 +668,7 @@ class Buff(Time):
     def is_active_buff(self):
         return False
 
-    def is_equip_effect(self):
+    def is_unique_effect(self):
         return False
 
     def is_coef_process(self):
@@ -719,8 +719,8 @@ class CoeffBuff(Buff):
         return f"{self.name}: {self.value}"
 
 
-class EquipEffect(Buff):
-    """装备自带特效"""
+class UniqueEffect(Buff):
+    """唯一特效"""
 
     def __init__(self, timer, effect_type, name, phase, value, bias_or_weight, rate=1):
         super().__init__(timer, name, phase, bias_or_weight, rate)
@@ -728,13 +728,20 @@ class EquipEffect(Buff):
         self.effect_type = effect_type
 
     def __repr__(self):
-        return f"{self.name}: {self.value}(装备特效{self.effect_type})"
+        return f"{self.name}: {self.value}(唯一特效{self.effect_type})"
 
-    def is_equip_effect(self):
+    def is_unique_effect(self):
         return True
 
     def set_value(self, value):
         self.value = value
+
+
+class EquipEffect(UniqueEffect):
+    """装备自带特效"""
+
+    def __repr__(self):
+        return f"{self.name}: {self.value}(装备特效{self.effect_type})"
 
 
 class AtkBuff(CoeffBuff):
