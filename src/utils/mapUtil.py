@@ -170,6 +170,11 @@ class MapUtil(Time):
         except:
             self.timer.log['hit_rate'] = 0
 
+        # 伤害量
+        self.timer.log['create_damage'].update({
+            1: [sum(ship.created_damage.values()) for ship in self.friend.ship],
+        })
+
         # 消耗
         supply = self.timer.log['supply']
         for tmp_ship in self.friend.ship:

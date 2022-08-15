@@ -23,10 +23,6 @@ class timer:
             'tank': [],             # 挡枪
         }
         self.log = {
-            'create_damage': {
-                1: np.zeros((6,)),
-                0: np.zeros((6,))
-            },
             'miss': 0,
             'hit': 0,
             'dcitem': 0,                # 使用损管数量
@@ -98,10 +94,6 @@ class timer:
         self.air_con_flag = None    # 制空结果
         self.atk = None
         self.log.update({
-            'create_damage': {
-                1: np.zeros((6,)),
-                0: np.zeros((6,))
-            },
             'miss': 0,
             'hit': 0,
         })
@@ -124,10 +116,8 @@ class timer:
                 self.log['miss'] += 1
             else:
                 self.log['hit'] += 1
-        if isinstance(damage_value, str):
-            damage_value = 0
-        self.log['create_damage'][self.atk.atk_body.side][self.atk.atk_body.loc - 1]\
-            += damage_value
+        if not isinstance(damage_value, str):
+            self.atk.atk_body.create_damage(damage_value)
 
 
 class Time:

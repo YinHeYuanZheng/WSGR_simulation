@@ -80,7 +80,7 @@ def run_supply_cost(battle, epoc):
 
 if __name__ == '__main__':
     configDir = os.path.join(os.path.dirname(srcDir), 'config')
-    xml_file = os.path.join(configDir, r'config.xml')
+    xml_file = os.path.join(configDir, r'event\config_11.xml')
 
     dependDir = os.path.join(os.path.dirname(srcDir), 'depend')
     data_file = os.path.join(dependDir, r'ship\database.xlsx')

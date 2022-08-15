@@ -31,7 +31,7 @@ class BattleUtil(Time):
         self.end_phase()
 
     def battle_init(self):
-        """战斗初始化, 只在地图入口进行调用"""
+        """战斗初始化, 非地图入口时返回reinit"""
         if self.timer.point is not None and self.timer.point.level != 0:
             return self.battle_reinit()
 
@@ -171,6 +171,12 @@ class BattleUtil(Time):
             self.timer.log['hit_rate'] = hit_rate
         except:
             self.timer.log['hit_rate'] = 0
+
+        # 伤害量
+        self.timer.log['create_damage'] = {
+            1: [sum(ship.created_damage.values()) for ship in self.friend.ship],
+            0: [sum(ship.created_damage.values()) for ship in self.enemy.ship]
+        }
 
         # 消耗
         supply = self.timer.log['supply']

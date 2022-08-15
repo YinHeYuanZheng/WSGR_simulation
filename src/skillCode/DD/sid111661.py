@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 # Author:huan_yp
 # env:py38
-# 黑潮改
+# 阳炎改
 
 from src.wsgr.skill import *
 from src.wsgr.ship import *

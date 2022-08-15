@@ -848,7 +848,11 @@ class FinalDamageBuff(AtkBuff):
 
 
 class ActPhaseBuff(Buff):
-    """可行动阶段"""
+    """
+    可行动阶段
+    :param name:    act_phase
+                    not_act_phase
+    """
     pass
 
 

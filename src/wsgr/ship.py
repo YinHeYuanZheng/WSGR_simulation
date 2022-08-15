@@ -54,6 +54,7 @@ class Ship(Time):
         self.level = 110  # 等级
         self.affection = 200  # 好感
 
+        self.created_damage = {}
         self.got_damage = 0
         self.damaged = 1  # 耐久状态, 1: 正常; 2: 中破; 3: 大破; 4: 撤退
         self.damage_protect = True  # 耐久保护，大破进击时消失
@@ -649,7 +650,7 @@ class Ship(Time):
                     tmp_buff.is_active(atk=atk, *args, **kwargs):
                 tmp_buff.activate(atk=atk, *args, **kwargs)
 
-        if name == 'atk_be_hit':
+        if name == 'atk_be_hit':  # todo 战术反击
             for tmp_buff in self.temper_buff:
                 if tmp_buff.name == 'hit_back' and \
                         tmp_buff.is_active(atk=atk, *args, **kwargs):
@@ -708,6 +709,14 @@ class Ship(Time):
 
         return damage
 
+    def create_damage(self, damage):
+        """造成伤害记录"""
+        phase = type(self.timer.phase).__name__
+        if phase in self.created_damage.keys():
+            self.created_damage[phase] += damage
+        else:
+            self.created_damage[phase] = damage
+
     def use_dcitem(self):
         """检测能否损管"""
         if self.side == 1:  # 友方可损管
@@ -752,11 +761,13 @@ class Ship(Time):
     def reinit(self):
         """道中初始化舰船状态"""
         self.clear_buff()
+        self.created_damage = {}
         self.reinit_health()
 
     def reset(self):
         """初始化当前舰船"""
         self.clear_buff()
+        self.created_damage = {}
         supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
 
         # 统计补给耗油并补满
