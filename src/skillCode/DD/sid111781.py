@@ -43,6 +43,7 @@ class Skill_111781_1(Skill):
     def is_active(self, friend, enemy):
         return self.master.loc != 1
 
+
 class Skill_111781_2(Skill):
     """旗舰对空、装甲+30、回避+15。(自身旗舰无效)"""
     def __init__(self, timer, master):
@@ -71,8 +72,10 @@ class Skill_111781_2(Skill):
                 bias_or_weight=0
             ),
         ]
+
     def is_active(self, friend, enemy):
         return self.master.loc != 1
-    
+
+
 name = '守护英雄之人'
 skill = [Skill_111781_1, Skill_111781_2]

@@ -16,7 +16,7 @@ class Skill_102001(Skill):
         self.buff = [
             AtkBuff(
                 timer=timer,
-                name="ignore_armor",
+                name='ignore_armor',
                 phase=ShellingPhase,
                 value=-0.15,
                 bias_or_weight=1,
@@ -24,7 +24,7 @@ class Skill_102001(Skill):
             ),
             AtkBuff(
                 timer=timer,
-                name="extra_damage",
+                name='extra_damage',
                 phase=ShellingPhase,
                 value=20,
                 bias_or_weight=0,

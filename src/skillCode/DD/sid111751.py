@@ -27,8 +27,9 @@ class Skill_111751_1(Skill):
         ]
     
     def is_active(self, friend, enemy):
-        count = len(TypeTarget(side=1, shiptype=[DD]).get_target(friend, enemy))
+        count = len(TypeTarget(side=1, shiptype=DD).get_target(friend, enemy))
         return count >= 3
+
 
 class Skill_111751_2(Skill):
     """鱼雷战阶段，命中中型或大型船时有50%概率造成20点额外固定伤害"""
@@ -38,7 +39,7 @@ class Skill_111751_2(Skill):
         self.buff = [
             AtkBuff(
                 timer=timer,
-                name="extra_damage",
+                name='extra_damage',
                 phase=SecondTorpedoPhase,
                 value=20,
                 bias_or_weight=0,
@@ -50,7 +51,8 @@ class Skill_111751_2(Skill):
 
 class ATK_Request1(ATKRequest):
     def __bool__(self):
-        return isinstance(self.atk.target, LargeShip) or (isinstance(self.atk.target, MidShip))
+        return isinstance(self.atk.target, (LargeShip, MidShip))
+
 
 name = '编队鱼雷战'
 skill = [Skill_111751_1, Skill_111751_2]

@@ -14,6 +14,7 @@ from src.wsgr.phase import *
 class Skill_111692_1(Skill):
     """旗舰不为自身时，自身的幸运值按一定百分比转为旗舰的火力值(16%)点、对空值(30%)点和回避值(30%)点。"""
     def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = LocTarget(side=1, loc=[1])
         self.buff = [
             StatusBuff(
@@ -50,10 +51,12 @@ class Skill_111692_1(Skill):
     
     def is_active(self, friend, enemy):
         return self.master.loc != 1
-    
+
+
 class Skill_111692_2(Skill):
     """旗舰为自身时，增加除自身外全队的回避值10点和对空值15点。"""
     def __init__(self, timer, master):
+        super().__init__(timer, master)
         self.target = LocTarget(side=1, loc=[2, 3, 4, 5, 6])
         self.buff = [
             StatusBuff(
@@ -71,8 +74,7 @@ class Skill_111692_2(Skill):
                 bias_or_weight=0
             )
         ]
-        
-        
+
     def is_active(self, friend, enemy):
         return self.master.loc == 1
     

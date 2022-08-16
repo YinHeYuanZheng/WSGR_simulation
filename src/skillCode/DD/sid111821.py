@@ -18,20 +18,21 @@ class Skill_111821_1(Skill):
         self.buff = [
             StatusBuff(
                 timer=timer,
-                name='torpedo',
+                name='accuracy',
                 phase=AllPhase,
                 value=6,
                 bias_or_weight=0
             ),
             StatusBuff(
                 timer=timer,
-                name='accuracy',
+                name='torpedo',
                 phase=AllPhase,
                 value=6,
                 bias_or_weight=0
             ),
         ]
-    
+
+
 class Skill_111821_2(Skill):
     """敌方驱逐舰命中-12"""
     def __init__(self, timer, master):
@@ -45,8 +46,8 @@ class Skill_111821_2(Skill):
                 value=-12,
                 bias_or_weight=0
             ),
-
         ]
-        
+
+
 name = '统率力'
 skill = [Skill_111821_1, Skill_111821_2]

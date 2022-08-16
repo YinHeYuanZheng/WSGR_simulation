@@ -31,8 +31,15 @@ from . import sid111641  # 对空直卫: 秋月改-1、凉月改-1
 from . import sid111661  # 阳炎改-1
 from . import sid111671  # 不知火改-1
 from . import sid111681  # 黑潮改-1
-from . import sid111691  # 雪风-1
-
+from . import sid111691  # 雪风(丹阳)-1(无效果)
+from . import sid111692  # 丹阳-2
+from . import sid111711  # Z46改-1
+from . import sid111751  # 维纳斯改-1
+from . import sid111781  # 沙利文改-1
+from . import sid111811  # 威廉·D·波特-1(无效果)
+from . import sid111812  # 威廉·D·波特改-2
+from . import sid111821  # 波特改-1
+from . import sid111831  # 拉菲改-1
 from . import sid111851  # 机灵改-1
 from . import sid111871  # 安东尼奥·达诺利改-1
 from . import sid111881  # 乌戈里尼·维瓦尔迪改-1

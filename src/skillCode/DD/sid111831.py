@@ -27,6 +27,7 @@ class Skill_111831(Skill):
             HealthCoeffBuff(
                 timer=timer,
                 name='crit',
+                phase=AllPhase,
                 value=.75,
                 bias_or_weight=0,
             ),
@@ -37,17 +38,21 @@ class Skill_111831(Skill):
                 atk_request=[ATKRequest1],
             )
         ]
-    
+
+
 class HealthCoeffBuff(CoeffBuff):
     def is_active(self, *args, **kwargs):
         self.value = 0.75 * \
                      (self.master.status["standard_health"] - self.master.status["health"]) / \
                      (self.master.status["standard_health"] - 1)
-        return super().is_active(*args, **kwargs)
-    
+        return True
+
+
 class ATKRequest1(ATKRequest):
     def __bool__(self):
-        return isinstance(self.atk, AirAtk) and self.atk.target.damaged == 2
-    
+        return isinstance(self.atk, AirAtk) and \
+               (self.atk.target.damaged == 2 or self.atk.target.damaged == 3)
+
+
 name = '不惧神风'
 skill = [Skill_111831]
