@@ -18,6 +18,7 @@ class timer:
         self.phase = None           # 阶段
         self.atk = None
         self.env_skill = []         # 环境效果
+        self.end_skill = []         # 环境效果
         self.queue = {              # 有时点依赖的技能
             'magnet': [],           # 嘲讽
             'tank': [],             # 挡枪
@@ -66,6 +67,11 @@ class timer:
             if not tmp_skill.is_prep() and \
                     tmp_skill.is_active(friend, enemy):
                 tmp_skill.activate(friend, enemy)
+
+    def run_end_skill(self, friend, enemy):
+        """结算结束阶段技能"""
+        for tmp_skill in self.end_skill:
+            tmp_skill.activate(friend, enemy)
 
     def get_dist(self):
         if self.point is not None:

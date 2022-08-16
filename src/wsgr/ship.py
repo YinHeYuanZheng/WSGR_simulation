@@ -54,12 +54,12 @@ class Ship(Time):
         self.level = 110  # 等级
         self.affection = 200  # 好感
 
-        self.created_damage = {}
-        self.got_damage = 0
-        self.damaged = 1  # 耐久状态, 1: 正常; 2: 中破; 3: 大破; 4: 撤退
-        self.damage_protect = True  # 耐久保护，大破进击时消失
-        self.supply_oil = 1.  # 燃料补给状态
-        self.supply_ammo = 1.  # 弹药补给状态
+        self.created_damage = {}  # 造成伤害记录，分阶段，在下一点开始时重置
+        self.got_damage = 0  # 受到伤害记录，只有总数，在下一点开始时重置
+        self.damaged = 1  # 耐久状态, 1: 正常; 2: 中破; 3: 大破; 4: 撤退，修理后重置
+        self.damage_protect = True  # 耐久保护，大破进击时消失，在所有战斗结束后重置
+        self.supply_oil = 1.  # 燃料补给状态，在所有战斗结束后重置
+        self.supply_ammo = 1.  # 弹药补给状态，在所有战斗结束后重置
 
         self.common_buff = []  # 永久面板加成
         self.temper_buff = []  # 临时buff
@@ -205,6 +205,8 @@ class Ship(Time):
             if tmp_skill.is_common():  # 常驻面板技能，仅初始化一次，后续不再处理
                 tmp_skill.activate(friend, enemy)
                 self._skill.remove(skill)
+            elif tmp_skill.is_end_skill():
+                self.timer.end_skill.append(tmp_skill)
             else:
                 self.skill.append(tmp_skill)
 
@@ -252,7 +254,7 @@ class Ship(Time):
         for tmp_skill in self.skill:
             # 跳过让巴尔偷取技能
             if tmp_skill.request is None and \
-                    tmp_skill.request is None and \
+                    tmp_skill.target is None and \
                     tmp_skill.buff is None:
                 continue
 
@@ -785,6 +787,7 @@ class Ship(Time):
         supply['steel'] += np.ceil(got_damage * self.status['repair_steel'])
         self.status['health'] = self.status['standard_health']
         self.got_damage = 0
+        self.damaged = 1
         self.damage_protect = True
 
         # 统计铝耗并补满

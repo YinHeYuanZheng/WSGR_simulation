@@ -44,6 +44,9 @@ class Skill(Time):
     def is_prep(self):
         return False
 
+    def is_end_skill(self):
+        return False
+
     # def change_master(self, master):
     #     """让巴尔技能调用，更换技能master"""
     #     self.master = master
@@ -72,6 +75,12 @@ class CommonSkill(Skill):
 class PrepSkill(Skill):
     """影响队友航速、索敌的技能，需要在buff阶段前结算"""
     def is_prep(self):
+        return True
+
+
+class EndSkill(Skill):
+    """结束阶段技能(女灶神)"""
+    def is_end_skill(self):
         return True
 
 

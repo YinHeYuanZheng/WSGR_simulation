@@ -94,6 +94,9 @@ class BattleUtil(Time):
             tmp_ship.supply_ammo = max(0., tmp_ship.supply_ammo - 0.2)
 
     def end_phase(self):
+        # 结束阶段技能
+        self.timer.run_end_skill(self.friend, self.enemy)
+
         # 资源消耗
         self.supply_cost()
 
