@@ -49,8 +49,8 @@ class Equipment(Time):
     def get_status(self, name):
         """根据属性名称获取装备属性，包含常驻面板加成"""
         status = self.status.get(name, 0)
-        status_key = ['health', 'fire', 'torpedo', 'armor', 'antisub', 'recon',
-                      'accuracy', 'range', 'evasion', 'luck', 'bomb', 'antiair']
+        status_key = ['fire', 'torpedo', 'armor', 'antiair', 'antisub',
+                      'accuracy', 'evasion', 'recon', 'luck', 'bomb']
 
         scale_add = 0
         # scale_mult = 1

@@ -424,6 +424,9 @@ class AntiSubPhase(DaytimePhase):
 
     def anti_sub_strike(self, attack, defend):
         for tmp_ship in attack:
+            if not len(defend):
+                break
+
             # 发起反潜攻击
             atk = tmp_ship.anti_sub_atk(
                 timer=self.timer,

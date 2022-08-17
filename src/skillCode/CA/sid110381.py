@@ -28,7 +28,7 @@ class Skill_110381(Skill):
                             direction='near'
                         ),
                         AntiTypeTarget(
-                            side=0,
+                            side=1,
                             shiptype=Submarine
                         )
                     ],

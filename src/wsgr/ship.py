@@ -69,7 +69,7 @@ class Ship(Time):
         self.act_phase_flag = {
             'AirPhase': False,
             'FirstMissilePhase': False,
-            'AntisubPhase': False,
+            'AntiSubPhase': False,
             'FirstTorpedoPhase': False,
             'FirstShellingPhase': True,
             'SecondShellingPhase': True,
@@ -81,7 +81,7 @@ class Ship(Time):
         self.act_phase_indicator = {
             'AirPhase': lambda x: False,
             'FirstMissilePhase': lambda x: False,
-            'AntisubPhase': lambda x: False,
+            'AntiSubPhase': lambda x: False,
             'FirstTorpedoPhase': lambda x:
                 (x.level > 10) and (x.damaged < 3),
             'FirstShellingPhase': lambda x: x.damaged < 4,
@@ -879,10 +879,10 @@ class AntiSubShip(Ship):
     """反潜船"""
     def __init__(self, timer):
         super().__init__(timer)
-        self.act_phase_flag.update({'AntisubPhase': True})
+        self.act_phase_flag.update({'AntiSubPhase': True})
 
         self.act_phase_indicator.update({
-            'AntisubPhase': lambda x:
+            'AntiSubPhase': lambda x:
                 (x.get_form() == 5) and (x.damaged < 4),
         })
 
@@ -956,14 +956,14 @@ class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
 
         self.act_phase_flag.update({
             'AirPhase': True,
-            'AntisubPhase': True,
+            'AntiSubPhase': True,
             'SecondTorpedoPhase': False,
             'NightPhase': False,
         })
 
         self.act_phase_indicator.update({
             'AirPhase': lambda x: x.damaged < 3,
-            'AntisubPhase': lambda x:
+            'AntiSubPhase': lambda x:
                 (x.damaged < 2) and (x.check_atk_plane()) and (x.get_form() == 5),
             'FirstShellingPhase': lambda x: x.damaged < 2,
             'SecondShellingPhase': lambda x:

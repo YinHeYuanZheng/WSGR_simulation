@@ -20,7 +20,8 @@ class Skill_111311(Skill):
                 phase=ShellingPhase,
                 target=LocTarget(side=1, loc=[1]),
                 value=-0.8,
-                rate=0.6
+                rate=0.6,
+                exhaust=None
             )
         ]
 

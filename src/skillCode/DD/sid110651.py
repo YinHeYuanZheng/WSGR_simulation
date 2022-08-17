@@ -7,9 +7,9 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""炮击战时 50% 概率代替队伍中的特型驱逐舰承受攻击并免疫本次伤害。
-当吹雪为旗舰时，提升其及自身的装甲值 8 点。
-"""
+"""炮击战时50%概率代替队伍中的特型驱逐舰承受攻击并免疫本次伤害
+（仅触发一次，且自身大破时无效）。
+当吹雪为旗舰时，提升其及自身的装甲值8点。"""
 
 
 class Skill_110651_1(Skill):

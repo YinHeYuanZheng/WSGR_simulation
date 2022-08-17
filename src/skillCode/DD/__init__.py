@@ -22,7 +22,13 @@ from . import sid110801  # Z31改-1
 from . import sid110811  # 紫石英改-1
 from . import sid110821  # 萤火虫改-1
 from . import sid110822  # 萤火虫改-2
-
+from . import sid110831  # 标枪改-1
+from . import sid110841  # 天后改-1
+from . import sid110851  # 黑背豺改-1
+from . import sid110861  # 哥萨克人改-1
+from . import sid110871  # 爱斯基摩人改-1
+from . import sid110881  # 旁遮普人改-1
+from . import sid110891  # 弗莱彻改-1
 from . import sid110921  # 冷战先锋: 布雷恩改-1、基林改-1
 from . import sid110932  # 基林改-2
 from . import sid110981  # 沃克兰改-1
