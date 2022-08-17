@@ -99,4 +99,5 @@ class ATKRequest_1(ATKRequest):
                self.atk.atk_body.get_final_status("fire")
 
 
+name = '巨炮火力'
 skill = [Skill_113802_1, Skill_113802_2, Skill_113802_3]

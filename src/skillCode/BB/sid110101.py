@@ -45,4 +45,5 @@ class Skill_110101_2(Skill):
         return self.master.loc == 1
 
 
+name = '大西洋宪章'
 skill = [Skill_110101_1, Skill_110101_2]

@@ -101,4 +101,5 @@ class Skill_113801_4(Skill):
         return self.master.get_dir_flag() == 3
 
 
+name = '大舰队'
 skill = [Skill_113801_1, Skill_113801_2, Skill_113801_3, Skill_113801_4]

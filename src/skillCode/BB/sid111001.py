@@ -42,4 +42,5 @@ class Skill_111001_2(Skill):
         ]
 
 
+name = '初升的朝阳'
 skill = [Skill_111001_1, Skill_111001_2]

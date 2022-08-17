@@ -203,5 +203,6 @@ class Request_1(Request):
         return number >= 3
 
 
+name = '王者'
 skill = [Skill_111002_1, Skill_111002_2, Skill_111002_3, Skill_111002_4,
          Skill_111002_5, Skill_111002_6, Skill_111002_7]

@@ -43,4 +43,5 @@ class Skill_111111(Skill):
         return self.master.loc == 1
 
 
+name = '火控雷达'
 skill = [Skill_111111]

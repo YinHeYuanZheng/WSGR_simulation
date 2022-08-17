@@ -41,4 +41,5 @@ class Skill_110111(Skill):
         ]
 
 
+name = '重点防御'
 skill = [Skill_110111]

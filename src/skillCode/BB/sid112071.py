@@ -63,4 +63,5 @@ class ActPhaseBuff_1(ActPhaseBuff):
         return self.master.damaged >= 2
 
 
+name = '不屈的迎风花'
 skill = [Skill_112071_1, Skill_112071_2]

@@ -38,4 +38,5 @@ class DamagedCoeffBuff(CoeffBuff):
         return True
 
 
+name = '好斗的玛丽'
 skill = [Skill_111091]

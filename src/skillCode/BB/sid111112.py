@@ -105,4 +105,5 @@ class Skill_111112_3(Skill):
         ]
 
 
+name = '夜战突击'
 skill = [Skill_111112_1, Skill_111112_2, Skill_111112_3]

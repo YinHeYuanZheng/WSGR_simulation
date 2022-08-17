@@ -77,4 +77,5 @@ class Skill_111132_3(Skill):
         return self.master.get_dir_flag() == 4
 
 
+name = '胸甲骑兵'
 skill = [Skill_111132_1, Skill_111132_2, Skill_111132_3]

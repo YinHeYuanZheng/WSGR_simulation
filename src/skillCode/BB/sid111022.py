@@ -45,4 +45,5 @@ class Request_1(ATKRequest):
         return isinstance(self.atk.target, BB)
 
 
+name = '特别穿甲弹'
 skill = [Skill_111022_1]

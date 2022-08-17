@@ -67,4 +67,5 @@ class Skill_111051(Skill):
             self.master.add_buff(tmp_buff)
 
 
+name = '皇家游轮'
 skill = [Skill_111051]

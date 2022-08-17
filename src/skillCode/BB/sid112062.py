@@ -69,4 +69,5 @@ class Skill_112062_2(Skill):
                     tmp_target.add_buff(tmp_buff)
 
 
+name = '威慑'
 skill = [Skill_112062_1, Skill_112062_2]

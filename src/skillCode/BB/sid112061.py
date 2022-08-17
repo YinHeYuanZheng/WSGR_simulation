@@ -58,4 +58,5 @@ class ShiftBuff_2(SpecialBuff):
         return self.master.damaged == 2
 
 
+name = '灵活转换(形态一)'
 skill = [Skill_112061]

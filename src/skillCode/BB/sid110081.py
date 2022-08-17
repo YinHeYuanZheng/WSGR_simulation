@@ -26,4 +26,5 @@ class Skill_110081(Skill):
         ]
 
 
+name = 'BIG SEVEN'
 skill = [Skill_110081]

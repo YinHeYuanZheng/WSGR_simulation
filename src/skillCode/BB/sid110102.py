@@ -47,4 +47,5 @@ class Skill_110102(Skill):
         ]
 
 
+name = '关键一击'
 skill = [Skill_110102]

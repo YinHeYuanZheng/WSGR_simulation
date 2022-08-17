@@ -32,4 +32,5 @@ class BuffRequest_1(ATKRequest):
         return self.atk.target.damaged == 1
 
 
+name = '永不沉没的战舰'
 skill = [Skill_110062]

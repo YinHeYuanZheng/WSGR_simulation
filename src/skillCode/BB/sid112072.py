@@ -89,4 +89,5 @@ class SkillTarget(SelfTarget):
             return [self.master, friend.ship[0]]
 
 
+name = '混战'
 skill = [Skill_112072_1, Skill_112072_2, Skill_112072_3]

@@ -46,4 +46,5 @@ class BuffRequest_1(ATKRequest):
         return False
 
 
+name = '凯旋之歌'
 skill = [Skill_111131]

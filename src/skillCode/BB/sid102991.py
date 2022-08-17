@@ -49,4 +49,5 @@ class Skill_102991_2(PrepSkill):
                 tmp_skill.activate(friend, enemy)
 
 
+name = '旁观者'
 skill = [Skill_102991_1, Skill_102991_2]

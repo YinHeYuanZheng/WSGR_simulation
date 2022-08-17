@@ -52,4 +52,5 @@ class BuffRequest_2(ATKRequest):
         return self.atk.get_coef('crit_flag')
 
 
+name = '决胜之兵'
 skill = [Skill_102091]

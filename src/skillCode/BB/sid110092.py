@@ -40,4 +40,5 @@ class Skill_110092(Skill):
         ]
 
 
+name = '复仇'
 skill = [Skill_110092]

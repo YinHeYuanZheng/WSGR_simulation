@@ -103,4 +103,5 @@ class Skill_111101_3(Skill):
         return self.master.loc == 1
 
 
+name = '苏里高复仇者'
 skill = [Skill_111101_1, Skill_111101_2, Skill_111101_3]

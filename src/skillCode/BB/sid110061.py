@@ -73,4 +73,5 @@ class Skill_110061(Skill):
 #         self.add_end_buff()  # 攻击结束效果
 
 
+name = '旗舰杀手'
 skill = [Skill_110061]

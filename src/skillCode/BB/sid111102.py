@@ -43,4 +43,5 @@ class ExtraDamage(CoeffBuff):
         return True
 
 
+name = '浴火重生'
 skill = [Skill_110231]

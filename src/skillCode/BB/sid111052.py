@@ -76,4 +76,5 @@ class CapShield(CoeffBuff):
         return True
 
 
+name = '火力平台'
 skill = [Skill_111052_1, Skill_111052_2]
