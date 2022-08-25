@@ -25,6 +25,10 @@ class Skill_104201_1(Skill):
             )
         ]
 
+    def activate(self, friend, enemy):
+        # 每次出击限发动一次, 所以不使用copy, 可以在整次出击保持exhaust值
+        self.master.add_buff(self.buff[0])
+
 
 class SpecialShield(SpecialBuff):
     def is_active(self, *args, **kwargs):

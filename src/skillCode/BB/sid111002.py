@@ -198,7 +198,7 @@ class Request_1(Request):
         target = TypeTarget(
             side=0,
             shiptype=MainShip
-        ).get_target(self.friend, self.enemy),
+        ).get_target(self.friend, self.enemy)
         number = len(target)
         return number >= 3
 

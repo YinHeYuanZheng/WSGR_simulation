@@ -28,7 +28,7 @@ class Skill_111831(Skill):
                 timer=timer,
                 name='crit',
                 phase=AllPhase,
-                value=.75,
+                value=.8,
                 bias_or_weight=0,
             ),
             SpecialBuff(
@@ -42,7 +42,7 @@ class Skill_111831(Skill):
 
 class HealthCoeffBuff(CoeffBuff):
     def is_active(self, *args, **kwargs):
-        self.value = 0.75 * \
+        self.value = 0.8 * \
                      (self.master.status["standard_health"] - self.master.status["health"]) / \
                      (self.master.status["standard_health"] - 1)
         return True

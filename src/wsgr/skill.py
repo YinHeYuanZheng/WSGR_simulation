@@ -337,7 +337,7 @@ class RandomTypeTarget(TypeTarget):
 
 class OrderedTypeTarget(TypeTarget):
     """按照指定船型的顺序+站位顺序选择目标"""
-    def __init__(self, shiptype: tuple, side=0):
+    def __init__(self, shiptype, side=0):
         super().__init__(side, shiptype)
 
     def get_target(self, friend, enemy):
