@@ -179,7 +179,7 @@ class Fighter(Plane):
     pass
 
 
-class ScoutPLane(Equipment):
+class ScoutPlane(Equipment):
     pass
 
 

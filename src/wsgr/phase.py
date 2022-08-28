@@ -226,7 +226,7 @@ class AirPhase(DaytimePhase):
                 # 检查该装备是否为参与航空战的飞机
                 if not isinstance(tmp_equip, Plane):
                     continue
-                if isinstance(tmp_equip, ScoutPLane):  # 侦察机不参与航空战
+                if isinstance(tmp_equip, ScoutPlane):  # 侦察机不参与航空战
                     continue
 
                 # 检查该飞机载量是否不为0

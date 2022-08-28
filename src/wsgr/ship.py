@@ -514,7 +514,7 @@ class Ship(Time):
 
     def raise_atk(self, target_fleet):
         """
-        判断炮击战攻击类型(todo 航战)
+        判断炮击战攻击类型
         :param target_fleet: Fleet
         """
         # 技能发动特殊攻击
@@ -559,7 +559,7 @@ class Ship(Time):
         """
         夜间攻击模式
         :param target_fleet: Fleet"""
-        # 确定常规攻击类型
+        # CA/CL/CAV确认火雷攻击方式
         self.check_night_atk_type()
 
         # 技能发动特殊攻击
@@ -609,8 +609,8 @@ class Ship(Time):
         raise UserWarning(f'Wrong call of missile attack from {self.status["name"]}!')
 
     def check_night_atk_type(self):
+        from src.wsgr.formulas import NightFirelAtk, NightFireTorpedolAtk
         if isinstance(self, (CA, CL, CAV)):
-            from src.wsgr.formulas import NightFirelAtk, NightFireTorpedolAtk
             if self.status['torpedo'] == 0:
                 self.night_atk = NightFirelAtk
             else:
@@ -1060,6 +1060,65 @@ class BBV(Aircraft, LargeShip, MainShip):
         from src.wsgr.formulas import AirAntiSubAtk
         self.anti_sub_atk = AirAntiSubAtk  # 反潜攻击
 
+    def raise_atk(self, target_fleet):
+        from src.wsgr.phase import SecondShellingPhase
+
+        # 技能发动特殊攻击
+        for tmp_buff in self.active_buff:
+            if tmp_buff.is_active(atk=self.normal_atk, enemy=target_fleet):
+                return tmp_buff.active_start(atk=self.normal_atk, enemy=target_fleet)
+
+        # 技能优先攻击特定船型
+        prior = self.get_prior_type_target(target_fleet)
+        if prior is not None:
+            atk = self.normal_atk(
+                timer=self.timer,
+                atk_body=self,
+                def_list=prior,
+            )
+            return [atk]
+
+        # 次轮炮击优先反潜
+        if isinstance(self.timer.phase, SecondShellingPhase) \
+                and self.damaged == 1 \
+                and self.check_antisub_plane():
+            def_list = target_fleet.get_atk_target(atk_type=self.anti_sub_atk)
+            if len(def_list):
+                atk = self.anti_sub_atk(
+                    timer=self.timer,
+                    atk_body=self,
+                    def_list=def_list,
+                )
+                return [atk]
+
+        # 常规攻击模式
+        def_list = target_fleet.get_atk_target(atk_type=self.normal_atk)
+        if not len(def_list):
+            return []
+
+        atk = self.normal_atk(
+            timer=self.timer,
+            atk_body=self,
+            def_list=def_list,
+        )
+        return [atk]
+
+    def check_antisub_plane(self):
+        """检查是否携带反潜飞机"""
+        for tmp_equip in self.equipment:
+            if isinstance(tmp_equip, (Plane, ScoutPlane)):
+                if tmp_equip.get_final_status('antisub') > 0:
+                    return True
+        return False
+
+
+class BBV0(BBV):
+    """深海航战"""
+    def __init__(self, timer):
+        super().__init__(timer)
+        from src.wsgr.formulas import NightFireTorpedolAtk
+        self.night_atk = NightFireTorpedolAtk
+
 
 class CAV(Aircraft, AntiSubShip, MidShip, CoverShip):
     """航巡"""
@@ -1103,7 +1162,9 @@ class DD(AntiSubShip, SmallShip, CoverShip):
 
 
 class BM(SmallShip, CoverShip):
-    pass
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'BM'
 
 
 class AP(SmallShip, CoverShip):
@@ -1204,12 +1265,16 @@ class DefMissileShip(MissileShip):
 
 class ASDG(AtkMissileShip, SmallShip, MainShip):
     """导驱"""
-    pass
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'ASDG'
 
 
 class AADG(DefMissileShip, SmallShip, CoverShip):
     """防驱"""
-    pass
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'AADG'
 
 
 class BBG(AtkMissileShip, LargeShip, MainShip):
@@ -1298,7 +1363,9 @@ class Airfield(LandUnit, Aircraft):
 
 class Port(LandUnit):
     """港口"""
-    pass
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'Port'
 
 
 class Fleet(Time):

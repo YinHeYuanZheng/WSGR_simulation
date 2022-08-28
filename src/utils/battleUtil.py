@@ -90,6 +90,7 @@ class BattleUtil(Time):
         self.timer.phase_start()
 
     def supply_cost(self):
+        """扣除昼战消耗，夜战在NightPhase内扣除"""
         for tmp_ship in self.friend.ship:
             tmp_ship.supply_oil = max(0., tmp_ship.supply_oil - 0.2)
             tmp_ship.supply_ammo = max(0., tmp_ship.supply_ammo - 0.2)
@@ -238,6 +239,11 @@ class AirBattle(BattleUtil):
             self.run_phase(NightPhase)
         self.end_phase()
 
+    def supply_cost(self):
+        for tmp_ship in self.friend.ship:
+            tmp_ship.supply_oil = max(0., tmp_ship.supply_oil - 0.1)
+            tmp_ship.supply_ammo = max(0., tmp_ship.supply_ammo - 0.1)
+
 
 class NightBattle(BattleUtil):
     """夜战点"""
@@ -249,6 +255,9 @@ class NightBattle(BattleUtil):
         self.run_phase(BuffPhase)
         self.run_phase(NightPhase)
         self.end_phase()
+
+    def supply_cost(self):
+        pass
 
 
 class MidPoint(BattleUtil):
