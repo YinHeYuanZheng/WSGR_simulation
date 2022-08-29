@@ -18,16 +18,16 @@ class Skill_110231(Skill):
             CoeffBuff(
                 timer=timer,
                 name='crit',
-                phase=(AirPhase,),
+                phase=AirPhase,
                 value=0.12,
                 bias_or_weight=0
             ),
             CoeffBuff(
                 timer=timer,
                 name='hit_rate',
-                phase=(ShellingPhase,),
+                phase=ShellingPhase,
                 value=0.12,
-                bias_or_weight=2
+                bias_or_weight=0
             )
         ]
 

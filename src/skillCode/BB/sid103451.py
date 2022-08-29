@@ -26,7 +26,7 @@ class Skill_103451_1(Skill):
                 name='hit_rate',
                 phase=ShellingPhase,
                 value=-0.06,
-                bias_or_weight=2
+                bias_or_weight=0
             )
         ]
 
@@ -43,7 +43,7 @@ class Skill_103451_2(Skill):
                 name='hit_rate',
                 phase=FirstShellingPhase,
                 value=0.09,
-                bias_or_weight=2
+                bias_or_weight=0
             ),
             CoeffBuff(
                 timer,

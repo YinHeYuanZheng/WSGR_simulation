@@ -279,10 +279,10 @@ class ATK(Time):
         hit_rate += add
 
         # 技能补正
-        hitrate_scale, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
-        hit_rate *= 1 + hitrate_scale
-        hitrate_scale, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
-        hit_rate *= 1 - hitrate_scale
+        _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
+        hit_rate += hitrate_bias
+        _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
+        hit_rate -= hitrate_bias
 
         hit_rate = cap(hit_rate)
         verify = np.random.random()
@@ -520,14 +520,14 @@ class AirStrikeAtk(AirAtk):
         hit_rate *= aa_hit_coef * mul_rate
 
         # 装备补正
-        hitrate_scale, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
-        hit_rate *= 1 + hitrate_scale
+        _, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
+        hit_rate += hitrate_bias
 
         # 技能补正
-        hitrate_scale, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
-        hit_rate *= 1 + hitrate_scale
-        hitrate_scale, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
-        hit_rate *= 1 - hitrate_scale
+        _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
+        hit_rate += hitrate_bias
+        _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
+        hit_rate -= hitrate_bias
 
         hit_rate = cap(hit_rate)
         verify = np.random.random()
@@ -821,14 +821,14 @@ class MissileAtk(ATK):
         hit_rate *= 1 - max(0, d_size * 0.1)
 
         # 装备补正
-        hitrate_scale, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
-        hit_rate *= 1 + hitrate_scale
+        _, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
+        hit_rate += hitrate_bias
 
         # 技能补正
-        hitrate_scale, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
-        hit_rate *= 1 + hitrate_scale
-        hitrate_scale, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
-        hit_rate *= 1 - hitrate_scale
+        _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
+        hit_rate += hitrate_bias
+        _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
+        hit_rate -= hitrate_bias
 
         hit_rate = cap(hit_rate)
         verify = np.random.random()
@@ -1082,10 +1082,10 @@ class AirNormalAtk(NormalAtk, AirAtk):
         hit_rate *= aa_hit_coef * mul_rate
 
         # 技能补正
-        hitrate_scale, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
-        hit_rate *= 1 + hitrate_scale
-        hitrate_scale, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
-        hit_rate *= 1 - hitrate_scale
+        _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
+        hit_rate += hitrate_bias
+        _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
+        hit_rate -= hitrate_bias
 
         hit_rate = cap(hit_rate)
         verify = np.random.random()

@@ -20,9 +20,9 @@ class Skill_110041(Skill):
             CoeffBuff(
                 timer=timer,
                 name='hit_rate',
-                phase=(AirPhase,),
+                phase=AirPhase,
                 value=-0.2,
-                bias_or_weight=2
+                bias_or_weight=0
             )
         ]
 

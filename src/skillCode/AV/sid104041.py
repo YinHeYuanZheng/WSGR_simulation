@@ -21,7 +21,7 @@ class Skill_104041_1(Skill):
             StatusBuff(
                 timer=timer,
                 name='evasion',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=-15,
                 bias_or_weight=0
             )
@@ -38,14 +38,14 @@ class Skill_104041_2(Skill):
             AtkHitBuff(
                 timer=timer,
                 name='atk_hit',
-                phase=(AirPhase,),
+                phase=AirPhase,
                 buff=[
                     CoeffBuff(
                         timer=timer,
                         name='hit_rate',
-                        phase=(AirPhase,),
+                        phase=AirPhase,
                         value=-0.15,
-                        bias_or_weight=2
+                        bias_or_weight=0
                     )
                 ],
                 side=0
