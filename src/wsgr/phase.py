@@ -9,7 +9,7 @@ from src.wsgr.wsgrTimer import Time
 from src.wsgr.formulas import *
 import src.wsgr.formulas as rform
 from src.wsgr.equipment import *
-from src.wsgr.ship import Submarine, AntiSubShip
+from src.wsgr.ship import Submarine
 
 __all__ = ['AllPhase',
            'PreparePhase',
@@ -202,6 +202,12 @@ class AirPhase(DaytimePhase):
         self.air_strike(atk_friend, def_enemy, aerial_enemy, side=1)
         self.air_strike(atk_enemy, def_friend, aerial_friend, side=0)
 
+        # 梯形锁定
+        if self.friend.form == 4:
+            self.t_form_lock(self.friend.ship, self.enemy.ship)
+        if self.enemy.form == 4:
+            self.t_form_lock(self.enemy.ship, self.friend.ship)
+
     def air_strike(self, attack, defend, aerial, side):
         """
 
@@ -298,6 +304,27 @@ class AirPhase(DaytimePhase):
                     if tmp_equip.load > 0:
                         return True
         return False
+
+    def t_form_lock(self, friend, enemy):
+        """
+        梯形阵锁定
+        :param friend: list of ship
+        :param enemy: list of ship
+        """
+        for friend_ship in friend[::-1]:
+            if friend_ship.function == 'cover' and friend_ship.damaged < 4:
+                t_lock_loc = friend_ship.loc
+
+                target = [ship for ship in enemy
+                          if ship.loc <= t_lock_loc and ship.damaged < 4]  # 所有在护卫舰前方的存活敌舰
+                target.sort(key=lambda x: -x.loc)  # 按照站位倒序排列
+                for enemy_ship in target:  # 为第一个没有锁定的敌舰施加锁定
+                    if not enemy_ship.get_special_buff('t_lock'):
+                        from src.wsgr.skill import SpecialBuff
+                        enemy_ship.add_buff(SpecialBuff(timer=self.timer,
+                                                        name='t_lock',
+                                                        phase=AllPhase))
+                        break
 
 
 class MissilePhase(DaytimePhase):
