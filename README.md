@@ -88,6 +88,8 @@ Battle -+- (type) 战斗类型(可以填战斗点属性或 Map)
         |                  +- (skill)
         |                  +- Equipment -+- (loc)
         |                                +- (eid)
+        |                  +- Strategy -+- (stid)
+        |                               +- (level)不填默认为3
         |
         | 只有当 type 填入 Map 时才会写 Map 节点，否则只有两个 Fleet 节点
         +- Map -+- (mapid) 与对应的 mapid.xml 中的数字相同

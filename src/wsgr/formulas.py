@@ -361,6 +361,12 @@ class ATK(Time):
             damage = np.ceil(damage * (1 + tank_damage_debuff))
 
         # 战术终伤
+        buff_scale = self.atk_body.get_strategy_value('final_damage_buff', self)
+        if buff_scale:
+            damage = np.ceil(damage * (1 + buff_scale))
+        debuff_scale = self.target.get_strategy_value('final_damage_debuff', self)
+        if debuff_scale:
+            damage = np.ceil(damage * (1 + debuff_scale))
 
         # 技能伤害减免
         _, reduce_damage = self.target.get_atk_buff(name='reduce_damage',
@@ -576,6 +582,12 @@ class AirStrikeAtk(AirAtk):
             damage = np.ceil(damage * (1 + buff_scale))
 
         # 战术终伤
+        buff_scale = self.atk_body.get_strategy_value('final_damage_buff', self)
+        if buff_scale:
+            damage = np.ceil(damage * (1 + buff_scale))
+        debuff_scale = self.target.get_strategy_value('final_damage_debuff', self)
+        if debuff_scale:
+            damage = np.ceil(damage * (1 + debuff_scale))
 
         # 技能伤害减免
         _, reduce_damage = self.target.get_atk_buff(name='reduce_damage',
@@ -1193,6 +1205,12 @@ class AirNormalAtk(NormalAtk, AirAtk):
             damage = np.ceil(damage * (1 + tank_damage_debuff))
 
         # 战术终伤
+        buff_scale = self.atk_body.get_strategy_value('final_damage_buff', self)
+        if buff_scale:
+            damage = np.ceil(damage * (1 + buff_scale))
+        debuff_scale = self.target.get_strategy_value('final_damage_debuff', self)
+        if debuff_scale:
+            damage = np.ceil(damage * (1 + debuff_scale))
 
         # 技能伤害减免
         _, reduce_damage = self.target.get_atk_buff(name='reduce_damage',
@@ -1336,6 +1354,12 @@ class NightAntiSubAtk(AntiSubAtk, NightAtk):
             damage = np.ceil(damage * (1 + tank_damage_debuff))
 
         # 战术终伤
+        buff_scale = self.atk_body.get_strategy_value('final_damage_buff', self)
+        if buff_scale:
+            damage = np.ceil(damage * (1 + buff_scale))
+        debuff_scale = self.target.get_strategy_value('final_damage_debuff', self)
+        if debuff_scale:
+            damage = np.ceil(damage * (1 + debuff_scale))
 
         # 技能伤害减免
         _, reduce_damage = self.target.get_atk_buff(name='reduce_damage',

@@ -235,8 +235,7 @@ class Ship(Time):
 
     def init_supply(self):
         """初始化补给"""
-        if self.get_strategy_buff('strategy_ammo'):  # 检测是否携带后备弹
-            self.supply_ammo += 0.2
+        self.supply_ammo  = 1 + self.get_strategy_value('strategy_ammo')
 
     def get_raw_skill(self):
         """获取技能，让巴尔可调用"""
@@ -412,9 +411,7 @@ class Ship(Time):
             if tmp_buff.name == name and tmp_buff.bias_or_weight == 2:
                 scale_mult *= (1 + tmp_buff.value)
 
-        for tmp_buff in self.strategy_buff.values():
-            if tmp_buff.name == name and tmp_buff.bias_or_weight == 0:
-                bias += tmp_buff.value
+        bias += self.get_strategy_value(name, *args, **kwargs)
 
         return scale_add, scale_mult, bias  # 先scale后bias
 
@@ -431,8 +428,9 @@ class Ship(Time):
                     scale_add += tmp_buff.value
                 elif tmp_buff.bias_or_weight == 2:
                     scale_mult *= (1 + tmp_buff.value)
-                else:
-                    pass
+
+        bias += self.get_strategy_value(name, atk, *args, **kwargs)
+
         return (1 + scale_add) * scale_mult - 1, bias  # 先scale后bias
 
     def atk_coef_process(self, atk, *args, **kwargs):
@@ -459,8 +457,12 @@ class Ship(Time):
                     return True
         return False
 
-    def get_strategy_final_damage(self):
-        pass  # todo 战术终伤
+    def get_strategy_value(self, name, *args, **kwargs):
+        """查询战术数值"""
+        for tmp_buff in self.strategy_buff.values():
+            if tmp_buff.name == name and tmp_buff.is_active(*args, **kwargs):
+                return tmp_buff.value
+        return 0
 
     def get_unique_effect(self, effect_type):
         if not isinstance(effect_type, list):
@@ -652,11 +654,16 @@ class Ship(Time):
                     tmp_buff.is_active(atk=atk, *args, **kwargs):
                 tmp_buff.activate(atk=atk, *args, **kwargs)
 
-        if name == 'atk_be_hit':  # todo 战术反击
+        if name == 'atk_be_hit':
             for tmp_buff in self.temper_buff:
                 if tmp_buff.name == 'hit_back' and \
                         tmp_buff.is_active(atk=atk, *args, **kwargs):
                     return tmp_buff.activate(atk=atk, *args, **kwargs)
+
+            strategy_hit_back = self.strategy_buff.get(key='231')
+            if strategy_hit_back is not None:
+                if strategy_hit_back.is_active(atk=atk, *args, **kwargs):
+                    return strategy_hit_back.activate(atk=atk, *args, **kwargs)
 
     def get_damage(self, damage):
         """受伤结算，过伤害保护，需要返回受伤与否"""
@@ -777,7 +784,7 @@ class Ship(Time):
         self.supply_oil = 1
 
         # 统计补给耗弹并补满
-        strategy_ammo = 0.2 if self.get_special_buff('strategy_ammo') else 0
+        strategy_ammo = self.get_strategy_value('strategy_ammo')
         supply['ammo'] += np.ceil((1 + strategy_ammo - self.supply_ammo) * self.status['supply_ammo'])
         self.supply_ammo = 1 + strategy_ammo
 

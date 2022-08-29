@@ -133,9 +133,10 @@ class EquipSkill(Skill):
 class Strategy(Skill):
     """战术"""
 
-    def __init__(self, timer, master):
+    def __init__(self, timer, master, level):
         super().__init__(timer, master)
         self.stid = '000'  # 战术编号
+        self.level = level
 
 
 class FleetStrategy(Strategy):

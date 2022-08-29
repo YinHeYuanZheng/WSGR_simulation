@@ -69,7 +69,7 @@ class PreparePhase(AllPhase):
         # recon_flag = True  # 暂时默认索敌成功
         self.timer.set_recon(recon_flag=recon_flag)
 
-        # 迂回
+        # todo 迂回
 
         # 结算影响队友航速、索敌的技能，结算让巴尔
         self.timer.run_prepare_skill(self.friend, self.enemy)
@@ -499,6 +499,8 @@ class TorpedoPhase(DaytimePhase):
                 num = 1
 
             # 雁行雷击
+            if tmp_ship.get_strategy_buff('strategy_multi_torpedo'):
+                num += 1
 
             # 发起鱼雷攻击
             for i in range(num):
