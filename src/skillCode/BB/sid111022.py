@@ -33,7 +33,7 @@ class Skill_111022_1(Skill):
                 timer=timer,
                 name='ignore_armor',
                 phase=ShellingPhase,
-                value=1,
+                value=-1,
                 bias_or_weight=1,
                 atk_request=[Request_1]
             )
