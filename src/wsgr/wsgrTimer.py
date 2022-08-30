@@ -10,24 +10,32 @@ class timer:
     """战斗时点依赖"""
 
     def __init__(self):
+        self.point = None           # 节点
+
         self.recon_flag = None      # 索敌
         self.direction_flag = None  # 航向, 优同反劣分别为1-4
         self.air_con_flag = None    # 制空结果, 从空确到空丧分别为1-5
         self.phase = None           # 阶段
         self.atk = None
+        self.env_skill = []         # 环境效果
+        self.end_skill = []         # 环境效果
         self.queue = {              # 有时点依赖的技能
             'magnet': [],           # 嘲讽
             'tank': [],             # 挡枪
         }
         self.log = {
-            'create_damage': {
-                1: np.zeros((6,)),
-                0: np.zeros((6,))
-            },
             'miss': 0,
             'hit': 0,
+            'dcitem': 0,                # 使用损管数量
             'record': '',
+            'supply': {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0},
+            'end_with': '',             # 退出时抵达位置
+            'end_with_boss': False,     # 是否抵达boss点
         }
+
+    def set_point(self, point):
+        self.point = point
+        self.log['record'] += f'-> {point}: {point.type.__name__}\n'
 
     def set_recon(self, recon_flag):
         self.recon_flag = recon_flag
@@ -46,8 +54,36 @@ class timer:
     def set_atk(self, atk):
         self.atk = atk
 
+    def run_prepare_skill(self, friend, enemy):
+        """结算地图准备阶段技能"""
+        for tmp_skill in self.env_skill:
+            if tmp_skill.is_prep() and \
+                    tmp_skill.is_active(friend, enemy):
+                tmp_skill.activate(friend, enemy)
+
+    def run_normal_skill(self, friend, enemy):
+        """结算地图普通技能"""
+        for tmp_skill in self.env_skill:
+            if not tmp_skill.is_prep() and \
+                    tmp_skill.is_active(friend, enemy):
+                tmp_skill.activate(friend, enemy)
+
+    def run_end_skill(self, friend, enemy):
+        """结算结束阶段技能"""
+        for tmp_skill in self.end_skill:
+            tmp_skill.activate(friend, enemy)
+
     def get_dist(self):
-        return 5
+        if self.point is not None:
+            return self.point.level
+        else:
+            return 5  # 特殊点位手动置为5
+
+    def get_dist_from_start(self):
+        if self.point is not None:
+            return 6 - self.point.level
+        else:
+            return 5  # 特殊点位手动置为5
 
     def queue_append(self, buff):
         if buff.name == 'tank':
@@ -63,15 +99,10 @@ class timer:
         self.direction_flag = None  # 航向
         self.air_con_flag = None    # 制空结果
         self.atk = None
-        self.log = {
-            'create_damage': {
-                1: np.zeros((6,)),
-                0: np.zeros((6,))
-            },
+        self.log.update({
             'miss': 0,
             'hit': 0,
-            'record': self.log['record']
-        }
+        })
         self.queue = {
             'magnet': [],
             'tank': [],
@@ -91,10 +122,8 @@ class timer:
                 self.log['miss'] += 1
             else:
                 self.log['hit'] += 1
-        if isinstance(damage_value, str):
-            damage_value = 0
-        self.log['create_damage'][self.atk.atk_body.side][self.atk.atk_body.loc - 1]\
-            += damage_value
+        if not isinstance(damage_value, str):
+            self.atk.atk_body.create_damage(damage_value)
 
 
 class Time:

@@ -1,0 +1,30 @@
+# -*- coding:utf-8 -*-
+# Author:银河远征
+# env:py38
+# 炮击训练
+
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+
+"""当自身在队伍中时，提高舰队中战列巡洋舰的火力值3/5/7/10点。"""
+
+
+class Strategy_112(FleetStrategy):
+    def __init__(self, timer, master, level=3):
+        super().__init__(timer, master, level)
+        value = [3, 5, 7, 10]
+        self.stid = '112'
+        self.target = TypeTarget(side=1, shiptype=BC)
+        self.buff = [
+            StatusBuff(
+                timer=timer,
+                name='fire',
+                phase=AllPhase,
+                value=value[self.level],
+                bias_or_weight=0
+            )
+        ]
+
+
+skill = [Strategy_112]

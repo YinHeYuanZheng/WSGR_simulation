@@ -49,11 +49,11 @@ class Equipment(Time):
     def get_status(self, name):
         """根据属性名称获取装备属性，包含常驻面板加成"""
         status = self.status.get(name, 0)
-        status_key = ['health', 'fire', 'torpedo', 'armor', 'antisub', 'recon',
-                      'accuracy', 'range', 'evasion', 'luck', 'bomb', 'antiair']
+        status_key = ['fire', 'torpedo', 'armor', 'antiair', 'antisub',
+                      'accuracy', 'evasion', 'recon', 'luck', 'bomb']
 
         scale_add = 0
-        scale_mult = 1
+        # scale_mult = 1
         bias = 0
         for tmp_buff in self.common_buff:
             if tmp_buff.name == name and tmp_buff.is_active():
@@ -61,16 +61,16 @@ class Equipment(Time):
                     bias += tmp_buff.value
                 elif tmp_buff.bias_or_weight == 1:
                     scale_add += tmp_buff.value
-                elif tmp_buff.bias_or_weight == 2:
-                    scale_mult *= (1 + tmp_buff.value)
-                else:
-                    pass
+                # elif tmp_buff.bias_or_weight == 2:
+                #     scale_mult *= (1 + tmp_buff.value)
+                # else:
+                #     pass
 
             elif name in status_key and \
                     tmp_buff.name == 'all_status' and\
                     tmp_buff.is_active():
                 scale_add += tmp_buff.value
-        status = status * (1 + scale_add) * scale_mult + bias
+        status = status * (1 + scale_add) + bias
         return max(0, status)
 
     def get_final_status(self, name):
@@ -114,10 +114,10 @@ class Equipment(Time):
                     bias += tmp_buff.value
                 elif tmp_buff.bias_or_weight == 1:
                     scale_add += tmp_buff.value
-                elif tmp_buff.bias_or_weight == 2:
-                    scale_mult *= (1 + tmp_buff.value)
-                else:
-                    pass
+                # elif tmp_buff.bias_or_weight == 2:
+                #     scale_mult *= (1 + tmp_buff.value)
+                # else:
+                #     pass
         return scale_add, scale_mult, bias  # 先scale后bias
 
     def get_atk_buff(self, name, atk, *args, **kwargs):
@@ -136,6 +136,19 @@ class Equipment(Time):
                 else:
                     pass
         return (1 + scale_add) * scale_mult - 1, bias  # 先scale后bias
+
+    def get_special_buff(self, name, *args, **kwargs):
+        """查询机制增益"""
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == name:
+                if tmp_buff.is_active(*args, **kwargs):
+                    tmp_buff.activate(*args, **kwargs)
+                    return True
+        return False
+
+    def clear_buff(self):
+        """清空临时buff"""
+        self.temper_buff = []
 
 
 class Plane(Equipment):
@@ -166,7 +179,7 @@ class Fighter(Plane):
     pass
 
 
-class ScoutPLane(Equipment):
+class ScoutPlane(Equipment):
     pass
 
 
@@ -219,12 +232,17 @@ class Launcher(Equipment):
 
 
 class Missile(Equipment):
+    """导弹总类"""
     def __init__(self, timer, master, enum):
         super().__init__(timer, master, enum)
         self.load = self.master.load[self.enum - 1]
 
 
-class AntiMissile(Equipment):
-    def __init__(self, timer, master, enum):
-        super().__init__(timer, master, enum)
-        self.load = self.master.load[self.enum - 1]
+class NormalMissile(Missile):
+    """通用型导弹"""
+    pass
+
+
+class AntiMissile(Missile):
+    """防空型导弹"""
+    pass

@@ -1,5 +1,8 @@
 # Project exclude paths
-/src/junkbin/
 /Pipfile
 /Pipfile.lock
 /.idea
+/.vscode
+/config/event
+/depend/map/event
+*.pyc

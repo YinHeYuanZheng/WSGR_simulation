@@ -28,6 +28,10 @@ class Dataset:
             self._infile, sheet_name='装备数据-深海', keep_default_na=False, dtype=str)
         self.equip_data_enemy.set_index('eid', inplace=True)
 
+        self.map_data = pd.read_excel(
+            self._infile, sheet_name='海图', keep_default_na=False, dtype=str)
+        self.map_data.set_index('pid', inplace=True)
+
     def get_friend_ship_status(self, cid):
         if cid[1] == '0':
             ship_list = self.ship_data_0
@@ -88,6 +92,7 @@ class Dataset:
             'type': ship.loc['舰种'],  # 舰种
             'name': ship.loc['名称'],  # 船名
             'country': ship.loc['国籍'],  # 国籍
+            'level': int(ship.loc['等级']),  # 等级
             'total_health': int(ship.loc['耐久']),  # 总耐久
             'health': int(ship.loc['耐久']),  # 当前耐久
             'fire': int(ship.loc['火力']),  # 火力
@@ -146,12 +151,12 @@ class Dataset:
         name_list = ['耐久', '火力', '鱼雷', '装甲', '对潜', '索敌',
                      '命中', '射程', '闪避', '幸运', '轰炸', '对空',
                      '对空倍率', '对空补正', '铝耗',
-                     # '导弹突防', '导弹拦截', '导弹防护',
+                     '导弹突防', '导弹拦截', '导弹防护',
                      ]
         eng_name_list = ['health', 'fire', 'torpedo', 'armor', 'antisub', 'recon',
                          'accuracy', 'range', 'evasion', 'luck', 'bomb', 'antiair',
                          'aa_scale', 'aa_coef', 'supply_almn',
-                         # 'missile_atk', 'missile_def', 'missile_protect',
+                         'missile_atk', 'missile_def', 'missile_protect',
                          ]
 
         status = {
@@ -177,4 +182,19 @@ class Dataset:
             elif name == '对空倍率':
                 status['aa_scale'] = 1.
 
+        return status
+
+    def get_point_status(self, pid):
+        try:
+            point = self.map_data.loc[pid]
+        except:
+            raise ValueError(f"pid error with '{pid}'")
+
+        status = {
+            'type': point.loc['种类'],
+            'roundabout': bool(int(point.loc['迂回'])),
+            'enemy': [list(point.iloc[4:11]),
+                      list(point.iloc[17:24]),
+                      list(point.iloc[30:37])],
+        }
         return status
