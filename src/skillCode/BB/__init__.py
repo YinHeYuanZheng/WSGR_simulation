@@ -26,6 +26,7 @@ from . import sid104601  # 宾夕法尼亚-1
 from . import sid104641  # 南达科他(1920)-1
 from . import sid104681  # 猎户座-1
 from . import sid104991  # 克里蒙梭-1
+from . import sid105061  # 1938(I)-1
 from . import sid105141  # 近江-1
 from . import sid105201  # 蒙大拿-1
 from . import sid105321  # 但丁-1
