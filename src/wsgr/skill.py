@@ -7,15 +7,11 @@ import numpy as np
 import copy
 
 from src.wsgr.wsgrTimer import Time
-from src.wsgr.ship import Fleet, Ship
+from src.wsgr.ship import Ship, Fleet
 
 
 class Skill(Time):
     def __init__(self, timer, master):
-        """
-        :param timer: src.wsgr.wsgrTimer.timer
-        :param master: src.wsgr.ship.Ship
-        """
         super().__init__(timer)
         self.master = master
 
@@ -44,19 +40,16 @@ class Skill(Time):
     def is_prep(self):
         return False
 
-    def is_end_skill(self):
-        return False
+    def change_master(self, master):
+        """让巴尔技能调用，更换技能master"""
+        self.master = master
 
-    # def change_master(self, master):
-    #     """让巴尔技能调用，更换技能master"""
-    #     self.master = master
-    #
-    #     if self.request is not None:
-    #         for tmp_request in self.request:
-    #             tmp_request.change_master(master)
-    #
-    #     if self.target is not None:
-    #         self.target.change_master(master)
+        if self.request is not None:
+            for tmp_request in self.request:
+                tmp_request.change_master(master)
+
+        if self.target is not None:
+            self.target.change_master(master)
 
     def change_rate(self, rate):
         """让巴尔技能调用，更改发动概率"""
@@ -78,83 +71,49 @@ class PrepSkill(Skill):
         return True
 
 
-class EndSkill(Skill):
-    """结束阶段技能(女灶神)"""
-    def is_end_skill(self):
-        return True
-
-
 class EquipSkill(Skill):
     """装备携带特效"""
 
     def __init__(self, timer, master, value: list):
-        """
-        :param master: 装备携带者, Ship
-        :param value: 技能数值，可以为空，数据库内以','分隔，读取后为list
-        """
         super().__init__(timer, master)
         self.value = value
 
-    # def activate(self, friend, enemy):  # 特效叠加判定目前已转移到ship内
-    #     """技能生效时, 给所有满足条件的目标套上所有buff"""
-    #     target = self.target.get_target(friend, enemy)
-    #     for tmp_target in target:
-    #         for tmp_buff in self.buff[:]:
-    #             tmp_buff = copy.copy(tmp_buff)
-    #             buff_type = tmp_buff.effect_type
-    #
-    #             # 2类不叠加(2类为舰船技能，标注为多个单位携带此技能不重复生效)
-    #             # 注意2类每个buff标识数字各不相同
-    #             if 2 <= buff_type < 3:
-    #                 type2 = tmp_target.get_unique_effect(effect_type=buff_type)
-    #
-    #                 # 有2类特效，跳过
-    #                 if type2 is not None:
-    #                     continue
-    #
-    #             # 3和4类不叠加
-    #             elif buff_type in [3, 4]:
-    #                 type34 = tmp_target.get_unique_effect(effect_type=buff_type)
-    #
-    #                 # 特效类型相同，取最高值
-    #                 if type34 is not None:
-    #                     value1 = tmp_buff.value
-    #                     value2 = type34.value
-    #                     type34.set_value(max(value1, value2))
-    #                     continue
-    #
-    #                 # 特效类型不同，跳过(现版本已取消)
-    #                 # elif type34.effect_type != buff_type:
-    #                 #     continue
-    #
-    #             tmp_target.add_buff(tmp_buff)
-
-
-class Strategy(Skill):
-    """战术"""
-
-    def __init__(self, timer, master, level):
-        super().__init__(timer, master)
-        self.stid = '000'  # 战术编号
-        self.level = level
-
-
-class FleetStrategy(Strategy):
-    """光环战术"""
-
     def activate(self, friend, enemy):
+        """技能生效时, 给所有满足条件的目标套上所有buff"""
         target = self.target.get_target(friend, enemy)
         for tmp_target in target:
-            buff = copy.copy(self.buff[0])
-            tmp_target.add_strategy_buff(buff, self.stid)
+            for tmp_buff in self.buff[:]:
+                tmp_buff = copy.copy(tmp_buff)
+                buff_type = tmp_buff.effect_type
 
+                # 2类不叠加
+                if buff_type in [2.1, 2.2]:
+                    type2 = tmp_target.get_unique_effect(effect_type=buff_type)
 
-class SelfStrategy(Strategy):
-    """单体战术"""
+                    # 有2类特效，跳过
+                    if type2 is not None:
+                        continue
 
-    def activate(self, *args, **kwargs):
-        buff = copy.copy(self.buff[0])
-        self.master.add_strategy_buff(buff, self.stid)
+                # 3和4类不叠加
+                elif buff_type in [3, 4]:
+                    type34 = tmp_target.get_unique_effect(effect_type=[3, 4])
+
+                    # 无3和4类特效
+                    if type34 is None:
+                        pass
+
+                    # 特效类型不同，跳过
+                    elif type34.effect_type != buff_type:
+                        continue
+
+                    # 特效类型相同，取最高值
+                    else:
+                        value1 = tmp_buff.value
+                        value2 = type34.value
+                        type34.set_value(max(value1, value2))
+                        continue
+
+                tmp_target.add_buff(tmp_buff)
 
 
 class Request(Time):
@@ -169,9 +128,9 @@ class Request(Time):
     def __bool__(self):
         pass
 
-    # def change_master(self, master):
-    #     """让巴尔技能调用，更换技能master"""
-    #     self.master = master
+    def change_master(self, master):
+        """让巴尔技能调用，更换技能master"""
+        self.master = master
 
 
 class ATKRequest(Time):
@@ -206,37 +165,8 @@ class Target:
         else:
             return enemy
 
-    # def change_master(self, master):
-    #     pass
-
-
-class CombinedTarget(Target):
-    """多个Target类组合筛选"""
-
-    def __init__(self, side, target_list: list):
-        """
-        :param target_list: list of Target, 筛选将按照列表内顺序依次进行
-        """
-        super().__init__(side)
-        # 检查列表内target的side是否与自身一致
-        for target in target_list:
-            if target.side != self.side:
-                raise ValueError('"side" of one CombinedTarget should be the same!')
-        self.target_list = target_list
-
-    def get_target(self, friend, enemy):
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
-        for tmp_target in self.target_list:
-            if self.side == 1:
-                fleet = tmp_target.get_target(fleet, None)
-            else:
-                fleet = tmp_target.get_target(None, fleet)
-
-        return fleet
+    def change_master(self, master):
+        pass
 
 
 class SelfTarget(Target):
@@ -248,18 +178,15 @@ class SelfTarget(Target):
     def get_target(self, friend, enemy):
         return [self.master]
 
-    # def change_master(self, master):
-    #     """让巴尔技能调用，更换技能master"""
-    #     self.master = master
+    def change_master(self, master):
+        """让巴尔技能调用，更换技能master"""
+        self.master = master
 
 
 class TypeTarget(Target):
     """指定船型的目标"""
     def __init__(self, side, shiptype):
-        """
-        :praram shiptype: tuple or class Ship
-        """
-        super().__init__(side)        
+        super().__init__(side)
         self.shiptype = shiptype
 
     def get_target(self, friend, enemy):
@@ -294,30 +221,6 @@ class AntiTypeTarget(TypeTarget):
         return target
 
 
-class RandomTarget(Target):
-    """随机选择n个目标"""
-    def __init__(self, side, num):
-        super().__init__(side)
-        self.num = num
-
-    def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
-        if len(fleet) > self.num:
-            target = np.random.choice(fleet, self.num, replace=False)
-        else:
-            target = fleet
-        return target
-
-
 class RandomTypeTarget(TypeTarget):
     """指定船型内随机选择一个目标"""
     def get_target(self, friend, enemy):
@@ -338,7 +241,7 @@ class RandomTypeTarget(TypeTarget):
 
 class OrderedTypeTarget(TypeTarget):
     """按照指定船型的顺序+站位顺序选择目标"""
-    def __init__(self, shiptype, side=0):
+    def __init__(self, shiptype: tuple, side=0):
         super().__init__(side, shiptype)
 
     def get_target(self, friend, enemy):
@@ -358,33 +261,9 @@ class OrderedTypeTarget(TypeTarget):
         return target
 
 
-class CidTarget(Target):
-    """指定cid的目标"""
-    def __init__(self, side, cid_list: list):
-        super().__init__(side)
-        self.cid_list = cid_list
-
-    def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
-        target = [ship for ship in fleet if ship.cid in self.cid_list]
-        return target
-
-
 class LocTarget(Target):
     """指定站位的目标"""
     def __init__(self, side, loc: list):
-        """
-        :param loc: list, 站位, 数值范围1-6
-        """
         super().__init__(side)
         self.loc = loc
 
@@ -425,9 +304,9 @@ class NearestLocTarget(Target):
         self.expand = expand
         self.shiptype = shiptype
 
-    # def change_master(self, master):
-    #     """让巴尔技能调用，更换技能master"""
-    #     self.master = master
+    def change_master(self, master):
+        """让巴尔技能调用，更换技能master"""
+        self.master = master
 
     def get_target(self, friend, enemy):
         if isinstance(friend, Fleet):
@@ -497,7 +376,7 @@ class NearestLocTarget(Target):
         index = fleet.index(self.master)  # 技能所有者在list内的索引
         loc = self.master.loc  # 技能所有者的实际站位
         gap = loc - index  # 实际列表索引与编队索引的差距
-        while count > 0 and index < len(fleet) - 1:
+        while count > 0 and index < len(fleet):
             index += 1  # 向后推进一位
             tmp_ship = fleet[index]
 
@@ -678,7 +557,7 @@ class Buff(Time):
     def is_active_buff(self):
         return False
 
-    def is_unique_effect(self):
+    def is_equip_effect(self):
         return False
 
     def is_coef_process(self):
@@ -729,8 +608,8 @@ class CoeffBuff(Buff):
         return f"{self.name}: {self.value}"
 
 
-class UniqueEffect(Buff):
-    """唯一特效"""
+class EquipEffect(Buff):
+    """装备自带特效"""
 
     def __init__(self, timer, effect_type, name, phase, value, bias_or_weight, rate=1):
         super().__init__(timer, name, phase, bias_or_weight, rate)
@@ -738,20 +617,13 @@ class UniqueEffect(Buff):
         self.effect_type = effect_type
 
     def __repr__(self):
-        return f"{self.name}: {self.value}(唯一特效{self.effect_type})"
+        return f"{self.name}: {self.value}(装备特效{self.effect_type})"
 
-    def is_unique_effect(self):
+    def is_equip_effect(self):
         return True
 
     def set_value(self, value):
         self.value = value
-
-
-class EquipEffect(UniqueEffect):
-    """装备自带特效"""
-
-    def __repr__(self):
-        return f"{self.name}: {self.value}(装备特效{self.effect_type})"
 
 
 class AtkBuff(CoeffBuff):
@@ -852,31 +724,24 @@ class FinalDamageBuff(AtkBuff):
         """
         :param name:    final_damage_buff
                         final_damage_debuff
-        :param value:   倍数减 1，如 1.5倍填 0.5, 减伤填负数
         """
         super().__init__(timer, name, phase, value, bias_or_weight, atk_request, rate)
 
 
 class ActPhaseBuff(Buff):
-    """
-    可行动阶段
-    :param name:    act_phase
-                    not_act_phase
-    """
+    """可行动阶段"""
     pass
 
 
 class PriorTargetBuff(Buff):
     """优先攻击目标"""
-    def __init__(self, timer, name, phase, target: Target, ordered,
-                 bias_or_weight=3, rate=1):
+    def __init__(self, timer, name, phase, target, ordered):
         """
         :param name:    prior_type_target
                         prior_loc_target
-        :param ordered: bool
         """
-        super().__init__(timer, name, phase, bias_or_weight, rate)
-        self.target = target  # 筛选器，即 Target类
+        super().__init__(timer, name, phase)
+        self.target = target
         self.ordered = ordered
 
     def activate(self, fleet, *args, **kwargs):
@@ -903,9 +768,6 @@ class MagnetBuff(EventBuff):
     """嘲讽技能"""
     def __init__(self, timer, phase, rate,
                  name='magnet', atk_request=None, bias_or_weight=3):
-        """
-        :param rate:  嘲讽概率, 填入正数(30%填0.3)
-        """
         super().__init__(timer, name, phase, bias_or_weight, rate)
         self.atk_request = atk_request
 
@@ -941,9 +803,6 @@ class UnMagnetBuff(EventBuff):
     """负嘲讽技能"""
     def __init__(self, timer, phase, rate,
                  name='un_magnet', atk_request=None, bias_or_weight=3):
-        """
-        :param rate:  负嘲讽概率, 填入正数(30%填0.3)
-        """
         super().__init__(timer, name, phase, bias_or_weight, rate)
         self.atk_request = atk_request
 
@@ -976,19 +835,15 @@ class TankBuff(EventBuff):
     """挡枪技能"""
     def __init__(self, timer, phase, target, value, rate,
                  name='tank', coef=None, exhaust=1, bias_or_weight=3):
-        """
-        :param target: 保护对象，class Target
-        :param value: float, -1~0, 减伤率(负数)
-        :param rate: float, 0~1, 发动率
-        """
         super().__init__(timer, name, phase, bias_or_weight, rate)
         self.target = target
         self.exhaust = exhaust
 
         self.coef = {'must_hit': True,
                      'tank_damage_debuff': value}
-        if coef is not None:
-            self.coef.update(coef)
+        if coef is None:
+            coef = {}
+        self.coef.update(coef)
 
     def __repr__(self):
         return f"挡枪: {self.rate * 100}%"
@@ -1009,8 +864,6 @@ class TankBuff(EventBuff):
     def activate(self, atk, *args, **kwargs):
         atk.set_target(self.master)
         atk.set_coef(self.coef)
-        if self.exhaust is not None:
-            self.exhaust -= 1
 
 
 class SpecialBuff(Buff):
@@ -1074,17 +927,11 @@ class HitBack(SpecialBuff):
         if self.exhaust is not None:
             self.exhaust -= 1
 
-        from src.wsgr.phase import DaytimePhase
-        if issubclass(self.phase, DaytimePhase):
-            normal_atk = self.master.normal_atk
-        else:
-            normal_atk = self.master.night_atk
-
-        hit_back = normal_atk(
+        hit_back = self.master.normal_atk(
             timer=self.timer,
             atk_body=self.master,
             def_list=None,
-            coef=copy.copy(self.coef),
+            coef=self.coef,
             target=atk.atk_body
         )
         hit_back.changable = False
@@ -1098,9 +945,6 @@ class ActiveBuff(Buff):
                  during_buff: list = None, end_buff: list = None,
                  coef=None, bias_or_weight=3):
         """
-        :param name:    multi_attack
-                        extra_attack
-                        special_attack
         :param num: 总攻击次数
         :param during_buff: 攻击期间buff
         :param end_buff: 攻击结束后buff
@@ -1124,21 +968,13 @@ class ActiveBuff(Buff):
         return True
 
     def is_active(self, atk, enemy, *args, **kwargs):
-        # if isinstance(enemy, list):
-        #     def_list = enemy
-        # elif isinstance(enemy, Fleet):
-        #     def_list = enemy.get_atk_target(atk_type=atk)
-        # else:
-        #     raise TypeError('Enemy should be in form of list or Fleet')
-
         def_list = enemy.get_atk_target(atk_type=atk)
         return len(def_list) and \
                self.rate_verify() and \
                isinstance(self.timer.phase, self.phase)
 
     def active_start(self, atk, enemy, *args, **kwargs):
-        """迭代器，依次执行攻击时效果、攻击行动、攻击后效果
-        攻击结算时替换atk_list"""
+        """迭代器，依次执行攻击时效果、攻击行动、攻击后效果"""
         pass
 
     def add_during_buff(self):
@@ -1171,7 +1007,7 @@ class MultipleAtkBuff(ActiveBuff):
                 timer=self.timer,
                 atk_body=self.master,
                 def_list=def_list,
-                coef=copy.copy(self.coef),
+                coef=self.coef,
             )
             tmp_target = tmp_atk.target_init()
             def_list.remove(tmp_target)
@@ -1194,7 +1030,7 @@ class ExtraAtkBuff(ActiveBuff):
             timer=self.timer,
             atk_body=self.master,
             def_list=def_list,
-            coef=copy.copy(self.coef),
+            coef=self.coef,
         )
         tmp_target = atk_sample.target_init()
         yield atk_sample
@@ -1204,7 +1040,7 @@ class ExtraAtkBuff(ActiveBuff):
                 timer=self.timer,
                 atk_body=self.master,
                 def_list=def_list,
-                coef=copy.copy(self.coef),
+                coef=self.coef,
                 target=tmp_target,
             )
             yield tmp_atk
@@ -1214,70 +1050,4 @@ class ExtraAtkBuff(ActiveBuff):
 
 
 class SpecialAtkBuff(ActiveBuff):
-    """特殊攻击(在一次攻击内执行多个不同效果，可能同时包含攻击前攻击后)"""
-
-    def __init__(self, timer, phase, rate,
-                 name='special_attack', num=1,
-                 during_buff: list = None, end_buff: list = None,
-                 target: Target = None, atk_type=None,
-                 undamaged=False,
-                 coef=None, bias_or_weight=3):
-        super().__init__(timer, name, phase, num, rate,
-                         during_buff, end_buff, coef, bias_or_weight)
-        self.target = target
-        self.atk_type = atk_type
-        self.undamaged = undamaged  # True: 大破状态不能发动, False: 大破状态可以发动
-
-    def get_def_list(self, atk_type, enemy):
-        # 获取可被攻击的对象
-        def_list = enemy.get_atk_target(atk_type=atk_type)
-
-        # 如果指定了攻击目标，筛选出对应敌舰
-        if self.target is not None:
-            def_list = self.target.get_target(None, def_list)
-
-        return def_list
-
-    def is_active(self, atk, enemy, *args, **kwargs):
-        # 如果技能指定了攻击类型，使用对应攻击类型
-        if self.atk_type is not None:
-            atk_type = self.atk_type
-        else:
-            atk_type = atk
-        if self.undamaged and self.master.damaged >= 3:  # 大破状态不能发动
-            return False
-
-        def_list = self.get_def_list(atk_type, enemy)  # 可被攻击目标
-
-        return len(def_list) and \
-               self.rate_verify() and \
-               isinstance(self.timer.phase, self.phase)
-
-    def active_start(self, atk, enemy, *args, **kwargs):
-        assert self.master is not None
-
-        # 如果技能指定了攻击类型，使用对应攻击类型
-        if self.atk_type is not None:
-            atk_type = self.atk_type
-        else:
-            atk_type = atk
-
-        self.add_during_buff()  # 攻击时效果
-        def_list = self.get_def_list(atk_type, enemy)  # 可被攻击目标
-
-        # 技能优先攻击特定船型
-        prior = self.master.get_prior_type_target(enemy)
-        if prior is not None:
-            def_list = prior
-
-        if len(def_list) > 0:
-            spetial_atk = atk_type(
-                timer=self.timer,
-                atk_body=self.master,
-                def_list=def_list,
-                coef=copy.copy(self.coef),
-            )
-            yield spetial_atk
-
-        self.remove_during_buff()  # 去除攻击时效果
-        self.add_end_buff()  # 攻击结束效果
+    pass
