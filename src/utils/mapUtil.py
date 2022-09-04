@@ -110,6 +110,13 @@ class MapUtil(Time):
             ship.add_skill(skill)
             del skill
 
+            # 获取技能名称并输出
+            try:
+                skill_name = getattr(skillCode, sid).name
+                print(f"{ship.status['name']} {skill_name}")
+            except:
+                print(f"{ship.status['name']} 未获取到技能名称")
+
         # 读取装备属性并写入
         for i, eid in enumerate(eid_list):
             if eid != '':
@@ -171,9 +178,9 @@ class MapUtil(Time):
             self.timer.log['hit_rate'] = 0
 
         # 伤害量
-        self.timer.log['create_damage'].update({
+        self.timer.log['create_damage'] = {
             1: [sum(ship.created_damage.values()) for ship in self.friend.ship],
-        })
+        }
 
         # 消耗
         supply = self.timer.log['supply']

@@ -80,8 +80,7 @@ def run_supply_cost(battle, epoc):
 
 if __name__ == '__main__':
     configDir = os.path.join(os.path.dirname(srcDir), 'config')
-    xml_file = os.path.join(configDir, r'event\config_11.xml')
-
+    xml_file = os.path.join(configDir, r'event\event2\config_1_1.xml')
     dependDir = os.path.join(os.path.dirname(srcDir), 'depend')
     data_file = os.path.join(dependDir, r'ship\database.xlsx')
     ds = Dataset(data_file)  # 舰船数据
@@ -92,6 +91,6 @@ if __name__ == '__main__':
     del ds
 
     # run_hit_rate(battle, 1000)
-    run_victory(battle, 1000)
+    run_victory(battle, 5000)
     # run_avg_damage(battle, 10000)
     # run_supply_cost(battle, 1000)

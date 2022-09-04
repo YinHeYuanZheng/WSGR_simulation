@@ -881,6 +881,7 @@ class PriorTargetBuff(Buff):
 
     def activate(self, fleet, *args, **kwargs):
         prior = self.target.get_target(None, fleet)
+        prior = [ship for ship in prior if ship.damaged < 4]
         if not len(prior):
             return None
         elif self.name == 'prior_loc_target':

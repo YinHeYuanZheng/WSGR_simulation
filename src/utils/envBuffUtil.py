@@ -29,8 +29,7 @@ class AllTarget(Target):
 
 
 class EnvSkill_1(Skill):
-    """猪飞：大型船伤害+60%"""
-
+    """猪飞：大型船伤害+30%"""
     def __init__(self, timer):
         super().__init__(timer, master=None)
         self.target = TypeTarget(side=1, shiptype=LargeShip)
@@ -39,9 +38,69 @@ class EnvSkill_1(Skill):
                 timer=timer,
                 name='final_damage_buff',
                 phase=AllPhase,
-                value=0.6
+                value=0.3
             )
         ]
 
 
-env = []
+class EnvSkill_2(Skill):
+    """猪飞：大型船暴击率+10%"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=LargeShip)
+        self.buff = [
+            CoeffBuff(
+                timer=timer,
+                name='crit',
+                phase=AllPhase,
+                value=0.1,
+                bias_or_weight=0
+            )
+        ]
+
+
+class EnvSkill_3(Skill):
+    """装母开幕必中"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=AV)
+        self.buff = [
+            SpecialBuff(
+                timer=timer,
+                name='must_hit',
+                phase=AirPhase
+            )
+        ]
+
+
+class EnvSkill_4(Skill):
+    """航巡全阶段必中"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=CAV)
+        self.buff = [
+            SpecialBuff(
+                timer=timer,
+                name='must_hit',
+                phase=AllPhase
+            )
+        ]
+
+
+class EnvSkill_5(Skill):
+    """装母火力15"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=AV)
+        self.buff = [
+            StatusBuff(
+                timer=timer,
+                name='fire',
+                phase=AllPhase,
+                value=15,
+                bias_or_weight=0
+            )
+        ]
+
+
+env = [EnvSkill_1, EnvSkill_2, EnvSkill_4]

@@ -660,7 +660,7 @@ class Ship(Time):
                         tmp_buff.is_active(atk=atk, *args, **kwargs):
                     return tmp_buff.activate(atk=atk, *args, **kwargs)
 
-            strategy_hit_back = self.strategy_buff.get(key='231')
+            strategy_hit_back = self.strategy_buff.get('231')
             if strategy_hit_back is not None:
                 if strategy_hit_back.is_active(atk=atk, *args, **kwargs):
                     return strategy_hit_back.activate(atk=atk, *args, **kwargs)
@@ -1159,6 +1159,15 @@ class CLT(MidShip, CoverShip):
         self.night_anti_sub_atk = NightAntiSubAtk  # 夜战反潜攻击
 
 
+class CLT0(CLT):
+    """深海雷巡"""
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.act_phase_flag.update({
+            'FirstTorpedoPhase': True,
+        })
+
+
 class DD(AntiSubShip, SmallShip, CoverShip):
     def __init__(self, timer):
         super().__init__(timer)
@@ -1341,6 +1350,8 @@ class Fortness(LandUnit, Aircraft):
         self.act_phase_flag.update({
             'SecondTorpedoPhase': False,
         })
+        from src.wsgr.formulas import NightFireTorpedolAtk
+        self.night_atk = NightFireTorpedolAtk
 
 
 class Airfield(LandUnit, Aircraft):
