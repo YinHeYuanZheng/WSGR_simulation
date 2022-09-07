@@ -39,10 +39,10 @@ class BattleUtil(Time):
         self.timer.set_phase(AllPhase(self.timer, self.friend, self.enemy))
 
         # 环境buff
-        # from src.utils.envBuffUtil import env
-        # for skill in env[:]:
-        #     tmp_skill = skill(self.timer)
-        #     self.timer.env_skill.append(tmp_skill)
+        from src.utils.envBuffUtil import env
+        for skill in env[:]:
+            tmp_skill = skill(self.timer)
+            self.timer.env_skill.append(tmp_skill)
 
         self.friend_init()
         self.enemy_init()
@@ -215,7 +215,7 @@ class NormalBattle(BattleUtil):
         self.run_phase(BuffPhase)
         self.run_phase(AirPhase)
         self.run_phase(FirstMissilePhase)
-        # self.run_phase(AntiSubPhase)
+        self.run_phase(AntiSubPhase)
         self.run_phase(FirstTorpedoPhase)
         self.run_phase(FirstShellingPhase)
         self.run_phase(SecondShellingPhase)

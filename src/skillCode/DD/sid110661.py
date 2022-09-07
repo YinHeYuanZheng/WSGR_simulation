@@ -61,7 +61,7 @@ class Skill_110661_2(Skill):
                         timer=timer,
                         name='prior_type_target',
                         phase=ShellingPhase,
-                        target=TypeTarget(side=1, shiptype=CV),
+                        target=TypeTarget(side=0, shiptype=CV),
                         ordered=False
                     )
                 ],

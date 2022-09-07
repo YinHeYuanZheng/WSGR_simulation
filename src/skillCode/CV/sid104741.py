@@ -36,11 +36,8 @@ class Skill_101471_2(Skill):
             PriorTargetBuff(
                 timer=timer,
                 name='prior_loc_target',
-                phase=(AirPhase,),
-                target=LocTarget(
-                    side=0,
-                    loc=[self.master.loc]
-                ),
+                phase=AirPhase,
+                target=LocTarget(side=0, loc=[self.master.loc]),
                 ordered=True
             ),
             AtkHitBuff(

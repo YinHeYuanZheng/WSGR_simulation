@@ -21,7 +21,7 @@ class Skill_110861_1(Skill):
                 timer=timer,
                 name='prior_loc_target',
                 phase=DaytimePhase,
-                target=LocTarget(side=0, loc=[master.loc]),
+                target=LocTarget(side=0, loc=[self.master.loc]),
                 ordered=True
             ),
             SpecialLock(

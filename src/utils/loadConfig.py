@@ -28,7 +28,10 @@ def load_config(config, mapdir, dataset, timer):
         except:
             raise ValueError(f'Battle type {battle_type} is not defined!')
 
-        enemy_root = root.getElementsByTagName('Fleet')[1]
+        try:
+            enemy_root = root.getElementsByTagName('Fleet')[1]
+        except:
+            raise IndexError(f'Config type {battle_type}, but no enemy fleet detected')
         enemy = load_fleet(enemy_root, dataset, timer)
         return battle(timer, friend, enemy)
     else:
@@ -180,6 +183,13 @@ def load_enemy_ship(node, dataset, timer):
         skill = getattr(skillCode, sid).skill  # 根据技能设置获取技能列表，未实例化
         ship.add_skill(skill)
         del skill
+
+        # 获取技能名称并输出
+        try:
+            skill_name = getattr(skillCode, sid).name
+            print(f"{ship.status['name']} {skill_name}")
+        except:
+            print(f"{ship.status['name']} 未获取到技能名称")
 
     # 读取装备属性并写入
     for i, eid in enumerate(eid_list):

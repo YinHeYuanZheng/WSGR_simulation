@@ -96,11 +96,14 @@ class PreparePhase(AllPhase):
             recon_rate = 0.5 + d_recon * 0.05
             recon_rate = max(0, recon_rate)
             recon_rate = min(1, recon_rate)
+            self.timer.log['record'] += f'索敌率{recon_rate * 100:.2f}%\n'
 
             verify = np.random.random()
             if verify <= recon_rate:
+                self.timer.log['record'] += f'索敌成功\n'
                 return True
             else:
+                self.timer.log['record'] += f'索敌失败\n'
                 return False
         else:
             friend_recon = self.friend.status['antisub_recon']
@@ -109,8 +112,10 @@ class PreparePhase(AllPhase):
                 enemy_level += tmp_ship.level
 
             if friend_recon >= enemy_level:
+                self.timer.log['record'] += f'索敌成功\n'
                 return True
             else:
+                self.timer.log['record'] += f'索敌失败\n'
                 return False
 
     def compare_speed(self):

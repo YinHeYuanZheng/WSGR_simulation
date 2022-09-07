@@ -89,7 +89,7 @@ class Skill_112242_4(Skill):
                 timer=timer,
                 name='prior_type_target',
                 phase=(AirPhase, ShellingPhase),
-                target=RandomTypeTarget(side=0, shiptype=BB),
+                target=TypeTarget(side=0, shiptype=BB),
                 ordered=False
             ),
             AtkBuff(

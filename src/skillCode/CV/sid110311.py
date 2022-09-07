@@ -21,7 +21,7 @@ class Skill_110311_1(Skill):
             SpecialBuff(
                 timer=timer,
                 name='must_crit',
-                phase=(AirPhase,)
+                phase=AirPhase,
             ),
             FinalDamageBuff(
                 timer=timer,
@@ -32,8 +32,9 @@ class Skill_110311_1(Skill):
             PriorTargetBuff(
                 timer=timer,
                 name='prior_type_target',
-                phase=(ShellingPhase,),
-                target=OrderedTypeTarget(shiptype=(Fortness, Airfield, Port, CV)),
+                phase=ShellingPhase,
+                target=TypeTarget(side=0,
+                                  shiptype=(Fortness, Airfield, Port, CV)),
                 ordered=False
             ),
             AtkBuff(
