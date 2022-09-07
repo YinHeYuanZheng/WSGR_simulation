@@ -667,6 +667,13 @@ class Ship(Time):
 
     def get_damage(self, damage):
         """受伤结算，过伤害保护，需要返回受伤与否"""
+        from src.wsgr.phase import AntiSubPhase, ShellingPhase, NightPhase
+        if isinstance(self.timer.phase, (AntiSubPhase, ShellingPhase, NightPhase)) \
+                and self.damaged == 4:
+            raise SyntaxError(f"{type(self.timer.phase).__name__}: 已击沉船只受到攻击! "
+                              f"{self.timer.atk.atk_body.status['name']} -> "
+                              f"{self.timer.atk.target.status['name']}")
+
         standard_health = self.status['standard_health']
 
         # 敌方没有伤害保护，大破进击没有伤害保护
@@ -1402,7 +1409,8 @@ class Fleet(Time):
         form_list = ['单纵阵', '复纵阵', '轮形阵', '梯形阵', '单横阵']
         return f"{fleet_name}-{form_list[self.form - 1]}"
 
-    def set_ship(self, shiplist):
+    def set_ship(self, shiplist: list):
+        shiplist.sort(key=lambda x: x.loc)
         self.ship = shiplist
 
     def set_form(self, form):

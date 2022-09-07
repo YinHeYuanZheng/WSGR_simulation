@@ -881,7 +881,9 @@ class PriorTargetBuff(Buff):
 
     def activate(self, fleet, *args, **kwargs):
         prior = self.target.get_target(None, fleet)
-        prior = [ship for ship in prior if ship.damaged < 4]
+        from src.wsgr.phase import AntiSubPhase, ShellingPhase, NightPhase
+        if isinstance(self.timer.phase, (AntiSubPhase, ShellingPhase, NightPhase)):
+            prior = [ship for ship in prior if ship.damaged < 4]
         if not len(prior):
             return None
         elif self.name == 'prior_loc_target':
@@ -1201,6 +1203,8 @@ class ExtraAtkBuff(ActiveBuff):
         yield atk_sample
 
         for i in range(self.num - 1):
+            if tmp_target.damaged == 4:
+                break
             tmp_atk = atk(
                 timer=self.timer,
                 atk_body=self.master,

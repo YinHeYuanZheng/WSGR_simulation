@@ -44,7 +44,7 @@ class Skill_110102_2(Skill):
                 timer=timer,
                 name='prior_type_target',
                 phase=ShellingPhase,
-                target=OrderedTypeTarget(shiptype=BB),
+                target=TypeTarget(side=0, shiptype=BB),
                 ordered=True
             ),
             SpecialBuff(
