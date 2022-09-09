@@ -319,7 +319,11 @@ class RandomTarget(Target):
 
 
 class RandomTypeTarget(TypeTarget):
-    """指定船型内随机选择一个目标"""
+    """指定船型内随机选择n个目标"""
+    def __init__(self, side, shiptype, num=1):
+        super().__init__(side, shiptype)
+        self.num = num
+
     def get_target(self, friend, enemy):
         if isinstance(friend, Fleet):
             friend = friend.ship
@@ -332,8 +336,9 @@ class RandomTypeTarget(TypeTarget):
             fleet = enemy
 
         target = [ship for ship in fleet if isinstance(ship, self.shiptype)]
-        target = np.random.choice(target)
-        return [target]
+        if len(target) > self.num:
+            target = np.random.choice(target, self.num, replace=False)
+        return target
 
 
 class OrderedTypeTarget(TypeTarget):
@@ -463,29 +468,24 @@ class NearestLocTarget(Target):
             fleet = fleet.ship
 
         target = []
-        count = self.radius
-        index = fleet.index(self.master)  # 技能所有者在list内的索引 todo master可能不在list内
-        loc = self.master.loc  # 技能所有者的实际站位
-        gap = loc - index  # 实际列表索引与编队索引的差距
-        while count > 0 and index > 0:
-            index -= 1  # 向前推进一位
-            tmp_ship = fleet[index]
-
-            # 站位检测，不等说明中间跳过了单位
-            if tmp_ship.loc != index + gap:
-                gap -= 1
-                index += 1
-
-            # 满足条件时加入返回列表，同时计数-1
-            elif isinstance(tmp_ship, self.shiptype):
-                target.append(tmp_ship)
-                count -= 1
+        for tmp_ship in fleet[::-1]:
+            # 跳过站位在master后方的
+            if tmp_ship.loc >= self.master.loc:
                 continue
 
-            # 不满足条件时，判断能否顺延，不能顺延时计数-1
-            if not self.expand:
-                count -= 1
+            # 对于超过指定距离的船，如果不可顺延，则直接结束循环
+            elif self.master.loc - tmp_ship.loc > self.radius \
+                    and not self.expand:
+                break
 
+            # 在指定距离内，或可顺延
+            if isinstance(tmp_ship, self.shiptype):
+                target.append(tmp_ship)
+
+            if len(target) >= self.radius:
+                break
+
+        target.sort(key=lambda x: x.loc)
         return target
 
     def get_down_target(self, fleet):
@@ -493,29 +493,24 @@ class NearestLocTarget(Target):
             fleet = fleet.ship
 
         target = []
-        count = self.radius
-        index = fleet.index(self.master)  # 技能所有者在list内的索引
-        loc = self.master.loc  # 技能所有者的实际站位
-        gap = loc - index  # 实际列表索引与编队索引的差距
-        while count > 0 and index < len(fleet) - 1:
-            index += 1  # 向后推进一位
-            tmp_ship = fleet[index]
-
-            # 站位检测，不等说明中间跳过了单位
-            if tmp_ship.loc != index + gap:
-                gap += 1
-                index -= 1
-
-            # 满足条件时加入返回列表，同时计数-1
-            elif isinstance(tmp_ship, self.shiptype):
-                target.append(tmp_ship)
-                count -= 1
+        for tmp_ship in fleet:
+            # 跳过站位在master前方的
+            if tmp_ship.loc <= self.master.loc:
                 continue
 
-            # 不满足条件时，判断能否顺延，不能顺延时计数-1
-            if not self.expand:
-                count -= 1
+            # 对于超过指定距离的船，如果不可顺延，则直接结束循环
+            elif tmp_ship.loc - self.master.loc > self.radius \
+                    and not self.expand:
+                break
 
+            # 在指定距离内，或可顺延
+            if isinstance(tmp_ship, self.shiptype):
+                target.append(tmp_ship)
+
+            if len(target) >= self.radius:
+                break
+
+        target.sort(key=lambda x: x.loc)
         return target
 
 
@@ -1009,7 +1004,6 @@ class TankBuff(EventBuff):
                self.master != atk.target and \
                atk.target in def_target and \
                self.rate_verify()
-               # self.master in atk.def_list and \
 
     def activate(self, atk, *args, **kwargs):
         atk.set_target(self.master)

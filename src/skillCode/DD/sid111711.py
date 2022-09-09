@@ -14,11 +14,10 @@ from src.wsgr.phase import *
 
 
 class Skill_111711_1(Skill):
-    """在先制鱼雷、鱼雷战、夜战降低己方所受到 65% 的鱼雷伤害，
-    """
+    """在先制鱼雷、鱼雷战、夜战降低己方所受到 65% 的鱼雷伤害"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = TypeTarget(side=0, shiptype=Ship)
+        self.target = Target(side=1)
         self.buff = [
             FinalDamageBuff(
                 timer=timer,
@@ -36,8 +35,7 @@ class ATK_Request1(ATKRequest):
 
 
 class Skill_111711_2(Skill):
-    """降低我方旗舰 18% 被攻击概率
-    """
+    """降低我方旗舰 18% 被攻击概率"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = LocTarget(side=1, loc=[1])
