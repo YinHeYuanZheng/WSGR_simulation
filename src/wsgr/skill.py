@@ -464,7 +464,7 @@ class NearestLocTarget(Target):
 
         target = []
         count = self.radius
-        index = fleet.index(self.master)  # 技能所有者在list内的索引
+        index = fleet.index(self.master)  # 技能所有者在list内的索引 todo master可能不在list内
         loc = self.master.loc  # 技能所有者的实际站位
         gap = loc - index  # 实际列表索引与编队索引的差距
         while count > 0 and index > 0:
@@ -997,6 +997,8 @@ class TankBuff(EventBuff):
         return f"挡枪: {self.rate * 100}%"
 
     def is_active(self, atk, *args, **kwargs):
+        if atk.target.side != self.master.side:  # 不为对面挡枪
+            return False
         if self.exhaust is not None and self.exhaust == 0:
             return False
         if self.master.damaged >= 3:  # 大破状态不能发动

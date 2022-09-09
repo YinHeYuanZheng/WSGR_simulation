@@ -103,4 +103,4 @@ class EnvSkill_5(Skill):
         ]
 
 
-env = [EnvSkill_1, EnvSkill_2, EnvSkill_4]
+env = []
