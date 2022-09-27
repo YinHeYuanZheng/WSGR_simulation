@@ -271,12 +271,16 @@ class ATK(Time):
         # 单纵、复纵额外补正
         add = 0
         if self.target.get_form() == 2:
-            add = -0.05
+            add -= 0.05
         from src.wsgr.phase import SecondShellingPhase
         if self.atk_body.get_form() == 1 and \
                 isinstance(self.timer.phase, SecondShellingPhase):
-            add = 0.05
+            add += 0.05
         hit_rate += add
+
+        # 好感补正
+        hit_rate += (self.atk_body.affection - 50) * 0.001
+        hit_rate -= (self.target.affection - 50) * 0.001
 
         # 技能补正
         _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
@@ -528,6 +532,10 @@ class AirStrikeAtk(AirAtk):
         # 装备补正
         _, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
         hit_rate += hitrate_bias
+
+        # 好感补正
+        hit_rate += (self.atk_body.affection - 50) * 0.001
+        hit_rate -= (self.target.affection - 50) * 0.001
 
         # 技能补正
         _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
@@ -836,6 +844,10 @@ class MissileAtk(ATK):
         _, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
         hit_rate += hitrate_bias
 
+        # 好感补正
+        hit_rate += (self.atk_body.affection - 50) * 0.001
+        hit_rate -= (self.target.affection - 50) * 0.001
+
         # 技能补正
         _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
         hit_rate += hitrate_bias
@@ -1092,6 +1104,10 @@ class AirNormalAtk(NormalAtk, AirAtk):
             mul_rate = 0.5
         aa_hit_coef = aa_base / (aa_base + aa_value)
         hit_rate *= aa_hit_coef * mul_rate
+
+        # 好感补正
+        hit_rate += (self.atk_body.affection - 50) * 0.001
+        hit_rate -= (self.target.affection - 50) * 0.001
 
         # 技能补正
         _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
