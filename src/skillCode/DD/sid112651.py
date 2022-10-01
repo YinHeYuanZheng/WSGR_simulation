@@ -68,8 +68,8 @@ class SkillCoeffBuff(AtkBuff):
         except:
             atk = args[0]
         self.value = 0.05 + 0.25 * \
-                     (atk.target.status["standard_health"] - atk.target.status["health"]) /\
-                     (atk.target.status["standard_health"] - 1)
+                     (atk.target.status['standard_health'] - atk.target.status['health']) /\
+                     (atk.target.status['standard_health'] - 1)
         return True
 
 

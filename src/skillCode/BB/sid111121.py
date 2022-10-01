@@ -7,7 +7,7 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""火力+20，命中-6，战斗中免疫第一次被攻击时受到的伤害"""
+"""火力+20，命中-6，战斗中免疫受到的第一次攻击"""
 
 
 class Skill_111121_1(CommonSkill):
@@ -36,7 +36,7 @@ class Skill_111121_1(CommonSkill):
 
 
 class Skill_111121_2(Skill):
-    """战斗中免疫第一次被攻击时受到的伤害。"""
+    """战斗中免疫受到的第一次攻击。"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)

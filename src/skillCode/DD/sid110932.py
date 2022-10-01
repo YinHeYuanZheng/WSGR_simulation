@@ -77,8 +77,8 @@ class Skill_110932_2(Skill):
 
 class HealthBasedBuff(StatusBuff):
     def is_active(self, *args, **kwargs):
-        total_health = self.master.get_final_status('standard_health')
-        health = self.master.get_final_status('health')
+        total_health = self.master.status['standard_health']
+        health = self.master.status['health']
         health_rate = health / total_health
         return health_rate > .3
 

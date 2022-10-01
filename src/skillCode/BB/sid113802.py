@@ -95,8 +95,8 @@ class Skill_113802_3(Skill):
 
 class ATKRequest_1(ATKRequest):
     def __bool__(self):
-        return self.atk.target.get_final_status("fire") < \
-               self.atk.atk_body.get_final_status("fire")
+        return self.atk.target.get_final_status('fire') < \
+               self.atk.atk_body.get_final_status('fire')
 
 
 name = '巨炮火力'

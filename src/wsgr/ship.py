@@ -1300,6 +1300,20 @@ class AADG(DefMissileShip, SmallShip, CoverShip):
         self.type = 'AADG'
 
 
+class KP(AtkMissileShip, MidShip, MainShip):
+    """导巡"""
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'KP'
+
+
+class CG(DefMissileShip, MidShip, CoverShip):
+    """防巡"""
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'CG'
+
+
 class BBG(AtkMissileShip, LargeShip, MainShip):
     """导战"""
 
@@ -1393,6 +1407,53 @@ class Port(LandUnit):
         self.type = 'Port'
 
 
+class Tuning(SmallShip, CoverShip):
+    """调谐"""
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'Tuning'
+
+        self.act_phase_flag = {
+            'AirPhase': True,
+            'FirstMissilePhase': True,
+            'AntiSubPhase': True,
+            'FirstTorpedoPhase': True,
+            'FirstShellingPhase': True,
+            'SecondShellingPhase': True,
+            'SecondTorpedoPhase': True,
+            'SecondMissilePhase': True,
+            'NightPhase': True,
+        }  # 可参与阶段
+
+        self.act_phase_indicator = {
+            'AirPhase':
+                lambda x: x.damaged < 3,
+            'FirstMissilePhase':
+                lambda x: (x.damaged < 3) and x.check_missile(),
+            'AntiSubPhase':
+                lambda x: (x.get_form() == 5) and (x.damaged < 4),
+            'FirstTorpedoPhase':
+                lambda x: (x.level > 10) and (x.damaged < 3),
+            'FirstShellingPhase':
+                lambda x: x.damaged < 4,
+            'SecondShellingPhase':
+                lambda x: (x.get_range() >= 3) and (x.damaged < 4),
+            'SecondTorpedoPhase':
+                lambda x: (x.damaged < 3) and (x.get_final_status('torpedo') > 0),
+            'SecondMissilePhase':
+                lambda x: (x.damaged < 3) and x.check_missile(),
+            'NightPhase':
+                lambda x: x.damaged < 3,
+        }  # 可行动标准
+
+        from src.wsgr.formulas import \
+            NormalAtk, AntiSubAtk, NightFireTorpedolAtk, NightAntiSubAtk
+        self.normal_atk = NormalAtk  # 普通炮击
+        self.anti_sub_atk = AntiSubAtk  # 反潜攻击
+        self.night_atk = NightFireTorpedolAtk  # 夜战普通炮击
+        self.night_anti_sub_atk = NightAntiSubAtk  # 夜战反潜攻击
+
+
 class Fleet(Time):
     def __init__(self, timer):
         super().__init__(timer)
@@ -1482,9 +1543,9 @@ class Fleet(Time):
 
     def get_fleet_speed(self):
         """计算舰队航速"""
-        main_type = (CV, CVL, AV, BB, BC, BBV, ASDG, AADG, BBG, BG,
+        main_type = (CV, CVL, AV, BB, BC, BBV, ASDG, AADG, KP, CG, BBG, BG,
                          Elite, Fortness, Airfield, Port)
-        cover_type = (CA, CAV, CL, CLT, DD, BM, AP)
+        cover_type = (CA, CAV, CL, CLT, DD, BM, AP, Tuning)
 
         # 存在水面舰
         if self.count(Submarine) != len(self.ship):

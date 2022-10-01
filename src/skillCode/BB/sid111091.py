@@ -33,8 +33,8 @@ class Skill_111091(Skill):
 class DamagedCoeffBuff(CoeffBuff):
     def is_active(self, *args, **kwargs):
         self.value = 0.28 * \
-                     (self.master.status["standard_health"] - self.master.status["health"]) / \
-                     (self.master.status["standard_health"] - 1)
+                     (self.master.status['standard_health'] - self.master.status['health']) / \
+                     (self.master.status['standard_health'] - 1)
         return True
 
 

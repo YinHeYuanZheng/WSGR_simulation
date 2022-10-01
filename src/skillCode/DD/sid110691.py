@@ -24,14 +24,14 @@ class Skill_110691_1(Skill):
         self.buff = [
             StatusBuff(
                 timer=timer,
-                name="armor",
+                name='armor',
                 phase=NightPhase,
                 value=12,
                 bias_or_weight=0
             ),
             StatusBuff(
                 timer=timer,
-                name="antiair",
+                name='antiair',
                 phase=AllPhase,
                 value=12,
                 bias_or_weight=0
