@@ -21,6 +21,7 @@ class BattleUtil(Time):
         self.start_phase()
         self.run_phase(BuffPhase)
         self.run_phase(AirPhase)
+        self.run_phase(TLockPhase)
         self.run_phase(FirstMissilePhase)
         self.run_phase(AntiSubPhase)
         self.run_phase(FirstTorpedoPhase)
@@ -214,6 +215,7 @@ class NormalBattle(BattleUtil):
         self.start_phase()
         self.run_phase(BuffPhase)
         self.run_phase(AirPhase)
+        self.run_phase(TLockPhase)
         self.run_phase(FirstMissilePhase)
         self.run_phase(AntiSubPhase)
         self.run_phase(FirstTorpedoPhase)
@@ -235,6 +237,7 @@ class AirBattle(BattleUtil):
         self.start_phase()
         self.run_phase(BuffPhase)
         self.run_phase(AirPhase)
+        self.run_phase(TLockPhase)
         if (self.timer.point is None) or (self.timer.point.level == 5):
             self.run_phase(NightPhase)
         self.end_phase()
@@ -253,6 +256,7 @@ class NightBattle(BattleUtil):
         self.battle_init()
         self.start_phase()
         self.run_phase(BuffPhase)
+        self.run_phase(TLockPhase)
         self.run_phase(NightPhase)
         self.end_phase()
 
