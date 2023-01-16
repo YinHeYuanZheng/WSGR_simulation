@@ -7,11 +7,11 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""旗舰杀手(3级)：当俾斯麦作为旗舰时，40%概率发动，攻击对方舰队旗舰并+20%穿甲，增加30点固定伤害且必定命中。
-"""
+"""炮击战阶段50%概率发动,攻击对方舰队旗舰并增加20%护甲穿透，增加30点额外伤害且必定命中。
+当队伍中存在重巡时，首轮炮击阶段免疫受到的第一次攻击。"""
 
 
-class Skill_110061(Skill):
+class Skill_110061_1(Skill):
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
@@ -20,7 +20,7 @@ class Skill_110061(Skill):
                 timer=timer,
                 name='special_attack',
                 phase=ShellingPhase,
-                rate=0.4,
+                rate=0.5,
                 during_buff=[
                     CoeffBuff(
                         timer=timer,
@@ -42,36 +42,27 @@ class Skill_110061(Skill):
             )
         ]
 
+    # def is_active(self, friend, enemy):
+    #     return self.master.loc == 1
+
+
+class Skill_110061_2(Skill):
+    """当队伍中存在重巡时，首轮炮击阶段免疫受到的第一次攻击。"""
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
+        self.buff = [
+            SpecialBuff(
+                timer=timer,
+                name='shield',
+                phase=FirstShellingPhase,
+                exhaust=1)
+        ]
+
     def is_active(self, friend, enemy):
-        return self.master.loc == 1
-
-
-# class SpecialAtkBuff_1(ActiveBuff):
-#     def is_active(self, atk, enemy, *args, **kwargs):
-#         # 对方旗舰不存活，不发动技能
-#         if enemy.ship[0].damaged == 4:
-#             return False
-#         elif not enemy.ship[0].can_be_atk(atk):
-#             return False
-#         else:
-#             return self.rate_verify() and \
-#                    isinstance(self.timer.phase, self.phase)
-#
-#     def active_start(self, atk, enemy, *args, **kwargs):
-#         assert self.master is not None
-#         self.add_during_buff()  # 攻击时效果
-#         spetial_atk = atk(
-#             timer=self.timer,
-#             atk_body=self.master,
-#             def_list=[enemy.ship[0]],
-#             coef=copy.copy(self.coef),
-#             target=enemy.ship[0],
-#         )
-#         yield spetial_atk
-#
-#         self.remove_during_buff()  # 去除攻击时效果
-#         self.add_end_buff()  # 攻击结束效果
+        count = len(TypeTarget(side=1, shiptype=CA).get_target(friend, enemy))
+        return count
 
 
 name = '旗舰杀手'
-skill = [Skill_110061]
+skill = [Skill_110061_1, Skill_110061_2]
