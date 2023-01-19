@@ -29,7 +29,9 @@ from . import sid104991  # 克里蒙梭-1
 from . import sid105061  # 1938(I)-1
 from . import sid105141  # 近江-1
 from . import sid105201  # 蒙大拿-1
+from . import sid105231  # 亚拉巴马-1
 from . import sid105321  # 但丁-1
+from . import sid105471  # 勃艮第-1
 
 # 改造BB
 from . import sid110061  # 俾斯麦-1

@@ -14,6 +14,7 @@ from . import sid104841  # 安森-1
 from . import sid104901  # 克劳塞维茨-1
 from . import sid105211  # 1913战巡-1
 from . import sid105241  # 夏威夷-1
+from . import sid105401  # 伊兹梅尔-1
 
 # 改造
 from . import sid110011  # 胡德-1

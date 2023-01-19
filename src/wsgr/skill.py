@@ -259,7 +259,7 @@ class TypeTarget(Target):
         """
         :praram shiptype: tuple or class Ship
         """
-        super().__init__(side)        
+        super().__init__(side)
         self.shiptype = shiptype
 
     def get_target(self, friend, enemy):
@@ -819,6 +819,9 @@ class AtkHitBuff(Buff):
                self.rate_verify()
 
     def activate(self, atk, *args, **kwargs):
+        if self.name == 'atk_hit' and self.side == 0:
+            self.atk_hit(atk)
+            return
         if (self.name in ['atk_hit', 'give_atk'] and self.side == 1) or \
                 (self.name in ['atk_be_hit', 'get_atk'] and self.side == 0):
             target = atk.atk_body
@@ -828,6 +831,12 @@ class AtkHitBuff(Buff):
         for tmp_buff in self.buff[:]:
             tmp_buff = copy.copy(tmp_buff)
             target.add_buff(tmp_buff)
+
+    def atk_hit(self, atk):
+        target = atk.target
+        for tmp_buff in self.buff:
+            if tmp_buff not in target.temper_buff:
+                target.add_buff(tmp_buff)
 
 
 class AtkCoefProcess(AtkBuff):
