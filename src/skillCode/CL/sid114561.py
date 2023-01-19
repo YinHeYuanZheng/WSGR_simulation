@@ -92,15 +92,9 @@ class OnceAtkHitBuff(AtkHitBuff):
                self.rate_verify()
 
     def activate(self, atk, *args, **kwargs):
-        if (self.name == 'atk_hit' and self.side == 1) or \
-                (self.name == 'atk_be_hit' and self.side == 0):
-            target = atk.atk_body
-        else:
-            target = atk.target
-
         for tmp_buff in self.buff[:]:
             tmp_buff = copy.copy(tmp_buff)
-            target.add_buff(tmp_buff)
+            self.master.add_buff(tmp_buff)
 
         self.exhaust -= 1
 

@@ -7,43 +7,71 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""幸运之舰(3级)：首轮炮击额外提升最低20%，最高25%的伤害。
-被攻击时增加幸运值20%的装甲值。
-"""
+"""自身幸运值提升15。炮击战阶段攻击时增加自身100%幸运值的额外伤害，被攻击时增加自身50%幸运值的装甲值。"""
 
 
-class Skill_112111(Skill):
+class Skill_112111_1(CommonSkill):
+    """自身幸运值提升15"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
-
         self.buff = [
-            RandomFinalDamage(
+            CommonBuff(
                 timer=timer,
-                name='final_damage_buff',
-                phase=FirstShellingPhase,
-                value=0
-            ),
-            LuckBuff(
-                timer=timer,
-                name='armor',
+                name='luck',
                 phase=AllPhase,
-                value=0,
+                value=15,
                 bias_or_weight=0
             )
         ]
 
 
-class RandomFinalDamage(FinalDamageBuff):
+class Skill_112111_2(Skill):
+    """炮击战阶段攻击时增加自身100%幸运值的额外伤害，被攻击时增加自身50%幸运值的装甲值。"""
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
+        self.buff = [
+            LuckExtraDamage(
+                timer=timer,
+                name='extra_damage',
+                phase=AllPhase,
+                value=1,
+                bias_or_weight=0
+            ),
+            LuckBuff(
+                timer=timer,
+                name='get_atk',
+                phase=AllPhase,
+                buff=[
+                    DuringAtkBuff(
+                        timer=timer,
+                        name='armor',
+                        phase=AllPhase,
+                        value=0.5,
+                        bias_or_weight=0
+                    )
+                ],
+                side=1
+            ),
+        ]
+
+
+class LuckExtraDamage(CoeffBuff):
+    """攻击时增加自身100%幸运值的额外伤害"""
     def is_active(self, *args, **kwargs):
-        self.value = np.random.uniform(0.2, 0.25)
-        return isinstance(self.timer.phase, self.phase)
+        self.value = self.master.get_final_status('luck')
+        return True
 
 
-class LuckBuff(StatusBuff):
-    def is_active(self, *args, **kwargs):
-        self.value = np.ceil(0.2 * self.master.get_final_status('luck'))
-        return isinstance(self.timer.phase, self.phase)
+class LuckBuff(AtkHitBuff):
+    """被攻击时增加自身50%幸运值的装甲值。"""
+    def activate(self, atk, *args, **kwargs):
+        for tmp_buff in self.buff[:]:
+            tmp_buff = copy.copy(tmp_buff)
+            tmp_buff.value *= self.master.get_final_status('luck')
+            self.master.add_buff(tmp_buff)
 
 
-skill = [Skill_112111]
+name = '幸运之舰'
+skill = [Skill_112111_1, Skill_112111_2]

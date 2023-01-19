@@ -819,8 +819,8 @@ class AtkHitBuff(Buff):
                self.rate_verify()
 
     def activate(self, atk, *args, **kwargs):
-        if (self.name == 'atk_hit' and self.side == 1) or \
-                (self.name == 'atk_be_hit' and self.side == 0):
+        if (self.name in ['atk_hit', 'give_atk'] and self.side == 1) or \
+                (self.name in ['atk_be_hit', 'get_atk'] and self.side == 0):
             target = atk.atk_body
         else:
             target = atk.target

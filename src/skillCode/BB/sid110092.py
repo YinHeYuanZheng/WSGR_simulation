@@ -15,12 +15,20 @@ class Skill_110092(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            StatusBuff(
+            AtkHitBuff(
                 timer=timer,
-                name='fire',
+                name='give_atk',
                 phase=AllPhase,
-                value=0.07,
-                bias_or_weight=1
+                buff=[
+                    DuringAtkBuff(
+                        timer=timer,
+                        name='fire',
+                        phase=AllPhase,
+                        value=0.07,
+                        bias_or_weight=1
+                    )
+                ],
+                side=1
             ),
             AtkHitBuff(
                 timer=timer,
