@@ -53,6 +53,7 @@ from . import sid111921  # 塔什干改-1
 from . import sid112651  # 岚改-1
 from . import sid112691  # z-17改-1
 from . import sid112701  # z-18改-1
+from . import sid112751  # 康弗斯改-1
 from . import sid112781  # 霍埃尔改-1
 from . import sid112782  # 大卫·塔菲3
 from . import sid112791  # 塞缪尔•罗伯茨改-1
@@ -65,4 +66,5 @@ from . import sid113351  # 伏尔塔改-1
 from . import sid113421  # 江原改-1
 from . import sid113441  # 忠武改-1
 from . import sid113721  # 早春改-1
+from . import sid114251  # 史密斯改-1
 from . import sid114961  # 诺福克改-1

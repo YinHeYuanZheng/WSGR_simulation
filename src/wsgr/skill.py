@@ -833,6 +833,8 @@ class AtkHitBuff(Buff):
             target.add_buff(tmp_buff)
 
     def atk_hit(self, atk):
+        # 不复制buff使得内存id可以传递，用于识别buff不叠加
+        # todo 在施加需要获取master的buff时需要复制
         target = atk.target
         for tmp_buff in self.buff:
             if tmp_buff not in target.temper_buff:
@@ -941,6 +943,7 @@ class MagnetBuff(EventBuff):
         atk.set_target(self.master)
 
     def change_rate(self, rate):
+        # 嘲讽概率不会被让巴尔改变
         pass
 
 
@@ -976,6 +979,7 @@ class UnMagnetBuff(EventBuff):
         atk.set_target(target)
 
     def change_rate(self, rate):
+        # 负嘲讽概率不会被让巴尔改变
         pass
 
 
