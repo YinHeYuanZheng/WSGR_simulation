@@ -221,27 +221,8 @@ class ATK(Time):
 
     def hit_verify(self):
         """命中检定"""
-        # 护盾
-        if self.target.get_special_buff('shield', self):
-            self.coef['hit_flag'] = False
-            return
-
-        # 大角度
-        if self.target.get_strategy_buff('strategy_shield', self):
-            self.coef['hit_flag'] = False
-            return
-
-        # 技能必中
-        if self.get_coef('must_hit') or \
-                self.get_coef('hit_back') or \
-                self.atk_body.get_special_buff('must_hit', self):
-            self.coef['hit_flag'] = True
-            return
-
-        # 技能必不中
-        if self.get_coef('must_not_hit') or \
-                self.target.get_special_buff('must_not_hit', self):
-            self.coef['hit_flag'] = False
+        # 技能、战术判定
+        if self.skill_hit_verify():
             return
 
         # 基础命中率
@@ -296,6 +277,33 @@ class ATK(Time):
         else:
             self.coef['hit_flag'] = False
             return
+
+    def skill_hit_verify(self):
+        """必中/护盾等技能/战术判定"""
+        # 护盾
+        if self.target.get_special_buff('shield', self):
+            self.coef['hit_flag'] = False
+            return True
+
+        # 大角度类战术
+        if self.target.get_strategy_buff('strategy_shield', self):
+            self.coef['hit_flag'] = False
+            return True
+
+        # 技能必中
+        if self.get_coef('must_hit') or \
+                self.get_coef('hit_back') or \
+                self.atk_body.get_special_buff('must_hit', self):
+            self.coef['hit_flag'] = True
+            return True
+
+        # 技能必不中
+        if self.get_coef('must_not_hit') or \
+                self.target.get_special_buff('must_not_hit', self):
+            self.coef['hit_flag'] = False
+            return True
+
+        return False
 
     def get_dmg_coef(self):
         if self.get_coef('ignore_damaged'):
@@ -473,27 +481,9 @@ class AirStrikeAtk(AirAtk):
         return aa_fall
 
     def hit_verify(self):
-        """航空攻击命中检定，含对空预警，含飞机装备命中率buff"""
-        # 护盾
-        if self.target.get_special_buff('shield', self):
-            self.coef['hit_flag'] = False
-            return
-
-        # 对空预警
-        if self.target.get_strategy_buff('strategy_shield', self):
-            self.coef['hit_flag'] = False
-            return
-
-        # 技能必中
-        if self.get_coef('must_hit') or \
-                self.atk_body.get_special_buff('must_hit', self):
-            self.coef['hit_flag'] = True
-            return
-
-        # 技能必不中
-        if self.get_coef('must_not_hit') or \
-                self.target.get_special_buff('must_not_hit', self):
-            self.coef['hit_flag'] = False
+        """航空攻击命中检定，含飞机装备命中率buff"""
+        # 技能、战术判定
+        if self.skill_hit_verify():
             return
 
         # 基础命中率
@@ -793,24 +783,9 @@ class MissileAtk(ATK):
             return
 
     def hit_verify(self):
-        """航空攻击命中检定，含对空预警，含飞机装备命中率buff"""
-        # 护盾
-        if self.target.get_special_buff('shield', self):
-            self.coef['hit_flag'] = False
-            return
-
-        # 技能必中
-        if self.get_coef('must_hit') or \
-                self.atk_body.get_special_buff('must_hit', self) or \
-                self.equip.get_special_buff('must_hit', self):
-            self.coef['hit_flag'] = True
-            return
-
-        # 技能必不中
-        if self.get_coef('must_not_hit') or \
-                self.target.get_special_buff('must_not_hit', self) or \
-                self.equip.get_special_buff('must_not_hit', self):
-            self.coef['hit_flag'] = False
+        """导弹攻击命中检定，含导弹装备命中率、必中buff"""
+        # 技能、战术判定
+        if self.skill_hit_verify():
             return
 
         # 基础命中率
@@ -862,6 +837,30 @@ class MissileAtk(ATK):
         else:
             self.coef['hit_flag'] = False
             return
+
+    def skill_hit_verify(self):
+        """必中/护盾等技能/战术判定"""
+        # 护盾
+        if self.target.get_special_buff('shield', self):
+            self.coef['hit_flag'] = False
+            return True
+
+        # 技能必中
+        if self.get_coef('must_hit') or \
+                self.atk_body.get_special_buff('must_hit', self) or \
+                self.equip.get_special_buff('must_hit', self):
+            self.coef['hit_flag'] = True
+            return True
+
+        # 技能必不中
+        if self.get_coef('must_not_hit') or \
+                self.target.get_special_buff('must_not_hit', self) or \
+                self.equip.get_special_buff('must_not_hit', self):
+            self.coef['hit_flag'] = False
+            return True
+
+        return False
+
 
     def formula(self):
         # 基础攻击力
@@ -1049,27 +1048,8 @@ class AirNormalAtk(NormalAtk, AirAtk):
 
     def hit_verify(self):
         """命中检定"""
-        # 护盾
-        if self.target.get_special_buff('shield', self):
-            self.coef['hit_flag'] = False
-            return
-
-        # 大角度
-        if self.target.get_strategy_buff('strategy_shield', self):
-            self.coef['hit_flag'] = False
-            return
-
-        # 技能必中
-        if self.get_coef('must_hit') or \
-                self.get_coef('hit_back') or \
-                self.atk_body.get_special_buff('must_hit', self):
-            self.coef['hit_flag'] = True
-            return
-
-        # 技能必不中
-        if self.get_coef('must_not_hit') or \
-                self.target.get_special_buff('must_not_hit', self):
-            self.coef['hit_flag'] = False
+        # 技能、战术判定
+        if self.skill_hit_verify():
             return
 
         # 基础命中率

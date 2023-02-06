@@ -5,6 +5,7 @@
 import os
 import sys
 import copy
+import numpy as np
 
 curDir = os.path.dirname(__file__)
 srcDir = os.path.dirname(curDir)
@@ -13,6 +14,23 @@ sys.path.append(srcDir)
 from src.utils.loadConfig import load_config
 from src.utils.loadDataset import Dataset
 from src.wsgr.wsgrTimer import timer
+from src.wsgr.formulas import *
+
+
+def new_hit_verify(value):
+    def f(cls):
+        # 技能、战术判定
+        if cls.skill_hit_verify():
+            return
+
+        verify = np.random.random()
+        if verify <= value:
+            cls.coef['hit_flag'] = True
+            return
+        else:
+            cls.coef['hit_flag'] = False
+            return
+    return f
 
 
 if __name__ == '__main__':
@@ -28,6 +46,7 @@ if __name__ == '__main__':
     battle = load_config(xml_file, mapDir, ds, timer_init)
 
     # print(battle.friend.ship)
+    NormalAtk.hit_verify = new_hit_verify(0.95)
 
     result = [0] * 6
     result_flag_list = ['SS', 'S', 'A', 'B', 'C', 'D']
