@@ -69,7 +69,7 @@ class Skill_010471_2(Skill):
         ]
 
     def activate(self, friend, enemy):
-        buff_num = len(TypeTarget(side=0, shiptype=MainShip)
+        buff_num = len(TypeTarget(side=0, shiptype=CoverShip)
                        .get_target(friend, enemy))
         target = self.target.get_target(friend, enemy)
         for tmp_target in target:

@@ -48,7 +48,7 @@ class Skill_105201_3(Skill):
     """当敌方主力舰≥5时，增加自身20%暴击伤害，自身攻击必定命中。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = Target(side=1)
+        self.target = SelfTarget(master)
         self.request = [Request_1]
         self.buff = [
             CoeffBuff(

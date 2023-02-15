@@ -29,46 +29,109 @@ class AllTarget(Target):
 
 
 class EnvSkill_1(Skill):
-    """猪飞：大型船伤害+30%"""
+    """猪飞：大型船伤害+60%"""
     def __init__(self, timer):
         super().__init__(timer, master=None)
         self.target = TypeTarget(side=1, shiptype=LargeShip)
         self.buff = [
+            StatusBuff(
+                timer=timer,
+                name='fire',
+                phase=AllPhase,
+                value=10,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='armor',
+                phase=AllPhase,
+                value=10,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='accuracy',
+                phase=AllPhase,
+                value=10,
+                bias_or_weight=0
+            ),
             FinalDamageBuff(
                 timer=timer,
                 name='final_damage_buff',
                 phase=AllPhase,
-                value=0.3
+                value=0.6
             )
         ]
 
 
 class EnvSkill_2(Skill):
-    """猪飞：大型船暴击率+10%"""
+    """猪飞：中型船伤害+60%"""
     def __init__(self, timer):
         super().__init__(timer, master=None)
-        self.target = TypeTarget(side=1, shiptype=LargeShip)
+        self.target = TypeTarget(side=1, shiptype=MidShip)
         self.buff = [
+            StatusBuff(
+                timer=timer,
+                name='fire',
+                phase=AllPhase,
+                value=10,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='armor',
+                phase=AllPhase,
+                value=10,
+                bias_or_weight=0
+            ),
             CoeffBuff(
                 timer=timer,
                 name='crit',
                 phase=AllPhase,
                 value=0.1,
                 bias_or_weight=0
+            ),
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=AllPhase,
+                value=0.6
             )
         ]
 
 
 class EnvSkill_3(Skill):
-    """装母开幕必中"""
+    """猪飞：小型船伤害+60%"""
     def __init__(self, timer):
         super().__init__(timer, master=None)
-        self.target = TypeTarget(side=1, shiptype=AV)
+        self.target = TypeTarget(side=1, shiptype=SmallShip)
         self.buff = [
-            SpecialBuff(
+            StatusBuff(
                 timer=timer,
-                name='must_hit',
-                phase=AirPhase
+                name='torpedo',
+                phase=AllPhase,
+                value=10,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='evasion',
+                phase=AllPhase,
+                value=10,
+                bias_or_weight=0
+            ),
+            CoeffBuff(
+                timer=timer,
+                name='crit',
+                phase=AllPhase,
+                value=0.1,
+                bias_or_weight=0
+            ),
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=AllPhase,
+                value=0.6
             )
         ]
 
@@ -87,20 +150,5 @@ class EnvSkill_4(Skill):
         ]
 
 
-class EnvSkill_5(Skill):
-    """装母火力15"""
-    def __init__(self, timer):
-        super().__init__(timer, master=None)
-        self.target = TypeTarget(side=1, shiptype=AV)
-        self.buff = [
-            StatusBuff(
-                timer=timer,
-                name='fire',
-                phase=AllPhase,
-                value=15,
-                bias_or_weight=0
-            )
-        ]
-
-
+# env = [EnvSkill_1, EnvSkill_2, EnvSkill_3]
 env = []

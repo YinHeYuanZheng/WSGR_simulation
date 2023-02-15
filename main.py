@@ -14,6 +14,22 @@ sys.path.append(srcDir)
 from src.utils.loadConfig import load_config
 from src.utils.loadDataset import Dataset
 from src.wsgr.wsgrTimer import timer
+from src.wsgr.formulas import *
+
+
+def new_hit_verify(value):
+    def f(cls):
+        if cls.atk_body.side == 1:  # 只修改深海命中
+            return False
+
+        verify = np.random.random()
+        if verify <= value:
+            cls.coef['hit_flag'] = True
+            return True
+        else:
+            cls.coef['hit_flag'] = False
+            return True
+    return f
 
 
 def run_victory(battle, epoc):
@@ -80,10 +96,12 @@ def run_supply_cost(battle, epoc):
 
 if __name__ == '__main__':
     configDir = os.path.join(os.path.dirname(srcDir), 'config')
-    xml_file = os.path.join(configDir, r'event\config.xml')
+    xml_file = os.path.join(configDir, r'event\event3\config_1.xml')
     dependDir = os.path.join(os.path.dirname(srcDir), 'depend')
     data_file = os.path.join(dependDir, r'ship\database.xlsx')
     ds = Dataset(data_file)  # 舰船数据
+
+    # NormalAtk.outer_hit_verify = new_hit_verify(0.7)
 
     mapDir = os.path.join(dependDir, r'map')
     timer_init = timer()  # 创建时钟
@@ -91,6 +109,6 @@ if __name__ == '__main__':
     del ds
 
     # run_hit_rate(battle, 1000)
-    run_victory(battle, 5000)
+    run_victory(battle, 1000)
     # run_avg_damage(battle, 10000)
     # run_supply_cost(battle, 1000)

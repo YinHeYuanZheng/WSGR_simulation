@@ -225,6 +225,10 @@ class ATK(Time):
         if self.skill_hit_verify():
             return
 
+        # 外部命中率修改
+        if self.outer_hit_verify():
+            return
+
         # 基础命中率
         accuracy = self.atk_body.get_final_status('accuracy')
         evasion = self.target.get_final_status('evasion')
@@ -304,6 +308,9 @@ class ATK(Time):
             return True
 
         return False
+
+    def outer_hit_verify(self):
+        pass
 
     def get_dmg_coef(self):
         if self.get_coef('ignore_damaged'):
@@ -484,6 +491,10 @@ class AirStrikeAtk(AirAtk):
         """航空攻击命中检定，含飞机装备命中率buff"""
         # 技能、战术判定
         if self.skill_hit_verify():
+            return
+
+        # 外部命中率修改
+        if self.outer_hit_verify():
             return
 
         # 基础命中率
@@ -788,6 +799,10 @@ class MissileAtk(ATK):
         if self.skill_hit_verify():
             return
 
+        # 外部命中率修改
+        if self.outer_hit_verify():
+            return
+
         # 基础命中率
         accuracy = self.atk_body.get_final_status('accuracy')
         evasion = self.target.get_final_status('evasion')
@@ -1050,6 +1065,10 @@ class AirNormalAtk(NormalAtk, AirAtk):
         """命中检定"""
         # 技能、战术判定
         if self.skill_hit_verify():
+            return
+
+        # 外部命中率修改
+        if self.outer_hit_verify():
             return
 
         # 基础命中率
