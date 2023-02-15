@@ -178,7 +178,7 @@ def load_enemy_ship(node, dataset, timer):
     # skill_num = int(node.getAttribute('skill')) - 1
     skill_num = 0  # 默认只有一个技能
     sid = skill_list[skill_num]
-    if sid != '':
+    if sid != '' and int(node.getAttribute('skill')) != 0:  # skill=0可用于去除敌舰技能
         sid = 'sid' + sid
         skill = getattr(skillCode, sid).skill  # 根据技能设置获取技能列表，未实例化
         ship.add_skill(skill)
