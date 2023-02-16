@@ -1251,6 +1251,29 @@ class NightAtk(ATK):
         })  # 阵型系数
         self.dir_coef = [1, 1, 1, 1]  # 航向系数，按照优同反劣顺序
 
+    def real_damage(self, real_atk):
+        if real_atk is None:
+            raise ValueError(f'Formula of "{type(self).__name__}" is not defined!')
+
+        # 实际伤害
+        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_armor', self)  # 无视装甲
+        def_armor = self.target.get_final_status('armor') * \
+                    (1 + ignore_scale) + ignore_bias
+        def_armor = max(0, def_armor)
+
+        real_dmg = np.ceil(real_atk *
+                           (1 - def_armor /
+                            (0.5 * def_armor + self.coef['pierce_coef'] * real_atk)))
+
+        if real_dmg <= 0:
+            if np.random.random() < 0.5:  # 50% 跳弹
+                return 0
+            else:  # 50% 擦伤
+                real_dmg = np.ceil(
+                    min(real_atk, self.target.status['health']) * 0.1
+                )
+        return real_dmg
+
 
 class NightNormalAtk(NightAtk, NormalAtk):
     """夜战普通炮击"""

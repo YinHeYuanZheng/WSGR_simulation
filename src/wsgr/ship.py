@@ -235,7 +235,7 @@ class Ship(Time):
 
     def init_supply(self):
         """初始化补给"""
-        self.supply_ammo  = 1 + self.get_strategy_value('strategy_ammo')
+        self.supply_ammo += self.get_strategy_value('strategy_ammo')
 
     def get_raw_skill(self):
         """获取技能，让巴尔可调用"""
