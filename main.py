@@ -21,6 +21,8 @@ def new_hit_verify(value):
     def f(cls):
         if cls.atk_body.side == 1:  # 只修改深海命中
             return False
+        if cls.target.size != 1:
+            return False
 
         verify = np.random.random()
         if verify <= value:
@@ -42,13 +44,19 @@ def run_victory(battle, epoc):
 
         result_flag_id = result_flag_list.index(log['result'])
         result[result_flag_id] += 1
-        print(f"第{i + 1}次 - 战果分布: "
+        print("\r"
+              f"第{i + 1}次 - 战果分布: "
               f"SS {result[0] / (i + 1) * 100:.2f}% "
               f"S {result[1] / (i + 1) * 100:.2f}% "
               f"A {result[2] / (i + 1) * 100:.2f}% "
               f"B {result[3] / (i + 1) * 100:.2f}% "
               f"C {result[4] / (i + 1) * 100:.2f}% "
-              f"D {result[5] / (i + 1) * 100:.2f}% ")
+              f"D {result[5] / (i + 1) * 100:.2f}% ",
+              end='',
+              flush=True)
+    # result = np.array(result)
+    # result = result / epoc * 100
+    # return result
 
 
 def run_hit_rate(battle, epoc):
@@ -94,6 +102,48 @@ def run_supply_cost(battle, epoc):
               f"铝 {supply['almn'] / (i + 1):.1f}.")
 
 
+def run_damaged(battle, epoc):
+    damaged_rate = np.zeros((6, 2))
+    for i in range(epoc):
+        tmp_battle = copy.deepcopy(battle)
+        tmp_battle.start()
+        for j in range(6):
+            ship = tmp_battle.friend.ship[j]
+            if ship.damaged >= 2:
+                damaged_rate[j, 0] += 1
+            if ship.damaged >= 3:
+                damaged_rate[j, 1] += 1
+        print("\r"
+              f"第{i + 1}次\n"
+              f"{tmp_battle.friend.ship[0].status['name']}: "
+              f"中破率 {damaged_rate[0, 0] / (i + 1) * 100:.2f}% "
+              f"大破率 {damaged_rate[0, 1] / (i + 1) * 100:.2f}% \n"
+              f"{tmp_battle.friend.ship[1].status['name']}: "
+              f"中破率 {damaged_rate[1, 0] / (i + 1) * 100:.2f}% "
+              f"大破率 {damaged_rate[1, 1] / (i + 1) * 100:.2f}% \n"
+              f"{tmp_battle.friend.ship[2].status['name']}: "
+              f"中破率 {damaged_rate[2, 0] / (i + 1) * 100:.2f}% "
+              f"大破率 {damaged_rate[2, 1] / (i + 1) * 100:.2f}% \n"
+              f"{tmp_battle.friend.ship[3].status['name']}: "
+              f"中破率 {damaged_rate[3, 0] / (i + 1) * 100:.2f}% "
+              f"大破率 {damaged_rate[3, 1] / (i + 1) * 100:.2f}% \n"
+              f"{tmp_battle.friend.ship[4].status['name']}: "
+              f"中破率 {damaged_rate[4, 0] / (i + 1) * 100:.2f}% "
+              f"大破率 {damaged_rate[4, 1] / (i + 1) * 100:.2f}% \n"
+              f"{tmp_battle.friend.ship[5].status['name']}: "
+              f"中破率 {damaged_rate[5, 0] / (i + 1) * 100:.2f}% "
+              f"大破率 {damaged_rate[5, 1] / (i + 1) * 100:.2f}% \n",
+              end='',
+              flush=True)
+
+
+def set_supply(battle, battle_num):
+    """设置弹损，battle_num输入第几战"""
+    for ship in battle.friend.ship:
+        ship.supply_oil -= 0.2 * (battle_num - 1)
+        ship.supply_ammo -= 0.2 * (battle_num - 1)
+
+
 if __name__ == '__main__':
     configDir = os.path.join(os.path.dirname(srcDir), 'config')
     xml_file = os.path.join(configDir, r'event\event3\config_1.xml')
@@ -101,14 +151,19 @@ if __name__ == '__main__':
     data_file = os.path.join(dependDir, r'ship\database.xlsx')
     ds = Dataset(data_file)  # 舰船数据
 
-    # NormalAtk.outer_hit_verify = new_hit_verify(0.7)
-
     mapDir = os.path.join(dependDir, r'map')
     timer_init = timer()  # 创建时钟
     battle = load_config(xml_file, mapDir, ds, timer_init)
     del ds
 
-    # run_hit_rate(battle, 1000)
+    set_supply(battle, 4)
+    # for accuracy in np.arange(100, 201, 50):
+    #     print(f"accuracy: {accuracy}")
+    #     for ship in battle.enemy.ship:
+    #         ship.status['accuracy'] = accuracy
     run_victory(battle, 1000)
-    # run_avg_damage(battle, 10000)
-    # run_supply_cost(battle, 1000)
+    # for hit_rate in np.arange(0.5, 1, 0.05):
+    #     hit_rate = np.round(hit_rate, 2)
+    #     print(f"hit_rate: {hit_rate}")
+    #     NormalAtk.outer_hit_verify = new_hit_verify(hit_rate)
+    #     run_damaged(battle, 1000)
