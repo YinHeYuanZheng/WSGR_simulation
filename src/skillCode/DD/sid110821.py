@@ -6,7 +6,7 @@
 from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
-from src.wsgr.formulas import SpecialAtk
+from src.wsgr.formulas import MagicAtk
 
 """炮击战时40%概率发动，无视目标装甲对目标造成自身装甲80%的固定伤害，该次攻击必定命中。"""
 
@@ -20,12 +20,12 @@ class Skill_110821(Skill):
                 timer=timer,
                 phase=ShellingPhase,
                 rate=0.4,
-                atk_type=SpecialAtk_1
+                atk_type=MagicAtk_110821
             )
         ]
 
 
-class SpecialAtk_1(SpecialAtk):
+class MagicAtk_110821(MagicAtk):
     def formula(self):
         return np.ceil(self.atk_body.get_final_status('armor') * 0.8)
 

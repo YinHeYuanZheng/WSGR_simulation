@@ -819,9 +819,6 @@ class AtkHitBuff(Buff):
                self.rate_verify()
 
     def activate(self, atk, *args, **kwargs):
-        if self.name == 'atk_hit' and self.side == 0:
-            self.atk_hit(atk)
-            return
         if (self.name in ['atk_hit', 'give_atk'] and self.side == 1) or \
                 (self.name in ['atk_be_hit', 'get_atk'] and self.side == 0):
             target = atk.atk_body
@@ -831,14 +828,6 @@ class AtkHitBuff(Buff):
         for tmp_buff in self.buff[:]:
             tmp_buff = copy.copy(tmp_buff)
             target.add_buff(tmp_buff)
-
-    def atk_hit(self, atk):
-        # 不复制buff使得内存id可以传递，用于识别buff不叠加
-        # todo 在施加需要获取master的buff时需要复制
-        target = atk.target
-        for tmp_buff in self.buff:
-            if tmp_buff not in target.temper_buff:
-                target.add_buff(tmp_buff)
 
 
 class AtkCoefProcess(AtkBuff):
@@ -906,6 +895,51 @@ class EventBuff(Buff):
 
     def activate(self, atk, *args, **kwargs):
         pass
+
+
+class ChaseAtkBuff(EventBuff):
+    """追击技能"""
+    def __init__(self, timer, phase,
+                 name='chase', coef=None, exhaust=None,
+                 atk_request=None, bias_or_weight=3, rate=1):
+        super().__init__(timer, name, phase, bias_or_weight, rate)
+        if coef is None:
+            coef = {}
+        self.coef = coef
+        self.exhaust = exhaust
+        self.atk_request = atk_request
+
+    def is_active(self, atk, *args, **kwargs):
+        if self.exhaust is not None and self.exhaust == 0:
+            return False
+        if atk.atk_body.side != self.master.side:  # 追击性质决定攻击者必须是友方
+            return False
+        from src.wsgr.formulas import SpecialAtk
+        if not atk.target.can_be_atk(SpecialAtk):  # 只追击以攻击的该敌方
+            return False
+
+        if self.atk_request is None:
+            return isinstance(self.timer.phase, self.phase) and \
+                   self.rate_verify()
+
+        return isinstance(self.timer.phase, self.phase) and \
+               bool(self.atk_request[0](self.timer, atk)) and \
+               self.rate_verify()
+
+    def activate(self, atk, *args, **kwargs):
+        if self.exhaust is not None:
+            self.exhaust -= 1
+
+        from src.wsgr.formulas import SpecialAtk
+        chase_atk = SpecialAtk(
+            timer=self.timer,
+            atk_body=self.master,
+            def_list=None,
+            coef=copy.copy(self.coef),
+            target=atk.target
+        )
+        chase_atk.changable = False
+        return chase_atk
 
 
 class MagnetBuff(EventBuff):
@@ -1062,7 +1096,7 @@ class HitBack(SpecialBuff):
         super().__init__(timer, name, phase, exhaust, atk_request, bias_or_weight, rate)
         if coef is None:
             coef = {}
-        self.coef = coef
+        self.coef = coef  # hit_back参数会在攻击结算时添加
 
     def is_active(self, atk, *args, **kwargs):
         if atk.get_coef('hit_back'):  # 无法反击反击
@@ -1081,7 +1115,7 @@ class HitBack(SpecialBuff):
                self.rate_verify()
 
     def activate(self, atk, *args, **kwargs):
-        assert atk.atk_body.side != self.master.side
+        assert atk.atk_body.side != self.master.side  # 反击性质决定攻击者必须是敌方
 
         if self.exhaust is not None:
             self.exhaust -= 1

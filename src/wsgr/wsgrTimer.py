@@ -22,6 +22,7 @@ class timer:
         self.queue = {              # 有时点依赖的技能
             'magnet': [],           # 嘲讽
             'tank': [],             # 挡枪
+            'chase': [],            # 追击
         }
         self.log = {
             'miss': 0,
@@ -86,13 +87,16 @@ class timer:
             return 5  # 特殊点位手动置为5
 
     def queue_append(self, buff):
-        if buff.name == 'tank':
-            queue = self.queue['tank']
+        if buff.name == 'chase':
+            self.queue['chase'].append(buff)
+            self.queue['chase'].sort(key=lambda x: x.master.loc)
         else:
-            queue = self.queue['magnet']
-
-        queue.append(buff)
-        queue.sort(key=lambda x: (-x.rate, x.master.loc))
+            if buff.name == 'tank':
+                queue = self.queue['tank']
+            else:  # magnet & un_magnet
+                queue = self.queue['magnet']
+            queue.append(buff)
+            queue.sort(key=lambda x: (-x.rate, x.master.loc))
 
     def reinit(self):
         self.recon_flag = None      # 索敌

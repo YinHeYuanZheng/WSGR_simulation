@@ -173,6 +173,7 @@ class SupportPhase(AllPhase):
             atk = SupportAtk(
                 timer=self.timer,
                 atk_body=supportUnit,
+                def_list=None,
                 target=ship)
             atk.start()
 
@@ -585,12 +586,21 @@ class ShellingPhase(DaytimePhase):
             return
 
         atk_list = source.raise_atk(target_fleet)
+        hit_back_list = []
+        chase_atk_list = []
         for atk in atk_list:
-            hit_back = atk.start()
+            hit_back, chase_atk = atk.start()
             if isinstance(hit_back, ATK):
-                # hit_back_list.append(hit_back)  # todo 反击结算放在所有攻击结束后
-                hit_back.set_coef({'hit_back': True})
-                hit_back.start()
+                hit_back_list.append(hit_back)  # 反击结算放在所有攻击结束后
+            if isinstance(chase_atk, ATK):
+                chase_atk_list.append(chase_atk)  # 追击结算放在反击攻击结束后
+        if len(hit_back_list):
+            hit_back = hit_back_list[0]  # 只结算第一个反击
+            hit_back.set_coef({'hit_back': True})
+            hit_back.start()
+        if len(chase_atk_list):
+            chase_atk = chase_atk_list[0]  # 只结算第一个有效追击
+            chase_atk.start()
 
 
 class FirstShellingPhase(ShellingPhase):
@@ -636,8 +646,5 @@ class NightPhase(AllPhase):
         atk_list = source.raise_night_atk(target_fleet)
         for atk in atk_list:
             act_flag = True
-            hit_back = atk.start()  # 技能反击
-            if isinstance(hit_back, ATK):
-                hit_back.set_coef({'hit_back': True})
-                hit_back.start()
+            atk.start()
         return act_flag

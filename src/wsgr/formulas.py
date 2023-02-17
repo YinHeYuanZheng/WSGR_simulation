@@ -19,6 +19,7 @@ __all__ = ['ATK',
            'AirAntiSubAtk',
            'TorpedoAtk',
            'NormalAtk',
+           'MagicAtk',
            'SpecialAtk',
            'AirNormalAtk',
            'NightAtk',
@@ -46,9 +47,8 @@ class ATK(Time):
         self.changeable = True  # 攻击目标是否可被更改
 
         if coef is None:
-            self.coef = {}
-        else:
-            self.coef = coef  # 伤害计算相关参数
+            coef = {}
+        self.coef = coef  # 伤害计算相关参数
 
         self.form_coef = {
             'power': [],
@@ -402,24 +402,26 @@ class ATK(Time):
         :param damage_flag: 是否受到了伤害
         :param damage_value: 伤害记录
         """
+        hit_back = None
+        chase_atk = None
         if not damage_flag:
-            hit_back = None
             self.timer.report('miss')
         else:
             self.atk_body.atk_hit('atk_hit', self)
             hit_back = self.target.atk_hit('atk_be_hit', self)
+            for tmp_buff in self.timer.queue['chase']:
+                if tmp_buff.is_active(self):
+                    chase_atk = tmp_buff.activate(self)
+                    break
             self.timer.report(damage_value)
 
         self.atk_body.remove_during_buff()
         self.target.remove_during_buff()
-        return hit_back
+        return hit_back, chase_atk
 
 
 class SupportAtk(ATK):
     """支援攻击"""
-    def __init__(self, timer, atk_body, target, *args, **kwargs):
-        super().__init__(timer, atk_body, [target], *args, **kwargs)
-        self.target = target
 
     def start(self):
         damage = self.formula()
@@ -432,17 +434,13 @@ class SupportAtk(ATK):
         return np.ceil(damage)
 
     def end_atk(self, damage_flag, damage_value):
-        """
-        攻击结束时点，进行受伤时点效果、反击等
-        :param damage_flag: 是否受到了伤害
-        :param damage_value: 伤害记录
-        """
         hit_back = None
+        chase_atk = None
         if not damage_flag:
             self.timer.report('miss')
         else:
             self.timer.report(damage_value)
-        return hit_back
+        return hit_back, chase_atk
 
 
 class AirAtk(ATK):
@@ -1063,7 +1061,7 @@ class NormalAtk(ATK):
         return real_atk
 
 
-class SpecialAtk(NormalAtk):
+class MagicAtk(NormalAtk):
     """技能特殊攻击(只包含固定伤害，不过甲)"""
 
     def hit_verify(self):
@@ -1087,6 +1085,47 @@ class SpecialAtk(NormalAtk):
         if real_atk is None:
             raise ValueError(f'Formula of "{type(self).__name__}" is not defined!')
         return real_atk
+
+
+class SpecialAtk(ATK):
+    """技能特殊攻击(不会触发普通攻击可以触发的特效)"""
+
+    def __init__(self, timer, atk_body, def_list, coef=None, target=None):
+        super().__init__(timer, atk_body, def_list, coef, target)
+
+        self.form_coef.update({
+            'power': [1, .8, .75, 1, .8],
+            'hit': [1.1, 1, .9, 1.2, .75],
+            'miss': [.9, 1.2, .9, .8, 1.3],
+        })  # 阵型系数
+
+    def formula(self):
+        # 基础攻击力
+        base_atk = self.atk_body.get_final_status('fire') + 5
+
+        # 实际威力
+        real_atk = (base_atk *
+                    self.coef['form_coef'] *
+                    self.coef['skill_coef'] *
+                    self.coef['dir_coef'] *
+                    self.coef['dmg_coef'] *
+                    self.coef['supply_coef'] *
+                    self.coef['crit_coef'] *
+                    self.coef['random_coef'])
+        return real_atk
+
+    def end_atk(self, damage_flag, damage_value):
+        hit_back = None
+        chase_atk = None
+        if not damage_flag:
+            self.timer.report('miss')
+        else:
+            self.atk_body.atk_hit('atk_hit', self)
+            self.timer.report(damage_value)
+
+        self.atk_body.remove_during_buff()
+        self.target.remove_during_buff()
+        return hit_back, chase_atk
 
 
 class AirNormalAtk(NormalAtk, AirAtk):

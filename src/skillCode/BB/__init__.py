@@ -31,6 +31,7 @@ from . import sid105141  # 近江-1
 from . import sid105201  # 蒙大拿-1
 from . import sid105231  # 亚拉巴马-1
 from . import sid105321  # 但丁-1
+from . import sid105341  # 24型-1
 from . import sid105471  # 勃艮第-1
 
 # 改造BB

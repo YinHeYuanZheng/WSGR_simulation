@@ -6,7 +6,7 @@
 from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
-from src.wsgr.formulas import SpecialAtk
+from src.wsgr.formulas import MagicAtk
 
 """自身火力值增加 10 点，鱼雷值和回避减少 5 点；
 炮击战时 30% 概率对敌方水上单位(优先攻击航母)触发特殊攻击，
@@ -65,13 +65,13 @@ class Skill_110661_2(Skill):
                         ordered=False
                     )
                 ],
-                atk_type=SpecialAtk_1,
+                atk_type=MagicAtk_110661,
                 undamaged=True
             )
         ]
 
 
-class SpecialAtk_1(SpecialAtk):
+class MagicAtk_110661(MagicAtk):
     def formula(self):
         return np.ceil(self.atk_body.get_final_status('fire'))
 
