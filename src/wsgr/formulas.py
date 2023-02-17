@@ -9,6 +9,7 @@ from src.wsgr.wsgrTimer import Time
 from src.wsgr.equipment import *
 
 __all__ = ['ATK',
+           'SupportAtk',
            'AirAtk',
            'AirStrikeAtk',
            'AirBombAtk',
@@ -411,6 +412,36 @@ class ATK(Time):
 
         self.atk_body.remove_during_buff()
         self.target.remove_during_buff()
+        return hit_back
+
+
+class SupportAtk(ATK):
+    """支援攻击"""
+    def __init__(self, timer, atk_body, target, *args, **kwargs):
+        super().__init__(timer, atk_body, [target], *args, **kwargs)
+        self.target = target
+
+    def start(self):
+        damage = self.formula()
+        damage = self.target.get_damage(damage)
+        damage_flag = bool(damage)
+        return self.end_atk(damage_flag, damage)
+
+    def formula(self):
+        damage = np.random.uniform(60, 100)
+        return np.ceil(damage)
+
+    def end_atk(self, damage_flag, damage_value):
+        """
+        攻击结束时点，进行受伤时点效果、反击等
+        :param damage_flag: 是否受到了伤害
+        :param damage_value: 伤害记录
+        """
+        hit_back = None
+        if not damage_flag:
+            self.timer.report('miss')
+        else:
+            self.timer.report(damage_value)
         return hit_back
 
 
@@ -1350,8 +1381,8 @@ class NightTorpedoAtk(NightAtk, TorpedoAtk):
                     self.coef['crit_coef'] *
                     self.coef['random_coef'])
         return real_atk
-    
-    
+
+
 class NightMissileAtk(NightAtk, MissileAtk):
     """夜战导弹攻击"""
 

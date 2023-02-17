@@ -9,11 +9,11 @@ from src.wsgr.wsgrTimer import Time
 from src.wsgr.formulas import *
 import src.wsgr.formulas as rform
 from src.wsgr.equipment import *
-from src.wsgr.ship import Submarine
 
 __all__ = ['AllPhase',
            'PreparePhase',
            'BuffPhase',
+           'SupportPhase',
            'AirPhase',
            'TLockPhase',
 
@@ -88,6 +88,7 @@ class PreparePhase(AllPhase):
             tmp_ship.run_strategy()
 
     def compare_recon(self):
+        from src.wsgr.ship import Submarine
         sub_num = self.enemy.count(Submarine)
         if sub_num != len(self.enemy.ship):
             friend_recon = self.friend.status['recon']
@@ -158,6 +159,22 @@ class BuffPhase(AllPhase):
             tmp_ship.run_normal_skill(self.friend, self.enemy)
         for tmp_ship in self.enemy.ship:
             tmp_ship.run_normal_skill(self.enemy, self.friend)
+
+
+class SupportPhase(AllPhase):
+    """支援攻击"""
+
+    def start(self):
+        from src.wsgr.ship import Ship
+        supportUnit = Ship(self.timer)
+        supportUnit.set_status('name', '支援攻击')
+        supportUnit.set_side(1)
+        for ship in self.enemy.ship:
+            atk = SupportAtk(
+                timer=self.timer,
+                atk_body=supportUnit,
+                target=ship)
+            atk.start()
 
 
 class DaytimePhase(AllPhase):

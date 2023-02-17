@@ -20,6 +20,7 @@ class BattleUtil(Time):
         self.battle_init()
         self.start_phase()
         self.run_phase(BuffPhase)
+        # self.run_phase(SupportPhase)
         self.run_phase(AirPhase)
         self.run_phase(TLockPhase)
         self.run_phase(FirstMissilePhase)

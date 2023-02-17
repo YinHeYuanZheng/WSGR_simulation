@@ -52,7 +52,7 @@ class Ship(Time):
         self.side = 0  # 敌我识别; 1: 友方; 0: 敌方
         self.loc = 0  # 站位, 1-6
         self.level = 110  # 等级
-        self.affection = 200  # 好感
+        self.affection = 50  # 好感
 
         self.created_damage = {}  # 造成伤害记录，分阶段，在下一点开始时重置
         self.got_damage = 0  # 受到伤害记录，只有总数，在下一点开始时重置
