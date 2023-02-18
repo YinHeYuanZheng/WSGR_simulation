@@ -86,9 +86,9 @@ class ATK(Time):
         if damage == 0:
             return self.end_atk(damage_flag, 'jump')
 
+        damage_flag = True
         damage = self.final_damage(damage)
         damage = self.target.get_damage(damage)
-        damage_flag = bool(damage)
         return self.end_atk(damage_flag, damage)
 
     def target_init(self):
@@ -425,8 +425,8 @@ class SupportAtk(ATK):
 
     def start(self):
         damage = self.formula()
-        damage = self.target.get_damage(damage)
         damage_flag = bool(damage)
+        damage = self.target.get_damage(damage)
         return self.end_atk(damage_flag, damage)
 
     def formula(self):
@@ -493,9 +493,9 @@ class AirStrikeAtk(AirAtk):
         if damage == 0:
             return self.end_atk(damage_flag, 'jump')
 
+        damage_flag = True
         damage = self.final_damage(damage)
         damage = self.target.get_damage(damage)
-        damage_flag = bool(damage)
         return self.end_atk(damage_flag, damage)
 
     def get_anti_air_fall(self, anti_num):
