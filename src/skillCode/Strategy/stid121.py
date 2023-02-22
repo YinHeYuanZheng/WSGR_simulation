@@ -13,7 +13,7 @@ from src.wsgr.phase import *
 class Strategy_121(SelfStrategy):
     def __init__(self, timer, master, level=3):
         super().__init__(timer, master, level)
-        value = [0.02, 0.04, 0.06, 0.08]
+        value = [-0.02, -0.04, -0.06, -0.08]
         self.stid = '121'
         self.buff = [
             FinalDamageBuff(

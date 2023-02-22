@@ -8,7 +8,7 @@ from . import stid112  # 炮击训练
 from . import stid113  # 拦阻射击
 from . import stid121  # 对海警戒哨
 from . import stid122  # 前哨援护
-from . import stid122  # 过穿
+from . import stid123  # 过穿
 from . import stid131  # 大角度规避
 from . import stid132  # 雁行雷击
 from . import stid211  # 效力射
