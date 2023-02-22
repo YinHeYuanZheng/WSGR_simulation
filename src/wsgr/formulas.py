@@ -39,7 +39,6 @@ class ATK(Time):
     def __init__(self, timer, atk_body, def_list, coef=None, target=None,
                  *args, **kwargs):
         super().__init__(timer)
-        self.timer.set_atk(self)
         self.atk_body = atk_body
         self.def_list = def_list  # 可被攻击目标列表
 
@@ -69,7 +68,7 @@ class ATK(Time):
 
     def start(self):
         """攻击开始命令，结算到攻击结束"""
-
+        self.timer.set_atk(self)
         damage_flag = False
         self.target_init()
         self.start_atk()
@@ -424,6 +423,7 @@ class SupportAtk(ATK):
     """支援攻击"""
 
     def start(self):
+        self.timer.set_atk(self)
         damage = self.formula()
         damage_flag = bool(damage)
         damage = self.target.get_damage(damage)
@@ -474,6 +474,7 @@ class AirStrikeAtk(AirAtk):
         })  # 阵型系数
 
     def start(self):
+        self.timer.set_atk(self)
         damage_flag = False
         self.target_init()
         self.start_atk()

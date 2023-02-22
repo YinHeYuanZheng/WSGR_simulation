@@ -59,7 +59,7 @@ class Skill_105341_2(Skill):
             ChaseAtkBuff(
                 timer=timer,
                 phase=FirstShellingPhase,
-                coef={'final_damage_buff': 0.75}
+                coef={'final_damage_buff': -0.25}
             ),
             SpecialBuff(
                 timer=timer,
