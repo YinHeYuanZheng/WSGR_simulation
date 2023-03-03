@@ -107,10 +107,8 @@ class timer:
             'miss': 0,
             'hit': 0,
         })
-        self.queue = {
-            'magnet': [],
-            'tank': [],
-        }
+        for key in self.queue.keys():
+            self.queue.update({key: []})
 
     def phase_start(self):
         self.phase.start()
