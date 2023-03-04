@@ -684,8 +684,13 @@ class Buff(Time):
 
     def is_active(self, *args, **kwargs):
         """技能是否满足发动阶段"""
+        # self.change_value()
         return self.rate_verify() and \
                isinstance(self.timer.phase, self.phase)
+
+    def change_value(self):
+        """todo 动态修改技能数值时调用"""
+        pass
 
     def rate_verify(self):
         if self.rate == 1:
