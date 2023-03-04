@@ -70,7 +70,7 @@ class SkillCoeffBuff(AtkBuff):
         self.value = 0.05 + 0.25 * \
                      (atk.target.status['standard_health'] - atk.target.status['health']) /\
                      (atk.target.status['standard_health'] - 1)
-        return True
+        return isinstance(self.timer.phase, self.phase)
 
 
 name = '爆雷奇袭'

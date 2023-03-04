@@ -55,12 +55,11 @@ class LuckBuff(StatusBuff):
                          bias_or_weight=0)
 
     def is_active(self, *args, **kwargs):
-        """因为每次都会判断is_active，因此利用该函数生成每次不同的值"""
         self.value = np.ceil(
             (1 - np.random.random()) * 0.8
             * self.master.get_final_status('luck')
         )
-        return True
+        return isinstance(self.timer.phase, self.phase)
 
 
 name = '幸运的云雨区'

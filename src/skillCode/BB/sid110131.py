@@ -98,7 +98,7 @@ class LuckExtraDamage(CoeffBuff):
     """攻击时增加自身50%幸运值的额外伤害"""
     def is_active(self, *args, **kwargs):
         self.value = np.ceil(0.5 * self.master.get_final_status('luck'))
-        return True
+        return isinstance(self.timer.phase, self.phase)
 
 
 name = '幸运之星'

@@ -78,7 +78,7 @@ class Skill_110642_2(Skill):
 class ExtraDamageBuff_1(CoeffBuff):
     def is_active(self, *args, **kwargs):
         self.value = np.ceil(self.master.get_final_status('torpedo') * 0.35)
-        return True
+        return isinstance(self.timer.phase, self.phase)
 
 
 name = '孤注一掷'

@@ -35,7 +35,7 @@ class DamagedCoeffBuff(CoeffBuff):
         self.value = 0.28 * \
                      (self.master.status['standard_health'] - self.master.status['health']) / \
                      (self.master.status['standard_health'] - 1)
-        return True
+        return isinstance(self.timer.phase, self.phase)
 
 
 name = '好斗的玛丽'

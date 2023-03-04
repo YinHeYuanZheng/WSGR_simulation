@@ -40,7 +40,7 @@ class HealthBasedBuff(CoeffBuff):
         health = self.master.status['health']
         loss_health_rate = 1 - health / total_health
         self.value = loss_health_rate // 0.05 * 0.12
-        return True
+        return isinstance(self.timer.phase, self.phase)
 
 
 class BuffRequest_1(ATKRequest):

@@ -40,7 +40,7 @@ class ExtraDamage(CoeffBuff):
                         self.master.status['health'])\
                        // 5 * 10
         self.value = min(100, extra_damage)
-        return True
+        return isinstance(self.timer.phase, self.phase)
 
 
 name = '浴火重生'

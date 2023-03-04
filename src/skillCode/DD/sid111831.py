@@ -45,7 +45,7 @@ class HealthCoeffBuff(CoeffBuff):
         self.value = 0.8 * \
                      (self.master.status['standard_health'] - self.master.status['health']) / \
                      (self.master.status['standard_health'] - 1)
-        return True
+        return isinstance(self.timer.phase, self.phase)
 
 
 class ATKRequest1(ATKRequest):
