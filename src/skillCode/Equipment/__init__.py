@@ -23,3 +23,5 @@ from . import esid612  # П-35反舰导弹
 from . import esid613  # СМ-70旋转发射器
 from . import esid619  # AM-1拳击手（HVAR）
 from . import esid620  # M1导弹
+from . import esid631  # 马舒卡导弹MK2
+from . import esid632  # 马舒卡导弹MK2
