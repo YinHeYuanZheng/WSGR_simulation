@@ -9,6 +9,7 @@ from . import esid005  # 高脚柜特效
 from . import esid012  # 烈风改J特效
 from . import esid018  # 远程对空警戒雷达
 from . import esid023  # 暴击率特效
+from . import esid024  # 开幕轰炸威力特效
 
 from . import esid581  # 海鹰反舰导弹
 from . import esid582  # 海鹰导弹发射器
@@ -22,4 +23,3 @@ from . import esid612  # П-35反舰导弹
 from . import esid613  # СМ-70旋转发射器
 from . import esid619  # AM-1拳击手（HVAR）
 from . import esid620  # M1导弹
-from . import esid630  # F2G超级海盗（小提姆）
