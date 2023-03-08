@@ -1293,7 +1293,7 @@ class ASDG(AtkMissileShip, SmallShip, MainShip):
         self.type = 'ASDG'
 
 
-class AADG(DefMissileShip, SmallShip, CoverShip):
+class AADG(DefMissileShip, AntiSubShip, SmallShip, CoverShip):
     """防驱"""
     def __init__(self, timer):
         super().__init__(timer)

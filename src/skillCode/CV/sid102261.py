@@ -28,7 +28,7 @@ class Skill_102261_1(CommonSkill):
         ]
 
 
-class Skill_102261_2(CommonSkill):
+class Skill_102261_2(Skill):
     """战斗中当敌方有装母、航母或者轻母时，随机降低敌方一艘装母、航母或者轻母的火力值20点。"""
 
     def __init__(self, timer, master):

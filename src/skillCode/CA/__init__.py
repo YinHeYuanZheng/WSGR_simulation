@@ -32,6 +32,7 @@ from . import sid111371  # 波特兰改-1
 from . import sid111391  # 彭萨科拉改-1
 from . import sid111411  # 北安普顿-1
 from . import sid111431  # 新奥尔良改-1
+from . import sid112381  # 约克改-1
 from . import sid112391  # 埃克赛特改-1
 from . import sid112401  # 旧金山改-1
 from . import sid112411  # 巴尔的摩改-1
