@@ -15,7 +15,7 @@ class Skill_105471_1(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            ExtraDamage(
+            FireExtraDamage(
                 timer=timer,
                 name='extra_damage',
                 phase=AllPhase,
@@ -40,15 +40,13 @@ class Skill_105471_1(Skill):
         ]
 
 
-class ExtraDamage(AtkBuff):
-    def is_active(self, *args, **kwargs):
+class FireExtraDamage(AtkBuff):
+    def change_value(self, *args, **kwargs):
         try:
             atk = kwargs['atk']
         except:
             atk = args[0]
-
         self.value = np.ceil(atk.target.get_final_status('fire') * 0.5)
-        return self.rate_verify()
 
 
 name = '主炮突刺'

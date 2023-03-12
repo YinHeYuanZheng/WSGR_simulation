@@ -23,7 +23,7 @@ class Skill_110231(Skill):
                 value=0.20,
                 bias_or_weight=0
             ),
-            ExtraDamage(
+            HealthExtraDamage(
                 timer=timer,
                 name='extra_damage',
                 phase=ShellingPhase,
@@ -33,14 +33,13 @@ class Skill_110231(Skill):
         ]
 
 
-class ExtraDamage(CoeffBuff):
+class HealthExtraDamage(CoeffBuff):
     """自身每损失5点HP，在炮击战中便会增加10点固定伤害，最多增加100点固定伤害"""
-    def is_active(self, *args, **kwargs):
+    def change_value(self, *args, **kwargs):
         extra_damage = (self.master.status['standard_health'] -
                         self.master.status['health'])\
                        // 5 * 10
         self.value = min(100, extra_damage)
-        return isinstance(self.timer.phase, self.phase)
 
 
 name = '浴火重生'

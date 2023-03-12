@@ -20,7 +20,7 @@ class Skill_111091(Skill):
                 name='ignore_damaged',
                 phase=AllPhase,
             ),
-            DamagedCoeffBuff(
+            HealthBasedBuff(
                 timer=timer,
                 name='power_buff',
                 phase=AllPhase,
@@ -30,12 +30,13 @@ class Skill_111091(Skill):
         ]
 
 
-class DamagedCoeffBuff(CoeffBuff):
-    def is_active(self, *args, **kwargs):
+class HealthBasedBuff(CoeffBuff):
+    def change_value(self, *args, **kwargs):
+        total_health = self.master.status['standard_health']
+        health = self.master.status['health']
         self.value = 0.28 * \
-                     (self.master.status['standard_health'] - self.master.status['health']) / \
-                     (self.master.status['standard_health'] - 1)
-        return isinstance(self.timer.phase, self.phase)
+                     (total_health - health) / \
+                     (total_health - 1)
 
 
 name = '好斗的玛丽'

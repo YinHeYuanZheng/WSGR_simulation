@@ -51,7 +51,7 @@ class Skill_112651_2(Skill):
         self.target = SelfTarget(master)
 
         self.buff = [
-            SkillCoeffBuff(
+            HealthBasedBuff(
                 timer=timer,
                 name='crit',
                 phase=(SecondTorpedoPhase, NightPhase),
@@ -61,16 +61,17 @@ class Skill_112651_2(Skill):
         ]
 
 
-class SkillCoeffBuff(AtkBuff):
-    def is_active(self, *args, **kwargs):
+class HealthBasedBuff(AtkBuff):
+    def change_value(self, *args, **kwargs):
         try:
             atk = kwargs['atk']
         except:
             atk = args[0]
+        total_health = atk.target.status['standard_health']
+        health = atk.target.status['health']
         self.value = 0.05 + 0.25 * \
-                     (atk.target.status['standard_health'] - atk.target.status['health']) /\
-                     (atk.target.status['standard_health'] - 1)
-        return isinstance(self.timer.phase, self.phase)
+                     (total_health - health) / \
+                     (total_health - 1)
 
 
 name = '爆雷奇袭'

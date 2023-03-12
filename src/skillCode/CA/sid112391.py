@@ -35,12 +35,11 @@ class Skill_112391_1(Skill):
 
 
 class HealthBasedBuff(CoeffBuff):
-    def is_active(self, *args, **kwargs):
+    def change_value(self, *args, **kwargs):
         total_health = self.master.status['standard_health']
         health = self.master.status['health']
         loss_health_rate = 1 - health / total_health
         self.value = loss_health_rate // 0.05 * 0.12
-        return isinstance(self.timer.phase, self.phase)
 
 
 class BuffRequest_1(ATKRequest):

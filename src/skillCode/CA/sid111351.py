@@ -28,9 +28,8 @@ class CapShield(CoeffBuff):
         super().__init__(timer, name, phase, value, bias_or_weight, rate)
         self.cap_value = cap_value
 
-    def is_active(self, damage, *args, **kwargs):
+    def change_value(self, damage, *args, **kwargs):
         self.value = max(0, damage - self.cap_value)
-        return True
 
 
 name = '过度击穿'

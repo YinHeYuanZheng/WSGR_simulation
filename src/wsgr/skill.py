@@ -684,12 +684,12 @@ class Buff(Time):
 
     def is_active(self, *args, **kwargs):
         """技能是否满足发动阶段"""
-        # self.change_value()
+        self.change_value(*args, **kwargs)
         return self.rate_verify() and \
                isinstance(self.timer.phase, self.phase)
 
-    def change_value(self):
-        """todo 动态修改技能数值时调用"""
+    def change_value(self, *args, **kwargs):
+        """动态修改技能数值时调用"""
         pass
 
     def rate_verify(self):
@@ -766,6 +766,7 @@ class AtkBuff(CoeffBuff):
         self.atk_request = atk_request
 
     def is_active(self, *args, **kwargs):
+        self.change_value(*args, **kwargs)
         if self.atk_request is None:
             return isinstance(self.timer.phase, self.phase) and \
                    self.rate_verify()
@@ -1051,6 +1052,7 @@ class TankBuff(EventBuff):
         if self.master.damaged >= 3:  # 大破状态不能发动
             return False
 
+        self.change_value(atk, *args, **kwargs)
         def_target = self.target.get_target(atk.target.master, None)
         return isinstance(self.timer.phase, self.phase) and \
                self.master != atk.target and \

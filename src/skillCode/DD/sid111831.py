@@ -24,7 +24,7 @@ class Skill_111831(Skill):
                 name='ignore_damaged',
                 phase=DaytimePhase,
             ),
-            HealthCoeffBuff(
+            HealthBasedBuff(
                 timer=timer,
                 name='crit',
                 phase=AllPhase,
@@ -40,12 +40,13 @@ class Skill_111831(Skill):
         ]
 
 
-class HealthCoeffBuff(CoeffBuff):
-    def is_active(self, *args, **kwargs):
+class HealthBasedBuff(CoeffBuff):
+    def change_value(self, *args, **kwargs):
+        total_health = self.master.status['standard_health']
+        health = self.master.status['health']
         self.value = 0.8 * \
-                     (self.master.status['standard_health'] - self.master.status['health']) / \
-                     (self.master.status['standard_health'] - 1)
-        return isinstance(self.timer.phase, self.phase)
+                     (total_health - health) / \
+                     (total_health - 1)
 
 
 class ATKRequest1(ATKRequest):

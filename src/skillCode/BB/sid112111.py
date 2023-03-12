@@ -59,9 +59,8 @@ class Skill_112111_2(Skill):
 
 class LuckExtraDamage(CoeffBuff):
     """攻击时增加自身100%幸运值的额外伤害"""
-    def is_active(self, *args, **kwargs):
-        self.value = self.master.get_final_status('luck')
-        return isinstance(self.timer.phase, self.phase)
+    def change_value(self, *args, **kwargs):
+        self.value = np.ceil(self.master.get_final_status('luck'))
 
 
 class LuckBuff(AtkHitBuff):

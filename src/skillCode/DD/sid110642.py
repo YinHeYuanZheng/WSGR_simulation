@@ -61,7 +61,7 @@ class Skill_110642_2(Skill):
                 name='must_not_crit',
                 phase=AllPhase,
             ),
-            ExtraDamageBuff_1(
+            TorpedoExtraDamage(
                 timer=timer,
                 name='extra_damage',
                 phase=AllPhase,
@@ -75,10 +75,9 @@ class Skill_110642_2(Skill):
         return count <= 2
 
 
-class ExtraDamageBuff_1(CoeffBuff):
-    def is_active(self, *args, **kwargs):
+class TorpedoExtraDamage(CoeffBuff):
+    def change_value(self, *args, **kwargs):
         self.value = np.ceil(self.master.get_final_status('torpedo') * 0.35)
-        return isinstance(self.timer.phase, self.phase)
 
 
 name = '孤注一掷'
