@@ -214,6 +214,9 @@ class NormalBattle(BattleUtil):
         """进行战斗流程"""
         self.battle_init()
         self.start_phase()
+        if self.timer.round_flag:
+            self.end_phase()
+            return
         self.run_phase(BuffPhase)
         self.run_phase(AirPhase)
         self.run_phase(TLockPhase)
@@ -236,6 +239,9 @@ class AirBattle(BattleUtil):
         """进行战斗流程"""
         self.battle_init()
         self.start_phase()
+        if self.timer.round_flag:
+            self.end_phase()
+            return
         self.run_phase(BuffPhase)
         self.run_phase(AirPhase)
         self.run_phase(TLockPhase)
@@ -256,6 +262,9 @@ class NightBattle(BattleUtil):
         """进行战斗流程"""
         self.battle_init()
         self.start_phase()
+        if self.timer.round_flag:
+            self.end_phase()
+            return
         self.run_phase(BuffPhase)
         self.run_phase(TLockPhase)
         self.run_phase(NightPhase)

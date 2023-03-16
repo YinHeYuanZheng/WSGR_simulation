@@ -257,6 +257,11 @@ class Point:
                 self.battle.timer.log['end_with_boss'] = True
             return None
 
+        # todo 迂回失败回港
+        # if self.roundabout and \
+        #         not self.battle.timer.round_flag:
+        #     return None
+
         for tmp_ship in friend.ship:
             # 大破不再前进
             if tmp_ship.damaged >= 3:

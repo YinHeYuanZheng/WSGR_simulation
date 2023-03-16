@@ -68,9 +68,19 @@ class PreparePhase(AllPhase):
         # 索敌
         recon_flag = self.compare_recon()
         # recon_flag = True  # 暂时默认索敌成功
-        self.timer.set_recon(recon_flag=recon_flag)
+        self.timer.set_recon(recon_flag)
 
-        # todo 迂回
+        # 迂回
+        if self.timer.point is not None and \
+                self.timer.point.roundabout and \
+                recon_flag:  # 索敌成功才可迂回
+            for tmp_ship in self.friend.ship:  # 迂回扣除10%油
+                tmp_ship.supply_oil = max(0., tmp_ship.supply_oil - 0.1)
+            if self.check_roundabout():
+                self.timer.set_round(True)
+            else:
+                self.timer.set_round(False)
+                self.timer.set_recon(False)  # 迂回失败则丢失索敌buff
 
         # 结算影响队友航速、索敌的技能，结算让巴尔
         self.timer.run_prepare_skill(self.friend, self.enemy)
@@ -87,6 +97,21 @@ class PreparePhase(AllPhase):
         for tmp_ship in self.friend.ship:
             tmp_ship.run_strategy()
 
+    def check_roundabout(self):
+        # 舰队航速差
+        friend_fleet_speed = np.round(self.friend.get_fleet_speed(), 2)
+        enemy_fleet_speed = self.enemy.get_fleet_speed()
+        d_fleet_speed = friend_fleet_speed - enemy_fleet_speed
+
+        # 迂回检定
+        rd_rate = np.floor(50 * 2 ** (d_fleet_speed / 5) - 20)
+        rd_rate = rform.cap(rd_rate)
+        verify = np.random.random()
+        if verify <= rd_rate:
+            return True
+        else:
+            return False
+
     def compare_recon(self):
         from src.wsgr.ship import Submarine
         sub_num = self.enemy.count(Submarine)
@@ -98,27 +123,16 @@ class PreparePhase(AllPhase):
             recon_rate = 0.5 + d_recon * 0.05
             recon_rate = max(0, recon_rate)
             recon_rate = min(1, recon_rate)
-            self.timer.log['record'] += f'索敌率{recon_rate * 100:.2f}%\n'
+            self.timer.info(f'索敌率{recon_rate * 100:.2f}%\n')
 
             verify = np.random.random()
-            if verify <= recon_rate:
-                self.timer.log['record'] += f'索敌成功\n'
-                return True
-            else:
-                self.timer.log['record'] += f'索敌失败\n'
-                return False
+            return verify <= recon_rate
         else:
             friend_recon = self.friend.status['antisub_recon']
             enemy_level = 0
             for tmp_ship in self.enemy.ship:
                 enemy_level += tmp_ship.level
-
-            if friend_recon >= enemy_level:
-                self.timer.log['record'] += f'索敌成功\n'
-                return True
-            else:
-                self.timer.log['record'] += f'索敌失败\n'
-                return False
+            return friend_recon >= enemy_level
 
     def compare_speed(self):
         # 旗舰航速差

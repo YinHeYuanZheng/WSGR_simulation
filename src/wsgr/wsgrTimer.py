@@ -13,6 +13,7 @@ class timer:
         self.point = None           # 节点
 
         self.recon_flag = None      # 索敌
+        self.round_flag = None      # 迂回
         self.direction_flag = None  # 航向, 优同反劣分别为1-4
         self.air_con_flag = None    # 制空结果, 从空确到空丧分别为1-5
         self.phase = None           # 阶段
@@ -34,12 +35,30 @@ class timer:
             'end_with_boss': False,     # 是否抵达boss点
         }
 
+    def info(self, text: str):
+        self.log['record'] += text
+
     def set_point(self, point):
         self.point = point
-        self.log['record'] += f'-> {point}: {point.type.__name__}\n'
+        if self.point.roundabout:
+            rd = '/迂回'
+        else:
+            rd = ''
+        self.info(f'-> {point}: {point.type.__name__}{rd}\n')
 
     def set_recon(self, recon_flag):
         self.recon_flag = recon_flag
+        if recon_flag:
+            self.info(f'索敌成功\n')
+        else:
+            self.info(f'索敌失败\n')
+
+    def set_round(self, round_flag):
+        self.round_flag = round_flag
+        if round_flag:
+            self.info(f'迂回成功\n')
+        else:
+            self.info(f'迂回失败\n')
 
     def set_direction(self, direction_flag):
         self.direction_flag = direction_flag
@@ -47,7 +66,7 @@ class timer:
     def set_air_con(self, air_con_flag):
         self.air_con_flag = air_con_flag
         air_con_info = ['空确', '空优', '均势', '劣势', '丧失']
-        self.log['record'] += f"制空结果：{air_con_info[air_con_flag - 1]}\n"
+        self.info(f"制空结果：{air_con_info[air_con_flag - 1]}\n")
 
     def set_phase(self, phase):
         self.phase = phase
