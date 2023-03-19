@@ -51,4 +51,5 @@ class Skill_111121_2(Skill):
         ]
 
 
+name = '意式设计'
 skill = [Skill_111121_1, Skill_111121_2]

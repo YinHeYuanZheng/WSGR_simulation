@@ -41,4 +41,5 @@ class ArmorExtraDamage(AtkBuff):
         self.value = np.ceil(atk.target.get_final_status('armor') * 0.5)
 
 
+name = '集火攻击'
 skill = [Skill_104991]

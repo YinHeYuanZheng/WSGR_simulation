@@ -102,7 +102,8 @@ class BattleUtil(Time):
         self.timer.run_end_skill(self.friend, self.enemy)
 
         # 资源消耗
-        self.supply_cost()
+        if not self.timer.round_flag:
+            self.supply_cost()
 
         # 受伤记录
         self.timer.log['end_health'] = {
