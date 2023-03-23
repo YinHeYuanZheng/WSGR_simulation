@@ -25,10 +25,30 @@ def run_victory(battle, epoc):
               f"C {result[4] / (i + 1) * 100:.2f}% "
               f"D {result[5] / (i + 1) * 100:.2f}% ",
               end='',)
-              # flush=True)
-    # result = np.array(result)
-    # result = result / epoc * 100
-    # return result
+
+
+def run_map_victory(battle, epoc):
+    result = [0] * 7
+    result_flag_list = ['SS', 'S', 'A', 'B', 'C', 'D', '']
+    for i in range(epoc):
+        tmp_battle = copy.deepcopy(battle)
+        tmp_battle.start()
+        log = tmp_battle.report()
+        if log['end_with_boss']:
+            result_flag_id = result_flag_list.index(log['result'])
+            result[result_flag_id] += 1
+        else:
+            result[6] += 1
+        print("\r"
+              f"第{i + 1}次 - 战果分布: "
+              f"SS {result[0] / (i + 1) * 100:.2f}% "
+              f"S {result[1] / (i + 1) * 100:.2f}% "
+              f"A {result[2] / (i + 1) * 100:.2f}% "
+              f"B {result[3] / (i + 1) * 100:.2f}% "
+              f"C {result[4] / (i + 1) * 100:.2f}% "
+              f"D {result[5] / (i + 1) * 100:.2f}% "
+              f"撤退 {result[6] / (i + 1) * 100:.2f}% ",
+              end='',)
 
 
 def run_hit_rate(battle, epoc):

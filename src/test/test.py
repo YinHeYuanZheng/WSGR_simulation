@@ -46,7 +46,7 @@ if __name__ == '__main__':
     battle = load_config(xml_file, mapDir, ds, timer_init)
 
     # print(battle.friend.ship)
-    NormalAtk.hit_verify = new_hit_verify(0.95)
+    NormalAtk.outer_hit_verify = new_hit_verify(0.95)
 
     result = [0] * 6
     result_flag_list = ['SS', 'S', 'A', 'B', 'C', 'D']

@@ -1,1 +1,1 @@
-<?xml version="1.0" encoding="utf-8"?><Map id="00001">	<entrance num="0"><!--入口-->		<point pid="00000" name="entrance" level="0">			<suc name="N" weight="1"/>		</point>		<point pid="01001" name="N" level="5"/>	</entrance></Map>
+<?xml version="1.0" encoding="utf-8"?><Map id="00001">	<entrance num="0"><!--入口-->		<point pid="00000" name="entrance" level="0">			<suc name="N" weight="1"/>		</point>		<point pid="00101" name="N" level="5"/>	</entrance></Map>

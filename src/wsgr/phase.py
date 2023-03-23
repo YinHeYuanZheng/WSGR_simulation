@@ -104,7 +104,7 @@ class PreparePhase(AllPhase):
         d_fleet_speed = friend_fleet_speed - enemy_fleet_speed
 
         # 迂回检定
-        rd_rate = np.floor(50 * 2 ** (d_fleet_speed / 5) - 20)
+        rd_rate = np.floor(50 * 2 ** (d_fleet_speed / 5) - 20) / 100
         rd_rate = rform.cap(rd_rate)
         verify = np.random.random()
         if verify <= rd_rate:

@@ -120,11 +120,13 @@ class timer:
     def reinit(self):
         self.recon_flag = None      # 索敌
         self.direction_flag = None  # 航向
+        self.round_flag = None      # 迂回
         self.air_con_flag = None    # 制空结果
         self.atk = None
         self.log.update({
             'miss': 0,
             'hit': 0,
+            'result': '',
         })
         for key in self.queue.keys():
             self.queue.update({key: []})
