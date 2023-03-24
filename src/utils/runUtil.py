@@ -64,19 +64,28 @@ def run_hit_rate(battle, epoc):
               end='',)
 
 
-def run_avg_damage(battle, epoc):
+def run_avg_damage(battle, epoc, phase=None):
     avg_damage = 0
+    avg_damage_phase = 0
     retreat_num = 0
     for i in range(epoc):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
 
-        avg_damage += np.sum(log['create_damage'][1])
+        if phase is not None:
+            avg_damage_phase += np.sum([dmg_log.get(phase, 0)
+                                        for dmg_log in log['create_damage'][1]])
+            phase_info = f'{phase}平均伤害: {avg_damage_phase / (i + 1):.3f} '
+        else:
+            phase_info = ''
+        avg_damage += np.sum([sum(dmg_log.values())
+                              for dmg_log in log['create_damage'][1]])
         retreat_num += log['enemy_retreat_num']
         print("\r"
-              f"第{i + 1}次 - 平均伤害: {avg_damage / (i + 1):.3f}; "
-              f"平均击沉 {retreat_num / (i + 1):.2f}",
+              f"第{i + 1}次 - 平均伤害: {avg_damage / (i + 1):.3f} "
+              f"{phase_info}"
+              f"平均击沉 {retreat_num / (i + 1):.3f}",
               end='',)
 
 
@@ -134,6 +143,10 @@ def run_damaged(battle, epoc):
 
 
 def new_hit_verify(value):
+    """
+    使用方法：
+    ATK.outer_hit_verify = new_hit_verify(hit_rate)
+    """
     def f(cls):
         if cls.atk_body.side == 1:  # 只修改深海命中
             return False

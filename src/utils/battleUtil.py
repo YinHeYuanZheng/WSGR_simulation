@@ -182,8 +182,8 @@ class BattleUtil(Time):
 
         # 伤害量
         self.timer.log['create_damage'] = {
-            1: [sum(ship.created_damage.values()) for ship in self.friend.ship],
-            0: [sum(ship.created_damage.values()) for ship in self.enemy.ship]
+            1: [ship.created_damage for ship in self.friend.ship],
+            0: [ship.created_damage for ship in self.enemy.ship]
         }
 
         # 消耗

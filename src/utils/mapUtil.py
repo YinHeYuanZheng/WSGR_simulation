@@ -179,7 +179,7 @@ class MapUtil(Time):
 
         # 伤害量
         self.timer.log['create_damage'] = {
-            1: [sum(ship.created_damage.values()) for ship in self.friend.ship],
+            1: [ship.created_damage for ship in self.friend.ship],
         }
 
         # 消耗

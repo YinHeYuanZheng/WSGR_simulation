@@ -31,13 +31,4 @@ if __name__ == '__main__':
     del ds
 
     set_supply(battle, 4)
-    # for accuracy in np.arange(100, 201, 50):
-    #     print(f"accuracy: {accuracy}")
-    #     for ship in battle.enemy.ship:
-    #         ship.status['accuracy'] = accuracy
     run_victory(battle, 5000)
-    # for hit_rate in np.arange(0.5, 1, 0.05):
-    #     hit_rate = np.round(hit_rate, 2)
-    #     print(f"hit_rate: {hit_rate}")
-    #     NormalAtk.outer_hit_verify = new_hit_verify(hit_rate)
-    #     run_damaged(battle, 1000)
