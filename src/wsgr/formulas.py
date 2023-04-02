@@ -421,6 +421,9 @@ class ATK(Time):
 
 class SupportAtk(ATK):
     """支援攻击"""
+    def __init__(self, timer, atk_body, def_list, limit: list, coef=None, target=None):
+        super().__init__(timer, atk_body, def_list, coef, target)
+        self.limit = limit  # 攻击上下限
 
     def start(self):
         self.timer.set_atk(self)
@@ -430,7 +433,7 @@ class SupportAtk(ATK):
         return self.end_atk(damage_flag, damage)
 
     def formula(self):
-        damage = np.random.uniform(60, 100)
+        damage = np.random.uniform(self.limit[0], self.limit[1])
         return np.ceil(damage)
 
     def end_atk(self, damage_flag, damage_value):

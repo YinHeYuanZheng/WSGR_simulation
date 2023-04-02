@@ -188,7 +188,9 @@ class SupportPhase(AllPhase):
                 timer=self.timer,
                 atk_body=supportUnit,
                 def_list=None,
-                target=ship)
+                target=ship,
+                limit=[60, 100]
+            )
             atk.start()
 
 
