@@ -863,6 +863,7 @@ class ActPhaseBuff(Buff):
     可行动阶段
     :param name:    act_phase
                     not_act_phase
+                    no_normal_atk
     """
     pass
 
@@ -918,10 +919,12 @@ class ChaseAtkBuff(EventBuff):
     def is_active(self, atk, *args, **kwargs):
         if self.exhaust is not None and self.exhaust == 0:
             return False
+        if not self.master.get_act_indicator():  # 无法行动时不能追击
+            return False
         if atk.atk_body.side != self.master.side:  # 追击性质决定攻击者必须是友方
             return False
         from src.wsgr.formulas import SpecialAtk
-        if not atk.target.can_be_atk(SpecialAtk):  # 只追击以攻击的该敌方
+        if not atk.target.can_be_atk(SpecialAtk):  # 只追击可以攻击的该敌方
             return False
 
         if self.atk_request is None:
@@ -1106,9 +1109,11 @@ class HitBack(SpecialBuff):
         self.coef = coef  # hit_back参数会在攻击结算时添加
 
     def is_active(self, atk, *args, **kwargs):
+        if self.exhaust is not None and self.exhaust == 0:
+            return False
         if atk.get_coef('hit_back'):  # 无法反击反击
             return False
-        if self.exhaust is not None and self.exhaust == 0:
+        if not self.master.get_act_indicator():  # 无法行动时不能反击
             return False
         if self.master.damaged >= 3:  # 大破状态不能发动
             return False

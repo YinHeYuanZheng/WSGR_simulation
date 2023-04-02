@@ -9,7 +9,7 @@ from src.wsgr.phase import *
 from src.wsgr.equipment import *
 
 """驾束制导(3级)：提高自身携带导弹和发射架类装备10点火力值，
-随机降低三名敌方单位15回避值、命中值、火力值和装甲值，对位敌人不参与首轮炮击。
+随机降低三名敌方单位15回避值、命中值、火力值和装甲值，对位敌人首轮炮击阶段无法行动。
 自身装备的发射器会视为反潜装备，其索敌值视为反潜值"""
 
 
@@ -71,7 +71,7 @@ class Skill_110941_2(Skill):
 
 
 class Skill_110941_3(Skill):
-    """对位敌人不参与首轮炮击"""
+    """对位敌人首轮炮击阶段无法行动"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)

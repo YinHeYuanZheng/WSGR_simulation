@@ -519,6 +519,11 @@ class Ship(Time):
         判断炮击战攻击类型
         :param target_fleet: Fleet
         """
+        # 技能限制无法进行普通攻击
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'no_normal_atk' and tmp_buff.is_active():
+                return []
+
         # 技能发动特殊攻击
         for tmp_buff in self.active_buff:
             if tmp_buff.is_active(atk=self.normal_atk, enemy=target_fleet):
@@ -1076,6 +1081,11 @@ class BBV(Aircraft, LargeShip, MainShip):
 
     def raise_atk(self, target_fleet):
         from src.wsgr.phase import SecondShellingPhase
+
+        # 技能限制无法进行普通攻击
+        for tmp_buff in self.temper_buff:
+            if tmp_buff.name == 'no_normal_atk' and tmp_buff.is_active():
+                return []
 
         # 技能发动特殊攻击
         for tmp_buff in self.active_buff:

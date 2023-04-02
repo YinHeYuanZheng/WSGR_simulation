@@ -215,11 +215,9 @@ class AirPhase(DaytimePhase):
         else:
             return
 
-        # 检查双方攻击性飞机, 都为0不进行航空战 todo 修改为只检查可行动目标
-        # atk_plane_friend = self.get_atk_plane(atk_friend)
-        # atk_plane_enemy = self.get_atk_plane(atk_enemy)
-        atk_plane_friend = self.get_atk_plane(side=1)
-        atk_plane_enemy = self.get_atk_plane(side=0)
+        # 检查双方可行动目标的攻击性飞机, 都为0不进行航空战
+        atk_plane_friend = self.get_atk_plane(atk_friend)
+        atk_plane_enemy = self.get_atk_plane(atk_enemy)
         if not atk_plane_friend and not atk_plane_enemy:
             return
 
@@ -326,13 +324,7 @@ class AirPhase(DaytimePhase):
                     atk.start()
                     anti_num = atk.get_coef('anti_num')
 
-    def get_atk_plane(self, side):
-    # def get_atk_plane(self, shiplist):
-        if side == 1:
-            shiplist = self.friend.ship
-        else:
-            shiplist = self.enemy.ship
-
+    def get_atk_plane(self, shiplist):
         for tmp_ship in shiplist:
             for tmp_equip in tmp_ship.equipment:
                 if isinstance(tmp_equip, (Fighter, Bomber, DiveBomber)):

@@ -44,7 +44,7 @@ class Skill_105341_1(CommonSkill):
 
 
 class Skill_105341_2(Skill):
-    """自身为旗舰且索敌成功后，首轮炮击阶段自身无法攻击，
+    """自身为旗舰且索敌成功后，首轮炮击阶段自身不参与普通攻击，
     当我方舰船普通攻击命中敌方时，会对可以攻击的该敌方进行一次自身75%伤害的特殊攻击。
     首轮炮击阶段自身无视战损"""
     def __init__(self, timer, master):
@@ -53,7 +53,7 @@ class Skill_105341_2(Skill):
         self.buff = [
             ActPhaseBuff(
                 timer=timer,
-                name='not_act_phase',
+                name='no_normal_atk',
                 phase=FirstShellingPhase
             ),
             ChaseAtkBuff(
