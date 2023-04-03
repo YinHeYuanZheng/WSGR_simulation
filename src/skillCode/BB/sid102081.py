@@ -52,4 +52,5 @@ class HealthExtraDamage(AtkBuff):
         self.value = np.ceil(atk.target.status['standard_health'] * 0.2)
 
 
+name = '重击'
 skill = [Skill_102081]
