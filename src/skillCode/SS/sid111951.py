@@ -28,7 +28,7 @@ class Skill_111951(Skill):
                 name='give_atk',
                 phase=AllPhase,
                 buff=[
-                    Dur_StatusBuff(
+                    DuringAtkBuff(
                         timer=timer,
                         name='accuracy',
                         phase=AllPhase,
@@ -47,11 +47,6 @@ class Skill_111951(Skill):
                 atk_request=[BuffRequest_2]
             )
         ]
-
-
-class Dur_StatusBuff(StatusBuff):
-    def is_during_buff(self):
-        return True
 
 
 class BuffRequest_1(ATKRequest):
