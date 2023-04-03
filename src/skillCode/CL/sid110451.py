@@ -25,7 +25,8 @@ class Skill_110451_1(CommonSkill):
                 # 复制所有属性
                 new_equip.copy_equip(tmp_equip)
                 # 防空炮的对空值的80%视为对潜值
-                new_equip.set_status('antisub', 0.8 * tmp_equip.status['antiair'])
+                antiair = tmp_equip.status.get('antiair', 0)
+                new_equip.set_status('antisub', 0.8 * antiair)
                 new_equip_list.append(new_equip)
             elif isinstance(tmp_equip, DepthMine):
                 # 重新创建合并类装备
