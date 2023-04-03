@@ -62,6 +62,8 @@ class timer:
 
     def set_direction(self, direction_flag):
         self.direction_flag = direction_flag
+        direction_info = ['T优', '同航', '反航', 'T劣']
+        self.info(f"我方航向：{direction_info[direction_flag - 1]}\n")
 
     def set_air_con(self, air_con_flag):
         self.air_con_flag = air_con_flag
