@@ -547,7 +547,24 @@ class Collection_F_BB_fire(Skill):
         ]
 
 
+class Collection_U_torpedo(Skill):
+    """U国鱼雷+2"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = CountryTarget(side=1, country='U')
+        self.buff = [
+            StatusBuff(
+                timer=timer,
+                name='torpedo',
+                phase=AllPhase,
+                value=2,
+                bias_or_weight=0
+            ),
+        ]
+
+
 # todo 工程局、藏品、赛车、餐厅、环境buff等可从config设置
 # env = [Engineer_SS, Engineer_DD, Engineer_ASDG, Engineer_CL, Engineer_BB, Engineer_BC,
-#        Collection_C_fire, Collection_SS_torpedo, Collection_BB_fire, Collection_F_BB_fire]
+#        Collection_C_fire, Collection_SS_torpedo, Collection_U_torpedo,
+#        Collection_BB_fire, Collection_F_BB_fire]
 env = []
