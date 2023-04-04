@@ -459,7 +459,7 @@ class AirAtk(ATK):
                           (1 + ignore_scale) + ignore_bias  # 本体裸对空
         target_anti_air = max(0, target_anti_air)
         aa_value = target_anti_air + get_scaled_anti_air(self.target)
-        return aa_value
+        return max(0, aa_value)
 
 
 class AirStrikeAtk(AirAtk):
@@ -512,6 +512,7 @@ class AirStrikeAtk(AirAtk):
         team_anti_air = get_team_anti_air(self.def_list)  # 全队对空补正
         equip_anti_air = self.target.get_equip_status('antiair')  # 装备对空总和
         aa_value = target_anti_air + team_anti_air + equip_anti_air
+        aa_value = max(0, aa_value)
         if self.target.function == 'cover':
             aa_value *= self.get_form_coef('anti_def', self.target.get_form())  # todo 未明确
 
@@ -1237,8 +1238,10 @@ class AirNormalAtk(NormalAtk, AirAtk):
         bomb = self.atk_body.get_final_status('bomb')
         torpedo = self.atk_body.get_final_status('torpedo')
         ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_antiair', self)  # 无视对空
-        target_anti_air = self.target.get_final_status('antiair') * \
-                          (1 + ignore_scale) + ignore_bias  # 本体总对空 todo 无视对空不影响装备
+        target_anti_air = self.target.get_final_status('antiair', equip=False) * \
+                          (1 + ignore_scale) + ignore_bias  # 本体裸对空（无视对空不影响装备）
+        target_anti_air = max(0, target_anti_air)
+        target_anti_air += self.target.get_equip_status('antiair')  # 本体总对空
         target_anti_air = max(0, target_anti_air)
         random_weight = np.random.random()
         base_atk = (fire + 2 * bomb + torpedo)\
