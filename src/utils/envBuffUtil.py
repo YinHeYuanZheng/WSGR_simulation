@@ -150,4 +150,403 @@ class EnvSkill_4(Skill):
         ]
 
 
-env = []
+class Engineer_SS(Skill):
+    """SS工程局"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=SS)
+        self.buff = [
+            StatusBuff(
+                timer=timer,
+                name='torpedo',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='evasion',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='recon',
+                phase=AllPhase,
+                value=3,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='accuracy',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            CoeffBuff(
+                timer=timer,
+                name='crit',
+                phase=AllPhase,
+                value=0.03,
+                bias_or_weight=0
+            ),
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=TorpedoPhase,
+                value=0.05
+            )
+        ]
+
+
+class Engineer_DD(Skill):
+    """DD工程局"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=DD)
+        self.buff = [
+            StatusBuff(
+                timer=timer,
+                name='torpedo',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='evasion',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='antiair',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='antisub',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='luck',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=SecondTorpedoPhase,
+                value=0.05
+            )
+        ]
+
+
+class Engineer_ASDG(Skill):
+    """ASDG工程局"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=ASDG)
+        self.buff = [
+            StatusBuff(
+                timer=timer,
+                name='fire',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='evasion',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='accuracy',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            CoeffBuff(
+                timer=timer,
+                name='crit',
+                phase=AllPhase,
+                value=0.03,
+                bias_or_weight=0
+            ),
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=FirstMissilePhase,
+                value=0.05
+            ),
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_debuff',
+                phase=AirPhase,
+                value=-0.1
+            )
+        ]
+
+
+class Engineer_CL(Skill):
+    """CL工程局"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=CL)
+        self.buff = [
+            StatusBuff(
+                timer=timer,
+                name='fire',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='torpedo',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='evasion',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='antiair',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='antisub',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='recon',
+                phase=AllPhase,
+                value=3,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='luck',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='accuracy',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=SecondTorpedoPhase,
+                value=0.05
+            )
+        ]
+
+
+class Engineer_BB(Skill):
+    """BB工程局"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=BB)
+        self.buff = [
+            StatusBuff(
+                timer=timer,
+                name='fire',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='armor',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='evasion',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            CoeffBuff(
+                timer=timer,
+                name='crit',
+                phase=AllPhase,
+                value=0.03,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='accuracy',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_debuff',
+                phase=AirPhase,
+                value=-0.1
+            )
+        ]
+
+
+class Engineer_BC(Skill):
+    """BC工程局"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=BC)
+        self.buff = [
+            StatusBuff(
+                timer=timer,
+                name='fire',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='evasion',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='antiair',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            CoeffBuff(
+                timer=timer,
+                name='crit',
+                phase=AllPhase,
+                value=0.03,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='accuracy',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=ShellingPhase,
+                value=0.05
+            )
+        ]
+
+
+class Collection_C_fire(Skill):
+    """C国火力+5 +3"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = CountryTarget(side=1, country='C')
+        self.buff = [
+            StatusBuff(
+                timer=timer,
+                name='fire',
+                phase=AllPhase,
+                value=8,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='luck',
+                phase=AllPhase,
+                value=3,
+                bias_or_weight=0
+            ),
+        ]
+
+
+class Collection_SS_torpedo(Skill):
+    """SS鱼雷+2 +3"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=SS)
+        self.buff = [
+            StatusBuff(
+                timer=timer,
+                name='torpedo',
+                phase=AllPhase,
+                value=5,
+                bias_or_weight=0
+            ),
+        ]
+
+
+class Collection_BB_fire(Skill):
+    """BB火力+2 +1"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = TypeTarget(side=1, shiptype=BB)
+        self.buff = [
+            StatusBuff(
+                timer=timer,
+                name='fire',
+                phase=AllPhase,
+                value=3,
+                bias_or_weight=0
+            ),
+        ]
+
+
+class Collection_F_BB_fire(Skill):
+    """F国BB火力+2"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = CombinedTarget(
+            side=1,
+            target_list=[
+                TypeTarget(side=1, shiptype=BB),
+                CountryTarget(side=1, country='F')
+            ]
+        )
+        self.buff = [
+            StatusBuff(
+                timer=timer,
+                name='fire',
+                phase=AllPhase,
+                value=2,
+                bias_or_weight=0
+            ),
+        ]
+
+
+# todo 工程局、藏品、赛车、餐厅、环境buff等可从config设置
+env = [Engineer_SS, Engineer_DD, Engineer_ASDG, Engineer_CL, Engineer_BB, Engineer_BC,
+       Collection_C_fire, Collection_SS_torpedo, Collection_BB_fire, Collection_F_BB_fire]
