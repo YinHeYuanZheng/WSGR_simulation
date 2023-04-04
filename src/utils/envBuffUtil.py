@@ -548,5 +548,6 @@ class Collection_F_BB_fire(Skill):
 
 
 # todo 工程局、藏品、赛车、餐厅、环境buff等可从config设置
-env = [Engineer_SS, Engineer_DD, Engineer_ASDG, Engineer_CL, Engineer_BB, Engineer_BC,
-       Collection_C_fire, Collection_SS_torpedo, Collection_BB_fire, Collection_F_BB_fire]
+# env = [Engineer_SS, Engineer_DD, Engineer_ASDG, Engineer_CL, Engineer_BB, Engineer_BC,
+#        Collection_C_fire, Collection_SS_torpedo, Collection_BB_fire, Collection_F_BB_fire]
+env = []
