@@ -94,8 +94,8 @@ class BattleUtil(Time):
     def supply_cost(self):
         """扣除昼战消耗，夜战在NightPhase内扣除"""
         for tmp_ship in self.friend.ship:
-            tmp_ship.supply_oil = max(0., tmp_ship.supply_oil - 0.2)
-            tmp_ship.supply_ammo = max(0., tmp_ship.supply_ammo - 0.2)
+            tmp_ship.supply_oil = max(0, tmp_ship.supply_oil - 2)
+            tmp_ship.supply_ammo = max(0, tmp_ship.supply_ammo - 2)
 
     def end_phase(self):
         # 结束阶段技能
@@ -254,8 +254,8 @@ class AirBattle(BattleUtil):
 
     def supply_cost(self):
         for tmp_ship in self.friend.ship:
-            tmp_ship.supply_oil = max(0., tmp_ship.supply_oil - 0.1)
-            tmp_ship.supply_ammo = max(0., tmp_ship.supply_ammo - 0.1)
+            tmp_ship.supply_oil = max(0, tmp_ship.supply_oil - 1)
+            tmp_ship.supply_ammo = max(0, tmp_ship.supply_ammo - 1)
 
 
 class NightBattle(BattleUtil):

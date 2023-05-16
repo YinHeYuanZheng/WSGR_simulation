@@ -166,8 +166,8 @@ def new_hit_verify(value):
 def set_supply(battle, battle_num):
     """设置弹损，battle_num输入第几战"""
     for ship in battle.friend.ship:
-        ship.supply_oil -= 0.2 * (battle_num - 1)
-        ship.supply_ammo -= 0.2 * (battle_num - 1)
+        ship.supply_oil -= 2 * (battle_num - 1)
+        ship.supply_ammo -= 2 * (battle_num - 1)
 
 
 if __name__ == '__main__':

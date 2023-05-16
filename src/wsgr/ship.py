@@ -58,8 +58,8 @@ class Ship(Time):
         self.got_damage = 0  # 受到伤害记录，只有总数，在下一点开始时重置
         self.damaged = 1  # 耐久状态, 1: 正常; 2: 中破; 3: 大破; 4: 撤退，修理后重置
         self.damage_protect = True  # 耐久保护，大破进击时消失，在所有战斗结束后重置
-        self.supply_oil = 1.  # 燃料补给状态，在所有战斗结束后重置
-        self.supply_ammo = 1.  # 弹药补给状态，在所有战斗结束后重置
+        self.supply_oil = 10  # 燃料补给状态，在所有战斗结束后重置
+        self.supply_ammo = 10  # 弹药补给状态，在所有战斗结束后重置
 
         self.common_buff = []  # 永久面板加成
         self.temper_buff = []  # 临时buff
@@ -792,13 +792,15 @@ class Ship(Time):
         supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
 
         # 统计补给耗油并补满
-        supply['oil'] += np.ceil((1 - self.supply_oil) * self.status['supply_oil'])
-        self.supply_oil = 1
+        supply['oil'] += np.ceil((10 - self.supply_oil) / 10.
+                                 * self.status['supply_oil'])
+        self.supply_oil = 10
 
         # 统计补给耗弹并补满
         strategy_ammo = self.get_strategy_value('strategy_ammo')
-        supply['ammo'] += np.ceil((1 + strategy_ammo - self.supply_ammo) * self.status['supply_ammo'])
-        self.supply_ammo = 1 + strategy_ammo
+        supply['ammo'] += np.ceil((10 + strategy_ammo - self.supply_ammo) / 10.
+                                  * self.status['supply_ammo'])
+        self.supply_ammo = 10 + strategy_ammo
 
         # 统计修理费用并恢复血量
         got_damage = self.status['standard_health'] - self.status['health']

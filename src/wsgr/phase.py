@@ -75,7 +75,7 @@ class PreparePhase(AllPhase):
                 self.timer.point.roundabout and \
                 recon_flag:  # 索敌成功才可迂回
             for tmp_ship in self.friend.ship:  # 迂回扣除10%油
-                tmp_ship.supply_oil = max(0., tmp_ship.supply_oil - 0.1)
+                tmp_ship.supply_oil = max(0, tmp_ship.supply_oil - 1)
             if self.check_roundabout():
                 self.timer.set_round(True)
             else:
@@ -634,6 +634,12 @@ class NightPhase(AllPhase):
 
     def start(self):
         act_flag_0 = False  # 记录夜战内是否有单位行动过
+        # 玩家视角能够主动判断进不进夜战，但程序只能判断有没有人能行动，无人行动则表示跳过夜战
+        # 夜战点不论行动与否必须扣除弹药
+        from src.utils.battleUtil import NightBattle
+        if self.timer.point is not None and \
+                isinstance(self.timer.point.type, NightBattle):
+            act_flag_0 = True
 
         # 按照站位顺序依次行动
         for i in range(6):
@@ -647,7 +653,7 @@ class NightPhase(AllPhase):
 
         if act_flag_0:  # 进行过夜战，扣除对应弹药
             for tmp_ship in self.friend.ship:
-                tmp_ship.supply_ammo = max(0., tmp_ship.supply_ammo - 0.1)
+                tmp_ship.supply_ammo = max(0, tmp_ship.supply_ammo - 1)
 
     def night_atk(self, source, target_fleet):
         if not source.get_act_flag() or not source.get_act_indicator():
