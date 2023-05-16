@@ -450,10 +450,17 @@ class FirstMissilePhase(MissilePhase):
                 tmp_def_msl = def_missile_list.pop(0)
                 tmp_def_msl.load -= 1
             else:
+                # 检查是否存在优先攻击船型对象
+                prior = tmp_atk_msl.master.get_prior_type_target(defend)
+                if prior is not None:
+                    def_list = prior
+                else:
+                    def_list = defend
+
                 atk = MissileAtk(
                     timer=self.timer,
                     atk_body=tmp_atk_msl.master,
-                    def_list=defend,
+                    def_list=def_list,
                     equip=tmp_atk_msl
                 )
                 atk.start()
@@ -465,10 +472,17 @@ class SecondMissilePhase(MissilePhase):
     def missile_strike(self, attack, defend):
         missile_list = self.get_def_missile(attack)  # 防空导弹
         for tmp_atk_msl in missile_list:
+            # 检查是否存在优先攻击船型对象
+            prior = tmp_atk_msl.master.get_prior_type_target(defend)
+            if prior is not None:
+                def_list = prior
+            else:
+                def_list = defend
+
             atk = MissileAtk(
                 timer=self.timer,
                 atk_body=tmp_atk_msl.master,
-                def_list=defend,
+                def_list=def_list,
                 equip=tmp_atk_msl
             )
             atk.start()
