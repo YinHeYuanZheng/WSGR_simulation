@@ -8,7 +8,7 @@ from src.wsgr.ship import *
 from src.wsgr.phase import *
 from src.wsgr.formulas import AirAtk
 
-"""免疫自身受到的第一次航空攻击（限昼战）；
+"""昼战阶段免疫自身受到的第一次航空攻击伤害；
 根据战斗点距离出发点的位置降低敌方战斗力，离初始点越远降低越多（最高5层），
 每阶段降低敌方全体3点命中值、5点闪避值、4点装甲值。
 """
@@ -20,14 +20,28 @@ class Skill_113161_1(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            SpecialBuff(
+            OnceFinalDamageBuff(
                 timer=timer,
-                name='shield',
+                name='final_damage_debuff',
                 phase=DaytimePhase,
-                exhaust=1,
+                value=-1,
                 atk_request=[BuffRequest_1]
             )
         ]
+
+
+class OnceFinalDamageBuff(FinalDamageBuff):
+    """仅限一次的终伤buff"""
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.exhaust = 1
+
+    def is_active(self, *args, **kwargs):
+        if self.exhaust == 0:
+            return False
+        else:
+            self.exhaust -= 1
+            return super().is_active(*args, **kwargs)
 
 
 class BuffRequest_1(ATKRequest):
