@@ -6,6 +6,7 @@
 # 未改
 from . import sid101191  # 皇家方舟-1
 from . import sid102261  # 埃塞克斯-1
+from . import sid102311  # 伦道夫-1
 from . import sid103251  # 列克星敦(cv-16)-1
 from . import sid103741  # 汉考克-1
 from . import sid104261  # 彼得·施特拉塞尔-1

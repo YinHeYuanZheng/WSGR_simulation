@@ -17,11 +17,12 @@ class Skill_102131(Skill):
             CoeffBuff(
                 timer=timer,
                 name='ignore_armor',
-                value=-0.4,
                 phase=FirstShellingPhase,
+                value=-0.4,
                 bias_or_weight=1
             )
         ]
 
 
+name = '强装药主炮'
 skill = [Skill_102131]

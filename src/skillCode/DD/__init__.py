@@ -66,6 +66,8 @@ from . import sid113351  # 伏尔塔改-1
 from . import sid113421  # 江原改-1
 from . import sid113441  # 忠武改-1
 from . import sid113721  # 早春改-1
+from . import sid114141  # 凯利改-1
 from . import sid114161  # 47工程改-1
 from . import sid114251  # 史密斯改-1
 from . import sid114961  # 诺福克改-1
+from . import sid115171  # 吕贝克改-1
