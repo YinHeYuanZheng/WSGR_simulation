@@ -69,10 +69,7 @@ class Skill_105521_3(Skill):
 class SkillTarget(TypeTarget):
     """根据装母、航母、要塞、机场、港口、旗舰、轻母的舰种优先级顺序选择其中一艘敌方舰船"""
     def get_target(self, friend, enemy):
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-        fleet = enemy
-
+        fleet = self.get_target_fleet(friend, enemy)
         type_list = list(self.shiptype)
         for shiptype in type_list:
             target = [ship for ship in fleet if isinstance(ship, shiptype)]

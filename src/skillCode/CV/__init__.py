@@ -36,3 +36,4 @@ from . import sid112221  # 苍龙改-1
 from . import sid112251  # 黄蜂改-1
 from . import sid113391  # 帝国改-1
 from . import sid113392  # 帝国改-2
+from . import sid114262  # 彼得·施特拉塞尔改-2

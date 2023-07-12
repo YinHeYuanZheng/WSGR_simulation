@@ -88,16 +88,7 @@ class Skill_111212_2(Skill):
 
 class HighestTarget(Target):
     def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
+        fleet = self.get_target_fleet(friend, enemy)
         fleet.sort(key=lambda x: -x.status['health'])
         return fleet
 

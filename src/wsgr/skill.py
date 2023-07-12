@@ -196,12 +196,16 @@ class Target:
         :param enemy: class Fleet
         :return: list
         """
+        return self.get_target_fleet(friend, enemy)
+
+    def get_target_fleet(self, friend, enemy):
+        """根据side返回目标舰队全体，用于后续处理"""
         if isinstance(friend, Fleet):
             friend = friend.ship
         if isinstance(enemy, Fleet):
             enemy = enemy.ship
 
-        if self.side:
+        if self.side == 1:
             return friend
         else:
             return enemy
@@ -263,16 +267,7 @@ class TypeTarget(Target):
         self.shiptype = shiptype
 
     def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
+        fleet = self.get_target_fleet(friend, enemy)
         target = [ship for ship in fleet if isinstance(ship, self.shiptype)]
         return target
 
@@ -280,16 +275,7 @@ class TypeTarget(Target):
 class AntiTypeTarget(TypeTarget):
     """指定船型以外的目标"""
     def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
+        fleet = self.get_target_fleet(friend, enemy)
         target = [ship for ship in fleet if not isinstance(ship, self.shiptype)]
         return target
 
@@ -301,16 +287,7 @@ class RandomTarget(Target):
         self.num = num
 
     def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
+        fleet = self.get_target_fleet(friend, enemy)
         if len(fleet) > self.num:
             target = np.random.choice(fleet, self.num, replace=False)
         else:
@@ -325,16 +302,7 @@ class RandomTypeTarget(TypeTarget):
         self.num = num
 
     def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
+        fleet = self.get_target_fleet(friend, enemy)
         target = [ship for ship in fleet if isinstance(ship, self.shiptype)]
         if len(target) > self.num:
             target = np.random.choice(target, self.num, replace=False)
@@ -347,16 +315,7 @@ class OrderedTypeTarget(TypeTarget):
         super().__init__(side, shiptype)
 
     def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
+        fleet = self.get_target_fleet(friend, enemy)
         target = []
         for tmp_type in self.shiptype:
             target.extend([ship for ship in fleet if isinstance(ship, tmp_type)])
@@ -370,16 +329,7 @@ class CidTarget(Target):
         self.cid_list = cid_list
 
     def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
+        fleet = self.get_target_fleet(friend, enemy)
         target = [ship for ship in fleet if ship.cid in self.cid_list]
         return target
 
@@ -394,16 +344,7 @@ class LocTarget(Target):
         self.loc = loc
 
     def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
+        fleet = self.get_target_fleet(friend, enemy)
         target = [ship for ship in fleet
                   if ship.loc in self.loc]
         return target
@@ -435,16 +376,7 @@ class NearestLocTarget(Target):
     #     self.master = master
 
     def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
+        fleet = self.get_target_fleet(friend, enemy)
         target = []
         if not len(fleet):
             return target
@@ -521,16 +453,7 @@ class CountryTarget(Target):
         self.country = country
 
     def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
+        fleet = self.get_target_fleet(friend, enemy)
         target = [ship for ship in fleet
                   if ship.status['country'] in self.country]
         return target
@@ -545,16 +468,7 @@ class TagTarget(Target):
         self.tag_name = tag_name
 
     def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
+        fleet = self.get_target_fleet(friend, enemy)
         target = [ship for ship in fleet
                   if ship.status[self.tag_name] == self.tag]
         return target
@@ -563,16 +477,7 @@ class TagTarget(Target):
 class NotTagTarget(TagTarget):
     """非指定标签的目标(可指定国籍等字符串属性)"""
     def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
+        fleet = self.get_target_fleet(friend, enemy)
         target = [ship for ship in fleet
                   if ship.status[self.tag_name] != self.tag]
         return target
@@ -594,16 +499,7 @@ class StatusTarget(Target):
         self.value = value
 
     def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
+        fleet = self.get_target_fleet(friend, enemy)
         if self.fun == 'eq':
             target = [ship for ship in fleet
                       if ship.get_final_status(self.status_name) == self.value]

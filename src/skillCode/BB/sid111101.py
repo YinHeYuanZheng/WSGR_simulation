@@ -66,16 +66,7 @@ class Skill_111101_2(Skill):
 
 class TypeStatusTarget(TypeTarget):
     def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
+        fleet = self.get_target_fleet(friend, enemy)
         target = []
         for ship in fleet:
             if isinstance(ship, self.shiptype) and \
