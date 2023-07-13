@@ -11,6 +11,7 @@ from . import esid018  # 远程对空警戒雷达
 from . import esid023  # 暴击率特效
 from . import esid024  # 开幕轰炸威力特效
 
+from . import esid427  # 蒙巴顿粉
 from . import esid581  # 海鹰反舰导弹
 from . import esid582  # 海鹰导弹发射器
 from . import esid586  # 潜载火箭炮特效

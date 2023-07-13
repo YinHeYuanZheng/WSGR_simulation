@@ -6,6 +6,7 @@
 from . import sid110021  # 扶桑改-1
 from . import sid110041  # 伊势改-1
 from . import sid110051  # 日向改-1
+from . import sid110621  # 火力支援(罗伯茨改-1、阿贝克隆比改-1)
 from . import sid112331  # 最上改-1
 from . import sid112481  # 大淀改-1
 from . import sid103071  # 女灶神

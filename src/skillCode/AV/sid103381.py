@@ -21,7 +21,7 @@ class Skill_103381_1(Skill):
             CoeffBuff(
                 timer=timer,
                 name='crit',
-                phase=(ShellingPhase,),
+                phase=ShellingPhase,
                 value=0.12,
                 bias_or_weight=0
             )
@@ -38,7 +38,7 @@ class Skill_103381_2(Skill):
             StatusBuff(
                 timer=timer,
                 name='accuracy',
-                phase=(ShellingPhase,),
+                phase=ShellingPhase,
                 value=-12,
                 bias_or_weight=0
             )
