@@ -4,6 +4,7 @@
 # BB
 
 # 未改BB
+from . import sid101901  # 土佐-1
 from . import sid102001  # 兴登堡-1
 from . import sid102051  # 约克公爵-1
 from . import sid102081  # 马萨诸塞-1

@@ -336,11 +336,7 @@ class Ship(Time):
         """获取射程(本体、装备、buff中取最大值)"""
         ship_range = self.status['range']
 
-        for tmp_buff in self.common_buff:
-            if tmp_buff.name == 'range' and tmp_buff.is_active():
-                tmp_range = tmp_buff.value
-                ship_range = max(ship_range, tmp_range)
-        for tmp_buff in self.temper_buff:
+        for tmp_buff in self.common_buff + self.temper_buff:
             if tmp_buff.name == 'range' and tmp_buff.is_active():
                 tmp_range = tmp_buff.value
                 ship_range = max(ship_range, tmp_range)

@@ -4,6 +4,7 @@
 # BC
 
 # 未改
+from . import sid101891  # 天城-1
 from . import sid103311  # 无比-1
 from . import sid103971  # 斯大林格勒-1
 from . import sid104351  # B65-1
