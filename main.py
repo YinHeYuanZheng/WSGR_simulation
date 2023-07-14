@@ -18,11 +18,11 @@ from src.wsgr.wsgrTimer import timer
 from src.wsgr.formulas import *
 
 
-def main(xml_file, epoc, battle_num, fun):
+def main(xml_file, epoc, battle_num, fun, **kwargs):
     timer_init = timer()  # 创建时钟
     battle = load_config(xml_file, mapDir, ds, timer_init)
     set_supply(battle, battle_num)
-    fun(battle, epoc)
+    fun(battle, epoc, **kwargs)
 
 
 configDir = os.path.join(os.path.dirname(srcDir), 'config')
@@ -34,6 +34,7 @@ ds = Dataset(data_file)  # 舰船数据
 if __name__ == '__main__':
     epoc = 3000
     battle_num = 1  # 战斗轮次
+    supportFlag = False  # todo 是否使用支援攻击
     fun = run_victory
     # xml_file = os.path.join(configDir, r'event\event04\config_10.xml')
     # main(xml_file, epoc, battle_num, fun)

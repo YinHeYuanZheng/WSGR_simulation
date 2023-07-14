@@ -64,7 +64,7 @@ def run_hit_rate(battle, epoc):
               end='',)
 
 
-def run_avg_damage(battle, epoc, phase=None):
+def run_avg_damage(battle, epoc, phase:str=None):
     avg_damage = 0
     avg_damage_phase = 0
     retreat_num = 0

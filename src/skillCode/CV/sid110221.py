@@ -20,7 +20,7 @@ class Skill_110221(Skill):
             StatusBuff(
                 timer=timer,
                 name='antiair',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=-0.3,
                 bias_or_weight=1
             )

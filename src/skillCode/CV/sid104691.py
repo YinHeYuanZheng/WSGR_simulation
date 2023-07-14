@@ -13,7 +13,7 @@ from src.wsgr.equipment import *
 
 
 class Skill_104691_1(Skill):
-    """航空战阶段，自身增加20%伤害"""
+    """航空战阶段，自身增加25%伤害"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
@@ -28,7 +28,7 @@ class Skill_104691_1(Skill):
 
 
 class Skill_104691_2(Skill):
-    """航空战阶段，队伍内其他航母类(航母、装母、轻母)单位增加14%伤害"""
+    """航空战阶段，队伍内其他航母类(航母、装母、轻母)单位增加15%伤害"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = TypeTarget(side=1, shiptype=(CV, CVL, AV))
