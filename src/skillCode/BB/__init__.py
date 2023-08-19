@@ -5,6 +5,7 @@
 
 # 未改BB
 from . import sid101901  # 土佐-1
+from . import sid101911  # A150-1
 from . import sid102001  # 兴登堡-1
 from . import sid102051  # 约克公爵-1
 from . import sid102081  # 马萨诸塞-1
@@ -14,6 +15,7 @@ from . import sid102131  # 罗马-1
 from . import sid102141  # 苏联-1
 from . import sid102991  # 让巴尔-1
 from . import sid103051  # 英王乔治五世-1
+from . import sid103211  # 费拉迪D-1
 from . import sid103451  # 威斯康星-1
 from . import sid103671  # 乌尔里希·冯·胡滕-1
 from . import sid103811  # 印第安纳-1

@@ -563,6 +563,8 @@ class AirStrikeAtk(AirAtk):
             mul_rate = 0.5
         aa_hit_coef = aa_base / (aa_base + aa_value)
         hit_rate *= aa_hit_coef * mul_rate
+        # todo 可能的航空命中公式修正
+        # hit_rate = min(hit_rate, aa_hit_coef + (hit_rate - aa_hit_coef) * mul_rate)
 
         # 装备补正
         _, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
