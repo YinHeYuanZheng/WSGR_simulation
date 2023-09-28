@@ -239,10 +239,15 @@ class Missile(Equipment):
 
 
 class NormalMissile(Missile):
-    """通用型导弹"""
+    """反舰导弹"""
+    pass
+
+
+class LongMissile(NormalMissile):
+    """远程反舰导弹"""
     pass
 
 
 class AntiMissile(Missile):
-    """防空型导弹"""
+    """防空导弹"""
     pass

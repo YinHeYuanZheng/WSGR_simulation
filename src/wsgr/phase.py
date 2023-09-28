@@ -429,6 +429,15 @@ class MissilePhase(DaytimePhase):
                         msl_list.append(tmp_equip)
         return msl_list
 
+    def get_long_missile(self, shiplist):
+        """获取远程反舰导弹"""
+        msl_list = []
+        for tmp_ship in shiplist:
+            for tmp_equip in tmp_ship.equipment:
+                if isinstance(tmp_equip, LongMissile) and tmp_equip.load > 0:
+                    msl_list.append(tmp_equip)
+        return msl_list
+
 
 class FirstMissilePhase(MissilePhase):
     """开幕导弹"""
