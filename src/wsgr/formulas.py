@@ -170,11 +170,11 @@ class ATK(Time):
         self.atk_body.atk_coef_process(self)
 
     def get_coef(self, name):
-        """获取指定名称的参数"""
+        """获取指定名称的参数，通常为bool值"""
         return self.coef.get(name, None)
 
     def get_coef_value(self, name):
-        """获取指定名称的参数值"""
+        """获取指定名称的参数值，通常为float值"""
         return self.coef.get(name, 0)
 
     def get_form_coef(self, name, form_num):
@@ -183,7 +183,31 @@ class ATK(Time):
         return coef
 
     def get_dir_coef(self, dir_num):
+        if self.get_coef('ignore_dir_coef'):
+            return 1.
+        elif self.atk_body.get_special_buff('ignore_dir_coef', self):
+            return 1.
         return self.dir_coef[dir_num - 1]
+
+    def get_dmg_coef(self):
+        if self.get_coef('ignore_damaged'):
+            return 1.
+        elif self.atk_body.get_special_buff('ignore_damaged', self):
+            return 1.
+        elif self.atk_body.damaged == 1:
+            return 1.
+        elif self.atk_body.damaged == 2:
+            return .6
+        else:
+            return .3
+
+    def get_supply_coef(self):
+        if self.get_coef('ignore_supply'):
+            return 1.
+        elif self.atk_body.get_special_buff('ignore_supply', self):
+            return 1.
+        else:
+            return min(1., self.atk_body.supply_ammo * 2. / 10.)
 
     def crit_verify(self):
         """暴击检定"""
@@ -311,21 +335,6 @@ class ATK(Time):
 
     def outer_hit_verify(self):
         pass
-
-    def get_dmg_coef(self):
-        if self.get_coef('ignore_damaged'):
-            return 1.
-        elif self.atk_body.get_special_buff('ignore_damaged', self):
-            return 1.
-        elif self.atk_body.damaged == 1:
-            return 1.
-        elif self.atk_body.damaged == 2:
-            return .6
-        else:
-            return .3
-
-    def get_supply_coef(self):
-        return min(1., self.atk_body.supply_ammo * 2. / 10.)
 
     def formula(self):
         pass

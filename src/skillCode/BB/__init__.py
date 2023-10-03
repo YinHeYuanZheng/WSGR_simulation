@@ -70,3 +70,4 @@ from . import sid112072  # 南达科他-2
 from . import sid112111  # 卡约•杜伊里奥-1
 from . import sid113801  # 圣乔治-1
 from . import sid113802  # 圣乔治-2
+from . import sid115322  # 但丁-2

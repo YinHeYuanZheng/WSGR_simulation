@@ -10,7 +10,7 @@ from src.wsgr.phase import *
 
 class Skill_112232_1(Skill):
     def __init__(self, timer, master):
-        """航空战阶段，提升自身前方三个位置的航母、装母、轻母20%的伤害。"""
+        """航空战阶段，提升自身编队左边三艘航母、装母、轻母20%的伤害。"""
         super().__init__(timer, master)
         self.target = NearestLocTarget(
             side=1,
@@ -23,7 +23,7 @@ class Skill_112232_1(Skill):
             FinalDamageBuff(
                 timer=timer,
                 name='final_damage_buff',
-                phase=(AirPhase,),
+                phase=AirPhase,
                 value=0.2
             )
         ]
@@ -40,13 +40,13 @@ class Skill_112232_2(Skill):
             StatusBuff(
                 timer=timer,
                 name='armor',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=35,
                 bias_or_weight=0
             ),
             MagnetBuff(
                 timer=timer,
-                phase=(ShellingPhase,),
+                phase=ShellingPhase,
                 rate=0.35
             )
         ]
@@ -70,7 +70,7 @@ class Skill_112232_3(PrepSkill):
             StatusBuff(
                 timer=timer,
                 name='recon',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=25,
                 bias_or_weight=0
             )

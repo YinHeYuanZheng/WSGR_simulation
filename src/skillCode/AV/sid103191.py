@@ -21,13 +21,13 @@ class Skill_103191_1(CommonSkill):
         self.target = EquipTarget(
             side=1,
             target=SelfTarget(master),
-            equiptype=(DiveBomber,)
+            equiptype=DiveBomber
         )
         self.buff = [
             CommonBuff(
                 timer=timer,
                 name='torpedo',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=7,
                 bias_or_weight=0
             )
@@ -45,13 +45,13 @@ class Skill_103191_2(Skill):
             SpecialBuff(
                 timer=timer,
                 name='ignore_damaged',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 atk_request=[BuffRequest_1]
             ),
             AtkBuff(
                 timer=timer,
                 name='fall_rest',
-                phase=(AirPhase,),
+                phase=AirPhase,
                 value=-0.3,
                 bias_or_weight=1,
                 atk_request=[BuffRequest_1]
