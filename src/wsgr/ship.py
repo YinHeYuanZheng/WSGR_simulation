@@ -333,18 +333,28 @@ class Ship(Time):
         return max(0, status)
 
     def get_range(self):
-        """获取射程(本体、装备、buff中取最大值)"""
-        ship_range = self.status['range']
-
-        for tmp_buff in self.common_buff + self.temper_buff:
+        """获取射程(本体、装备、面板技能中取最大值, buff实时更新)"""
+        # 本体、装备、面板技能中取最大值
+        ship_range = self.status['range']  # 本体
+        for tmp_equip in self.equipment:  # 装备
+            equip_range = tmp_equip.get_range()
+            ship_range = max(ship_range, equip_range)
+        for tmp_buff in self.common_buff:  # 面板技能
             if tmp_buff.name == 'range' and tmp_buff.is_active():
                 tmp_range = tmp_buff.value
                 ship_range = max(ship_range, tmp_range)
-        for tmp_equip in self.equipment:
-            equip_range = tmp_equip.get_range()
-            ship_range = max(ship_range, equip_range)
 
-        return ship_range
+        # buff阶段技能按顺序结算
+        for tmp_buff in self.temper_buff:
+            # 技能描述为”射程变为“, 则将射程直接改变
+            if tmp_buff.name == 'range' and tmp_buff.is_active():
+                ship_range = tmp_buff.value
+            # 技能描述为”射程增加/减少“, 则根据当前射程进行增减
+            elif tmp_buff.name == 'range_buff' and tmp_buff.is_active():
+                ship_range += tmp_buff.value
+                # ship_range = max(0, ship_range)  # todo 不能低于0
+
+        return max(0, ship_range)
 
     def add_buff(self, buff):
         """分类添加增益"""
@@ -612,12 +622,12 @@ class Ship(Time):
         raise UserWarning(f'Wrong call of missile attack from {self.status["name"]}!')
 
     def check_night_atk_type(self):
-        from src.wsgr.formulas import NightFirelAtk, NightFireTorpedolAtk
+        from src.wsgr.formulas import NightFireAtk, NightFireTorpedoAtk
         if isinstance(self, (CA, CL, CAV)):
             if self.status['torpedo'] == 0:
-                self.night_atk = NightFirelAtk
+                self.night_atk = NightFireAtk
             else:
-                self.night_atk = NightFireTorpedolAtk
+                self.night_atk = NightFireTorpedoAtk
 
     # def get_atk_type(self, target):  # 备用接口
     #     """判断攻击该对象时使用什么攻击类型"""
@@ -1138,8 +1148,8 @@ class BBV0(BBV):
     """深海航战"""
     def __init__(self, timer):
         super().__init__(timer)
-        from src.wsgr.formulas import NightFireTorpedolAtk
-        self.night_atk = NightFireTorpedolAtk
+        from src.wsgr.formulas import NightFireTorpedoAtk
+        self.night_atk = NightFireTorpedoAtk
 
 
 class CAV(Aircraft, AntiSubShip, MidShip, CoverShip):
@@ -1379,8 +1389,8 @@ class Fortness(LandUnit, Aircraft):
         self.act_phase_flag.update({
             'SecondTorpedoPhase': False,
         })
-        from src.wsgr.formulas import NightFireTorpedolAtk
-        self.night_atk = NightFireTorpedolAtk
+        from src.wsgr.formulas import NightFireTorpedoAtk
+        self.night_atk = NightFireTorpedoAtk
 
 
 class Airfield(LandUnit, Aircraft):
@@ -1455,10 +1465,10 @@ class Tuning(SmallShip, CoverShip):
         }  # 可行动标准
 
         from src.wsgr.formulas import \
-            NormalAtk, AntiSubAtk, NightFireTorpedolAtk, NightAntiSubAtk
+            NormalAtk, AntiSubAtk, NightFireTorpedoAtk, NightAntiSubAtk
         self.normal_atk = NormalAtk  # 普通炮击
         self.anti_sub_atk = AntiSubAtk  # 反潜攻击
-        self.night_atk = NightFireTorpedolAtk  # 夜战普通炮击
+        self.night_atk = NightFireTorpedoAtk  # 夜战普通炮击
         self.night_anti_sub_atk = NightAntiSubAtk  # 夜战反潜攻击
 
 

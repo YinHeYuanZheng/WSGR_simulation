@@ -24,8 +24,8 @@ __all__ = ['ATK',
            'AirNormalAtk',
            'NightAtk',
            'NightNormalAtk',
-           'NightFirelAtk',
-           'NightFireTorpedolAtk',
+           'NightFireAtk',
+           'NightFireTorpedoAtk',
            'NightTorpedoAtk',
            'NightMissileAtk',
            'NightAntiSubAtk'
@@ -255,13 +255,16 @@ class ATK(Time):
 
         # 基础命中率
         accuracy = self.atk_body.get_final_status('accuracy')
-        evasion = self.target.get_final_status('evasion')
+        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_evasion', self)  # 无视回避
+        evasion = self.target.get_final_status('evasion') * \
+                  (1 + ignore_scale) + ignore_bias
 
         # 梯形锁定减少闪避
         if self.target.get_special_buff('t_lock'):
             evasion *= 0.9  # todo 数值未知
+        evasion = max(1, evasion)
 
-        hit_rate = accuracy / max(1, evasion) / 2
+        hit_rate = accuracy / evasion / 2
 
         # 阵型命中率补正
         hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
@@ -850,13 +853,16 @@ class MissileAtk(ATK):
 
         # 基础命中率
         accuracy = self.atk_body.get_final_status('accuracy')
-        evasion = self.target.get_final_status('evasion')
+        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_evasion', self)  # 无视回避
+        evasion = self.target.get_final_status('evasion') * \
+                  (1 + ignore_scale) + ignore_bias
 
         # 梯形锁定减少闪避
         if self.target.get_special_buff('t_lock'):
             evasion *= 0.9  # todo 数值未知
+        evasion = max(1, evasion)
 
-        hit_rate = accuracy / max(1, evasion) / 2
+        hit_rate = accuracy / evasion / 2
 
         # 阵型命中率补正
         hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
@@ -1385,7 +1391,7 @@ class NightNormalAtk(NightAtk, NormalAtk):
         return real_atk
 
 
-class NightFirelAtk(NightNormalAtk):
+class NightFireAtk(NightNormalAtk):
     """夜战纯火巡洋舰炮击"""
 
     def __init__(self, timer, atk_body, def_list, coef=None, target=None):
@@ -1393,7 +1399,7 @@ class NightFirelAtk(NightNormalAtk):
         self.random_range = [2.4, 3.6]  # 浮动系数上下限
 
 
-class NightFireTorpedolAtk(NightNormalAtk):
+class NightFireTorpedoAtk(NightNormalAtk):
     """夜战火雷连击"""
 
     def __init__(self, timer, atk_body, def_list, coef=None, target=None):

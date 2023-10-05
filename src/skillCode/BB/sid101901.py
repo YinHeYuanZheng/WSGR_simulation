@@ -54,29 +54,19 @@ class Skill_101901_2(Skill):
         self.buff = [
             StatusBuff(
                 timer=timer,
-                name='range',
+                name='range_buff',
                 phase=AllPhase,
-                value=0,
+                value=1,
                 bias_or_weight=0
             ),
             StatusBuff(
                 timer=timer,
-                name='armmor',
+                name='armor',
                 phase=AllPhase,
                 value=12,
                 bias_or_weight=0
             ),
         ]
-
-    def activate(self, friend, enemy):
-        target = self.target.get_target(friend, enemy)
-        for tmp_target in target:
-            buff_0 = copy.copy(self.buff[0])
-            buff_0.value = tmp_target.get_range() + 1
-            tmp_target.add_buff(buff_0)
-
-            buff_1 = copy.copy(self.buff[1])
-            tmp_target.add_buff(buff_1)
 
 
 class Skill_101901_3(Skill):

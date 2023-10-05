@@ -25,20 +25,12 @@ class Skill_105231_1(Skill):
         self.buff = [
             StatusBuff(
                 timer=timer,
-                name='range',
+                name='range_buff',
                 phase=AllPhase,
-                value=0,
+                value=1,
                 bias_or_weight=0
             )
         ]
-
-    def activate(self, friend, enemy):
-        target = self.target.get_target(friend, enemy)
-        for tmp_target in target:
-            for tmp_buff in self.buff[:]:
-                tmp_buff = copy.copy(tmp_buff)
-                tmp_buff.value = tmp_target.get_range() + 1
-                tmp_target.add_buff(tmp_buff)
 
 
 class Skill_105231_2(Skill):

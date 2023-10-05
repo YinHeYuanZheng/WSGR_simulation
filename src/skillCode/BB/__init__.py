@@ -11,6 +11,7 @@ from . import sid102051  # 约克公爵-1
 from . import sid102081  # 马萨诸塞-1
 from . import sid102091  # 密苏里-1
 from . import sid102101  # 衣阿华-1
+from . import sid102121  # 利托里奥-1
 from . import sid102131  # 罗马-1
 from . import sid102141  # 苏联-1
 from . import sid102991  # 让巴尔-1

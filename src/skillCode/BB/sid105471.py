@@ -18,7 +18,7 @@ class Skill_105471_1(Skill):
             FireExtraDamage(
                 timer=timer,
                 name='extra_damage',
-                phase=AllPhase,
+                phase=ShellingPhase,
                 value=0.5,
                 bias_or_weight=0
             ),
