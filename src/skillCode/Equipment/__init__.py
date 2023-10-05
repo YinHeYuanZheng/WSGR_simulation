@@ -5,11 +5,10 @@
 
 from . import esid003  # 装备穿甲特效
 from . import esid004  # 超重弹特效
-from . import esid005  # 高脚柜特效
+from . import esid005  # 开幕轰炸威力特效
 from . import esid012  # 烈风改J特效
 from . import esid018  # 远程对空警戒雷达
 from . import esid023  # 暴击率特效
-from . import esid024  # 开幕轰炸威力特效
 
 from . import esid427  # 蒙巴顿粉
 from . import esid581  # 海鹰反舰导弹
@@ -25,4 +24,5 @@ from . import esid613  # СМ-70旋转发射器
 from . import esid619  # AM-1拳击手（HVAR）
 from . import esid620  # M1导弹
 from . import esid631  # 马舒卡导弹MK2
-from . import esid632  # 马舒卡导弹MK2
+from . import esid632  # 马舒卡防空系统
+from . import esid651  # 方位盘（A150）

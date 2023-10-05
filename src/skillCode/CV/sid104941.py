@@ -21,7 +21,7 @@ class Skill_104941_1(Skill):
             CoeffBuff(
                 timer=timer,
                 name='air_con_buff',
-                phase=(AirPhase,),
+                phase=AirPhase,
                 value=40,
                 bias_or_weight=0
             )
