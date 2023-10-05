@@ -1,16 +1,16 @@
 # -*- coding:utf-8 -*-
 # Author:银河远征
 # env:py38
-# A4D
+# FJ-4B（16）
 
 from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""埃塞克斯级航母装备时增加10%攻击力与15制空值"""
+"""埃塞克斯级航母装备时增加5%伤害"""
 
 
-class Eskill_652(EquipSkill):
+class Eskill_653(EquipSkill):
     def __init__(self, timer, master, value):
         super().__init__(timer, master, value)
         self.target = SelfTarget(master)
@@ -19,21 +19,13 @@ class Eskill_652(EquipSkill):
             self.buff = [
                 EquipEffect(
                     timer=timer,
-                    effect_type=652.1,
-                    name='power_buff',
+                    effect_type=653,
+                    name='final_damage_buff',
                     phase=AllPhase,
-                    value=0.1,
+                    value=0.05,
                     bias_or_weight=2
-                ),
-                EquipEffect(
-                    timer=timer,
-                    effect_type=652.2,
-                    name='air_con_buff',
-                    phase=AirPhase,
-                    value=15,
-                    bias_or_weight=0
                 )
             ]
 
 
-skill = [Eskill_652]
+skill = [Eskill_653]

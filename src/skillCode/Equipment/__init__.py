@@ -26,3 +26,8 @@ from . import esid620  # M1导弹
 from . import esid631  # 马舒卡导弹MK2
 from . import esid632  # 马舒卡防空系统
 from . import esid651  # 方位盘（A150）
+from . import esid652  # A4D
+from . import esid653  # FJ-4B（16）
+from . import esid654  # 鞑靼人导弹(I)
+from . import esid655  # MK13发射系统(I)
+from . import esid657  # AJ-2(空中加油系统)
