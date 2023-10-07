@@ -67,6 +67,7 @@ class Ship(Time):
         self.strategy_buff = {}  # 战术buff
 
         self.act_phase_flag = {
+            'LongMissilePhase': False,
             'AirPhase': False,
             'FirstMissilePhase': False,
             'AntiSubPhase': False,
@@ -79,6 +80,7 @@ class Ship(Time):
         }  # 可参与阶段
 
         self.act_phase_indicator = {
+            'LongMissilePhase': lambda x: False,
             'AirPhase': lambda x: False,
             'FirstMissilePhase': lambda x: False,
             'AntiSubPhase': lambda x: False,
@@ -1323,6 +1325,14 @@ class KP(AtkMissileShip, MidShip, MainShip):
     def __init__(self, timer):
         super().__init__(timer)
         self.type = 'KP'
+        self.act_phase_flag.update({
+            'LongMissilePhase': True,
+        })
+
+        self.act_phase_indicator.update({
+            'LongMissilePhase': lambda x:
+                (x.damaged < 3) and x.check_missile(),
+        })
 
 
 class CG(DefMissileShip, MidShip, CoverShip):
@@ -1639,7 +1649,7 @@ class Fleet(Time):
         #         if tmp_ship in atk_body.get_target():
         #             target.append(tmp_ship)
         # else:
-        #     raise ValueError('"atk_type" and "atk_body" should not be None at the same time!')
+        #     raise ValueError("'atk_type' and 'atk_body' should not be None at the same time!")
         return target
 
     def count(self, shiptype):

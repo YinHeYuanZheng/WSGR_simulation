@@ -18,6 +18,7 @@ __all__ = ['AllPhase',
            'TLockPhase',
 
            'MissilePhase',
+           'LongMissilePhase',
            'FirstMissilePhase',
            'SecondMissilePhase',
 
@@ -46,31 +47,16 @@ class AllPhase(Time):
     def start(self):
         pass
 
-    # def get_atk_member(self, side):
-    #     """获取可行动单位(目前没有调用该接口的需求，可能需要删除)"""
-    #     if side == 1:
-    #         fleet = self.friend.ship
-    #     else:
-    #         fleet = self.enemy.ship
-    #
-    #     member = fleet.get_member_inphase()
-    #     atk_member = []
-    #     for tmp_ship in member:
-    #         if tmp_ship.get_act_indicator():
-    #             atk_member.append(tmp_ship)
-    #     return atk_member
-
 
 class PreparePhase(AllPhase):
     """准备阶段"""
 
     def start(self):
-        # 索敌
+        # 索敌(注意！不受技能影响！)
         recon_flag = self.compare_recon()
-        # recon_flag = True  # 暂时默认索敌成功
         self.timer.set_recon(recon_flag)
 
-        # 迂回
+        # 迂回(注意！不受技能影响！)
         if self.timer.point is not None and \
                 self.timer.point.roundabout and \
                 recon_flag:  # 索敌成功才可迂回
@@ -92,10 +78,6 @@ class PreparePhase(AllPhase):
         # 航向
         direction_flag = self.compare_speed()
         self.timer.set_direction(direction_flag=direction_flag)
-
-        # 结算战术
-        for tmp_ship in self.friend.ship:
-            tmp_ship.run_strategy()
 
     def check_roundabout(self):
         # 舰队航速差
@@ -168,7 +150,14 @@ class BuffPhase(AllPhase):
     """buff阶段"""
 
     def start(self):
+        # 结算战术
+        for tmp_ship in self.friend.ship:
+            tmp_ship.run_strategy()
+
+        # 结算环境buff
         self.timer.run_normal_skill(self.friend, self.enemy)
+
+        # 结算技能
         for tmp_ship in self.friend.ship:
             tmp_ship.run_normal_skill(self.friend, self.enemy)
         for tmp_ship in self.enemy.ship:
@@ -384,35 +373,18 @@ class MissilePhase(DaytimePhase):
         if len(atk_enemy) and len(def_friend):
             self.missile_strike(atk_enemy, def_friend)
 
-        # # 检查可参与导弹战的对象
-        # atk_friend = self.friend.get_act_member_inphase()
-        # atk_enemy = self.enemy.get_act_member_inphase()
-        # # 检查可被导弹攻击的对象
-        # def_friend = self.friend.get_atk_target(atk_type=MissileAtk)
-        # def_enemy = self.enemy.get_atk_target(atk_type=MissileAtk)
-        #
-        # # 如果不存在可行动对象或可攻击对象，结束本阶段
-        # if (len(atk_friend) and len(def_enemy)) or \
-        #         (len(atk_enemy) and len(def_friend)):
-        #     pass
-        # else:
-        #     return
-        #
-        # # 按照站位依次行动，先结算我方
-        # self.missile_strike(atk_friend, def_enemy)
-        # atk_enemy = self.enemy.get_act_member_inphase()  # 重新检查敌方可行动对象
-        # self.missile_strike(atk_enemy, def_friend)
-
     def missile_strike(self, attack, defend):
         pass
 
     def get_atk_missile(self, shiplist):
         """获取反舰导弹"""
+        from src.wsgr.ship import AtkMissileShip
         msl_list = []
         for tmp_ship in shiplist:
-            for tmp_equip in tmp_ship.equipment:
-                if isinstance(tmp_equip, NormalMissile) and tmp_equip.load > 0:
-                    msl_list.append(tmp_equip)
+            if isinstance(tmp_ship, AtkMissileShip) and tmp_ship.check_missile():
+                for tmp_equip in tmp_ship.equipment:
+                    if isinstance(tmp_equip, NormalMissile) and tmp_equip.load > 0:
+                        msl_list.append(tmp_equip)
         msl_list.sort(key=lambda x: (x.get_final_status('missile_atk'),
                                      -(x.enum + 4 * x.master.loc))
                       )  # 按照突防从小到大+顺位倒序排序
@@ -424,6 +396,7 @@ class MissilePhase(DaytimePhase):
         msl_list = []
         for tmp_ship in shiplist:
             if isinstance(tmp_ship, DefMissileShip) and tmp_ship.check_missile():
+                assert tmp_ship.damaged < 4
                 for tmp_equip in tmp_ship.equipment:
                     if isinstance(tmp_equip, AntiMissile) and tmp_equip.load > 0:
                         msl_list.append(tmp_equip)
@@ -431,12 +404,55 @@ class MissilePhase(DaytimePhase):
 
     def get_long_missile(self, shiplist):
         """获取远程反舰导弹"""
+        from src.wsgr.ship import KP
         msl_list = []
         for tmp_ship in shiplist:
-            for tmp_equip in tmp_ship.equipment:
-                if isinstance(tmp_equip, LongMissile) and tmp_equip.load > 0:
-                    msl_list.append(tmp_equip)
+            if isinstance(tmp_ship, KP) and tmp_ship.check_missile():
+                for tmp_equip in tmp_ship.equipment:
+                    if isinstance(tmp_equip, LongMissile) and tmp_equip.load >= 2:
+                        msl_list.append(tmp_equip)
+        msl_list.sort(key=lambda x: (x.get_final_status('missile_atk'),
+                                     -(x.enum + 4 * x.master.loc))
+                      )  # 按照突防从小到大+顺位倒序排序
         return msl_list
+
+
+class LongMissilePhase(MissilePhase):
+    """远程导弹支援"""
+
+    def start(self):
+        if not self.timer.recon_flag:  # 索敌失败不进行远程打击
+            return
+        atk_friend = self.friend.get_act_member_inphase()           # 检查友方可参与导弹战的对象
+        def_enemy = self.enemy.get_atk_target(atk_type=MissileAtk)  # 检查敌方可被导弹攻击的对象
+        if len(atk_friend) and len(def_enemy):                      # 同时存在可发动攻击和可被攻击对象，结算导弹攻击
+            self.missile_strike(atk_friend, def_enemy)
+
+    def missile_strike(self, attack, defend):
+        atk_missile_list = self.get_long_missile(attack)  # 远程反舰导弹
+        def_missile_list = self.get_def_missile(defend)  # 防空导弹
+
+        total_msl_def = sum([msl.get_final_status('missile_def')
+                             for msl in def_missile_list])  # 总拦截
+
+        for tmp_atk_msl in atk_missile_list:
+            single_msl_atk = tmp_atk_msl.get_final_status('missile_atk')
+
+            # 拦截条件：总拦截大于突防，且存在可用防空导弹
+            if total_msl_def >= single_msl_atk and len(def_missile_list):
+                total_msl_def -= single_msl_atk
+                tmp_atk_msl.load -= 2
+                tmp_def_msl = def_missile_list.pop(0)
+                tmp_def_msl.load -= 1
+            else:
+                atk = MissileAtk(
+                    timer=self.timer,
+                    atk_body=tmp_atk_msl.master,
+                    def_list=defend,
+                    equip=tmp_atk_msl
+                )
+                atk.start()
+                tmp_atk_msl.load -= 2
 
 
 class FirstMissilePhase(MissilePhase):
@@ -478,6 +494,7 @@ class FirstMissilePhase(MissilePhase):
 
 class SecondMissilePhase(MissilePhase):
     """闭幕导弹"""
+
     def missile_strike(self, attack, defend):
         missile_list = self.get_def_missile(attack)  # 防空导弹
         for tmp_atk_msl in missile_list:

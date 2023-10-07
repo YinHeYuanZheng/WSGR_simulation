@@ -19,6 +19,7 @@ class BattleUtil(Time):
         """进行战斗流程"""
         self.battle_init()
         self.start_phase()
+        self.run_phase(LongMissilePhase)
         self.run_phase(BuffPhase)
         # self.run_phase(SupportPhase)
         self.run_phase(AirPhase)
@@ -218,6 +219,7 @@ class NormalBattle(BattleUtil):
         if self.timer.round_flag:
             self.end_phase()
             return
+        self.run_phase(LongMissilePhase)
         self.run_phase(BuffPhase)
         if (self.timer.point is not None) and (self.timer.point.level == 5):
             self.run_phase(SupportPhase)
@@ -245,6 +247,7 @@ class AirBattle(BattleUtil):
         if self.timer.round_flag:
             self.end_phase()
             return
+        self.run_phase(LongMissilePhase)
         self.run_phase(BuffPhase)
         self.run_phase(AirPhase)
         self.run_phase(TLockPhase)
@@ -268,6 +271,7 @@ class NightBattle(BattleUtil):
         if self.timer.round_flag:
             self.end_phase()
             return
+        self.run_phase(LongMissilePhase)
         self.run_phase(BuffPhase)
         self.run_phase(TLockPhase)
         self.run_phase(NightPhase)
