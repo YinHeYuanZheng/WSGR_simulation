@@ -354,7 +354,7 @@ class Ship(Time):
             # 技能描述为”射程增加/减少“, 则根据当前射程进行增减
             elif tmp_buff.name == 'range_buff' and tmp_buff.is_active():
                 ship_range += tmp_buff.value
-                # ship_range = max(0, ship_range)  # todo 不能低于0
+                ship_range = max(0, ship_range)  # 不能低于0
 
         return max(0, ship_range)
 
