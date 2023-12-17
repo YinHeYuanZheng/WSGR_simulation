@@ -19,9 +19,7 @@ class Skill_104201_1(Skill):
         self.buff = [
             SpecialShield(
                 timer=timer,
-                name='shield',
                 phase=AllPhase,
-                exhaust=1
             )
         ]
 
@@ -30,13 +28,17 @@ class Skill_104201_1(Skill):
         self.master.add_buff(self.buff[0])
 
 
-class SpecialShield(SpecialBuff):
+class SpecialShield(DamageShield):
     def is_active(self, *args, **kwargs):
         lost_health_rate = self.master.status['health'] / \
                            self.master.status['standard_health']
-        return lost_health_rate >= 0.3 and \
-               self.master.got_damage > 0 and \
-               self.exhaust > 0
+        if lost_health_rate >= 0.3 and \
+                self.master.got_damage > 0 and \
+                self.exhaust > 0:
+            self.exhaust -= 1
+            return True
+        else:
+            return False
 
 
 class Skill_104201_2(Skill):

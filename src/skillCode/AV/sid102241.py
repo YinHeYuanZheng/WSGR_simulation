@@ -23,7 +23,7 @@ class Skill_102241(Skill):
                 value=15,
                 bias_or_weight=0
             ),
-            AtkBuff(
+            CoeffBuff(
                 timer,
                 name='ignore_armor',
                 phase=ShellingPhase,

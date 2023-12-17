@@ -64,7 +64,6 @@ class Skill_115171_3(Skill):
             )
         ]
 
-
     def activate(self, friend, enemy):
         g_cover = CombinedTarget(
             side=1,

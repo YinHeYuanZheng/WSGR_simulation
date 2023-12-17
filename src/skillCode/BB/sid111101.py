@@ -25,7 +25,7 @@ class Skill_111101_1(Skill):
         )
 
         self.buff = [
-            AtkBuff(
+            CoeffBuff(
                 timer=timer,
                 name='ignore_armor',
                 value=-0.2,

@@ -91,11 +91,9 @@ class Skill_102121_3(Skill):
         super().__init__(timer, master)
         self.target = TagTarget(side=1, tag='veneto',)
         self.buff = [
-            OnceFinalDamageBuff(
+            DamageShield(
                 timer=timer,
-                name='final_damage_debuff',
                 phase=AllPhase,
-                value=-1
             )
         ]
 
@@ -107,20 +105,6 @@ class Skill_102121_3(Skill):
             if tmp_ship.cid == '10112' or tmp_ship.cid == '11112':
                 return True
         return False
-
-
-class OnceFinalDamageBuff(FinalDamageBuff):
-    """仅限一次的终伤buff"""
-    def __init__(self, timer, name, phase, value):
-        super().__init__(timer, name, phase, value)
-        self.exhaust = 1
-
-    def is_active(self, *args, **kwargs):
-        if self.exhaust == 0:
-            return False
-        else:
-            self.exhaust -= 1
-            return True
 
 
 name = '381警告！'

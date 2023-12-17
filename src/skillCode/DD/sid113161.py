@@ -20,28 +20,12 @@ class Skill_113161_1(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            OnceFinalDamageBuff(
+            DamageShield(
                 timer=timer,
-                name='final_damage_debuff',
                 phase=DaytimePhase,
-                value=-1,
                 atk_request=[BuffRequest_1]
             )
         ]
-
-
-class OnceFinalDamageBuff(FinalDamageBuff):
-    """仅限一次的终伤buff"""
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.exhaust = 1
-
-    def is_active(self, *args, **kwargs):
-        if self.exhaust == 0:
-            return False
-        else:
-            self.exhaust -= 1
-            return super().is_active(*args, **kwargs)
 
 
 class BuffRequest_1(ATKRequest):

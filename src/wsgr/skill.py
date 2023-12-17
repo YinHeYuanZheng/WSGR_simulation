@@ -754,6 +754,22 @@ class FinalDamageBuff(AtkBuff):
         super().__init__(timer, name, phase, value, bias_or_weight, atk_request, rate)
 
 
+class DamageShield(FinalDamageBuff):
+    """免疫伤害圣盾"""
+    def __init__(self, timer, phase,
+                 name='final_damage_debuff', value=-1, exhaust:int=1, **kwargs):
+        super().__init__(timer, name, phase, value, **kwargs)
+        self.exhaust = exhaust
+
+    def is_active(self, *args, **kwargs):
+        if super().is_active(*args, **kwargs) and \
+                self.exhaust > 0:
+            self.exhaust -= 1
+            return True
+        else:
+            return False
+
+
 class ActPhaseBuff(Buff):
     """
     可行动阶段

@@ -113,11 +113,9 @@ class Skill_105211_2(Skill):
                 value=0.1,
                 bias_or_weight=0
             ),
-            OnceFinalDamageBuff(
+            DamageShield(
                 timer=timer,
-                name='final_damage_debuff',
                 phase=AllPhase,
-                value=-1
             )
         ]
 
@@ -129,20 +127,6 @@ class Skill_105211_2(Skill):
             for i in range(count):
                 tmp_buff = copy.copy(self.buff[i])
                 tmp_target.add_buff(tmp_buff)
-
-
-class OnceFinalDamageBuff(FinalDamageBuff):
-    """仅限一次的终伤buff"""
-    def __init__(self, timer, name, phase, value):
-        super().__init__(timer, name, phase, value)
-        self.exhaust = 1
-
-    def is_active(self, *args, **kwargs):
-        if self.exhaust == 0:
-            return False
-        else:
-            self.exhaust -= 1
-            return True
 
 
 name = '巨舰梦想'
