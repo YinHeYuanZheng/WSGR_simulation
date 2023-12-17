@@ -9,6 +9,7 @@ from . import sid111941  # 大青花鱼
 from . import sid111951  # 射水鱼
 from . import sid111971  # U-47改-1
 from . import sid111972  # U-47改-2
+from . import sid111981  # U-505
 from . import sid111991  # 絮库夫
 from . import sid112891  # U-81
 from . import sid112901  # U-96

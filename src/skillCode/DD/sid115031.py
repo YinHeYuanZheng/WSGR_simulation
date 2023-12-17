@@ -86,14 +86,8 @@ class Skill_115031_3(Skill):
         self.target = CombinedTarget(
             side=1,
             target_list=[
-                TypeTarget(
-                    side=1,
-                    shiptype=DD
-                ),
-                CountryTarget(
-                    side=1,
-                    country='G'
-                )
+                TypeTarget(side=1, shiptype=DD),
+                CountryTarget(side=1, country='G')
             ]
         )
         self.buff = [

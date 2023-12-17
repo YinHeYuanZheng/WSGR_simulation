@@ -12,3 +12,4 @@ from . import sid111261  # 普林斯顿改-1
 from . import sid112271  # 飞鹰改-1
 from . import sid112281  # 隼鹰改-1
 from . import sid113111  # 瓜达卡纳尔改-1
+from . import sid115451  # 威悉河改-1

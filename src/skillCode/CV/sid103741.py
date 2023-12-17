@@ -33,7 +33,6 @@ class Skill_103741_2(Skill):
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.request = [Request_1]
         self.target = SelfTarget(master)
         self.buff = [
             StatusBuff(
@@ -46,7 +45,11 @@ class Skill_103741_2(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return bool(self.request[0](self.timer, self.master, friend, enemy))
+        target = TypeTarget(
+            side=1,
+            shiptype=(CV, AV)
+        ).get_target(friend, enemy)
+        return len(target) < 3
 
 
 class Skill_103741_3(Skill):
@@ -54,7 +57,6 @@ class Skill_103741_3(Skill):
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.request = [Request_1]
         self.target = SelfTarget(master)
         self.buff = [
             StatusBuff(
@@ -74,16 +76,11 @@ class Skill_103741_3(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return not bool(self.request[0](self.timer, self.master, friend, enemy))
-
-
-class Request_1(Request):
-    def __bool__(self):
         target = TypeTarget(
             side=1,
             shiptype=(CV, AV)
-        ).get_target(self.friend, self.enemy)
-        return len(target) < 3
+        ).get_target(friend, enemy)
+        return len(target) >= 3
 
 
 name = '多用途航母'

@@ -70,4 +70,5 @@ from . import sid114141  # 凯利改-1
 from . import sid114161  # 47工程改-1
 from . import sid114251  # 史密斯改-1
 from . import sid114961  # 诺福克改-1
+from . import sid115031  # T-23改-1
 from . import sid115171  # 吕贝克改-1
