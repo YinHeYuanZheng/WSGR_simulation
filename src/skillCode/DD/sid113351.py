@@ -91,10 +91,10 @@ class Skill_113351_3(Skill):
     def activate(self, friend, enemy):
         if self.target_2 is None:
             return
-        target = self.target.get_target(friend, enemy)
+        tmp_target = self.target.get_target(friend, enemy)[0]
         for tmp_buff in self.buff[:]:
             tmp_buff_1 = copy.copy(tmp_buff)
-            target.add_buff(tmp_buff_1)
+            tmp_target.add_buff(tmp_buff_1)
             tmp_buff_2 = copy.copy(tmp_buff)
             self.target_2.add_buff(tmp_buff_2)
 
