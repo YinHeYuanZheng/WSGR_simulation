@@ -120,26 +120,26 @@ def run_damaged(battle, epoc):
                 damaged_rate[j, 0] += 1
             if ship.damaged >= 3:
                 damaged_rate[j, 1] += 1
-        print(f"\r第{i + 1}次 "
-              f"{tmp_battle.friend.ship[0].status['name']}: "
-              f"中破率 {damaged_rate[0, 0] / (i + 1) * 100:.2f}% "
-              f"大破率 {damaged_rate[0, 1] / (i + 1) * 100:.2f}% "
-              f"{tmp_battle.friend.ship[1].status['name']}: "
-              f"中破率 {damaged_rate[1, 0] / (i + 1) * 100:.2f}% "
-              f"大破率 {damaged_rate[1, 1] / (i + 1) * 100:.2f}% "
-              f"{tmp_battle.friend.ship[2].status['name']}: "
-              f"中破率 {damaged_rate[2, 0] / (i + 1) * 100:.2f}% "
-              f"大破率 {damaged_rate[2, 1] / (i + 1) * 100:.2f}% "
-              f"{tmp_battle.friend.ship[3].status['name']}: "
-              f"中破率 {damaged_rate[3, 0] / (i + 1) * 100:.2f}% "
-              f"大破率 {damaged_rate[3, 1] / (i + 1) * 100:.2f}% "
-              f"{tmp_battle.friend.ship[4].status['name']}: "
-              f"中破率 {damaged_rate[4, 0] / (i + 1) * 100:.2f}% "
-              f"大破率 {damaged_rate[4, 1] / (i + 1) * 100:.2f}% "
-              f"{tmp_battle.friend.ship[5].status['name']}: "
-              f"中破率 {damaged_rate[5, 0] / (i + 1) * 100:.2f}% "
-              f"大破率 {damaged_rate[5, 1] / (i + 1) * 100:.2f}% ",
-              end='',)
+        print(f"第{i + 1}次 \n"
+              f"船名 中破率 大破率\n"
+              f"{tmp_battle.friend.ship[0].status['name']}   "
+              f"{damaged_rate[0, 0] / (i + 1) * 100:.2f}% "
+              f"{damaged_rate[0, 1] / (i + 1) * 100:.2f}% \n"
+              f"{tmp_battle.friend.ship[1].status['name']}   "
+              f"{damaged_rate[1, 0] / (i + 1) * 100:.2f}% "
+              f"{damaged_rate[1, 1] / (i + 1) * 100:.2f}% \n"
+              f"{tmp_battle.friend.ship[2].status['name']}   "
+              f"{damaged_rate[2, 0] / (i + 1) * 100:.2f}% "
+              f"{damaged_rate[2, 1] / (i + 1) * 100:.2f}% \n"
+              f"{tmp_battle.friend.ship[3].status['name']}   "
+              f"{damaged_rate[3, 0] / (i + 1) * 100:.2f}% "
+              f"{damaged_rate[3, 1] / (i + 1) * 100:.2f}% \n"
+              f"{tmp_battle.friend.ship[4].status['name']}   "
+              f"{damaged_rate[4, 0] / (i + 1) * 100:.2f}% "
+              f"{damaged_rate[4, 1] / (i + 1) * 100:.2f}% \n"
+              f"{tmp_battle.friend.ship[5].status['name']}   "
+              f"{damaged_rate[5, 0] / (i + 1) * 100:.2f}% "
+              f"{damaged_rate[5, 1] / (i + 1) * 100:.2f}%")
 
 
 def new_hit_verify(value):
