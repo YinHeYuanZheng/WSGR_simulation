@@ -1252,26 +1252,31 @@ class MissileShip(Ship):
             msl_list.sort(key=lambda x: (x.get_final_status('missile_atk'), x.enum)
                           )  # 按照突防从小到大+顺位顺序排序
 
-        else:  # 无法发射导弹时，生成一枚0火力导弹
-            zero_missile = NormalMissile(timer=self.timer,
-                                         master=self,
-                                         enum=1)
-            zero_missile.set_status('fire', 0)
-            msl_list = [zero_missile]
+            for tmp_msl in msl_list:
+                def_enemy = target_fleet.get_atk_target(atk_type=self.night_atk)
+                if not len(def_enemy):
+                    break
 
-        for tmp_msl in msl_list:
-            def_enemy = target_fleet.get_atk_target(atk_type=self.night_atk)
+                atk = self.night_atk(
+                    timer=self.timer,
+                    atk_body=self,
+                    def_list=def_enemy,
+                    equip=tmp_msl
+                )
+                yield atk
+                tmp_msl.load -= 1
+
+        else:  # 无法发射导弹时，进行夜战炮击
+            from src.wsgr.formulas import NightNormalAtk
+            def_enemy = target_fleet.get_atk_target(atk_type=NightNormalAtk)
             if not len(def_enemy):
-                break
-
-            atk = self.night_atk(
+                return
+            atk = NightNormalAtk(
                 timer=self.timer,
                 atk_body=self,
                 def_list=def_enemy,
-                equip=tmp_msl
             )
             yield atk
-            tmp_msl.load -= 1
 
 
 class AtkMissileShip(MissileShip):
