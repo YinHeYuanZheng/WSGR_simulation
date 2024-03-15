@@ -6,7 +6,8 @@
 from . import esid003  # 装备穿甲特效
 from . import esid004  # 超重弹特效
 from . import esid005  # 开幕轰炸威力特效
-from . import esid012  # 烈风改J特效
+from . import esid006  # 命中率特效
+from . import esid012  # 降低敌方航空战阶段命中率
 from . import esid018  # 远程对空警戒雷达
 from . import esid023  # 暴击率特效
 

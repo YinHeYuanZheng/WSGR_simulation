@@ -589,7 +589,7 @@ class Buff(Time):
         pass
 
     def rate_verify(self):
-        if self.rate == 1:
+        if self.rate >= 1:
             return True
         else:
             tmp_rate = np.random.random()

@@ -199,11 +199,12 @@ def load_enemy_ship(node, dataset, timer):
             equip = getattr(requip, equip_type)(timer, ship, i + 1)  # 根据装备类型获取类，并实例化
 
             # 如果装备也存在特殊效果，当作技能写入舰船skill内
-            esid = estatus.pop('skill')
-            if esid != '':
-                esid = 'esid' + esid
-                skill = getattr(skillCode, esid).skill  # 根据技能设置获取技能列表，未实例化
-                equip.add_skill(skill)  # 写入装备技能
+            esid_list = estatus.pop('skill')
+            if len(esid_list):
+                for esid in esid_list:
+                    esid = 'esid' + esid
+                    skill = getattr(skillCode, esid).skill  # 根据技能设置获取技能列表，未实例化
+                    equip.add_skill(skill)  # 写入装备技能
 
             # 写入装备属性
             equip.set_status(status=estatus)
@@ -223,11 +224,12 @@ def load_equip(node, dataset, master, timer):
     equip = getattr(requip, equip_type)(timer, master, enum)  # 根据装备类型获取类，并实例化
 
     # 如果装备也存在特殊效果，写入装备skill内
-    esid = status.pop('skill')
-    if esid != '':
-        esid = 'esid' + esid
-        skill = getattr(skillCode, esid).skill  # 根据技能设置获取技能列表，未实例化
-        equip.add_skill(skill)  # 写入装备技能
+    esid_list = status.pop('skill')
+    if len(esid_list):
+        for esid in esid_list:
+            esid = 'esid' + esid
+            skill = getattr(skillCode, esid).skill  # 根据技能设置获取技能列表，未实例化
+            equip.add_skill(skill)  # 写入装备技能
 
     # 写入装备属性
     equip.set_status(status=status)

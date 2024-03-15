@@ -162,8 +162,12 @@ class Dataset:
         status = {
             'type': equip.loc['种类'],  # 种类
             'name': equip.loc['名称'],  # 装备名
-            'skill': equip.loc['特效'],  # 特殊效果
         }
+
+        if equip.loc['特效'] != '':
+            status['skill'] = equip.loc['特效'].split(',')  # 特殊效果
+        else:
+            status['skill'] = []
 
         if equip.loc['特效数值'] != '':
             status['skill_value'] = [
