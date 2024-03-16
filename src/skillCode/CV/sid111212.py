@@ -19,14 +19,14 @@ class Skill_111212_1(CommonSkill):
             CommonBuff(
                 timer=timer,
                 name='evasion',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=10,
                 bias_or_weight=0
             ),
             CommonBuff(
                 timer=timer,
                 name='fire',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=15,
                 bias_or_weight=0
             )
@@ -69,14 +69,14 @@ class Skill_111212_2(Skill):
                     StatusBuff(
                         timer=timer,
                         name='fire',
-                        phase=(AllPhase,),
+                        phase=AllPhase,
                         value=10,
                         bias_or_weight=0
                     ),
                     StatusBuff(
                         timer=timer,
                         name='armor',
-                        phase=(AllPhase,),
+                        phase=AllPhase,
                         value=15,
                         bias_or_weight=0
                     )

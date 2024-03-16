@@ -36,6 +36,7 @@ from . import sid112211  # 飞龙改-1
 from . import sid112212  # 飞龙改-2
 from . import sid112221  # 苍龙改-1
 from . import sid112251  # 黄蜂改-1
+from . import sid112321  # 贝亚恩改-1
 from . import sid113252  # 列克星敦(cv-16)-1
 from . import sid113391  # 帝国改-1
 from . import sid113392  # 帝国改-2

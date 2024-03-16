@@ -3,7 +3,9 @@
 # env:py38
 # 导弹类
 
+from . import sid102871  # 鹰潭
 from . import sid104671  # 鞍山-1
+from . import sid114672  # 鞍山-2
 from . import sid105021  # 济南-1
 from . import sid105331  # 格罗兹尼-1
 from . import sid105521  # 絮弗伦-1
