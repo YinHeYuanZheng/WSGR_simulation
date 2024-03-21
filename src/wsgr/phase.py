@@ -53,20 +53,15 @@ class PreparePhase(AllPhase):
 
     def start(self):
         # 索敌(注意！不受技能影响！)
-        recon_flag = self.compare_recon()
-        self.timer.set_recon(recon_flag)
+        self.compare_recon()
 
         # 迂回(注意！不受技能影响！)
         if self.timer.point is not None and \
                 self.timer.point.roundabout and \
-                recon_flag:  # 索敌成功才可迂回
+                self.timer.recon_flag:  # 索敌成功才可迂回
             for tmp_ship in self.friend.ship:  # 迂回扣除10%油
                 tmp_ship.supply_oil = max(0, tmp_ship.supply_oil - 1)
-            if self.check_roundabout():
-                self.timer.set_round(True)
-            else:
-                self.timer.set_round(False)
-                self.timer.set_recon(False)  # 迂回失败则丢失索敌buff
+            self.check_roundabout()
 
         # 结算影响队友航速、索敌的技能，结算让巴尔
         self.timer.run_prepare_skill(self.friend, self.enemy)
@@ -76,8 +71,7 @@ class PreparePhase(AllPhase):
             tmp_ship.run_prepare_skill(self.enemy, self.friend)
 
         # 航向
-        direction_flag = self.compare_speed()
-        self.timer.set_direction(direction_flag=direction_flag)
+        self.compare_speed()
 
     def check_roundabout(self):
         # 舰队航速差
@@ -90,11 +84,13 @@ class PreparePhase(AllPhase):
         rd_rate = rform.cap(rd_rate)
         verify = np.random.random()
         if verify <= rd_rate:
-            return True
+            self.timer.set_round(True)
         else:
-            return False
+            self.timer.set_round(False)
+            self.timer.set_recon(False)  # 迂回失败则丢失索敌buff
 
     def compare_recon(self):
+        """比较双方索敌，并记录相关信息"""
         from src.wsgr.ship import Submarine
         sub_num = self.enemy.count(Submarine)
         if sub_num != len(self.enemy.ship):
@@ -105,18 +101,28 @@ class PreparePhase(AllPhase):
             recon_rate = 0.5 + d_recon * 0.05
             recon_rate = max(0, recon_rate)
             recon_rate = min(1, recon_rate)
-            self.timer.info(f'索敌率{recon_rate * 100:.2f}%\n')
+            recon_flag = (np.random.random() <= recon_rate)
 
-            verify = np.random.random()
-            return verify <= recon_rate
+            # log记录索敌率
+            self.timer.info(f'水面索敌率{recon_rate * 100:d}%\n')
+            self.timer.report_log('recon',
+                                  [recon_rate, friend_recon, enemy_recon])
         else:
             friend_recon = self.friend.status['antisub_recon']
             enemy_level = 0
             for tmp_ship in self.enemy.ship:
                 enemy_level += tmp_ship.level
-            return friend_recon >= enemy_level
+            recon_flag = (friend_recon >= enemy_level)
+
+            # log记录索敌率，全鱼记录0或1
+            self.timer.info(f'潜艇索敌率{float(recon_flag) * 100:d}%\n')
+            self.timer.report_log('recon',
+                                  [float(recon_flag), friend_recon, enemy_level])
+
+        self.timer.set_recon(recon_flag)
 
     def compare_speed(self):
+        """计算航向，并记录相关信息"""
         # 旗舰航速差
         friend_leader_speed = self.friend.ship[0].get_final_status('speed')
         enemy_leader_speed = self.enemy.ship[0].get_final_status('speed')
@@ -143,7 +149,10 @@ class PreparePhase(AllPhase):
         speed_matrix[3] = max(0, speed_matrix[3])
 
         speed_matrix = speed_matrix / sum(speed_matrix)
-        return np.random.choice([1, 2, 3, 4], p=speed_matrix)
+        self.timer.report_log('speed_matrix', speed_matrix)  # 报告航向概率分布
+
+        direction_flag = np.random.choice([1, 2, 3, 4], p=speed_matrix)
+        self.timer.set_direction(direction_flag=direction_flag)
 
 
 class BuffPhase(AllPhase):

@@ -78,17 +78,17 @@ class ATK(Time):
         self.process_coef()  # 生成公式相关系数
 
         if not self.coef['hit_flag']:
-            return self.end_atk(damage_flag, 'miss')
+            return self.end_atk(damage_flag, 'miss', False)
 
         real_atk = self.formula()
         damage = self.real_damage(real_atk)
         if damage == 0:
-            return self.end_atk(damage_flag, 'jump')
+            return self.end_atk(damage_flag, 'jump', False)
 
         damage_flag = True
         damage = self.final_damage(damage)
-        damage = self.target.get_damage(damage)
-        return self.end_atk(damage_flag, damage)
+        damage, sink = self.target.get_damage(damage)
+        return self.end_atk(damage_flag, damage, sink)
 
     def target_init(self):
         """决定攻击目标，技能可以影响优先目标"""
@@ -407,16 +407,18 @@ class ATK(Time):
 
         return max(0, damage)
 
-    def end_atk(self, damage_flag, damage_value):
+    def end_atk(self, damage_flag, damage_value, sink):
         """
         攻击结束时点，进行受伤时点效果、反击等
         :param damage_flag: 是否受到了伤害
         :param damage_value: 伤害记录
+        :param sink: 是否被击沉
         """
         hit_back = None
         chase_atk = None
         if not damage_flag:
-            self.timer.report('miss')
+            assert sink is False
+            self.timer.report_damage('miss', sink)
         else:
             self.atk_body.atk_hit('atk_hit', self)
             hit_back = self.target.atk_hit('atk_be_hit', self)
@@ -424,7 +426,7 @@ class ATK(Time):
                 if tmp_buff.is_active(self):
                     chase_atk = tmp_buff.activate(self)
                     break
-            self.timer.report(damage_value)
+            self.timer.report_damage(damage_value, sink)
 
         self.atk_body.remove_during_buff()
         self.target.remove_during_buff()
@@ -441,20 +443,21 @@ class SupportAtk(ATK):
         self.timer.set_atk(self)
         damage = self.formula()
         damage_flag = bool(damage)
-        damage = self.target.get_damage(damage)
-        return self.end_atk(damage_flag, damage)
+        damage, sink = self.target.get_damage(damage)
+        return self.end_atk(damage_flag, damage, sink)
 
     def formula(self):
         damage = np.random.uniform(self.limit[0], self.limit[1])
         return np.ceil(damage)
 
-    def end_atk(self, damage_flag, damage_value):
+    def end_atk(self, damage_flag, damage_value, sink):
         hit_back = None
         chase_atk = None
         if not damage_flag:
-            self.timer.report('miss')
+            assert sink is False
+            self.timer.report_damage('miss', sink)
         else:
-            self.timer.report(damage_value)
+            self.timer.report_damage(damage_value, sink)
         return hit_back, chase_atk
 
 
@@ -499,20 +502,20 @@ class AirStrikeAtk(AirAtk):
         self.process_coef()  # 生成公式相关系数
 
         if not self.coef['hit_flag']:
-            return self.end_atk(damage_flag, 'miss')
+            return self.end_atk(damage_flag, 'miss', False)
 
         if self.coef['plane_rest'] == 0:
-            return self.end_atk(damage_flag, 'miss')
+            return self.end_atk(damage_flag, 'miss', False)
 
         real_atk = self.formula()
         damage = self.real_damage(real_atk)
         if damage == 0:
-            return self.end_atk(damage_flag, 'jump')
+            return self.end_atk(damage_flag, 'jump', False)
 
         damage_flag = True
         damage = self.final_damage(damage)
-        damage = self.target.get_damage(damage)
-        return self.end_atk(damage_flag, damage)
+        damage, sink = self.target.get_damage(damage)
+        return self.end_atk(damage_flag, damage, sink)
 
     def get_anti_air_fall(self, anti_num):
         """计算防空击坠"""
@@ -1136,14 +1139,15 @@ class SpecialAtk(ATK):
                     self.coef['random_coef'])
         return real_atk
 
-    def end_atk(self, damage_flag, damage_value):
+    def end_atk(self, damage_flag, damage_value, sink):
         hit_back = None
         chase_atk = None
         if not damage_flag:
-            self.timer.report('miss')
+            assert sink is False
+            self.timer.report_damage('miss', sink)
         else:
             self.atk_body.atk_hit('atk_hit', self)
-            self.timer.report(damage_value)
+            self.timer.report_damage(damage_value, sink)
 
         self.atk_body.remove_during_buff()
         self.target.remove_during_buff()

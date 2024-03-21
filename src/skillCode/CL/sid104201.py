@@ -30,7 +30,7 @@ class Skill_104201_1(Skill):
 
 class SpecialShield(DamageShield):
     def is_active(self, *args, **kwargs):
-        lost_health_rate = self.master.status['health'] / \
+        lost_health_rate = 1 - self.master.status['health'] / \
                            self.master.status['standard_health']
         if lost_health_rate >= 0.3 and \
                 self.master.got_damage > 0 and \

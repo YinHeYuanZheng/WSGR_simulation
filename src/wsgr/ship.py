@@ -56,6 +56,7 @@ class Ship(Time):
 
         self.created_damage = {}  # 造成伤害记录，分阶段，在下一点开始时重置
         self.got_damage = 0  # 受到伤害记录，只有总数，在下一点开始时重置
+        self.defeated_enemy = {}  # 击沉敌舰记录，分阶段，在下一点开始时重置
         self.damaged = 1  # 耐久状态, 1: 正常; 2: 中破; 3: 大破; 4: 撤退，修理后重置
         self.damage_protect = True  # 耐久保护，大破进击时消失，在所有战斗结束后重置
         self.supply_oil = 10  # 燃料补给状态，在所有战斗结束后重置
@@ -730,13 +731,16 @@ class Ship(Time):
         self.status['health'] -= int(damage)
         self.got_damage += int(damage)
 
-        # 受伤状态结算
+        # 受伤击沉状态结算
+        sink = False  # 被该次攻击击沉
         if self.status['health'] <= 0:
             if self.use_dcitem():  # 检测能否损管
                 self.status['health'] = standard_health
             else:
                 self.status['health'] = 0
-                self.damaged = 4
+                if self.damaged != 4:
+                    self.damaged = 4
+                    sink = True
         elif self.damaged < 3 and \
                 self.status['health'] < standard_health * 0.25:
             self.damaged = 3
@@ -744,15 +748,23 @@ class Ship(Time):
                 self.status['health'] < standard_health * 0.5:
             self.damaged = 2
 
-        return damage
+        return damage, sink
 
     def create_damage(self, damage):
         """造成伤害记录"""
         phase = type(self.timer.phase).__name__
-        if phase in self.created_damage.keys():
-            self.created_damage[phase] += damage
-        else:
-            self.created_damage[phase] = damage
+        self.created_damage[phase] = \
+            self.created_damage.get(phase, 0.) + damage
+        # if phase in self.created_damage.keys():
+        #     self.created_damage[phase] += damage
+        # else:
+        #     self.created_damage[phase] = damage
+
+    def defeat_enemy(self):
+        """击沉敌舰记录"""
+        phase = type(self.timer.phase).__name__
+        self.defeated_enemy[phase] = \
+            self.defeated_enemy.get(phase, 0) + 1
 
     def use_dcitem(self):
         """检测能否损管"""
@@ -799,12 +811,14 @@ class Ship(Time):
         """道中初始化舰船状态"""
         self.clear_buff()
         self.created_damage = {}
+        self.defeated_enemy = {}
         self.reinit_health()
 
     def reset(self):
         """初始化当前舰船"""
         self.clear_buff()
         self.created_damage = {}
+        self.defeated_enemy = {}
         supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
 
         # 统计补给耗油并补满

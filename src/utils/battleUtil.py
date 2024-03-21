@@ -3,7 +3,7 @@
 # env:py38
 
 import numpy as np
-from src.wsgr.wsgrTimer import Time
+from src.wsgr.wsgrTimer import Time, damagePhaseList
 from src.wsgr.phase import *
 
 
@@ -14,6 +14,7 @@ class BattleUtil(Time):
         super().__init__(timer)
         self.friend = friend
         self.enemy = enemy
+        self.start_health = None
 
     def start(self):
         """进行战斗流程"""
@@ -78,9 +79,9 @@ class BattleUtil(Time):
         self.timer.reinit()
 
     def start_phase(self):
-        self.timer.log['start_health'] = {
-            1: np.array([ship.status['health'] for ship in self.friend.ship]),
-            0: np.array([ship.status['health'] for ship in self.enemy.ship])
+        self.start_health = {
+            1: np.sum([ship.status['health'] for ship in self.friend.ship]),
+            0: np.sum([ship.status['health'] for ship in self.enemy.ship])
         }
         self.run_phase(PreparePhase)
 
@@ -91,6 +92,8 @@ class BattleUtil(Time):
         """
         self.timer.set_phase(phase_class(self.timer, self.friend, self.enemy))
         self.timer.phase_start()
+        if phase_class.__name__ in damagePhaseList:
+            self.timer.phase_end_report(self.friend, self.enemy)
 
     def supply_cost(self):
         """扣除昼战消耗，夜战在NightPhase内扣除"""
@@ -107,21 +110,15 @@ class BattleUtil(Time):
             self.supply_cost()
 
         # 受伤记录
-        self.timer.log['end_health'] = {
-            1: np.array([ship.status['health'] for ship in self.friend.ship]),
-            0: np.array([ship.status['health'] for ship in self.enemy.ship])
-        }
-        self.timer.log['got_damage'] = {
-            1: self.timer.log['start_health'][1] - self.timer.log['end_health'][1],
-            0: self.timer.log['start_health'][0] - self.timer.log['end_health'][0]
+        end_health = {
+            1: np.sum([ship.status['health'] for ship in self.friend.ship]),
+            0: np.sum([ship.status['health'] for ship in self.enemy.ship])
         }
 
         # 战果条，视角符合游戏结算时战果条左右关系
         damage_progress = {
-            1: np.sum(self.timer.log['got_damage'][0]) /
-               np.sum(self.timer.log['start_health'][0]),
-            0: np.sum(self.timer.log['got_damage'][1]) /
-               np.sum(self.timer.log['start_health'][1])
+            1: 1 - end_health[0] / self.start_health[0],
+            0: 1 - end_health[1] / self.start_health[1]
         }
 
         # 被击沉数量
@@ -129,64 +126,49 @@ class BattleUtil(Time):
         for tmp_ship in self.enemy.ship:
             if tmp_ship.damaged == 4:
                 enemy_retreat_num += 1
-        self.timer.log['enemy_retreat_num'] = enemy_retreat_num
 
         # 敌方全部被击沉
         if damage_progress[1] == 1:
             if damage_progress[0] == 0:
-                self.timer.log['result'] = 'SS'
+                self.timer.report_result('SS')
             else:
-                self.timer.log['result'] = 'S'
+                self.timer.report_result('S')
 
         # 敌方旗舰被击沉
         elif self.enemy.ship[0].damaged == 4:
             if damage_progress[0] == 0:
-                self.timer.log['result'] = 'A'
+                self.timer.report_result('A')
             else:
-                self.timer.log['result'] = 'B'
+                self.timer.report_result('B')
 
         # 敌方被击沉超过2/3
         elif enemy_retreat_num >= len(self.enemy.ship) * 2/3:
-            self.timer.log['result'] = 'A'
+            self.timer.report_result('A')
 
         # 敌方被击沉小于2/3，但战损比超过3倍，且我方战果条大于等于21%
         elif enemy_retreat_num < len(self.enemy.ship) * 2/3 and \
                 damage_progress[1] >= damage_progress[0] * 3 and \
                 damage_progress[1] >= 0.21:
-            self.timer.log['result'] = 'B'
+            self.timer.report_result('B')
 
         # 我方未造成任何伤害，或战损比小于1/3
         elif damage_progress[1] == 0 or \
                 damage_progress[1] * 3 < damage_progress[0]:
-            self.timer.log['result'] = 'D'
+            self.timer.report_result('D')
 
         # 我方击沉任意一艘非旗舰，且未受到伤害
         elif enemy_retreat_num > 0 and damage_progress[0] == 0:
-            self.timer.log['result'] = 'B'
+            self.timer.report_result('B')
 
         # 我方未击沉任何船，且未受到伤害，且我方战果条大于等于21%
         elif enemy_retreat_num == 0 and damage_progress[0] == 0 and \
                 damage_progress[1] >= 0.21:
-            self.timer.log['result'] = 'B'
+            self.timer.report_result('B')
 
         else:
-            self.timer.log['result'] = 'C'
+            self.timer.report_result('C')
 
     def report(self):
-        # 命中率
-        try:
-            hit_rate = self.timer.log['hit'] / \
-                       (self.timer.log['hit'] + self.timer.log['miss'])
-            self.timer.log['hit_rate'] = hit_rate
-        except:
-            self.timer.log['hit_rate'] = 0
-
-        # 伤害量
-        self.timer.log['create_damage'] = {
-            1: [ship.created_damage for ship in self.friend.ship],
-            0: [ship.created_damage for ship in self.enemy.ship]
-        }
-
         # 消耗
         supply = self.timer.log['supply']
         for tmp_ship in self.friend.ship:
@@ -195,7 +177,7 @@ class BattleUtil(Time):
             supply['ammo'] += int(ship_supply['ammo'])
             supply['steel'] += int(ship_supply['steel'])
             supply['almn'] += int(ship_supply['almn'])
-        self.timer.log['supply'] = supply
+        self.timer.report_log('supply', supply)
 
         return self.timer.log
 

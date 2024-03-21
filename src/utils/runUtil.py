@@ -4,6 +4,7 @@
 
 import copy
 import numpy as np
+from src.wsgr.wsgrTimer import damagePhaseList
 
 
 def run_victory(battle, epoc):
@@ -34,7 +35,7 @@ def run_map_victory(battle, epoc):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
-        if log['end_with_boss']:
+        if log.get('end_with_boss'):
             result_flag_id = result_flag_list.index(log['result'])
             result[result_flag_id] += 1
         else:
@@ -51,14 +52,18 @@ def run_map_victory(battle, epoc):
               end='',)
 
 
-def run_hit_rate(battle, epoc):
+def run_hit_rate(battle, epoc, phase:str=None):
     hit_rate = 0
     for i in range(epoc):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
 
-        hit_rate += log['hit_rate']
+        if (phase is not None) and (phase in damagePhaseList):
+            phaseId = damagePhaseList.index(phase)
+            hit_rate += log['hit_rate'][phaseId, 1]
+        else:
+            hit_rate += log['hit_rate'][:, 1].mean()
         print("\r"
               f"第{i + 1}次 - 命中率: {hit_rate / (i + 1) * 100: .4f}%",
               end='',)
@@ -67,25 +72,24 @@ def run_hit_rate(battle, epoc):
 def run_avg_damage(battle, epoc, phase:str=None):
     avg_damage = 0
     avg_damage_phase = 0
-    retreat_num = 0
+    defeat_num = 0
     for i in range(epoc):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
 
-        if phase is not None:
-            avg_damage_phase += np.sum([dmg_log.get(phase, 0)
-                                        for dmg_log in log['create_damage'][1]])
+        if (phase is not None) and (phase in damagePhaseList):
+            phaseId = damagePhaseList.index(phase)
+            avg_damage_phase += log['create_damage'][phaseId, :6].sum()
             phase_info = f'{phase}平均伤害: {avg_damage_phase / (i + 1):.3f} '
         else:
             phase_info = ''
-        avg_damage += np.sum([sum(dmg_log.values())
-                              for dmg_log in log['create_damage'][1]])
-        retreat_num += log['enemy_retreat_num']
+        avg_damage += log['create_damage'][:, :6].sum()
+        defeat_num += log['defeat_num'][:, :6].sum()
         print("\r"
               f"第{i + 1}次 - 平均伤害: {avg_damage / (i + 1):.3f} "
               f"{phase_info}"
-              f"平均击沉 {retreat_num / (i + 1):.3f}",
+              f"平均击沉 {defeat_num / (i + 1):.3f}",
               end='',)
 
 
