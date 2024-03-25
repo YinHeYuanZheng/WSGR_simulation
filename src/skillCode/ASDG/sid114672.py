@@ -64,7 +64,7 @@ class Skill_114672_1(Skill):
             for tmp_buff in self.buff[:]:
                 tmp_buff = copy.copy(tmp_buff)
                 if correctLeaderFlag:
-                    tmp_target.value *= 3
+                    tmp_buff.value *= 3
                 tmp_target.add_buff(tmp_buff)
 
 
