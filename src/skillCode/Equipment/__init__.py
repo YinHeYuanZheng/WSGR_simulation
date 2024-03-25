@@ -32,6 +32,7 @@ from . import esid653  # FJ-4B（16）
 from . import esid654  # 鞑靼人导弹(I)
 from . import esid655  # MK13发射系统(I)
 from . import esid657  # AJ-2(空中加油系统)
+from . import esid661  # 76A式
 from . import esid668  # 四联533毫米鱼雷（ur高速）
 from . import esid669  # S-2反潜机
 from . import esid670  # 红旗61防空导弹
