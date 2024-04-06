@@ -104,7 +104,7 @@ class PreparePhase(AllPhase):
             recon_flag = (np.random.random() <= recon_rate)
 
             # log记录索敌率
-            self.timer.info(f'水面索敌率{recon_rate * 100:d}%\n')
+            self.timer.info(f'水面索敌率{int(recon_rate * 100):d}%\n')
             self.timer.report_log('recon',
                                   [recon_rate, friend_recon, enemy_recon])
         else:
