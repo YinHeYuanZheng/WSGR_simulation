@@ -42,7 +42,7 @@ class Skill_110671_2(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            SpecialAtkBuff(
+            SpecialAtkBuff_110671_2(
                 timer=timer,
                 phase=ShellingPhase,
                 rate=0.35,
@@ -64,6 +64,14 @@ class Skill_110671_2(Skill):
                 ]
             )
         ]
+
+
+class SpecialAtkBuff_110671_2(SpecialAtkBuff):
+    """使用雷击公式的炮击"""
+    def get_def_list(self, atk_type, enemy):
+        from src.wsgr.formulas import NormalAtk
+        def_list = super().get_def_list(NormalAtk, enemy)
+        return def_list
 
 
 name = '水雷强袭'
