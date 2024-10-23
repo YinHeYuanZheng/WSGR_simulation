@@ -61,7 +61,10 @@ class Skill_110801_1(Skill):
         ]
 
     def activate(self, friend, enemy):
-        count = len(TagTarget(side=1, tag='z-ship').get_target(friend, enemy))
+        # 获取z驱数量
+        count = len(TagTarget(side=1, tag='z-ship'
+                              ).get_target(friend, enemy))
+        # 根据z驱数量，依次获得效果
         for i in range(count):
             tmp_buff = copy.copy(self.buff[i])
             self.master.add_buff(tmp_buff)

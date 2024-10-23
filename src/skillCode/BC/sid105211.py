@@ -120,9 +120,11 @@ class Skill_105211_2(Skill):
         ]
 
     def activate(self, friend, enemy):
+        # 获取C国数量
         count = len(CountryTarget(side=1, country='C'
                                   ).get_target(friend, enemy))
         target = self.target.get_target(friend, enemy)
+        # 根据C国数量，依次获得效果
         for tmp_target in target:
             for i in range(count):
                 tmp_buff = copy.copy(self.buff[i])

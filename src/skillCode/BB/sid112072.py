@@ -7,14 +7,14 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""混战(3级)：增加自身与旗舰12点火力值和20点装甲值。
-    敌方全队平均火力低于南达科他自身火力值时，炮击战阶段增加自身与旗舰20%炮击伤害，
-    敌方全队平均火力值高于南达科他火力值时，增加自身与旗舰18%暴击率。
+"""混战(3级)：增加自身与舰队旗舰12点火力值和20点装甲值。
+    敌方全队平均火力低于南达科他自身火力值时，炮击战阶段增加自身与舰队旗舰20%炮击伤害，
+    敌方全队平均火力值高于南达科他火力值时，增加自身与舰队旗舰18%暴击率。
 """
 
 
 class Skill_112072_1(Skill):
-    """增加自身与旗舰12点火力值和20点装甲值"""
+    """增加自身与舰队旗舰12点火力值和20点装甲值"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
@@ -39,7 +39,7 @@ class Skill_112072_1(Skill):
 
 
 class Skill_112072_2(Skill):
-    """敌方全队平均火力低于南达科他自身火力值时，炮击战阶段增加自身与旗舰20%炮击伤害"""
+    """敌方全队平均火力低于南达科他自身火力值时，炮击战阶段增加自身与舰队旗舰20%炮击伤害"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
@@ -49,7 +49,7 @@ class Skill_112072_2(Skill):
             FinalDamageBuff(
                 timer=timer,
                 name='final_damage_buff',
-                phase=(ShellingPhase,),
+                phase=ShellingPhase,
                 value=0.2
             )
         ]
@@ -60,7 +60,7 @@ class Skill_112072_2(Skill):
 
 
 class Skill_112072_3(Skill):
-    """敌方全队平均火力值高于南达科他火力值时，增加自身与旗舰18%暴击率"""
+    """敌方全队平均火力值高于南达科他火力值时，增加自身与舰队旗舰18%暴击率"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
@@ -70,7 +70,7 @@ class Skill_112072_3(Skill):
             CoeffBuff(
                 timer=timer,
                 name='crit',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=0.18,
                 bias_or_weight=0
             )

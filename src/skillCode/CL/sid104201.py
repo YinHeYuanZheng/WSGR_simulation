@@ -8,7 +8,7 @@ from src.wsgr.ship import *
 from src.wsgr.phase import *
 
 """征战四海(3级)：全阶段损失自身总生命值的30%血量后本场战斗获得一次100%的减伤（每次出击限发动一次）。
-炮击战阶段我方每命中敌方单位一次，都会提升亚尔古水手5点火力值。"""
+炮击战阶段我方每命中敌方单位一次，都会提升自身5点火力值。"""
 
 
 class Skill_104201_1(Skill):
@@ -42,7 +42,7 @@ class SpecialShield(DamageShield):
 
 
 class Skill_104201_2(Skill):
-    """炮击战阶段我方每命中敌方单位一次，都会提升亚尔古水手5点火力值。"""
+    """炮击战阶段我方每命中敌方单位一次，都会提升自身5点火力值。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = Target(side=1)

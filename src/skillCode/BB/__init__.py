@@ -7,6 +7,8 @@
 from . import sid101901  # 土佐-1
 from . import sid101911  # A150-1
 from . import sid102001  # 兴登堡-1
+from . import sid102011  # V方案-1
+from . import sid102021  # 伊利诺伊-1
 from . import sid102051  # 约克公爵-1
 from . import sid102081  # 马萨诸塞-1
 from . import sid102091  # 密苏里-1
@@ -37,6 +39,9 @@ from . import sid105231  # 亚拉巴马-1
 from . import sid105321  # 但丁-1
 from . import sid105341  # 24型-1
 from . import sid105471  # 勃艮第-1
+from . import sid105691  # 布勃诺夫方案-1
+from . import sid105721  # 骏河-1
+from . import sid105821  # H43-1
 
 # 改造BB
 from . import sid110061  # 俾斯麦-1

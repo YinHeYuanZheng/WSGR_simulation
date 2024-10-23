@@ -186,7 +186,7 @@ class ATKRequest(Time):
 
 
 class Target:
-    def __init__(self, side):
+    def __init__(self, side: int):
         self.side = side  # 敌我识别; 1: 友方; 0: 敌方
 
     def get_target(self, friend, enemy):
@@ -259,7 +259,7 @@ class SelfTarget(Target):
 
 class TypeTarget(Target):
     """指定船型的目标"""
-    def __init__(self, side, shiptype):
+    def __init__(self, side, shiptype: type(Ship)):
         """
         :praram shiptype: tuple or class Ship
         """
@@ -1243,13 +1243,13 @@ class SpecialAtkBuff(ActiveBuff):
             def_list = prior
 
         if len(def_list) > 0:
-            spetial_atk = atk_type(
+            special_atk = atk_type(
                 timer=self.timer,
                 atk_body=self.master,
                 def_list=def_list,
                 coef=copy.copy(self.coef),
             )
-            yield spetial_atk
+            yield special_atk
 
         self.remove_during_buff()  # 去除攻击时效果
         self.add_end_buff()  # 攻击结束效果

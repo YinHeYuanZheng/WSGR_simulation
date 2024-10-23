@@ -99,11 +99,9 @@ class Request_1(Request):
             friend = self.friend.ship
         else:
             friend = self.friend
-        for tmp_ship in friend:
-            # 赤城cid = 10022/11022
-            if tmp_ship.cid == '10022' or tmp_ship.cid == '11022':
-                return True
-        return False
+        cid_list = [tmp_ship.cid for tmp_ship in friend]
+        # 赤城cid = 10022/11022
+        return ('10022' in cid_list) or ('11022' in cid_list)
 
 
 name = '协调轰击'

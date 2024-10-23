@@ -7,6 +7,7 @@
 from . import sid101191  # 皇家方舟-1
 from . import sid102261  # 埃塞克斯-1
 from . import sid102311  # 伦道夫-1
+from . import sid102851  # 85工程-1
 from . import sid103001  # 马耳他-1
 from . import sid103251  # 列克星敦(cv-16)-1
 from . import sid103741  # 汉考克-1

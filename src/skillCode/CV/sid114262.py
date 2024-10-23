@@ -73,7 +73,6 @@ class Skill_114262_3(Skill):
         return number >= 3
 
 
-
 class HighestTarget(Target):
     def get_target(self, friend, enemy):
         fleet = self.get_target_fleet(friend, enemy)

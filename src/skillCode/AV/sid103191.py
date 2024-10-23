@@ -9,8 +9,8 @@ from src.wsgr.ship import *
 from src.wsgr.phase import *
 
 """持久作战(3级)：提升自身所携带的鱼雷机的鱼雷值7点。
-自身血量降低时不会对自身属性造成影响，
-且同时减少30%自身因战斗造成的载机量损失（大破时除外）。"""
+攻击威力不会因耐久损伤而降低，
+且同时减少30%自身因战斗造成的舰载机损失（大破时除外）。"""
 
 
 class Skill_103191_1(CommonSkill):
@@ -35,8 +35,8 @@ class Skill_103191_1(CommonSkill):
 
 
 class Skill_103191_2(Skill):
-    """自身血量降低时不会对自身属性造成影响，
-    且同时减少30%自身因战斗造成的载机量损失（大破时除外）。"""
+    """攻击威力不会因耐久损伤而降低，
+    且同时减少30%自身因战斗造成的舰载机损失（大破时除外）。"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
@@ -46,7 +46,6 @@ class Skill_103191_2(Skill):
                 timer=timer,
                 name='ignore_damaged',
                 phase=AllPhase,
-                atk_request=[BuffRequest_1]
             ),
             AtkBuff(
                 timer=timer,

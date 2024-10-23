@@ -25,14 +25,14 @@ class Skill_103701(Skill):
             StatusBuff(
                 timer=timer,
                 name='accuracy',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=15,
                 bias_or_weight=0
             ),
             CoeffBuff(
                 timer=timer,
                 name='air_atk_buff',
-                phase=(ShellingPhase,),
+                phase=ShellingPhase,
                 value=0.2,
                 bias_or_weight=2
             )
