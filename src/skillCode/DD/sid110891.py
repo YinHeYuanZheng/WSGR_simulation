@@ -14,7 +14,7 @@ class Skill_110891(CommonSkill):
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
-        buff_value = 28
+        buff_value = 29
         self.buff = [
             CommonBuff(
                 timer=timer,
