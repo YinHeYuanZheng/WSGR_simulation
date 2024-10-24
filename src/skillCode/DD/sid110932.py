@@ -80,8 +80,7 @@ class HealthBasedBuff(StatusBuff):
         total_health = self.master.status['standard_health']
         health = self.master.status['health']
         health_rate = health / total_health
-        return isinstance(self.timer.phase, self.phase) and \
-               health_rate > .3
+        return health_rate > .3
 
 
 name = 'FRAM改造'

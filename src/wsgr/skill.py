@@ -580,9 +580,10 @@ class Buff(Time):
 
     def is_active(self, *args, **kwargs):
         """技能是否满足发动阶段"""
+        if not isinstance(self.timer.phase, self.phase):
+            return False
         self.change_value(*args, **kwargs)
-        return self.rate_verify() and \
-               isinstance(self.timer.phase, self.phase)
+        return self.rate_verify()
 
     def change_value(self, *args, **kwargs):
         """动态修改技能数值时调用"""
@@ -662,18 +663,17 @@ class AtkBuff(CoeffBuff):
         self.atk_request = atk_request
 
     def is_active(self, *args, **kwargs):
+        if not isinstance(self.timer.phase, self.phase):
+            return False
         self.change_value(*args, **kwargs)
         if self.atk_request is None:
-            return isinstance(self.timer.phase, self.phase) and \
-                   self.rate_verify()
+            return self.rate_verify()
 
         try:
             atk = kwargs['atk']
         except:
             atk = args[0]
-
-        return isinstance(self.timer.phase, self.phase) and \
-               bool(self.atk_request[0](self.timer, atk)) and \
+        return bool(self.atk_request[0](self.timer, atk)) and \
                self.rate_verify()
 
 
@@ -712,12 +712,11 @@ class AtkHitBuff(Buff):
         self.atk_request = atk_request
 
     def is_active(self, atk, *args, **kwargs):
+        if not isinstance(self.timer.phase, self.phase):
+            return False
         if self.atk_request is None:
-            return isinstance(self.timer.phase, self.phase) and \
-                   self.rate_verify()
-
-        return isinstance(self.timer.phase, self.phase) and \
-               bool(self.atk_request[0](self.timer, atk)) and \
+            return self.rate_verify()
+        return bool(self.atk_request[0](self.timer, atk)) and \
                self.rate_verify()
 
     def activate(self, atk, *args, **kwargs):
@@ -829,6 +828,8 @@ class ChaseAtkBuff(EventBuff):
         self.atk_request = atk_request
 
     def is_active(self, atk, *args, **kwargs):
+        if not isinstance(self.timer.phase, self.phase):
+            return False
         if self.exhaust is not None and self.exhaust == 0:
             return False
         if not self.master.get_act_indicator():  # 无法行动时不能追击
@@ -840,11 +841,8 @@ class ChaseAtkBuff(EventBuff):
             return False
 
         if self.atk_request is None:
-            return isinstance(self.timer.phase, self.phase) and \
-                   self.rate_verify()
-
-        return isinstance(self.timer.phase, self.phase) and \
-               bool(self.atk_request[0](self.timer, atk)) and \
+            return self.rate_verify()
+        return bool(self.atk_request[0](self.timer, atk)) and \
                self.rate_verify()
 
     def activate(self, atk, *args, **kwargs):
@@ -877,19 +875,19 @@ class MagnetBuff(EventBuff):
         return f"嘲讽: {self.rate * 100}%"
 
     def is_active(self, atk, *args, **kwargs):
+        if not isinstance(self.timer.phase, self.phase):
+            return False
         if not atk.changeable:
             return False
         if self.master.damaged == 4:
             return False
 
         if self.atk_request is None:
-            return isinstance(self.timer.phase, self.phase) and \
-                   self.master != atk.target and \
+            return self.master != atk.target and \
                    self.master in atk.def_list and \
                    self.rate_verify()
 
-        return isinstance(self.timer.phase, self.phase) and \
-               bool(self.atk_request[0](self.timer, atk)) and \
+        return bool(self.atk_request[0](self.timer, atk)) and \
                self.master != atk.target and \
                self.master in atk.def_list and \
                self.rate_verify()
@@ -916,16 +914,16 @@ class UnMagnetBuff(EventBuff):
         return f"负嘲讽: {self.rate * 100}%"
 
     def is_active(self, atk, *args, **kwargs):
+        if not isinstance(self.timer.phase, self.phase):
+            return False
         if not atk.changeable:
             return False
 
         if self.atk_request is None:
-            return isinstance(self.timer.phase, self.phase) and \
-                   self.master == atk.target and \
+            return self.master == atk.target and \
                    self.rate_verify()
 
-        return isinstance(self.timer.phase, self.phase) and \
-               bool(self.atk_request[0](self.timer, atk)) and \
+        return bool(self.atk_request[0](self.timer, atk)) and \
                self.master == atk.target and \
                self.rate_verify()
 
@@ -960,6 +958,8 @@ class TankBuff(EventBuff):
         return f"挡枪: {self.rate * 100}%"
 
     def is_active(self, atk, *args, **kwargs):
+        if not isinstance(self.timer.phase, self.phase):
+            return False
         if atk.target.side != self.master.side:  # 不为对面挡枪
             return False
         if self.exhaust is not None and self.exhaust == 0:
@@ -969,8 +969,7 @@ class TankBuff(EventBuff):
 
         self.change_value(atk, *args, **kwargs)
         def_target = self.target.get_target(atk.target.master, None)
-        return isinstance(self.timer.phase, self.phase) and \
-               self.master != atk.target and \
+        return self.master != atk.target and \
                atk.target in def_target and \
                self.rate_verify()
 
@@ -990,20 +989,19 @@ class SpecialBuff(Buff):
         self.atk_request = atk_request
 
     def is_active(self, *args, **kwargs):
+        if not isinstance(self.timer.phase, self.phase):
+            return False
         if self.exhaust is not None and self.exhaust == 0:
             return False
 
         if self.atk_request is None:
-            return isinstance(self.timer.phase, self.phase) and \
-                   self.rate_verify()
+            return self.rate_verify()
 
         try:
             atk = kwargs['atk']
         except:
             atk = args[0]
-
-        return isinstance(self.timer.phase, self.phase) and \
-               bool(self.atk_request[0](self.timer, atk)) and \
+        return bool(self.atk_request[0](self.timer, atk)) and \
                self.rate_verify()
 
     def activate(self, *args, **kwargs):
@@ -1021,6 +1019,8 @@ class HitBack(SpecialBuff):
         self.coef = coef  # hit_back参数会在攻击结算时添加
 
     def is_active(self, atk, *args, **kwargs):
+        if not isinstance(self.timer.phase, self.phase):
+            return False
         if self.exhaust is not None and self.exhaust == 0:
             return False
         if atk.get_coef('hit_back'):  # 无法反击反击
@@ -1031,11 +1031,8 @@ class HitBack(SpecialBuff):
             return False
 
         if self.atk_request is None:
-            return isinstance(self.timer.phase, self.phase) and \
-                   self.rate_verify()
-
-        return isinstance(self.timer.phase, self.phase) and \
-               bool(self.atk_request[0](self.timer, atk)) and \
+            return self.rate_verify()
+        return bool(self.atk_request[0](self.timer, atk)) and \
                self.rate_verify()
 
     def activate(self, atk, *args, **kwargs):
@@ -1094,17 +1091,16 @@ class ActiveBuff(Buff):
         return True
 
     def is_active(self, atk, enemy, *args, **kwargs):
-        # if isinstance(enemy, list):
-        #     def_list = enemy
-        # elif isinstance(enemy, Fleet):
-        #     def_list = enemy.get_atk_target(atk_type=atk)
-        # else:
-        #     raise TypeError('Enemy should be in form of list or Fleet')
+        if not isinstance(self.timer.phase, self.phase):
+            return False
 
-        def_list = enemy.get_atk_target(atk_type=atk)
-        return len(def_list) and \
-               self.rate_verify() and \
-               isinstance(self.timer.phase, self.phase)
+        if isinstance(enemy, list):
+            def_list = enemy
+        elif isinstance(enemy, Fleet):
+            def_list = enemy.get_atk_target(atk_type=atk)
+        else:
+            raise TypeError('Enemy should be in form of list or Fleet')
+        return len(def_list) and self.rate_verify()
 
     def active_start(self, atk, enemy, *args, **kwargs):
         """迭代器，依次执行攻击时效果、攻击行动、攻击后效果
@@ -1129,7 +1125,12 @@ class MultipleAtkBuff(ActiveBuff):
 
     def active_start(self, atk, enemy, *args, **kwargs):
         assert self.master is not None
-        def_list = enemy.get_atk_target(atk_type=atk)
+        if isinstance(enemy, list):
+            def_list = enemy
+        elif isinstance(enemy, Fleet):
+            def_list = enemy.get_atk_target(atk_type=atk)
+        else:
+            raise TypeError('Enemy should be in form of list or Fleet')
         assert len(def_list)
         self.add_during_buff()  # 攻击时效果
 
@@ -1151,12 +1152,39 @@ class MultipleAtkBuff(ActiveBuff):
         self.add_end_buff()  # 攻击结束效果
 
 
+class MultipleTorpedoAtkBuff(ActiveBuff):
+    """多次鱼雷攻击
+    :param num: 多发射鱼雷的次数
+    :param coef: 对多发射的鱼雷进行系数操作"""
+
+    def active_start(self, atk, enemy, *args, **kwargs):
+        assert self.master is not None
+        self.add_during_buff()  # 攻击时效果
+
+        for i in range(self.num):
+            tmp_atk = atk(
+                timer=self.timer,
+                atk_body=self.master,
+                def_list=enemy,
+                coef=copy.copy(self.coef),
+            )
+            yield tmp_atk
+
+        self.remove_during_buff()  # 去除攻击时效果
+        self.add_end_buff()  # 攻击结束效果
+
+
 class ExtraAtkBuff(ActiveBuff):
     """连续攻击"""
 
     def active_start(self, atk, enemy, *args, **kwargs):
         assert self.master is not None
-        def_list = enemy.get_atk_target(atk_type=atk)
+        if isinstance(enemy, list):
+            def_list = enemy
+        elif isinstance(enemy, Fleet):
+            def_list = enemy.get_atk_target(atk_type=atk)
+        else:
+            raise TypeError('Enemy should be in form of list or Fleet')
         assert len(def_list)
         self.add_during_buff()  # 攻击时效果
 
@@ -1211,6 +1239,9 @@ class SpecialAtkBuff(ActiveBuff):
         return def_list
 
     def is_active(self, atk, enemy, *args, **kwargs):
+        if not isinstance(self.timer.phase, self.phase):
+            return False
+
         # 如果技能指定了攻击类型，使用对应攻击类型
         if self.atk_type is not None:
             atk_type = self.atk_type
@@ -1222,8 +1253,7 @@ class SpecialAtkBuff(ActiveBuff):
         def_list = self.get_def_list(atk_type, enemy)  # 可被攻击目标
 
         return len(def_list) and \
-               self.rate_verify() and \
-               isinstance(self.timer.phase, self.phase)
+               self.rate_verify()
 
     def active_start(self, atk, enemy, *args, **kwargs):
         assert self.master is not None

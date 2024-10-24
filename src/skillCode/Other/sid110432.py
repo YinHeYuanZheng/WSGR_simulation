@@ -18,10 +18,12 @@ class Skill_110432(Skill):
         self.multi_flag = False
         self.target = SelfTarget(master)
         self.buff = [
-            SpecialBuff(
+            MultipleTorpedoAtkBuff(
                 timer=timer,
                 name='multi_torpedo_attack',
                 phase=FirstTorpedoPhase,
+                num=1,
+                rate=1
             ),
             ActPhaseBuff(
                 timer=timer,

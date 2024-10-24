@@ -35,17 +35,20 @@ class Skill_111681_2(Skill):
             DamageBasedBuff(
                 timer=timer,
                 name='multi_torpedo_attack',
-                phase=SecondTorpedoPhase
+                phase=SecondTorpedoPhase,
+                num=1,
+                rate=1
             )
         ]
 
 
-class DamageBasedBuff(SpecialBuff):
+class DamageBasedBuff(MultipleTorpedoAtkBuff):
     def is_active(self, *args, **kwargs):
+        if not isinstance(self.timer.phase, self.phase):
+            return False
         damage = self.master.created_damage.get('FirstShellingPhase', 0) + \
                  self.master.created_damage.get('SecondShellingPhase', 0)
-        return isinstance(self.timer.phase, self.phase) and \
-               damage == 0
+        return damage == 0
 
 
 name = '雷击特快'

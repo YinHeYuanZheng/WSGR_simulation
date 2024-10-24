@@ -17,7 +17,7 @@ class Skill_104201_1(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            SpecialShield(
+            Shield_104201(
                 timer=timer,
                 phase=AllPhase,
             )
@@ -28,7 +28,7 @@ class Skill_104201_1(Skill):
         self.master.add_buff(self.buff[0])
 
 
-class SpecialShield(DamageShield):
+class Shield_104201(DamageShield):
     def is_active(self, *args, **kwargs):
         lost_health_rate = 1 - self.master.status['health'] / \
                            self.master.status['standard_health']

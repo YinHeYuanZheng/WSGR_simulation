@@ -45,9 +45,9 @@ class ATK(Time):
         self.target = target  # 攻击目标，可被更改
         self.changeable = True  # 攻击目标是否可被更改
 
-        if coef is None:
-            coef = {}
-        self.coef = coef  # 伤害计算相关参数
+        self.coef = {}
+        if coef is not None:
+            self.coef.update(coef)  # 伤害计算相关参数
 
         self.form_coef = {
             'power': [],
@@ -136,6 +136,7 @@ class ATK(Time):
 
         # 技能系数
         skill_scale, _ = self.atk_body.get_atk_buff('power_buff', self)
+        skill_scale += self.get_coef_value('power_buff')
         self.coef['skill_coef'] = 1 + skill_scale
 
         # 航向系数
@@ -150,6 +151,7 @@ class ATK(Time):
         # 暴击系数
         if self.coef['crit_flag']:
             _, crit_bias = self.atk_body.get_atk_buff('crit_coef', self)
+            crit_bias += self.get_coef_value('crit_coef')
             self.coef['crit_coef'] = 1.5 + crit_bias
         else:
             self.coef['crit_coef'] = 1.

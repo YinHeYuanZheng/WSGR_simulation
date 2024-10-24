@@ -96,8 +96,9 @@ class Ship(Time):
             'NightPhase': lambda x: x.damaged < 3,
         }  # 可行动标准
 
-        from src.wsgr.formulas import NormalAtk, NightNormalAtk
+        from src.wsgr.formulas import NormalAtk, NightNormalAtk, TorpedoAtk
         self.normal_atk = NormalAtk  # 普通炮击
+        self.torpedo_atk = TorpedoAtk
         self.anti_sub_atk = None  # 反潜攻击
         self.night_atk = NightNormalAtk  # 夜战普通炮击
         self.night_anti_sub_atk = None  # 夜战反潜攻击
@@ -578,6 +579,31 @@ class Ship(Time):
             def_list=def_list,
         )
         return [atk]
+
+    def raise_torpedo_atk(self, target_list):
+        # 技能优先攻击特定船型
+        prior = self.get_prior_type_target(target_list)
+        if prior is not None:
+            target_list = prior
+
+        # 技能发动特殊攻击
+        for tmp_buff in self.active_buff:
+            if tmp_buff.is_active(atk=self.torpedo_atk, enemy=target_list):
+                yield from tmp_buff.active_start(atk=self.torpedo_atk, enemy=target_list)
+
+        num = 1
+        # 雁行雷击
+        if self.get_strategy_buff('strategy_multi_torpedo'):
+            num += 1
+
+        # 发起鱼雷攻击
+        for i in range(num):
+            atk = self.torpedo_atk(
+                timer=self.timer,
+                atk_body=self,
+                def_list=target_list,
+            )
+            yield atk
 
     def raise_night_atk(self, target_fleet):
         """

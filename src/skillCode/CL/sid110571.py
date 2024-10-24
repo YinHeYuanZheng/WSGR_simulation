@@ -36,7 +36,13 @@ class Skill_110571(Skill):
 class NeighborAtkBuff(ActiveBuff):
     def active_start(self, atk, enemy, *args, **kwargs):
         assert self.master is not None
-        def_list = enemy.get_atk_target(atk_type=atk)
+
+        if isinstance(enemy, list):
+            def_list = enemy
+        elif isinstance(enemy, Fleet):
+            def_list = enemy.get_atk_target(atk_type=atk)
+        else:
+            raise TypeError('Enemy should be in form of list or Fleet')
         assert len(def_list)
         self.add_during_buff()  # 攻击时效果
 

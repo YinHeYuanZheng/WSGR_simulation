@@ -30,10 +30,11 @@ class Skill_114081_2(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            SpecialBuff(
+            MultipleTorpedoAtkBuff(
                 timer=timer,
                 name='multi_torpedo_attack',
                 phase=FirstTorpedoPhase,
+                num=1,
                 rate=.6,
             )
         ]

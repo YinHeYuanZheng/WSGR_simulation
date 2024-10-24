@@ -576,30 +576,8 @@ class TorpedoPhase(DaytimePhase):
 
     def torpedo_strike(self, attack, defend):
         for tmp_ship in attack:
-            # 检查是否存在优先攻击船型对象
-            prior = tmp_ship.get_prior_type_target(defend)
-            if prior is not None:
-                def_list = prior
-            else:
-                def_list = defend
-
-            # 检查是否有多发鱼雷技能
-            if tmp_ship.get_special_buff('multi_torpedo_attack'):
-                num = 2
-            else:
-                num = 1
-
-            # 雁行雷击
-            if tmp_ship.get_strategy_buff('strategy_multi_torpedo'):
-                num += 1
-
-            # 发起鱼雷攻击
-            for i in range(num):
-                atk = TorpedoAtk(
-                    timer=self.timer,
-                    atk_body=tmp_ship,
-                    def_list=def_list,
-                )
+            atk_list = tmp_ship.raise_torpedo_atk(defend)
+            for atk in atk_list:
                 atk.start()
 
 

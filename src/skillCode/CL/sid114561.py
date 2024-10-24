@@ -80,15 +80,15 @@ class OnceAtkHitBuff(AtkHitBuff):
         self.exhaust = 1
 
     def is_active(self, atk, *args, **kwargs):
+        if not isinstance(self.timer.phase, self.phase):
+            return False
         if self.exhaust == 0:
             return False
 
         if self.atk_request is None:
-            return isinstance(self.timer.phase, self.phase) and \
-                   self.rate_verify()
+            return self.rate_verify()
 
-        return isinstance(self.timer.phase, self.phase) and \
-               bool(self.atk_request[0](self.timer, atk)) and \
+        return bool(self.atk_request[0](self.timer, atk)) and \
                self.rate_verify()
 
     def activate(self, atk, *args, **kwargs):

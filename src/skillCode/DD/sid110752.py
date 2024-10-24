@@ -39,6 +39,7 @@ class Skill_110752_2(Skill):
                 timer=timer,
                 name='multi_torpedo_attack',
                 phase=SecondTorpedoPhase,
+                num=1,
                 rate=.3,
             )
         ]
@@ -50,16 +51,21 @@ class Skill_110752_2(Skill):
         self.master.add_buff(buff0)
 
 
-class SpecialBuff_z16(SpecialBuff):
+class SpecialBuff_z16(MultipleTorpedoAtkBuff):
     """概率触发时所有鱼雷造成的伤害提升30%"""
-    def activate(self, *args, **kwargs):
-        buff0 = FinalDamageBuff(
-            timer=self.timer,
-            name='final_damage_buff',
-            phase=SecondTorpedoPhase,
-            value=0.3
-        )
-        self.master.add_buff(buff0)
+    def is_active(self, atk, enemy, *args, **kwargs):
+        if not isinstance(self.timer.phase, self.phase):
+            return False
+        if self.rate_verify():
+            buff0 = FinalDamageBuff(
+                timer=self.timer,
+                name='final_damage_buff',
+                phase=SecondTorpedoPhase,
+                value=0.3
+            )
+            self.master.add_buff(buff0)
+            return True
+        return False
 
 
 name = '连环爆破'

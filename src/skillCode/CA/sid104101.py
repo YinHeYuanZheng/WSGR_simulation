@@ -64,7 +64,13 @@ class SecondAtkBuff(MultipleAtkBuff):
     """同时攻击两个目标，第二个目标造成80%的伤害"""
     def active_start(self, atk, enemy, *args, **kwargs):
         assert self.master is not None
-        def_list = enemy.get_atk_target(atk_type=atk)
+
+        if isinstance(enemy, list):
+            def_list = enemy
+        elif isinstance(enemy, Fleet):
+            def_list = enemy.get_atk_target(atk_type=atk)
+        else:
+            raise TypeError('Enemy should be in form of list or Fleet')
 
         buff_flag = False
         for i in range(self.num):
