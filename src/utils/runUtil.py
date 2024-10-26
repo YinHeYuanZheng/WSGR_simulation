@@ -173,6 +173,31 @@ def set_supply(battle, battle_num):
         ship.supply_oil -= 2 * (battle_num - 1)
         ship.supply_ammo -= 2 * (battle_num - 1)
 
+def prebattle_info(battle):
+    tmp_battle = copy.deepcopy(battle)
+    tmp_battle.start()
+    log = tmp_battle.report()
+
+    # 索敌
+    recon_rate = log['recon'][0]
+    friend_recon = log['recon'][1]
+    recon_request = log['recon'][2]
+    print(f"我方索敌-{friend_recon}  "
+          f"索敌要求-{recon_request}  "
+          f"索敌成功率：{recon_rate:d}%")
+
+    # 制空
+    air_con_flag = log['aerial'][0]
+    aerial_friend = log['aerial'][1]
+    aerial_enemy = log['aerial'][2]
+    air_con_info = ['空确', '空优', '均势', '劣势', '丧失']
+    if air_con_flag is not None:
+        print(f"我方制空-{aerial_friend:.2f}  "
+              f"敌方制空-{aerial_enemy:.2f}  "
+              f"制空结果：{air_con_info[air_con_flag - 1]}")
+    else:
+        print("未进行航空战\n")
+
 
 if __name__ == '__main__':
     pass

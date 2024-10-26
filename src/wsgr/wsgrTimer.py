@@ -31,6 +31,9 @@ class timer:
             'hit_rate': np.zeros((len(damagePhaseList),2)),
             'dcitem': 0,  # 使用损管数量
             'record': '',
+            'aerial': [None, 0, 0],  # 制空结果(None表示没有航空战)、我方制空、敌方制空
+            'recon':[0, 0, 0],       # 索敌率(0-100)、我方索敌、索敌要求
+            'round':[None, 0, 0],    # 迂回率(None表示没有迂回)、我方航速、敌方航速
             'create_damage': np.zeros((len(damagePhaseList),12)),
             'get_damage': np.zeros((len(damagePhaseList),12)),
             'defeat_num': np.zeros((len(damagePhaseList),12)),
@@ -136,6 +139,9 @@ class timer:
             'hit': np.zeros((len(damagePhaseList),2)),
             'hit_rate': np.zeros((len(damagePhaseList),2)),
             'result': '',
+            'aerial': [None, 0, 0],
+            'recon':[0, 0, 0],
+            'round':[None, 0, 0],
             'create_damage': np.zeros((len(damagePhaseList),12)),
             'get_damage': np.zeros((len(damagePhaseList),12)),
             'defeat_num': np.zeros((len(damagePhaseList),12)),

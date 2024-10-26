@@ -82,6 +82,11 @@ class PreparePhase(AllPhase):
         # 迂回检定
         rd_rate = np.floor(50 * 2 ** (d_fleet_speed / 5) - 20) / 100
         rd_rate = rform.cap(rd_rate)
+        self.timer.report_log('round',
+                              [np.floor(rd_rate * 100),
+                               friend_fleet_speed,
+                               enemy_fleet_speed])
+
         verify = np.random.random()
         if verify <= rd_rate:
             self.timer.set_round(True)
@@ -106,7 +111,7 @@ class PreparePhase(AllPhase):
             # log记录索敌率
             self.timer.info(f'水面索敌率{int(recon_rate * 100):d}%\n')
             self.timer.report_log('recon',
-                                  [recon_rate, friend_recon, enemy_recon])
+                                  [int(recon_rate*100), friend_recon, enemy_recon+10])
         else:
             friend_recon = self.friend.status['antisub_recon']
             enemy_level = 0
@@ -117,7 +122,7 @@ class PreparePhase(AllPhase):
             # log记录索敌率，全鱼记录0或1
             self.timer.info(f'潜艇索敌率{float(recon_flag) * 100:d}%\n')
             self.timer.report_log('recon',
-                                  [float(recon_flag), friend_recon, enemy_level])
+                                  [float(recon_flag)*100, friend_recon, enemy_level])
 
         self.timer.set_recon(recon_flag)
 
@@ -234,6 +239,8 @@ class AirPhase(DaytimePhase):
                 air_con_flag = 3
             elif not atk_plane_friend and atk_plane_enemy:
                 air_con_flag = 5
+        self.timer.report_log('aerial',
+                              [air_con_flag, aerial_friend, aerial_enemy])
         self.timer.set_air_con(air_con_flag)
 
         # 航空轰炸阶段，先结算我方
