@@ -16,6 +16,7 @@ from . import esid427  # 蒙巴顿粉
 from . import esid581  # 海鹰反舰导弹
 from . import esid582  # 海鹰导弹发射器
 from . import esid586  # 潜载火箭炮特效
+from . import esid588  # NC.1071（L50）
 from . import esid593  # 袖珍舰载艇
 from . import esid596  # 掠夺者攻击机
 from . import esid601  # 海雌狐FAW.2战斗机
