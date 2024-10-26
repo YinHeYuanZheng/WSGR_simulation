@@ -6,7 +6,8 @@
 from . import esid003  # 装备穿甲特效
 from . import esid004  # 超重弹特效
 from . import esid005  # 开幕轰炸威力特效
-from . import esid006  # 命中率特效
+from . import esid006  # 开幕鱼雷机威力特效
+from . import esid007  # 命中率特效
 from . import esid012  # 降低敌方航空战阶段命中率
 from . import esid018  # 远程对空警戒雷达
 from . import esid023  # 暴击率特效
@@ -38,3 +39,10 @@ from . import esid669  # S-2反潜机
 from . import esid670  # 红旗61防空导弹
 from . import esid671  # 7231发射系统（ZL-1）
 from . import esid676  # 鹰击反舰导弹
+from . import esid686  # 天河攻击机（KI-148）
+from . import esid687  # AK-230（MR-104）
+from . import esid690  # A-1H攻击机
+from . import esid692  # P-35反舰导弹（1134）
+from . import esid693  # KT-35发射器
+from . import esid697  # 掠夺者攻击机MK.2
+from . import esid698  # MK143战斧导弹发射箱（91）
