@@ -43,7 +43,8 @@ class Skill_104691_2(Skill):
 
     def activate(self, friend, enemy):
         target = self.target.get_target(friend, enemy)
-        target.remove(self.master)  # 去除自身
+        if self.master in target:
+            target.remove(self.master)  # 去除自身
         for tmp_target in target:
             for tmp_buff in self.buff[:]:
                 tmp_buff = copy.copy(tmp_buff)

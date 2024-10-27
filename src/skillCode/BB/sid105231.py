@@ -74,7 +74,8 @@ class Skill_105231_3(Skill):
 
     def is_active(self, friend, enemy):
         target = self.target.get_target(friend, enemy)
-        target.remove(self.master)
+        if self.master in target:
+            target.remove(self.master)  # 去除自身
         return len(target)
 
 

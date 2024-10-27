@@ -64,4 +64,5 @@ class BuffRequest_1(ATKRequest):
                self.atk.atk_body.get_final_status('armor')
 
 
+name = '德式设计'
 skill = [Skill_103671_1, Skill_103671_2]

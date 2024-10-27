@@ -5,6 +5,7 @@
 import copy
 import numpy as np
 from src.wsgr.wsgrTimer import damagePhaseList
+from src.wsgr.ship import Ship
 
 
 def run_victory(battle, epoc):
@@ -172,6 +173,11 @@ def set_supply(battle, battle_num):
     for ship in battle.friend.ship:
         ship.supply_oil -= 2 * (battle_num - 1)
         ship.supply_ammo -= 2 * (battle_num - 1)
+
+
+def change_shiptype(ship, ShipType:type(Ship)):
+    ship.__class__ = ShipType
+
 
 def prebattle_info(battle):
     tmp_battle = copy.deepcopy(battle)

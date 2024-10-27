@@ -1109,10 +1109,12 @@ class ActiveBuff(Buff):
 
     def add_during_buff(self):
         for tmp_buff in self.during_buff:
+            tmp_buff.set_master(self.master)
             self.master.temper_buff.append(tmp_buff)
 
     def remove_during_buff(self):
         for tmp_buff in self.during_buff:
+            tmp_buff.set_master(None)
             self.master.temper_buff.remove(tmp_buff)
 
     def add_end_buff(self):
