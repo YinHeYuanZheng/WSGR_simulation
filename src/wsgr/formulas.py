@@ -1266,16 +1266,17 @@ class AirNormalAtk(NormalAtk, AirAtk):
         fire = self.atk_body.get_final_status('fire')
         bomb = self.atk_body.get_final_status('bomb')
         torpedo = self.atk_body.get_final_status('torpedo')
-        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_antiair', self)  # 无视对空
-        target_anti_air = self.target.get_final_status('antiair', equip=False) * \
-                          (1 + ignore_scale) + ignore_bias  # 本体裸对空（无视对空不影响装备）
-        target_anti_air = max(0, target_anti_air)
-        target_anti_air += self.target.get_equip_status('antiair')  # 本体总对空
-        target_anti_air = max(0, target_anti_air)
-        random_weight = np.random.random()
-        base_atk = (fire + 2 * bomb + torpedo)\
-                   * max(0, 1 - target_anti_air * random_weight / 150)\
-                   + 35
+        # ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_antiair', self)  # 无视对空
+        # target_anti_air = self.target.get_final_status('antiair', equip=False) * \
+        #                   (1 + ignore_scale) + ignore_bias  # 本体裸对空（无视对空不影响装备）
+        # target_anti_air = max(0, target_anti_air)
+        # target_anti_air += self.target.get_equip_status('antiair')  # 本体总对空
+        # target_anti_air = max(0, target_anti_air)
+        # random_weight = np.random.random()
+        # base_atk = (fire + 2 * bomb + torpedo)\
+        #            * max(0, 1 - target_anti_air * random_weight / 150)\
+        #            + 35
+        base_atk = (fire + 2 * bomb + torpedo) + 35
 
         # 实际威力
         real_atk = (base_atk *
