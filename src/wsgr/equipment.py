@@ -71,13 +71,13 @@ class Equipment(Time):
                     tmp_buff.is_active():
                 scale_add += tmp_buff.value
         status = status * (1 + scale_add) + bias
-        return max(0, status)
+        return status
 
     def get_final_status(self, name):
         """根据属性名称获取最终属性"""
         buff_scale_1, buff_scale_2, buff_bias = self.get_buff(name)
         status = self.get_status(name) * (1 + buff_scale_1) * buff_scale_2 + buff_bias
-        return max(0, status)
+        return status
 
     def get_range(self):
         equip_range = self.status.get('range', 0)

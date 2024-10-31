@@ -802,6 +802,46 @@ class Car_Small_torpedo(Skill):
         ]
 
 
+class Event_G_buff(Skill):
+    """G国无视战损"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = CountryTarget(side=1, country='G')
+        self.buff = [
+            SpecialBuff(
+                timer=timer,
+                name='ignore_damaged',
+                phase=AllPhase
+            ),
+            # FinalDamageBuff(
+            #     timer=timer,
+            #     name='final_damage_buff',
+            #     phase=AllPhase,
+            #     value=0.3,
+            # )
+        ]
+
+
+class Normal_map9_lock_buff(Skill):
+    """9图解封锁buff"""
+    def __init__(self, timer):
+        class LeaderSurviveBuff(FinalDamageBuff):
+            def is_active(self, *args, **kwargs):
+                leader = self.master.master.ship[0]
+                return leader.damaged <= 3
+
+        super().__init__(timer, master=None)
+        self.target = LocTarget(side=0, loc=[2,3,4,5,6])
+        self.buff = [
+            LeaderSurviveBuff(
+                timer=timer,
+                name='final_damage_debuff',
+                phase=AllPhase,
+                value=-0.1
+            )
+        ]
+
+
 # todo 工程局、藏品、赛车、餐厅、环境buff等可从config设置
 # env = [Engineer_SS, Engineer_DD, Engineer_ASDG, Engineer_CL,
 #        Engineer_BB, Engineer_BC, Engineer_BG, Engineer_BBG,

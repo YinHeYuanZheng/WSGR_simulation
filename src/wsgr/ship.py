@@ -14,7 +14,7 @@ class Ship(Time):
 
     def __init__(self, timer):
         super().__init__(timer)
-        self.master = None
+        self.master = None      # Fleet
         self.cid = '0'          # 编号
         self.type = None        # 船型
         self.size = None        # 量级，大中小型船
