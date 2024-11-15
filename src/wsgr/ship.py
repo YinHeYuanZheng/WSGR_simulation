@@ -1144,15 +1144,6 @@ class BBV(Aircraft, LargeShip, MainShip):
         self.type = 'BBV'
         self.flightparam = 10
 
-        self.act_phase_flag.update({
-            'SecondTorpedoPhase': False,
-        })
-
-        self.act_phase_indicator.update({
-            'SecondShellingPhase': lambda x:
-                (x.get_range() >= 3) and (x.damaged < 3),
-        })
-
         from src.wsgr.formulas import AirAntiSubAtk
         self.anti_sub_atk = AirAntiSubAtk  # 反潜攻击
 
@@ -1181,7 +1172,6 @@ class BBV(Aircraft, LargeShip, MainShip):
 
         # 次轮炮击优先反潜
         if isinstance(self.timer.phase, SecondShellingPhase) \
-                and self.damaged == 1 \
                 and self.check_antisub_plane():
             def_list = target_fleet.get_atk_target(atk_type=self.anti_sub_atk)
             if len(def_list):
