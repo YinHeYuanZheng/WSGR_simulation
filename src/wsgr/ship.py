@@ -806,15 +806,6 @@ class Ship(Time):
 
     def remove_during_buff(self):
         """去除攻击期间的临时buff"""
-        # i = 0
-        # while i < len(self.temper_buff):
-        #     tmp_buff = self.temper_buff[i]
-        #     if tmp_buff.is_during_buff():
-        #         self.temper_buff.remove(tmp_buff)
-        #         continue
-        #     else:
-        #         i += 1
-
         tmp_buff_list = [tmp_buff for tmp_buff in self.temper_buff
                          if not tmp_buff.is_during_buff()]
         self.temper_buff = tmp_buff_list
@@ -1414,6 +1405,24 @@ class BG(DefMissileShip, LargeShip, MainShip):
         self.type = 'BG'
         self.act_phase_flag.update({
             'SecondTorpedoPhase': True,  # 大巡可参与
+        })
+
+
+class SSG(Submarine, MissileShip, SmallShip, MainShip):
+    """导潜"""
+    def __init__(self, timer):
+        super().__init__(timer)
+        self.type = 'SSG'
+        self.act_phase_flag.update({
+            'LongMissilePhase': True,
+            'FirstTorpedoPhase': True,
+            'FirstShellingPhase': False,
+            'SecondShellingPhase': False,
+        })
+
+        self.act_phase_indicator.update({
+            'LongMissilePhase': lambda x:
+                (x.damaged < 3) and x.check_missile(),
         })
 
 

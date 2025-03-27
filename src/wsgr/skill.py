@@ -84,8 +84,8 @@ class EndSkill(Skill):
         return True
 
 
-class EquipSkill(Skill):
-    """装备携带特效"""
+class EquipSkill(PrepSkill):
+    """装备携带特效, 需要在buff阶段前结算"""
 
     def __init__(self, timer, master, value: list):
         """

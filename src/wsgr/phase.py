@@ -420,12 +420,16 @@ class MissilePhase(DaytimePhase):
 
     def get_long_missile(self, shiplist):
         """获取远程反舰导弹"""
-        from src.wsgr.ship import KP
+        from src.wsgr.ship import KP, SSG
         msl_list = []
         for tmp_ship in shiplist:
             if isinstance(tmp_ship, KP) and tmp_ship.check_missile():
                 for tmp_equip in tmp_ship.equipment:
                     if isinstance(tmp_equip, LongMissile) and tmp_equip.load >= 2:
+                        msl_list.append(tmp_equip)
+            if isinstance(tmp_ship, SSG) and tmp_ship.check_missile():
+                for tmp_equip in tmp_ship.equipment:
+                    if isinstance(tmp_equip, NormalMissile) and tmp_equip.load >= 2:
                         msl_list.append(tmp_equip)
         msl_list.sort(key=lambda x: (x.get_final_status('missile_atk'),
                                      -(x.enum + 4 * x.master.loc))

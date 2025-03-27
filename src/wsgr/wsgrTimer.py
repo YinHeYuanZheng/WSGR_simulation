@@ -226,10 +226,10 @@ class timer:
 
 
 class Time:
-    def __init__(self, timer):
+    def __init__(self, timer: timer):
         self.timer = timer
 
-    def set_timer(self, new_timer):
+    def set_timer(self, new_timer: timer):
         self.timer = new_timer
 
 
