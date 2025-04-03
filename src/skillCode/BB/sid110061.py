@@ -18,7 +18,6 @@ class Skill_110061_1(Skill):
         self.buff = [
             SpecialAtkBuff(
                 timer=timer,
-                name='special_attack',
                 phase=ShellingPhase,
                 rate=0.5,
                 during_buff=[

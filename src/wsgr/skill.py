@@ -8,6 +8,7 @@ import copy
 
 from src.wsgr.wsgrTimer import Time
 from src.wsgr.ship import Fleet, Ship
+from src.wsgr.formulas import ATK
 
 
 class Skill(Time):
@@ -1066,6 +1067,7 @@ class ActiveBuff(Buff):
                  coef=None, bias_or_weight=3):
         """
         :param name:    multi_attack
+                        multi_torpedo_attack
                         extra_attack
                         special_attack
         :param num: 总攻击次数
@@ -1090,7 +1092,8 @@ class ActiveBuff(Buff):
     def is_active_buff(self):
         return True
 
-    def is_active(self, atk, enemy, *args, **kwargs):
+    # todo atk -> atk_instance
+    def is_active(self, atk: ATK, enemy, *args, **kwargs):
         if not isinstance(self.timer.phase, self.phase):
             return False
 
@@ -1156,8 +1159,8 @@ class MultipleAtkBuff(ActiveBuff):
 
 class MultipleTorpedoAtkBuff(ActiveBuff):
     """多次鱼雷攻击
-    :param num: 多发射鱼雷的次数
-    :param coef: 对多发射的鱼雷进行系数操作"""
+    :param num: 多发射鱼雷的次数(不含原本的一发)
+    :param coef: 对多发射的鱼雷进行系数操作(无法影响原本的一发)"""
 
     def active_start(self, atk, enemy, *args, **kwargs):
         assert self.master is not None
@@ -1240,15 +1243,13 @@ class SpecialAtkBuff(ActiveBuff):
 
         return def_list
 
-    def is_active(self, atk, enemy, *args, **kwargs):
+    def is_active(self, atk_type: type(ATK), enemy, *args, **kwargs):
         if not isinstance(self.timer.phase, self.phase):
             return False
 
         # 如果技能指定了攻击类型，使用对应攻击类型
         if self.atk_type is not None:
             atk_type = self.atk_type
-        else:
-            atk_type = atk
         if self.undamaged and self.master.damaged >= 3:  # 大破状态不能发动
             return False
 
@@ -1257,14 +1258,12 @@ class SpecialAtkBuff(ActiveBuff):
         return len(def_list) and \
                self.rate_verify()
 
-    def active_start(self, atk, enemy, *args, **kwargs):
+    def active_start(self, atk_type: type(ATK), enemy, *args, **kwargs):
         assert self.master is not None
 
         # 如果技能指定了攻击类型，使用对应攻击类型
         if self.atk_type is not None:
             atk_type = self.atk_type
-        else:
-            atk_type = atk
 
         self.add_during_buff()  # 攻击时效果
         def_list = self.get_def_list(atk_type, enemy)  # 可被攻击目标

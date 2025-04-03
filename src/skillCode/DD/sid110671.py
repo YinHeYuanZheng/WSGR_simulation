@@ -8,12 +8,13 @@ from src.wsgr.ship import *
 from src.wsgr.phase import *
 from src.wsgr.formulas import TorpedoAtk
 
-"""鱼雷+30，回避+15，
-炮击战35%概率炮击变为30%概率额外暴击的雷击。该次后，不参与鱼雷战，回避-15至结束。"""
+"""鱼雷+30，回避+15。
+炮击战35%概率发动，此次攻击变为鱼雷攻击，暴击率提高30%。
+该效果触发后，自身回避-15，鱼雷战阶段不参与攻击。"""
 
 
 class Skill_110671_1(CommonSkill):
-    """鱼雷+30，回避+15，"""
+    """鱼雷+30，回避+15。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
@@ -36,8 +37,8 @@ class Skill_110671_1(CommonSkill):
 
 
 class Skill_110671_2(Skill):
-    """炮击战35%概率炮击变为30%概率额外暴击的雷击。
-    该次后，不参与鱼雷战，回避-15至结束。"""
+    """炮击战35%概率发动，此次攻击变为鱼雷攻击，暴击率提高30%。
+    该效果触发后，自身回避-15，鱼雷战阶段不参与攻击。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
@@ -67,7 +68,8 @@ class Skill_110671_2(Skill):
 
 
 class SpecialAtkBuff_110671_2(SpecialAtkBuff):
-    """使用雷击公式的炮击"""
+    """使用雷击公式的炮击
+    20250329再次确认"""
     def get_def_list(self, atk_type, enemy):
         from src.wsgr.formulas import NormalAtk
         def_list = super().get_def_list(NormalAtk, enemy)
