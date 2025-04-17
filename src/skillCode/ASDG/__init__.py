@@ -35,3 +35,6 @@ from . import sid112992  # 让巴尔改-2
 # 大巡
 from . import sid110201  # 阿拉斯加改-1
 from . import sid110211  # 关岛改-1
+
+# 导潜
+from . import sid106011  # 351-1
