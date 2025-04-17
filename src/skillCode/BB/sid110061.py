@@ -41,9 +41,6 @@ class Skill_110061_1(Skill):
             )
         ]
 
-    # def is_active(self, friend, enemy):
-    #     return self.master.loc == 1
-
 
 class Skill_110061_2(Skill):
     """当队伍中存在重巡时，首轮炮击阶段免疫受到的第一次攻击。"""

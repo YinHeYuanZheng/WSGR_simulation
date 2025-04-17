@@ -542,13 +542,6 @@ class Ship(Time):
             if tmp_buff.name == 'no_normal_atk' and tmp_buff.is_active():
                 return
 
-        # 技能发动特殊攻击
-        for tmp_buff in self.active_buff:
-            if tmp_buff.name == 'special_attack' and \
-                    tmp_buff.is_active(atk_type=self.normal_atk, enemy=target_fleet):
-                yield from tmp_buff.active_start(atk_type=self.normal_atk, enemy=target_fleet)
-                return
-
         # 技能优先攻击特定船型
         prior = self.get_prior_type_target(target_fleet)
         if prior is not None:
@@ -573,7 +566,7 @@ class Ship(Time):
                 )
 
         # 普通炮击
-        else:
+        if atk is None:  # 无反潜
             def_list = target_fleet.get_atk_target(atk_type=self.normal_atk)
             if len(def_list):
                 atk = self.normal_atk(
@@ -581,10 +574,19 @@ class Ship(Time):
                     atk_body=self,
                     def_list=def_list,
                 )
-        if atk is not None:
-            yield atk  # todo 多次攻击修改在这里
+        if atk is None:  # 无普通炮击
+            return
+
+        # 技能发动特殊攻击
+        for tmp_buff in self.active_buff:
+            if tmp_buff.is_active(atk=atk, enemy=target_fleet):
+                yield from tmp_buff.active_start(atk=atk, enemy=target_fleet)
+                return
+
+        yield atk
 
     def raise_torpedo_atk(self, target_list):
+        # todo 修改多发鱼雷逻辑
         # 技能优先攻击特定船型
         prior = self.get_prior_type_target(target_list)
         if prior is not None:
@@ -616,13 +618,6 @@ class Ship(Time):
         # CA/CL/CAV确认火雷攻击方式
         self.check_night_atk_type()
 
-        # 技能发动特殊攻击
-        for tmp_buff in self.active_buff:
-            if tmp_buff.name == 'special_attack' and \
-                    tmp_buff.is_active(atk_type=self.night_atk, enemy=target_fleet):
-                yield from tmp_buff.active_start(atk_type=self.night_atk, enemy=target_fleet)
-                return
-
         # 技能优先攻击特定船型
         prior = self.get_prior_type_target(target_fleet)
         if prior is not None:
@@ -634,6 +629,14 @@ class Ship(Time):
             yield atk
             return
 
+        # 夜战导弹舰攻击
+        from src.wsgr.formulas import NightMissileAtk
+        if issubclass(self.night_atk, NightMissileAtk):
+            yield from self.raise_night_missile_atk(target_fleet)
+            return
+
+        # 常规攻击模式
+        atk = None
         # 优先反潜
         if self.night_anti_sub_atk is not None:
             def_list = target_fleet.get_atk_target(atk_type=self.night_anti_sub_atk)
@@ -643,24 +646,26 @@ class Ship(Time):
                     atk_body=self,
                     def_list=def_list,
                 )
-                yield atk
-                return
 
-        # 夜战导弹舰攻击
-        from src.wsgr.formulas import NightMissileAtk
-        if issubclass(self.night_atk, NightMissileAtk):
-            yield from self.raise_night_missile_atk(target_fleet)
+        # 夜战普通攻击
+        if atk is None:  # 无反潜
+            def_list = target_fleet.get_atk_target(atk_type=self.night_atk)
+            if len(def_list):
+                atk = self.night_atk(
+                    timer=self.timer,
+                    atk_body=self,
+                    def_list=def_list,
+                )
+        if atk is None:  # 无夜战攻击
             return
 
-        # 常规攻击模式
-        def_list = target_fleet.get_atk_target(atk_type=self.night_atk)
-        if len(def_list):
-            atk = self.night_atk(
-                timer=self.timer,
-                atk_body=self,
-                def_list=def_list,
-            )
-            yield atk  # todo 多次攻击
+        # 技能发动特殊攻击
+        for tmp_buff in self.active_buff:
+            if tmp_buff.is_active(atk=atk, enemy=target_fleet):
+                yield from tmp_buff.active_start(atk=atk, enemy=target_fleet)
+                return
+
+        yield atk
 
     def raise_night_missile_atk(self, target_fleet):
         raise UserWarning(f'Wrong call of missile attack from {self.status["name"]}!')
@@ -1371,6 +1376,7 @@ class AADG(DefMissileShip, AntiSubShip, SmallShip, CoverShip):
     def __init__(self, timer):
         super().__init__(timer)
         self.type = 'AADG'
+        self.night_anti_sub_atk = None
 
 
 class KP(AtkMissileShip, MidShip, MainShip):
