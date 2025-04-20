@@ -60,11 +60,11 @@ class SpecialLock(ActiveBuff):
         self.normal_atk = NormalAtk
         self.anti_sub_atk = AntiSubAtk
 
-    def get_lock_target(self, enemy):
+    def get_lock_target(self, enemy: Fleet):
         return [ship for ship in enemy.ship
                 if ship.loc == self.master.loc]
 
-    def is_active(self, atk, enemy, *args, **kwargs):
+    def is_active(self, atk_type: type(ATK), enemy: Fleet, *args, **kwargs):
         if not isinstance(self.timer.phase, self.phase):
             return False
 

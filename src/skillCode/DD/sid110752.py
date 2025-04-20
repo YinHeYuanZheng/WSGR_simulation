@@ -53,7 +53,7 @@ class Skill_110752_2(Skill):
 
 class SpecialBuff_z16(MultipleTorpedoAtkBuff):
     """概率触发时所有鱼雷造成的伤害提升30%"""
-    def is_active(self, atk, enemy, *args, **kwargs):
+    def is_active(self, atk_type, enemy, *args, **kwargs):
         if not isinstance(self.timer.phase, self.phase):
             return False
         if self.rate_verify():

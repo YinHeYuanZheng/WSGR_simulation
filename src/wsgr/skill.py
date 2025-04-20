@@ -1093,19 +1093,16 @@ class ActiveBuff(Buff):
     def is_active_buff(self):
         return True
 
-    # def is_active(self, atk: ATK, enemy, *args, **kwargs):
-    #     if not isinstance(self.timer.phase, self.phase):
-    #         return False
-    #
-    #     if isinstance(enemy, list):
-    #         def_list = enemy
-    #     elif isinstance(enemy, Fleet):
-    #         def_list = enemy.get_atk_target(atk_type=atk)
-    #     else:
-    #         raise TypeError('Enemy should be in form of list or Fleet')
-    #     return len(def_list) and self.rate_verify()
+    def is_active(self, atk_type: type(ATK), enemy, *args, **kwargs):
+        """
+        :param atk: ATK
+        :param enemy: Fleet
+        """
+        if not isinstance(self.timer.phase, self.phase):
+            return False
+        return self.rate_verify()
 
-    def active_start(self, atk: ATK, enemy, *args, **kwargs):
+    def active_start(self, atk: ATK, enemy: Fleet or list, *args, **kwargs):
         """迭代器，依次执行攻击时效果、攻击行动、攻击后效果
         攻击结算时替换atk_list"""
         pass
@@ -1158,8 +1155,7 @@ class MultipleTorpedoAtkBuff(ActiveBuff):
     :param num: 多发射鱼雷的次数(不含原本的一发)
     :param coef: 对多发射的鱼雷进行系数操作(无法影响原本的一发)"""
 
-    # todo 重构is_active
-    def active_start(self, atk, enemy, *args, **kwargs):
+    def active_start(self, atk: type(ATK), enemy: list, *args, **kwargs):
         assert self.master is not None
         self.add_during_buff()  # 攻击时效果
 
@@ -1205,7 +1201,7 @@ class ExtraAtkBuff(ActiveBuff):
 
 
 class SpecialAtkBuff(ActiveBuff):
-    """特殊攻击(在一次攻击内执行多个不同效果，可能同时包含攻击前攻击后)"""
+    """特殊攻击(在一次攻击内执行多个不同效果，可能同时包含攻击前攻击后，以及攻击类型或伤害公式修改)"""
 
     def __init__(self, timer, phase, rate,
                  name='special_attack', num=1,
@@ -1219,7 +1215,7 @@ class SpecialAtkBuff(ActiveBuff):
         self.atk_type = atk_type
         self.undamaged = undamaged  # True: 大破状态不能发动, False: 大破状态可以发动
 
-    def get_def_list(self, atk_type: type(ATK), enemy):
+    def get_def_list(self, atk_type: type(ATK), enemy: Fleet):
         # 获取可被攻击的对象
         def_list = enemy.get_atk_target(atk_type=atk_type)
 
@@ -1229,40 +1225,42 @@ class SpecialAtkBuff(ActiveBuff):
 
         return def_list
 
-    def is_active(self, atk: ATK, enemy, *args, **kwargs):
+    def is_active(self, atk_type: type(ATK), enemy: Fleet, *args, **kwargs):
         if not isinstance(self.timer.phase, self.phase):
             return False
         if self.undamaged and self.master.damaged >= 3:  # 大破状态不能发动
             return False
 
-        # 如果技能指定了攻击类型，则检查该攻击类型是否可攻击
-        if self.atk_type is not None:
-            atk_type = self.atk_type
-            def_list = self.get_def_list(atk_type, enemy)  # 可被攻击目标
-            if not len(def_list):
-                return False
-
-        return self.rate_verify()
-
-    def active_start(self, atk: ATK, enemy, *args, **kwargs):
-        assert self.master is not None
-        self.add_during_buff()  # 攻击时效果
-
         # 如果技能指定了攻击类型，使用对应攻击类型
         if self.atk_type is not None:
             atk_type = self.atk_type
-            def_list = self.get_def_list(atk_type, enemy)  # 可被攻击目标
-            assert len(def_list)
-            special_atk = atk_type(
-                timer=self.timer,
-                atk_body=self.master,
-                def_list=def_list,
-                coef=copy.copy(self.coef),
-            )
-            yield special_atk
-        else:
-            atk.set_coef(self.coef)
-            yield atk
+
+        # 检查技能发动目标是否存在
+        def_list = self.get_def_list(atk_type, enemy)  # 可被攻击目标
+        if not len(def_list):
+            return False
+
+        return self.rate_verify()
+
+    def active_start(self, atk: ATK, enemy: Fleet, *args, **kwargs):
+        assert self.master is not None
+        self.add_during_buff()  # 攻击时效果
+
+        atk_type = type(atk)
+        # 如果技能指定了攻击类型，使用对应攻击类型
+        if self.atk_type is not None:
+            atk_type = self.atk_type
+
+        def_list = self.get_def_list(atk_type, enemy)  # 可被攻击目标
+        assert len(def_list)
+
+        special_atk = atk_type(
+            timer=self.timer,
+            atk_body=self.master,
+            def_list=def_list,
+            coef=copy.copy(self.coef),
+        )
+        yield special_atk
 
         self.remove_during_buff()  # 去除攻击时效果
         self.add_end_buff()  # 攻击结束效果

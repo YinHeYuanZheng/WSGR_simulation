@@ -579,14 +579,13 @@ class Ship(Time):
 
         # 技能发动特殊攻击
         for tmp_buff in self.active_buff:
-            if tmp_buff.is_active(atk=atk, enemy=target_fleet):
+            if tmp_buff.is_active(atk_type=type(atk), enemy=target_fleet):
                 yield from tmp_buff.active_start(atk=atk, enemy=target_fleet)
                 return
 
         yield atk
 
-    def raise_torpedo_atk(self, target_list):
-        # todo 修改多发鱼雷逻辑
+    def raise_torpedo_atk(self, target_list: list):
         # 技能优先攻击特定船型
         prior = self.get_prior_type_target(target_list)
         if prior is not None:
@@ -594,7 +593,8 @@ class Ship(Time):
 
         # 技能发动特殊攻击
         for tmp_buff in self.active_buff:
-            if tmp_buff.is_active(atk=self.torpedo_atk, enemy=target_list):
+            if tmp_buff.name == 'multi_torpedo_attack' and \
+                    tmp_buff.is_active(atk_type=self.torpedo_atk, enemy=target_list):
                 yield from tmp_buff.active_start(atk=self.torpedo_atk, enemy=target_list)
 
         num = 1
@@ -646,6 +646,8 @@ class Ship(Time):
                     atk_body=self,
                     def_list=def_list,
                 )
+                yield atk  # 反潜攻击优先级高于技能（与炮击战不同，可能会改动）
+                return
 
         # 夜战普通攻击
         if atk is None:  # 无反潜
@@ -661,7 +663,7 @@ class Ship(Time):
 
         # 技能发动特殊攻击
         for tmp_buff in self.active_buff:
-            if tmp_buff.is_active(atk=atk, enemy=target_fleet):
+            if tmp_buff.is_active(atk_type=type(atk), enemy=target_fleet):
                 yield from tmp_buff.active_start(atk=atk, enemy=target_fleet)
                 return
 
@@ -1156,12 +1158,7 @@ class BBV(Aircraft, LargeShip, MainShip):
         # 技能限制无法进行普通攻击
         for tmp_buff in self.temper_buff:
             if tmp_buff.name == 'no_normal_atk' and tmp_buff.is_active():
-                return []
-
-        # 技能发动特殊攻击
-        for tmp_buff in self.active_buff:
-            if tmp_buff.is_active(atk=self.normal_atk, enemy=target_fleet):
-                return tmp_buff.active_start(atk=self.normal_atk, enemy=target_fleet)
+                return
 
         # 技能优先攻击特定船型
         prior = self.get_prior_type_target(target_fleet)
@@ -1171,9 +1168,11 @@ class BBV(Aircraft, LargeShip, MainShip):
                 atk_body=self,
                 def_list=prior,
             )
-            return [atk]
+            yield atk
+            return
 
         # 次轮炮击优先反潜
+        atk = None
         if isinstance(self.timer.phase, SecondShellingPhase) \
                 and self.damaged < 3 \
                 and self.check_antisub_plane():
@@ -1184,19 +1183,26 @@ class BBV(Aircraft, LargeShip, MainShip):
                     atk_body=self,
                     def_list=def_list,
                 )
-                return [atk]
 
-        # 常规攻击模式
-        def_list = target_fleet.get_atk_target(atk_type=self.normal_atk)
-        if not len(def_list):
-            return []
+        # 普通炮击
+        if atk is None:  # 无反潜
+            def_list = target_fleet.get_atk_target(atk_type=self.normal_atk)
+            if len(def_list):
+                atk = self.normal_atk(
+                    timer=self.timer,
+                    atk_body=self,
+                    def_list=def_list,
+                )
+        if atk is None:  # 无普通炮击
+            return
 
-        atk = self.normal_atk(
-            timer=self.timer,
-            atk_body=self,
-            def_list=def_list,
-        )
-        return [atk]
+        # 技能发动特殊攻击
+        for tmp_buff in self.active_buff:
+            if tmp_buff.is_active(atk_type=type(atk), enemy=target_fleet):
+                yield from tmp_buff.active_start(atk=atk, enemy=target_fleet)
+                return
+
+        yield atk
 
 
 class BBV0(BBV):
