@@ -1174,7 +1174,6 @@ class BBV(Aircraft, LargeShip, MainShip):
         # 次轮炮击优先反潜
         atk = None
         if isinstance(self.timer.phase, SecondShellingPhase) \
-                and self.damaged < 3 \
                 and self.check_antisub_plane():
             def_list = target_fleet.get_atk_target(atk_type=self.anti_sub_atk)
             if len(def_list):

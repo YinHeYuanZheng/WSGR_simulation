@@ -23,14 +23,14 @@ class Skill_112231_1(Skill):
             FinalDamageBuff(
                 timer,
                 name='final_damage_debuff',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=-0.35,
                 atk_request=[BuffRequest_1]
             ),
             StatusBuff(
                 timer,
                 name='antiair',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=12,
                 bias_or_weight=0
             )
@@ -56,7 +56,7 @@ class Skill_112231_2(PrepSkill):
             StatusBuff(
                 timer,
                 name='recon',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=12,
                 bias_or_weight=0
             )

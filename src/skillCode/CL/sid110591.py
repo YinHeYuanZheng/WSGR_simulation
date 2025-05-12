@@ -19,7 +19,7 @@ class Skill_110591_1(PrepSkill):
             StatusBuff(
                 timer=timer,
                 name='recon',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=5,
                 bias_or_weight=0
             )
@@ -35,7 +35,7 @@ class Skill_110591_2(Skill):
             StatusBuff(
                 timer=timer,
                 name='accuracy',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=5,
                 bias_or_weight=0
             )

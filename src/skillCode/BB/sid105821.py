@@ -61,7 +61,7 @@ class Skill_105821_2(Skill):
             HealthExtraDamage(
                 timer=timer,
                 name='extra_damage',
-                phase=ShellingPhase,
+                phase=AllPhase,
                 value=0.25,
                 bias_or_weight=0
             )

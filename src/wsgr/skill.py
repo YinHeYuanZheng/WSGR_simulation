@@ -1125,7 +1125,7 @@ class ActiveBuff(Buff):
 class MultipleAtkBuff(ActiveBuff):
     """多次攻击"""
 
-    def active_start(self, atk: ATK, enemy, *args, **kwargs):
+    def active_start(self, atk: ATK, enemy: Fleet, *args, **kwargs):
         assert self.master is not None
         def_list = atk.def_list
         assert len(def_list)
@@ -1175,7 +1175,7 @@ class MultipleTorpedoAtkBuff(ActiveBuff):
 class ExtraAtkBuff(ActiveBuff):
     """连续攻击"""
 
-    def active_start(self, atk, enemy, *args, **kwargs):
+    def active_start(self, atk: ATK, enemy: Fleet, *args, **kwargs):
         assert self.master is not None
         def_list = atk.def_list
         assert len(def_list)

@@ -120,9 +120,9 @@ class PreparePhase(AllPhase):
             recon_flag = (friend_recon >= enemy_level)
 
             # log记录索敌率，全鱼记录0或1
-            self.timer.info(f'潜艇索敌率{float(recon_flag) * 100:d}%\n')
+            self.timer.info(f'潜艇索敌率{int(recon_flag) * 100:d}%\n')
             self.timer.report_log('recon',
-                                  [float(recon_flag)*100, friend_recon, enemy_level])
+                                  [int(recon_flag)*100, friend_recon, enemy_level])
 
         self.timer.set_recon(recon_flag)
 

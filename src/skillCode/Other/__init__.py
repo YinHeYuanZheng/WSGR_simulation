@@ -6,6 +6,7 @@
 from . import sid110021  # 驻岛舰队(扶桑改-1、山城改-1、长门改-1)
 from . import sid110041  # 伊势改-1
 from . import sid110051  # 日向改-1
+from . import sid105861  # AIII
 from . import sid110621  # 火力支援(罗伯茨改-1、阿贝克隆比改-1)
 from . import sid112331  # 最上改-1
 from . import sid112481  # 大淀改-1
