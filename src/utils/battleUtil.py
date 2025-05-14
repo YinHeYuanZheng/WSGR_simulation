@@ -177,6 +177,7 @@ class BattleUtil(Time):
             supply['ammo'] += int(ship_supply['ammo'])
             supply['steel'] += int(ship_supply['steel'])
             supply['almn'] += int(ship_supply['almn'])
+            supply['repeat'] += int(ship_supply['repeat'])
         self.timer.report_log('supply', supply)
 
         return self.timer.log

@@ -850,7 +850,7 @@ class Ship(Time):
         self.clear_buff()
         self.created_damage = {}
         self.defeated_enemy = {}
-        supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
+        supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0, 'repeat': 0}
 
         # 统计补给耗油并补满
         supply['oil'] += np.ceil((10 - self.supply_oil) / 10.
@@ -865,6 +865,7 @@ class Ship(Time):
 
         # 统计修理费用并恢复血量
         got_damage = self.status['standard_health'] - self.status['health']
+        supply['repeat'] += int(got_damage > 0)
         supply['oil'] += np.ceil(got_damage * self.status['repair_oil'])
         supply['steel'] += np.ceil(got_damage * self.status['repair_steel'])
         self.status['health'] = self.status['standard_health']

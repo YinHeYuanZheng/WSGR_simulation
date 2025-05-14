@@ -38,7 +38,7 @@ class timer:
             'get_damage': np.zeros((len(damagePhaseList),12)),
             'defeat_num': np.zeros((len(damagePhaseList),12)),
             'damaged_state': np.zeros((len(damagePhaseList),12)),
-            'supply': {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0},
+            'supply': {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0, 'repeat': 0},
             # 'end_with': '',             # 退出时抵达位置
             # 'end_with_boss': False,     # 是否抵达boss点
         }

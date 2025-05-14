@@ -95,7 +95,7 @@ def run_avg_damage(battle, epoc, phase:str=None):
 
 
 def run_supply_cost(battle, epoc):
-    supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0}
+    supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0, 'repeat': 0}
     for i in range(epoc):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
@@ -105,12 +105,14 @@ def run_supply_cost(battle, epoc):
         supply['ammo'] += log['supply']['ammo']
         supply['steel'] += log['supply']['steel']
         supply['almn'] += log['supply']['almn']
+        supply['repeat'] += log['supply']['repeat']
         print("\r"
               f"第{i + 1}次 - 资源消耗: "
               f"油 {supply['oil'] / (i + 1):.1f}, "
               f"弹 {supply['ammo'] / (i + 1):.1f}, "
               f"钢 {supply['steel'] / (i + 1):.1f}, "
-              f"铝 {supply['almn'] / (i + 1):.1f}.",
+              f"铝 {supply['almn'] / (i + 1):.1f},"
+              f"桶 {supply['repeat'] / (i + 1):.2f}.",
               end='',)
 
 
