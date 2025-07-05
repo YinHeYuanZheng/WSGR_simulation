@@ -556,7 +556,7 @@ class Ship(Time):
         # 常规攻击模式
         atk = None
         # 优先反潜
-        if self.anti_sub_atk is not None:
+        if self.check_anti_sub():
             def_list = target_fleet.get_atk_target(atk_type=self.anti_sub_atk)
             if len(def_list):
                 atk = self.anti_sub_atk(
@@ -680,11 +680,15 @@ class Ship(Time):
             else:
                 self.night_atk = NightFireTorpedoAtk
 
+    def check_anti_sub(self) -> bool:
+        """检查能否进行炮击战反潜"""
+        return self.anti_sub_atk is not None
+
     # def get_atk_type(self, target):  # 备用接口
     #     """判断攻击该对象时使用什么攻击类型"""
     #     pass
 
-    def can_be_atk(self, atk):
+    def can_be_atk(self, atk) -> bool:
         """判断舰船是否可被某攻击类型指定"""
         from src.wsgr.formulas import AntiSubAtk
         if issubclass(atk, AntiSubAtk):
@@ -1154,8 +1158,6 @@ class BBV(Aircraft, LargeShip, MainShip):
         self.anti_sub_atk = AirAntiSubAtk  # 反潜攻击
 
     def raise_atk(self, target_fleet):
-        from src.wsgr.phase import SecondShellingPhase
-
         # 技能限制无法进行普通攻击
         for tmp_buff in self.temper_buff:
             if tmp_buff.name == 'no_normal_atk' and tmp_buff.is_active():
@@ -1174,8 +1176,7 @@ class BBV(Aircraft, LargeShip, MainShip):
 
         # 次轮炮击优先反潜
         atk = None
-        if isinstance(self.timer.phase, SecondShellingPhase) \
-                and self.check_antisub_plane():
+        if self.check_anti_sub():
             def_list = target_fleet.get_atk_target(atk_type=self.anti_sub_atk)
             if len(def_list):
                 atk = self.anti_sub_atk(
@@ -1203,6 +1204,12 @@ class BBV(Aircraft, LargeShip, MainShip):
                 return
 
         yield atk
+
+    def check_anti_sub(self) -> bool:
+        """航战次轮优先反潜"""
+        from src.wsgr.phase import SecondShellingPhase
+        return isinstance(self.timer.phase, SecondShellingPhase) \
+               and self.check_antisub_plane()
 
 
 class BBV0(BBV):
@@ -1720,19 +1727,13 @@ class Fleet(Time):
                 member.append(tmp_ship)
         return member
 
-    def get_atk_target(self, atk_type=None, atk_body=None):
+    def get_atk_target(self, atk_type=None):
         """确定舰队中可被指定攻击方式选中的成员"""
         target = []
         if atk_type is not None:
             for tmp_ship in self.ship:
                 if tmp_ship.can_be_atk(atk_type):
                     target.append(tmp_ship)
-        # elif atk_body is not None:
-        #     for tmp_ship in self.ship:
-        #         if tmp_ship in atk_body.get_target():
-        #             target.append(tmp_ship)
-        # else:
-        #     raise ValueError("'atk_type' and 'atk_body' should not be None at the same time!")
         return target
 
     def count(self, shiptype):

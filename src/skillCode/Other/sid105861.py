@@ -169,9 +169,12 @@ class SkillMultiAtkBuff(MultipleAtkBuff):
         self.add_end_buff()  # 攻击结束效果
 
     def raise_atk(self, target_fleet: Fleet, first_target) -> ATK:
+        """通过技能代码重构AIII炮击战逻辑
+        目前次轮炮击可以同时进行反潜和炮击，优先反潜"""
         atk = None
-        if isinstance(self.timer.phase, SecondShellingPhase) \
-                and self.master.check_antisub_plane():
+
+        # 优先反潜
+        if self.master.check_anti_sub():
             def_list = target_fleet.get_atk_target(atk_type=self.master.anti_sub_atk)
             if first_target is not None and first_target in def_list:
                 def_list.remove(first_target)  # 移除第一次攻击目标
