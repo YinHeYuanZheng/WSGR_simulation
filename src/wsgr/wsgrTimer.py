@@ -104,12 +104,14 @@ class timer:
             tmp_skill.activate(friend, enemy)
 
     def get_dist(self):
+        """距离起始点的位置"""
         if self.point is not None:
             return self.point.level
         else:
             return 5  # 特殊点位手动置为5
 
-    def get_dist_from_start(self):
+    def get_dist_to_boss(self):
+        """距离终结点的位置"""
         if self.point is not None:
             return 6 - self.point.level
         else:

@@ -696,14 +696,14 @@ class DuringAtkBuff(CoeffBuff):
 
 class AtkHitBuff(Buff):
     """攻击时、命中后效果"""
-    def __init__(self, timer, name, phase, buff, side,
+    def __init__(self, timer, name, phase, buff: list, side,
                  atk_request=None, bias_or_weight=3, rate=1):
         """
         :param name:    'atk_hit'       自身攻击命中并造成伤害后
                         'atk_be_hit'    自身被攻击命中并造成伤害后
                         'give_atk'      自身攻击时
                         'get_atk'       自身被攻击时
-        :param buff: 施加效果内容
+        :param buff: 施加效果列表
         :param side: 给谁加, 0: 敌方; 1: 友方
         :param atk_request: ATKRequest, 攻击判断(攻击者、被攻击者、攻击类型)
         """
@@ -782,7 +782,7 @@ class ActPhaseBuff(Buff):
 
 class PriorTargetBuff(Buff):
     """优先攻击目标"""
-    def __init__(self, timer, name, phase, target: Target, ordered,
+    def __init__(self, timer, name, phase, target: Target, ordered: bool,
                  bias_or_weight=3, rate=1):
         """
         :param name:    prior_type_target

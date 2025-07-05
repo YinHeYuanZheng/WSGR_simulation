@@ -4,6 +4,7 @@
 # SS/SC
 
 from . import sid103661  # 鹦鹉螺
+from . import sid113662  # 鹦鹉螺改-2
 from . import sid104581  # U-14
 from . import sid111941  # 大青花鱼
 from . import sid111951  # 射水鱼

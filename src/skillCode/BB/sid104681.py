@@ -20,7 +20,7 @@ class Skill_104681_1(CommonSkill):
         super().__init__(timer, master)
         self.target = EquipTarget(side=1,
                                   target=SelfTarget(master),
-                                  equiptype=(MainGun,))
+                                  equiptype=MainGun)
         self.buff = [
             CommonBuff(
                 timer=timer,

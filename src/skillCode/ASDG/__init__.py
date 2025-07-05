@@ -25,7 +25,9 @@ from . import sid105331  # 格罗兹尼-1
 from . import sid105811  # 塞瓦斯托波尔-1
 
 # 防巡
+from . import sid114001  # 七省联盟改-1
 from . import sid114131  # 加里波第改-1
+from . import sid114301  # 捷尔任斯基改-1
 from . import sid115281  # 芝加哥改-1
 
 # 导战

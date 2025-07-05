@@ -17,6 +17,9 @@ from . import sid110541  # 重庆-1
 from . import sid110571  # 朱诺改-1
 from . import sid110591  # 海伦娜改-1
 from . import sid110592  # 海伦娜改-2
+from . import sid111581  # 圣胡安改-1
 from . import sid111601  # 摩尔曼斯克改-1
 from . import sid111621  # 逸仙改-1
 from . import sid114561  # 塔林-1
+from . import sid115161  # 日丹诺夫改-1
+from . import sid115271  # CNT巡洋舰改-1

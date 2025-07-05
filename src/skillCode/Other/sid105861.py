@@ -89,7 +89,7 @@ class Skill_105861_4(Skill):
                 name='give_atk',
                 phase=AllPhase,
                 buff=[
-                    AntiairBaseFire(
+                    AntiairBasedFire(
                         timer=timer,
                         name='fire',
                         phase=AllPhase,
@@ -109,7 +109,7 @@ class Skill_105861_4(Skill):
         ]
 
 
-class AntiairBaseFire(DuringAtkBuff):
+class AntiairBasedFire(DuringAtkBuff):
     """增加自身100%对空值的火力值"""
     def change_value(self, *args, **kwargs):
         self.value = self.master.get_final_status('antiair')
