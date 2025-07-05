@@ -50,3 +50,4 @@ from . import esid698  # MK143战斧导弹发射箱（91）
 from . import esid705  # 鹰击83反舰导弹
 from . import esid712  # 鹰击反舰导弹(潜射)
 from . import esid713  # 潜载发射筒(033G)
+from . import esid718  # 七联鱼雷发射器(93M3)
