@@ -47,7 +47,11 @@ from . import esid692  # P-35反舰导弹（1134）
 from . import esid693  # KT-35发射器
 from . import esid697  # 掠夺者攻击机MK.2
 from . import esid698  # MK143战斧导弹发射箱（91）
+from . import esid704  # （CLT）四联鱼雷发射器（零式）
 from . import esid705  # 鹰击83反舰导弹
+from . import esid711  # （三式）六联53厘米鱼雷发射器
 from . import esid712  # 鹰击反舰导弹(潜射)
 from . import esid713  # 潜载发射筒(033G)
 from . import esid718  # 七联鱼雷发射器(93M3)
+from . import esid720  # SET-53鱼雷
+from . import esid721  # MK7主炮（MK8）
