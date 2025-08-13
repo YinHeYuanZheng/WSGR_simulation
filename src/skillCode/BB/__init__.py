@@ -30,6 +30,7 @@ from . import sid104501  # L20-1
 from . import sid104541  # 征服者-1
 from . import sid104601  # 宾夕法尼亚-1
 from . import sid104641  # 南达科他(1920)-1
+from . import sid104661  # 1939战列舰-1
 from . import sid104681  # 猎户座-1
 from . import sid104991  # 克里蒙梭-1
 from . import sid105061  # 1938(I)-1
