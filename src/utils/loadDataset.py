@@ -32,7 +32,7 @@ class Dataset:
             self._infile, sheet_name='海图', keep_default_na=False, dtype=str)
         self.map_data.set_index('pid', inplace=True)
 
-    def get_friend_ship_status(self, cid):
+    def get_friend_ship_status(self, cid: str) -> dict:
         if cid[1] == '0':
             ship_list = self.ship_data_0
         else:
@@ -81,7 +81,7 @@ class Dataset:
 
         return status
 
-    def get_enemy_ship_status(self, cid):
+    def get_enemy_ship_status(self, cid: str) -> dict:
         ship_list = self.ship_data_enemy
         try:
             ship = ship_list.loc[cid]
@@ -138,7 +138,7 @@ class Dataset:
         ]
         return status
 
-    def get_equip_status(self, eid):
+    def get_equip_status(self, eid: str) -> dict:
         if eid[0] == '1':
             equip_list = self.equip_data_friend
         else:

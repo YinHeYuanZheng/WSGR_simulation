@@ -8,10 +8,10 @@ from src.wsgr.wsgrTimer import damagePhaseList
 from src.wsgr.ship import Ship
 
 
-def run_victory(battle, epoc):
+def run_victory(battle, epoch):
     result = [0] * 6
     result_flag_list = ['SS', 'S', 'A', 'B', 'C', 'D']
-    for i in range(epoc):
+    for i in range(epoch):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
@@ -29,10 +29,10 @@ def run_victory(battle, epoc):
               end='',)
 
 
-def run_map_victory(battle, epoc):
+def run_map_victory(battle, epoch):
     result = [0] * 7
     result_flag_list = ['SS', 'S', 'A', 'B', 'C', 'D', '']
-    for i in range(epoc):
+    for i in range(epoch):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
@@ -53,9 +53,9 @@ def run_map_victory(battle, epoc):
               end='',)
 
 
-def run_hit_rate(battle, epoc, phase:str=None):
+def run_hit_rate(battle, epoch, phase:str=None):
     hit_rate = 0
-    for i in range(epoc):
+    for i in range(epoch):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
@@ -70,11 +70,11 @@ def run_hit_rate(battle, epoc, phase:str=None):
               end='',)
 
 
-def run_avg_damage(battle, epoc, phase:str=None):
+def run_avg_damage(battle, epoch, phase:str=None):
     avg_damage = 0
     avg_damage_phase = 0
     defeat_num = 0
-    for i in range(epoc):
+    for i in range(epoch):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
@@ -94,9 +94,9 @@ def run_avg_damage(battle, epoc, phase:str=None):
               end='',)
 
 
-def run_supply_cost(battle, epoc):
+def run_supply_cost(battle, epoch):
     supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0, 'repeat': 0}
-    for i in range(epoc):
+    for i in range(epoch):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
@@ -116,9 +116,9 @@ def run_supply_cost(battle, epoc):
               end='',)
 
 
-def run_damaged(battle, epoc):
+def run_damaged(battle, epoch):
     damaged_rate = np.zeros((6, 2))
-    for i in range(epoc):
+    for i in range(epoch):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         for j in range(6):
