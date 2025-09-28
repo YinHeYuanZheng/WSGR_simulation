@@ -4,12 +4,105 @@
 
 import os
 import xml.dom.minidom
+import yaml
 
 from src.utils import battleUtil
 from src.utils.mapUtil import MapUtil
 import src.wsgr.ship as rship
 import src.wsgr.equipment as requip
 from src import skillCode
+
+
+def load_xml(infile: str, mapDir: str) -> dict:
+    """xml to dict"""
+    dom = xml.dom.minidom.parse(infile)
+    root = dom.documentElement
+    battle_type = root.getAttribute('type')
+
+    # 检查战斗类型是否合法
+    if battle_type != 'Map':
+        try:
+            getattr(battleUtil, battle_type)
+        except:
+            raise ValueError(f'Battle type {battle_type} is not defined!')
+    else:
+        map_root = root.getElementsByTagName('Map')[0]
+        mapid = map_root.getAttribute('mapid')
+        map_xml = os.path.join(mapDir, 'mapid' + mapid + '.xml')
+        if not os.path.exists(map_xml):
+            raise FileNotFoundError(f"Map file '{map_xml}' not found!")
+    battleConfig = {'battle_type': battle_type}
+
+    # 加载友方舰队
+    friend_node = root.getElementsByTagName('Fleet')[0]
+    friendDict = {'form': int(friend_node.getAttribute('form'))}
+    friendShipList = []
+    for s_node in friend_node.getElementsByTagName('Ship'):
+        shipDict = {
+            'loc': int(s_node.getAttribute('loc')),
+            'cid': s_node.getAttribute('cid'),
+            'level': int(s_node.getAttribute('level')),
+            'affection': int(s_node.getAttribute('affection')),
+            'skill': int(s_node.getAttribute('skill')),
+            'equipment': [
+                {'loc': int(e_node.getAttribute('loc')),
+                 'eid': e_node.getAttribute('eid')}
+                for e_node in s_node.getElementsByTagName('Equipment')
+            ],
+            'strategy': [
+                {'stid': st_node.getAttribute('stid'),
+                 'level': int(st_node.getAttribute('level'))
+                          if st_node.getAttribute('level') else 3}
+                for st_node in s_node.getElementsByTagName('Strategy')
+            ]
+        }
+        friendShipList.append(shipDict)
+    friendDict['ships'] = friendShipList
+    battleConfig['friend_fleet'] = friendDict
+
+    # 加载敌方舰队/地图
+    if battle_type != 'Map':
+        enemy_node = root.getElementsByTagName('Fleet')[1]
+        enemyDict = {'form': int(enemy_node.getAttribute('form'))}
+        enemyShipList = []
+        for s_node in enemy_node.getElementsByTagName('Ship'):
+            shipDict = {
+                'loc': int(s_node.getAttribute('loc')),
+                'cid': f"{s_node.getAttribute('cid')}",
+                'level': int(s_node.getAttribute('level')),
+                'affection': int(s_node.getAttribute('affection')),
+                'skill': int(s_node.getAttribute('skill'))
+            }
+            enemyShipList.append(shipDict)
+        enemyDict['ships'] = enemyShipList
+        battleConfig['enemy_fleet'] = enemyDict
+    else:
+        map_root = root.getElementsByTagName('Map')[0]
+        mapid = map_root.getAttribute('mapid')
+        battleConfig['map'] = {'mapid': mapid,
+                               'entrance': int(map_root.getAttribute('entrance'))}
+
+    return battleConfig
+
+
+def load_yaml(infile: str, mapDir: str) -> dict:
+    """yaml to dict"""
+    with open(infile, 'r') as f:
+        battleConfig = yaml.safe_load(f)
+
+    battle_type = battleConfig['battle_type']
+    if battle_type != 'Map':
+        try:
+            getattr(battleUtil, battle_type)
+        except:
+            raise ValueError(f'Battle type {battle_type} is not defined!')
+    else:
+        mapid = battleConfig['map']['mapid']
+        map_xml = os.path.join(mapDir, 'mapid' + mapid + '.xml')
+        if not os.path.exists(map_xml):
+            raise FileNotFoundError(f"Map file '{map_xml}' not found!")
+
+    return battleConfig
 
 
 def load_config(config, mapdir, dataset, timer):
@@ -235,3 +328,12 @@ def load_equip(node, dataset, master, timer):
     equip.set_status(status=status)
 
     return equip
+
+
+if __name__ == '__main__':
+    # battleConfig = load_xml(r'D:\文件\战舰少女\WSGR_simulation\config\event\cv_simulation\config_37.xml',
+    #                         r'D:\文件\战舰少女\WSGR_simulation\depend\map')
+    battleConfig = load_yaml(r'./config_37.yaml',
+                             r'D:\文件\战舰少女\WSGR_simulation\depend\map')
+    print(battleConfig)
+    # yaml.safe_dump(battleConfig, open(r'./config_37.yaml', 'w'), sort_keys=False)
