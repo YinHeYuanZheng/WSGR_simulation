@@ -33,7 +33,7 @@ def main(infile, epoch, battle_num, fun, **kwargs):
 
 configDir = os.path.join(os.path.dirname(srcDir), 'config')
 dependDir = os.path.join(os.path.dirname(srcDir), 'depend')
-data_file = os.path.join(dependDir, r'ship\database.xlsx')
+data_file = os.path.join(dependDir, r'ship/database.xlsx')
 mapDir = os.path.join(dependDir, r'map')
 ds = Dataset(data_file)  # 舰船数据
 

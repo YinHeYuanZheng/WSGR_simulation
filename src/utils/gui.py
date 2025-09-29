@@ -114,30 +114,16 @@ class MainDlg(Frame):
              zip(self.app.data.ship_data_1['名称'],
                  self.app.data.ship_data_1.index)}
         )
-        self.friendCidDict = {cid: name for name, cid in
-                              zip(self.app.data.ship_data_0['名称'],
-                                  self.app.data.ship_data_0.index)}
-        self.friendCidDict.update(
-            {cid: name + '-改' for name, cid in
-             zip(self.app.data.ship_data_1['名称'],
-                 self.app.data.ship_data_1.index)}
-        )
 
         # 建立装备名-eid互查字典
         self.equipNameDict = {name: eid for name, eid in
                               zip(self.app.data.equip_data_friend['名称'],
                                   self.app.data.equip_data_friend.index)}
-        self.equipEidDict = {eid: name for name, eid in
-                             zip(self.app.data.equip_data_friend['名称'],
-                                 self.app.data.equip_data_friend.index)}
 
         # 建立敌方船名-cid互查字典
         self.enemyNameDict = {f'{name}-{cid}': cid for name, cid in
                               zip(self.app.data.ship_data_enemy['名称'],
                                   self.app.data.ship_data_enemy.index)}
-        self.enemyCidDict = {cid: f'{name}-{cid}' for name, cid in
-                             zip(self.app.data.ship_data_enemy['名称'],
-                                 self.app.data.ship_data_enemy.index)}
 
         self.createWidgets()
         self.createBindings()
