@@ -63,7 +63,7 @@ class App:
 
     def saveFile(self, outfile=None):
         if outfile is None:
-            outfile = os.path.join(self.configDir, 'gui_config.yaml')
+            outfile = os.path.join(self.configDir, 'save/gui_config.yaml')
         battleConfig = self.getBattleConfig()
         if battleConfig is not None:
             with open(outfile, 'w') as f:
@@ -78,6 +78,9 @@ class App:
             else:
                 messagebox.showerror('错误', f"未许可的文件后缀'{os.path.splitext(infile)[1]}'")
                 return
+        except FileNotFoundError as e:
+            messagebox.showerror('错误', f"文件不存在: {e}")
+            return
         except:
             messagebox.showerror('错误', '格式不符合要求，文件读取失败!')
             return
@@ -229,40 +232,38 @@ class Menubar(Menu):
         self.clear = self.master.clearAll
 
         # 菜单变量
-        self.filemenu = None
-        self.openmenu = None
-        self.editmenu = None
-        self.modevar = None
+        self.fileMenu = None
+        self.openMenu = None
 
         # 生成菜单
         self.createFileMenu()
 
     def createFileMenu(self):
         """文件菜单"""
-        self.filemenu = Menu(self, tearoff=False)
-        self.add_cascade(label="文件", menu=self.filemenu)
+        self.fileMenu = Menu(self, tearoff=False)
+        self.add_cascade(label="文件", menu=self.fileMenu)
 
         # 文件菜单内容
-        self.openMenu = Menu(self.filemenu, tearoff=False)
-        self.filemenu.add_cascade(label="打开", menu=self.openMenu)
-        # self.createOpenMenu()  # 打开菜单内容
-        self.filemenu.add_command(label="保存     Ctrl+S", command=self.saveFile)
-        self.filemenu.add_command(label="清除     Ctrl+D", command=self.clear)
-        self.filemenu.add_separator()  # 分割线
-        self.filemenu.add_command(label="退出      Alt+X", command=self.quit)
+        self.openMenu = Menu(self.fileMenu, tearoff=False)
+        self.fileMenu.add_cascade(label="打开", menu=self.openMenu)
+        self.createOpenMenu()  # 打开菜单内容
+        self.fileMenu.add_command(label="保存     Ctrl+S", command=self.saveFile)
+        self.fileMenu.add_command(label="清除     Ctrl+D", command=self.clear)
+        self.fileMenu.add_separator()  # 分割线
+        self.fileMenu.add_command(label="退出      Alt+X", command=self.quit)
 
     def createOpenMenu(self):
         """创建打开菜单，显示所有记录文件"""
-        savepath = r'.\save'
-        if not os.path.exists(savepath):
-            os.mkdir(savepath)
+        saveDir = os.path.join(App.configDir, 'save')
+        if not os.path.exists(saveDir):
+            os.mkdir(saveDir)
 
-        filelist = os.listdir(path=savepath)
-        pkllist = [f[:-4] for f in filelist if f[-4:] == '.pkl']
-        if len(pkllist):
-            for pklname in pkllist:
-                self.openmenu.add_command(label=pklname,
-                                          command=lambda x=pklname: self.openFile(x))
+        fileList = os.listdir(path=saveDir)
+        yamlList = [fname for fname in fileList if fname.endswith('.yaml')]
+        if len(yamlList):
+            for fname in yamlList:
+                self.openMenu.add_command(label=os.path.splitext(fname)[0],
+                                          command=lambda x=os.path.join(saveDir, fname): self.openFile(x))
         else:
             self.openmenu.add_command(label="（无存档）")
 
@@ -790,6 +791,6 @@ class TextRedirector(Text):
 
 if __name__ == '__main__':
     app = App()
-    app.openFile(os.path.join(App.configDir, 'config_test.yaml'))
+    # app.openFile(os.path.join(App.configDir, 'config_test.yaml'))
 
     app.mainloop()
