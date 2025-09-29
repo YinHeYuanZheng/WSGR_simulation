@@ -96,7 +96,15 @@ def load_yaml(infile: str, mapDir: str) -> dict:
     with open(infile, 'r') as f:
         battleConfig = yaml.safe_load(f)
 
-    battle_type = battleConfig['battle_type']
+    try:
+        battle_type = battleConfig['battle_type']
+    except KeyError:
+        raise KeyError('Battle type is not defined!')
+    try:
+        battleConfig['friend_fleet']
+    except KeyError:
+        raise KeyError('Friend fleet is not defined!')
+
     if battle_type != 'Map':
         try:
             getattr(battleUtil, battle_type)  # battle
@@ -105,7 +113,7 @@ def load_yaml(infile: str, mapDir: str) -> dict:
         try:
             battleConfig['enemy_fleet']  # enemyDict
         except:
-            raise IndexError(f'Config type {battle_type}, but no enemy fleet detected')
+            raise ValueError(f'Config type {battle_type}, but no enemy fleet detected')
     else:
         mapid = battleConfig['map']['mapid']
         map_xml = os.path.join(mapDir, 'mapid' + mapid + '.xml')

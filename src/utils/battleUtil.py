@@ -6,6 +6,14 @@ import numpy as np
 from src.wsgr.wsgrTimer import Time, damagePhaseList
 from src.wsgr.phase import *
 
+__all__ = ['BattleUtil',
+           'Entrance',
+           'MidPoint',
+           'NormalBattle',
+           'AirBattle',
+           'NightBattle',
+           'DaytimeBattle']
+
 
 class BattleUtil(Time):
     """调取全部战斗流程"""
@@ -271,6 +279,26 @@ class MidPoint(BattleUtil):
 
     def enemy_init(self):
         pass
+
+
+# ## 以下为gui配套 ## #
+class DaytimeBattle(BattleUtil):
+    """无夜战"""
+    def start(self):
+        self.battle_init()
+        self.start_phase()
+        self.run_phase(LongMissilePhase)
+        self.run_phase(BuffPhase)
+        self.run_phase(AirPhase)
+        self.run_phase(TLockPhase)
+        self.run_phase(FirstMissilePhase)
+        self.run_phase(AntiSubPhase)
+        self.run_phase(FirstTorpedoPhase)
+        self.run_phase(FirstShellingPhase)
+        self.run_phase(SecondShellingPhase)
+        self.run_phase(SecondTorpedoPhase)
+        self.run_phase(SecondMissilePhase)
+        self.end_phase()
 
 
 if __name__ == "__main__":
