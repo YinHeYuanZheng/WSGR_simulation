@@ -7,11 +7,13 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""自身命中 +10，鱼雷 +10，被命中的敌人回避 -10 到昼战结束，对航母类(轻母，装母，航母)造成最终伤害增加 20%。"""
+"""自身命中值和鱼雷值增加12点，暴击率提高12%。
+自身攻击航母、装母、轻母时伤害提高30%，
+被自身命中的敌人回避值和装甲值降低12点，被暴击率提高12%。"""
 
 
 class Skill_112891_1(CommonSkill):
-    """自身命中 +10，鱼雷 +10"""
+    """自身命中值和鱼雷值增加12点"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
@@ -20,47 +22,78 @@ class Skill_112891_1(CommonSkill):
                 timer=timer,
                 name='accuracy',
                 phase=AllPhase,
-                value=10,
+                value=12,
                 bias_or_weight=0,
             ),
             CommonBuff(
                 timer=timer,
                 name='torpedo',
                 phase=AllPhase,
-                value=10,
+                value=12,
                 bias_or_weight=0,
             ),
         ]
 
 
 class Skill_112891_2(Skill):
-    """被命中的敌人回避 -10 到昼战结束，对航母类(轻母，装母，航母)造成最终伤害增加 20%。"""
+    """自身暴击率提高12%"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
+            CoeffBuff(
+                timer=timer,
+                name='crit',
+                phase=AllPhase,
+                value=0.12,
+                bias_or_weight=0
+            )
+        ]
+
+
+class Skill_112891_3(Skill):
+    """自身攻击航母、装母、轻母时伤害提高30%，
+    被自身命中的敌人回避值和装甲值降低12点，被暴击率提高12%。"""
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
+        self.buff = [
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=AllPhase,
+                value=.3,
+                atk_request=[ATK_request_1],
+            ),
             AtkHitBuff(
                 timer=timer,
                 name='atk_hit',
-                phase=DaytimePhase,
+                phase=AllPhase,
                 buff=[
                     StatusBuff(
                         timer=timer,
-                        name='evastion',
-                        phase=DaytimePhase,
-                        value=-10,
+                        name='evasion',
+                        phase=AllPhase,
+                        value=-12,
+                        bias_or_weight=0
+                    ),
+                    StatusBuff(
+                        timer=timer,
+                        name='armor',
+                        phase=AllPhase,
+                        value=-12,
+                        bias_or_weight=0
+                    ),
+                    CoeffBuff(
+                        timer=timer,
+                        name='be_crit',
+                        phase=AllPhase,
+                        value=0.12,
                         bias_or_weight=0
                     )
                 ],
                 side=0
             ),
-            FinalDamageBuff(
-                timer=timer,
-                name='final_damage_buff',
-                phase=AllPhase,
-                value=.2,
-                atk_request=[ATK_request_1],
-            )
         ]
 
 
@@ -70,4 +103,4 @@ class ATK_request_1(ATKRequest):
 
 
 name = '狼群猎手'
-skill = [Skill_112891_1, Skill_112891_2]
+skill = [Skill_112891_1, Skill_112891_2, Skill_112891_3]

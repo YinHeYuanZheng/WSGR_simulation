@@ -50,12 +50,18 @@ class Skill_112061(Skill):
 
 class ShiftBuff_1(StatusBuff):
     def is_active(self, *args, **kwargs):
-        return self.master.damaged == 1
+        if self.master.damaged == 1:
+            return super().is_active(*args, **kwargs)
+        else:
+            return False
 
 
 class ShiftBuff_2(SpecialBuff):
     def is_active(self, *args, **kwargs):
-        return self.master.damaged == 2
+        if self.master.damaged == 2:
+            return super().is_active(*args, **kwargs)
+        else:
+            return False
 
 
 name = '灵活转换(形态一)'

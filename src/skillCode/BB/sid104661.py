@@ -86,7 +86,7 @@ class Skill_104661_3(Skill):
     def activate(self, friend, enemy):
         buff_0 = copy.copy(self.buff[0])
         target_veneto = TagTarget(side=1, tag='veneto').get_target(friend, enemy)
-        buff_0.rate = min(1., buff_0.rate + 0.2 * len(target_veneto))
+        buff_0.rate += 0.2 * len(target_veneto)
         self.master.add_buff(buff_0)
 
 

@@ -7,11 +7,11 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""四大金刚(3级)：自身战斗造成伤害提升25%，命中+10"""
+"""四大金刚(3级)：自身战斗造成伤害提高30%，命中值增加13点"""
 
 
 class Skill_110971_1(Skill):
-    """自身战斗造成伤害提升25%"""
+    """自身战斗造成伤害提升30%"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
@@ -21,13 +21,13 @@ class Skill_110971_1(Skill):
                 timer=timer,
                 name='final_damage_buff',
                 phase=AllPhase,
-                value=0.25
+                value=0.3
             )
         ]
 
 
 class Skill_110971_2(CommonSkill):
-    """命中+10"""
+    """命中+13"""
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
@@ -37,7 +37,7 @@ class Skill_110971_2(CommonSkill):
                 timer=timer,
                 name='accuracy',
                 phase=AllPhase,
-                value=10,
+                value=13,
                 bias_or_weight=0
             )
         ]
