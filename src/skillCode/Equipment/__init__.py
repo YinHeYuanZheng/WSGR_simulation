@@ -8,6 +8,8 @@ from . import esid004  # 超重弹特效
 from . import esid005  # 开幕轰炸威力特效
 from . import esid006  # 开幕鱼雷机威力特效
 from . import esid007  # 命中率特效
+from . import esid008  # 最终伤害
+from . import esid009  # 攻击力
 from . import esid012  # 降低敌方航空战阶段命中率
 from . import esid018  # 远程对空警戒雷达
 from . import esid023  # 暴击率特效
@@ -16,7 +18,7 @@ from . import esid427  # 蒙巴顿粉
 from . import esid581  # 海鹰反舰导弹
 from . import esid582  # 海鹰导弹发射器
 from . import esid586  # 潜载火箭炮特效
-from . import esid588  # NC.1071（L50）
+from . import esid588  # TBD鱼雷机（VT-8）
 from . import esid593  # 袖珍舰载艇
 from . import esid596  # 掠夺者攻击机
 from . import esid601  # 海雌狐FAW.2战斗机
@@ -55,3 +57,5 @@ from . import esid713  # 潜载发射筒(033G)
 from . import esid718  # 七联鱼雷发射器(93M3)
 from . import esid720  # SET-53鱼雷
 from . import esid721  # MK7主炮（MK8）
+from . import esid729  # 海鹰-1甲反舰导弹
+from . import esid730  # 海鹰导弹发射器（352）

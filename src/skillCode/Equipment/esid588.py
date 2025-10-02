@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 # Author:银河远征
 # env:py38
-# NC.1071（L50）
+# TBD鱼雷机（VT-8）
 
 from src.wsgr.skill import *
 from src.wsgr.ship import *
@@ -31,5 +31,6 @@ class Eskill_588(EquipSkill):
                 bias_or_weight=0
             )
         ]
+
 
 skill = [Eskill_588]
