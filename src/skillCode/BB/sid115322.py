@@ -41,8 +41,12 @@ class Skill_115322_2(Skill):
     """当舰队旗舰为I国舰船时，全队航速低于27节的舰船在反航战和T劣势时攻击力不会受到航向的影响。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = StatusTarget(side=1, status_name='speed',
-                                   fun='lt', value=27)
+        self.target = StatusTarget(
+            side=1,
+            status_name='speed',
+            fun='lt',
+            value=27
+        )
         self.buff = [
             SpecialBuff(
                 timer=timer,

@@ -106,6 +106,8 @@ class Skill_105941_3(Skill):
 
     def is_active(self, friend, enemy):
         target_essex = TagTarget(side=1, tag='essex').get_target(friend, enemy)  # 获取埃塞克斯级
+        if self.master in target_essex:
+            target_essex.remove(self.master)  # 去除自身
         return len(target_essex)
 
 

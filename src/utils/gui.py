@@ -265,7 +265,7 @@ class Menubar(Menu):
                 self.openMenu.add_command(label=os.path.splitext(fname)[0],
                                           command=lambda x=os.path.join(saveDir, fname): self.openFile(x))
         else:
-            self.openmenu.add_command(label="（无存档）")
+            self.openMenu.add_command(label="（无存档）")
 
 
 class FrameFriend(LabelFrame):

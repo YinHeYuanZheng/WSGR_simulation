@@ -44,7 +44,7 @@ class Skill_111981_2(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            GreatDamagedMagnet(
+            SevereDamagedMagnet(
                 timer=timer,
                 phase=AllPhase,
                 rate=1,
@@ -52,7 +52,7 @@ class Skill_111981_2(Skill):
         ]
 
 
-class GreatDamagedMagnet(MagnetBuff):
+class SevereDamagedMagnet(MagnetBuff):
     def is_active(self, atk, *args, **kwargs):
         if super().is_active(atk, *args, **kwargs) and \
                 self.master.damaged == 3:

@@ -101,7 +101,7 @@ class Skill_104681_3(Skill):
                 tmp_buff = copy.copy(tmp_buff)
 
                 # 对低速舰船提升数值翻倍
-                if tmp_target.get_final_status('speed') <= 27:
+                if tmp_target.get_final_status('speed') < 27:
                     tmp_buff.value *= 2
                 tmp_target.add_buff(tmp_buff)
 

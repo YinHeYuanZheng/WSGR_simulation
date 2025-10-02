@@ -70,11 +70,13 @@ from . import sid111112  # 华盛顿-2
 from . import sid111121  # 维内托-1
 from . import sid111131  # 黎塞留-1
 from . import sid111132  # 黎塞留-2
+from . import sid112052  # 约克公爵-2
 from . import sid112061  # 北卡罗来纳-1
 from . import sid112062  # 北卡罗来纳-2
 from . import sid112071  # 南达科他-1
 from . import sid112072  # 南达科他-2
 from . import sid112111  # 卡约•杜伊里奥-1
+from . import sid112151  # 玛丽亚皇后-1
 from . import sid113801  # 圣乔治-1
 from . import sid113802  # 圣乔治-2
 from . import sid115322  # 但丁-2
