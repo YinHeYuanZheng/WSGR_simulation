@@ -200,11 +200,13 @@ class MainDlg(Frame):
         try:
             friendDict = battleConfig['friend_fleet']
             enemyDict = battleConfig['enemy_fleet']
+            battleType = battleConfig['battle_type']
         except KeyError:
             messagebox.showerror('错误', '配置文件格式错误！')
             return
         self.frameFriend.setConfig(friendDict)
         self.frameEnemy.setConfig(enemyDict)
+        self.frameSettings.setBattleType(battleType)
 
     def getSimulationSettings(self):
         return (self.frameSettings.epoch,
@@ -463,9 +465,11 @@ class FrameFriend(LabelFrame):
         for j in range(3):
             self.strategyComb[row, j].set(f'{10 * j + 90}级战术')
             self.strategyComb[row, j].config(state="disabled")
+            self.strategyComb[row, j]['values'] = list(self.strategyDict[j+1])
         for j in range(4):
             self.equipComb[row, j].set(f'装备{j + 1}')
             self.equipComb[row, j].config(state="disabled")
+            self.equipComb[row, j]['values'] = self.equipNameList
 
     def clear(self):
         self.formComb.set('梯形阵')
@@ -668,16 +672,17 @@ class FrameEnemy(LabelFrame):
 class FrameSettings(LabelFrame):
     """模拟设置模块"""
     phaseMap = {
-            '全阶段': NormalBattle,
-            '航空战': AirBattle,
-            '夜战': NightBattle,
-            '无夜战': DaytimeBattle
+        '全阶段': NormalBattle,
+        '航空战': AirBattle,
+        '夜战': NightBattle,
+        '无夜战': DaytimeBattle,
+        '自定义': BattleUtil
     }
     funDict = {
-            '胜率': run_victory,
-            '总伤害': run_avg_damage,
-            '消耗': run_supply_cost,
-            '破损率': run_damaged
+        '胜率': run_victory,
+        '总伤害': run_avg_damage,
+        '消耗': run_supply_cost,
+        '破损率': run_damaged
     }
 
     def __init__(self, master: MainDlg):
@@ -747,6 +752,16 @@ class FrameSettings(LabelFrame):
     def fun(self):
         """输出类型"""
         return self.funDict[self.funComb.get()]
+
+    def setBattleType(self, battleType: str):
+        from src.utils import battleUtil
+        battleClass = getattr(battleUtil, battleType)
+        try:
+            idx = list(self.phaseMap.values()).index(battleClass)
+            self.phaseComb.current(idx)
+        except:
+            self.phaseComb.current(0)
+            raise ResourceWarning('Battle type not accepted, setting as default')
 
     def stop(self):
         pass

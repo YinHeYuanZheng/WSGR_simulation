@@ -1085,6 +1085,8 @@ class ActiveBuff(Buff):
         self.end_buff = end_buff
 
         self.num = num
+        if coef is None:
+            coef = {}
         self.coef = coef
 
     def __repr__(self):

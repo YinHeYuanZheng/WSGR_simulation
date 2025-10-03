@@ -128,7 +128,8 @@ class ATK(Time):
         self.target.atk_hit('get_atk', self)
 
     def set_coef(self, coef):
-        self.coef.update(coef)
+        if coef is not None:
+            self.coef.update(coef)
 
     def process_coef(self):
         # 阵型系数
