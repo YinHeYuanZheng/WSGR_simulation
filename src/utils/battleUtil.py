@@ -12,7 +12,9 @@ __all__ = ['BattleUtil',
            'NormalBattle',
            'AirBattle',
            'NightBattle',
-           'DaytimeBattle']
+           'DaytimeBattle',
+           'OnlyAirBattle',
+           'SpecialBattle']
 
 
 class BattleUtil(Time):
@@ -299,6 +301,93 @@ class DaytimeBattle(BattleUtil):
         self.run_phase(SecondTorpedoPhase)
         self.run_phase(SecondMissilePhase)
         self.end_phase()
+
+class OnlyAirBattle(BattleUtil):
+    """仅航空战"""
+    def start(self):
+        """进行战斗流程"""
+        self.battle_init()
+        self.start_phase()
+        self.run_phase(BuffPhase)
+        self.run_phase(AirPhase)
+        self.end_phase()
+
+
+# ## 以下为自定义战斗 ## #
+class SpecialBattle(BattleUtil):
+    """自定义战斗流程"""
+    def start(self, air_strike_num:int=4):
+        self.battle_init()
+        self.start_phase()
+        self.run_phase(LongMissilePhase)
+        self.run_phase(BuffPhase)
+        self.air_strike(air_strike_num)  # 特殊航空开幕
+        self.run_phase(TLockPhase)
+        self.run_phase(FirstMissilePhase)
+        self.run_phase(AntiSubPhase)
+        self.run_phase(FirstTorpedoPhase)
+        self.run_phase(FirstShellingPhase)
+        self.run_phase(SecondShellingPhase)
+        self.run_phase(SecondTorpedoPhase)
+        self.run_phase(SecondMissilePhase)
+        self.run_phase(NightPhase)
+        self.end_phase()
+
+    def air_strike(self, air_strike_num:int):
+        def get_form():
+            return 4
+
+        self.timer.set_phase(AirPhase(self.timer, self.friend, self.enemy))
+
+        # 检查可被航空攻击的对象
+        from src.wsgr.formulas import AirStrikeAtk
+        def_friend = self.friend.get_atk_target(atk_type=AirStrikeAtk)
+        # 如果不存在可攻击对象，结束本阶段
+        if not len(def_friend):
+            return
+
+        # 创建深海攻击源
+        from src.wsgr.ship import Ship
+        supportUnit = Ship(self.timer)
+        supportUnit.set_status(status={
+            'name': '深海攻击',
+            'accuracy': 120,
+        })
+        supportUnit.set_side(side := 0)
+        supportUnit.set_load([20])
+        supportUnit.get_form = get_form
+        from src.wsgr.equipment import Bomber
+        supportBomber = Bomber(self.timer, master=supportUnit, enum=0)
+        supportBomber.set_status(status={
+            'name':'深海高速轰炸机',
+            'bomb': 10,
+        })
+
+        # 录入制空结果
+        self.timer.report_log('aerial', [5, 0, 0])
+        self.timer.set_air_con(5)
+
+        # 结算攻击
+        import src.wsgr.formulas as rform
+        fall_coef, air_con_coef = rform.get_air_coef(self.timer.air_con_flag,
+                                                     side)
+        total_plane_rest = 20 * air_strike_num
+        anti_num = [0] * len(def_friend)  # 迎击序数
+        coef = {'actual_flight': 20,
+                'air_con_fall': 0,
+                'air_con_coef': air_con_coef}
+        for i in range(air_strike_num):
+            coef['anti_num'] = anti_num
+            from src.wsgr.formulas import AirBombAtk
+            atk = AirBombAtk(
+                timer=self.timer,
+                atk_body=supportUnit,
+                def_list=def_friend,
+                equip=supportBomber,
+                coef=coef,
+            )
+            atk.start()
+            anti_num = atk.get_coef('anti_num')
 
 
 if __name__ == "__main__":

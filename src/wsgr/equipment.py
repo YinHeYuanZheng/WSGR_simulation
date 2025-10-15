@@ -32,7 +32,7 @@ class Equipment(Time):
                 raise ValueError("'name', 'value' and 'status' should not be all None!")
         else:
             if isinstance(status, dict):
-                self.status = status
+                self.status.update(status)
             else:
                 raise AttributeError(f"'status' should be dict, got {type(status)} instead.")
 

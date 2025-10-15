@@ -27,7 +27,10 @@ def main(infile, epoch, battle_num, fun, **kwargs):
     else:
         raise Exception(f"未许可的文件后缀'{os.path.splitext(infile)[1]}'")
     battle = load_config(battleConfig, mapDir, ds, timer_init)
+    # for ship in battle.enemy.ship:
+    #     ship.status['armor'] = 250
     set_supply(battle, battle_num)
+    prebattle_info(battle)
     fun(battle, epoch, **kwargs)
 
 

@@ -676,6 +676,7 @@ class FrameSettings(LabelFrame):
         '航空战': AirBattle,
         '夜战': NightBattle,
         '无夜战': DaytimeBattle,
+        '仅航空战': OnlyAirBattle,
         '自定义': BattleUtil
     }
     funDict = {
