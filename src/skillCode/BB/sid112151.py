@@ -104,6 +104,7 @@ class Skill_112151_3(Skill):
                 name='crit_coef',
                 phase=AllPhase,
                 value=0.6,
+                bias_or_weight=0,
                 check_target=master
             )
         ]

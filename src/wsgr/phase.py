@@ -559,7 +559,7 @@ class AntiSubPhase(DaytimePhase):
             # 发起反潜攻击
             atk = tmp_ship.anti_sub_atk(
                 timer=self.timer,
-                atk_body=self,
+                atk_body=tmp_ship,
                 def_list=defend,
             )
             atk.start()

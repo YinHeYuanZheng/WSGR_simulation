@@ -120,7 +120,7 @@ class Skill_110402_3(Skill):
                         bias_or_weight=1
                     )
                 ],
-                target=LocTarget(side=0, loc=[0]),
+                target=LocTarget(side=0, loc=[1]),
                 coef={'must_hit': True,
                       'final_damage_buff': 1}
             )
