@@ -28,10 +28,13 @@ class Skill_110302(Skill):
         buff = copy.copy(self.buff[0])
 
         target_craft = TypeTarget(side=1, shiptype=(CV, AV, CVL)
-                                  ).get_target(friend, enemy)   # 获取航系
-        target_craft.remove(self.master)                        # 去掉自身
+                                  ).get_target(friend, enemy)  # 获取航系
+        if self.master in target_craft:
+            target_craft.remove(self.master)                   # 去掉自身
         target_e_craft = [ship for ship in target_craft
-                          if ship.status['country'] == 'E']     # 获取E国航系
+                          if ship.status['country'] == 'E']    # 获取E国航系
+        if self.master in target_e_craft:
+            target_e_craft.remove(self.master)                 # 去掉自身
 
         num_craft = len(target_craft)
         num_e_craft = len(target_e_craft)

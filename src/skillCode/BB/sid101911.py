@@ -55,7 +55,8 @@ class Skill_101911_2(Skill):
     def is_active(self, friend, enemy):
         shipJ = CountryTarget(side=1, country='J'
                               ).get_target(friend, enemy)
-        shipJ.remove(self.master)
+        if self.master in shipJ:
+            shipJ.remove(self.master)
         return len(shipJ) == 0
 
 

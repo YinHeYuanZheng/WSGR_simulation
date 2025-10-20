@@ -37,7 +37,8 @@ class Skill_102991_2(PrepSkill):
             side=1,
             shiptype=(MidShip, LargeShip)
         ).get_target(friend, enemy)
-        mid_large.remove(self.master)
+        if self.master in mid_large:
+            mid_large.remove(self.master)
 
         target = np.random.choice(mid_large)
         _skill = target.get_raw_skill()  # 获得其技能
