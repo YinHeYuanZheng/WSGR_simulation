@@ -149,7 +149,8 @@ def run_damaged(battle, epoch):
               f"{damaged_rate[2, 1] / (i + 1) * 100:.2f}% "
               f"{damaged_rate[3, 1] / (i + 1) * 100:.2f}% "
               f"{damaged_rate[4, 1] / (i + 1) * 100:.2f}% "
-              f"{damaged_rate[5, 1] / (i + 1) * 100:.2f}%",
+              f"{damaged_rate[5, 1] / (i + 1) * 100:.2f}% "
+              f"(注：中破率包含大破率)",
               end='',)
 
 
