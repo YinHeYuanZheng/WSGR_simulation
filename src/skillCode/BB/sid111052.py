@@ -51,6 +51,7 @@ class Skill_111052_2(Skill):
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
+        self.target = SelfTarget(master)
         self.buff = [
             CapShield(
                 timer=timer,
