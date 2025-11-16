@@ -30,10 +30,9 @@ class App:
     dependDir = os.path.join(os.path.dirname(srcDir), 'depend')
     mapDir = os.path.join(dependDir, r'map')
     dataFile = os.path.join(dependDir, r'ship/database.xlsx')
+    data = Dataset(dataFile)  # 全部舰船、装备数据
 
     def __init__(self):
-        # self.loadData()
-        self.data = Dataset(self.dataFile)  # 全部舰船、装备数据
         self.root = Tk()
         self.root.title('战舰少女R战斗模拟器')  # 标题
         # self.root.geometry('1125x485')  # 界面尺寸
@@ -229,9 +228,9 @@ class Menubar(Menu):
         self.master = master
 
         # 复制指令
-        self.saveFile = self.master.saveFile
-        self.openFile = self.master.openFile
-        self.clear = self.master.clearAll
+        self.saveFile = master.saveFile
+        self.openFile = master.openFile
+        self.clear = master.clearAll
 
         # 菜单变量
         self.fileMenu = None
@@ -324,13 +323,9 @@ class FrameFriend(LabelFrame):
         self.equipNameList = list(equipNameDict)
         self.equipEidList = list(equipNameDict.values())
 
-        self.shipCombText = np.empty(6, dtype=object)  # 友方舰船名
         self.shipComb = np.empty(6, dtype=object)  # 友方舰船组合框
-        self.skillCombText = np.empty(6, dtype=object)  # 友方舰船技能
         self.skillComb = np.empty(6, dtype=object)  # 友方舰船技能组合框
-        self.strategyCombText = np.empty((6, 3), dtype=object)  # 友方舰船战术
         self.strategyComb = np.empty((6, 3), dtype=object)  # 友方舰船战术组合框
-        self.equipCombText = np.empty((6, 4), dtype=object)  # 友方舰船装备名
         self.equipComb = np.empty((6, 4), dtype=object)  # 友方舰船装备组合框
         self.createFrame()
 
@@ -352,12 +347,11 @@ class FrameFriend(LabelFrame):
             staticLabel.grid(row=3*i+1, column=0, padx=5, sticky='E')
 
             # 舰船设置
-            self.shipCombText[i] = StringVar()
             self.shipComb[i] = Combobox(self,
                                         width=28, height=8,
                                         state='pressed',
                                         values=self.shipNameList,
-                                        textvariable=self.shipCombText[i])
+                                        textvariable=StringVar())
             self.shipComb[i].bind('<<ComboboxSelected>>',
                                   lambda event, x=i: self.setShip(x))  # 选择响应
             self.shipComb[i].bind("<KeyRelease>",
@@ -367,22 +361,20 @@ class FrameFriend(LabelFrame):
             self.shipComb[i].grid(row=3*i+1, column=1, columnspan=2, sticky='WE')
 
             # 舰船技能
-            self.skillCombText[i] = StringVar()
             self.skillComb[i] = Combobox(self,
                                          width=13, height=8,
                                          state='disabled',
                                          values=['无技能', '1', '2'],
-                                         textvariable=self.skillCombText[i])
+                                         textvariable=StringVar())
             self.skillComb[i].set('技能')
             self.skillComb[i].grid(row=3*i+2, column=1)
 
             # 舰船战术
             for j in range(3):
-                self.strategyCombText[i, j] = StringVar()
                 self.strategyComb[i, j] = Combobox(self,
                                                    width=13, height=8,
                                                    state='disabled',
-                                                   textvariable=self.strategyCombText[i, j])
+                                                   textvariable=StringVar())
                 self.strategyComb[i, j].set(f'{10 * j + 90}级战术')
                 self.strategyComb[i, j].grid(row=3*i+2, column=j+2)
             self.strategyComb[i, 0]['values'] = list(self.strategyDict[1])
@@ -391,12 +383,11 @@ class FrameFriend(LabelFrame):
 
             # 装备设置
             for j in range(4):
-                self.equipCombText[i, j] = StringVar()
                 self.equipComb[i, j] = Combobox(self,
                                                 width=13, height=8,
                                                 state='disabled',
                                                 values=self.equipNameList,
-                                                textvariable=self.equipCombText[i, j])
+                                                textvariable=StringVar())
                 self.equipComb[i, j].bind("<KeyRelease>",
                                           lambda event, x=(i, j): self.inputEquip(x))  # 输入响应
                 self.equipComb[i, j].bind("<FocusOut>",
@@ -409,12 +400,34 @@ class FrameFriend(LabelFrame):
         """选择舰船后解锁装备可选项"""
         shipName = self.shipComb[row].get()
         if shipName != '':
+            cid = self.shipNameDict[shipName]
+            status = App.data.get_friend_ship_status(cid)
+
+            # 技能选项设置
+            skillList = status['skill']
+            skillVarList = ['无技能']
+            from src import skillCode
+            for j in range(2):
+                sid = skillList[j]
+                if sid != '':
+                    sid = 'sid' + sid
+                    skillName = getattr(skillCode, sid).name
+                    skillVarList.append(skillName)
             self.skillComb[row].config(state='normal')
+            self.skillComb[row]['values'] = skillVarList
             self.skillComb[row].set('无技能')
             for j in range(3):
                 self.strategyComb[row, j].config(state='normal')
+
+            # 装备选项设置
+            equipnum = status['equipnum']
             for j in range(4):
-                self.equipComb[row, j].config(state='normal')
+                if j < equipnum:
+                    self.equipComb[row, j].config(state='normal')
+                else:
+                    self.equipComb[row, j].set(f'装备{j + 1}')
+                    self.equipComb[row, j].config(state="disabled")
+                    self.equipComb[row, j]['values'] = self.equipNameList
 
     def inputName(self, row):
         """
@@ -459,6 +472,7 @@ class FrameFriend(LabelFrame):
         """
         self.shipComb[row]['values'] = self.shipNameList
         self.shipComb[row].set('')
+        self.skillComb[row]['values'] = ['无技能']
         self.skillComb[row].set('技能')
         self.skillComb[row].config(state="disabled")
 
@@ -486,32 +500,25 @@ class FrameFriend(LabelFrame):
         for i in range(6):
             if self.shipComb[i].get() == '':
                 break
-            shipDict = {'loc': i + 1,
-                        'cid': self.shipNameDict[self.shipComb[i].get()],
-                        'level': 110,
-                        'affection': 200,  # todo 可从设置更改好感度
-                        }
-            if self.skillComb[i].get() == '无技能':
-                shipDict['skill'] = 0
-            else:
-                shipDict['skill'] = int(self.skillComb[i].get())  # todo 技能名和数字互相查找
-
-            # 装备
-            shipDict['equipment'] = [
-                {'loc': j + 1,
-                 'eid': self.equipNameDict[self.equipComb[i, j].get()]}
-                for j in range(4)
-                if self.equipComb[i, j].get() != f'装备{j + 1}'
-            ]
-
-            # 战术
-            shipDict['strategy'] = [
-                {'stid': self.strategyDict[j + 1][self.strategyComb[i, j].get()],
-                 'level': 3}  # todo 可从设置更改战术等级
-                for j in range(3)
-                if self.strategyComb[i, j].get() != f'{10 * j + 90}级战术'
-            ]
-
+            shipDict = {
+                'loc': i + 1,
+                'cid': self.shipNameDict[self.shipComb[i].get()],
+                'level': 110,
+                'affection': 200,  # todo 可从设置更改好感度
+                'skill': self.skillComb[i].current(),
+                'equipment': [
+                    {'loc': j + 1,
+                     'eid': self.equipNameDict[self.equipComb[i, j].get()]}
+                    for j in range(4)
+                    if self.equipComb[i, j].get() != f'装备{j + 1}'
+                ],
+                'strategy': [
+                    {'stid': self.strategyDict[j + 1][self.strategyComb[i, j].get()],
+                     'level': 3}  # todo 可从设置更改战术等级
+                    for j in range(3)
+                    if self.strategyComb[i, j].get() != f'{10 * j + 90}级战术'
+                ]
+            }
             shipList.append(shipDict)
 
         fleetDict['ships'] = shipList
@@ -573,7 +580,6 @@ class FrameEnemy(LabelFrame):
         self.shipNameDict = shipNameDict
         self.shipNameList = list(shipNameDict)
         self.shipCidList = list(shipNameDict.values())
-        self.shipCombText = np.empty(6, dtype=object)  # 敌方舰船名
         self.shipComb = np.empty(6, dtype=object)  # 敌方舰船组合框
         self.createFrame()
 
@@ -595,12 +601,11 @@ class FrameEnemy(LabelFrame):
             staticLabel.grid(row=i+1, column=0, padx=5, pady=3, sticky='E')
 
             # 舰船设置
-            self.shipCombText[i] = StringVar()
             self.shipComb[i] = Combobox(self,
                                         width=18, height=8,
                                         state='pressed',
                                         values=self.shipNameList,
-                                        textvariable=self.shipCombText[i])
+                                        textvariable=StringVar())
             self.shipComb[i].bind("<KeyRelease>",
                                   lambda event, x=i: self.inputName(x))  # 输入响应
             self.shipComb[i].grid(row=i+1, column=1)
