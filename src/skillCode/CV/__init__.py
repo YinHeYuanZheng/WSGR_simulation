@@ -20,6 +20,7 @@ from . import sid104941  # G6-1
 from . import sid104981  # 复仇-1
 from . import sid105131  # 勇猛-1
 from . import sid105941  # 黄蜂(CV-18)-1
+from . import sid106091  # 香格里拉-1
 
 # 改造
 from . import sid110221  # 赤城改-1

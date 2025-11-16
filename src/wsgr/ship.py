@@ -983,7 +983,7 @@ class Aircraft(Ship):
 
     def __init__(self, timer):
         super().__init__(timer)
-        self.flightparam = 0
+        self.flight_param = 0
         self.act_phase_flag.update({'AirPhase': True})
         self.act_phase_indicator.update({'AirPhase': lambda x: x.damaged < 3})
 
@@ -1014,7 +1014,7 @@ class CV(Aircraft, LargeShip, MainShip):
     def __init__(self, timer):
         super().__init__(timer)
         self.type = 'CV'
-        self.flightparam = 5
+        self.flight_param = 5
 
         self.act_phase_flag.update({
             'AirPhase': True,
@@ -1053,7 +1053,7 @@ class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
     def __init__(self, timer):
         super().__init__(timer)
         self.type = 'CVL'
-        self.flightparam = 5
+        self.flight_param = 5
 
         self.act_phase_flag.update({
             'AirPhase': True,
@@ -1100,7 +1100,7 @@ class AV(Aircraft, LargeShip, MainShip):
     def __init__(self, timer):
         super().__init__(timer)
         self.type = 'AV'
-        self.flightparam = 5
+        self.flight_param = 5
 
         self.act_phase_flag.update({
             'AirPhase': True,
@@ -1152,7 +1152,7 @@ class BBV(Aircraft, LargeShip, MainShip):
     def __init__(self, timer):
         super().__init__(timer)
         self.type = 'BBV'
-        self.flightparam = 10
+        self.flight_param = 10
 
         from src.wsgr.formulas import AirAntiSubAtk
         self.anti_sub_atk = AirAntiSubAtk  # 反潜攻击
@@ -1225,7 +1225,7 @@ class CAV(Aircraft, AntiSubShip, MidShip, CoverShip):
     def __init__(self, timer):
         super().__init__(timer)
         self.type = 'CAV'
-        self.flightparam = 10
+        self.flight_param = 10
 
 
 class CA(MidShip, CoverShip):
@@ -1471,7 +1471,7 @@ class Elite(Aircraft, LargeShip, MainShip):
     def __init__(self, timer):
         super().__init__(timer)
         self.type = 'Elite'
-        self.flightparam = 10
+        self.flight_param = 10
 
         self.act_phase_flag.update({
             'SecondTorpedoPhase': False,
@@ -1484,7 +1484,7 @@ class Fortness(LandUnit, Aircraft):
     def __init__(self, timer):
         super().__init__(timer)
         self.type = 'Fortness'
-        self.flightparam = 10
+        self.flight_param = 10
 
         self.act_phase_flag.update({
             'SecondTorpedoPhase': False,
@@ -1499,7 +1499,7 @@ class Airfield(LandUnit, Aircraft):
     def __init__(self, timer):
         super().__init__(timer)
         self.type = 'Airfield'
-        self.flightparam = 10
+        self.flight_param = 10
 
         self.act_phase_flag.update({
             'SecondTorpedoPhase': False,

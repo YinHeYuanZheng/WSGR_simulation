@@ -3,6 +3,7 @@
 # env:py38
 # 装备特效
 
+from . import esid002  # 回避率特效
 from . import esid003  # 装备穿甲特效
 from . import esid004  # 超重弹特效
 from . import esid005  # 开幕轰炸威力特效
@@ -59,3 +60,5 @@ from . import esid720  # SET-53鱼雷
 from . import esid721  # MK7主炮（MK8）
 from . import esid729  # 海鹰-1甲反舰导弹
 from . import esid730  # 海鹰导弹发射器（352）
+from . import esid736  # BM-14-17火箭炮
+from . import esid737  # 特殊炮塔（T-34/76）

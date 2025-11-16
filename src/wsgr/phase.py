@@ -227,8 +227,8 @@ class AirPhase(DaytimePhase):
             return
 
         # 计算双方制空
-        aerial_friend = rform.get_fleet_aerial(atk_friend)
-        aerial_enemy = rform.get_fleet_aerial(atk_enemy)
+        aerial_friend = rform.get_fleet_aerial(self.friend.ship)
+        aerial_enemy = rform.get_fleet_aerial(self.enemy.ship)
         # 制空结果, 从空确到空丧分别为1-5
         air_con_flag = rform.compare_aerial(aerial_friend, aerial_enemy)
         # 制空均为0时特殊情况, 检查双方攻击性飞机
@@ -264,7 +264,7 @@ class AirPhase(DaytimePhase):
 
         for tmp_ship in attack:
             fall_rand = np.random.uniform(*fall_coef)  # 每艘船固定一个制空击坠随机数
-            flightlimit = rform.get_flightlimit(tmp_ship)  # 放飞限制
+            flight_limit = rform.get_flightlimit(tmp_ship)  # 放飞限制
             for tmp_equip in tmp_ship.equipment:
                 coef = {}  # 公式参数
 
@@ -279,7 +279,7 @@ class AirPhase(DaytimePhase):
                     continue
 
                 # 实际放飞值为机库剩余量与放飞限制的较小值
-                actual_flight = min(tmp_equip.load, flightlimit)
+                actual_flight = min(tmp_equip.load, flight_limit)
                 coef['actual_flight'] = actual_flight
 
                 # 制空击坠

@@ -19,7 +19,7 @@ class Eskill_601(EquipSkill):
                 EquipEffect(
                     timer=timer,
                     effect_type=601,
-                    name='air_con_buff',
+                    name='air_ctrl_buff',
                     phase=AirPhase,
                     value=25,
                     bias_or_weight=0

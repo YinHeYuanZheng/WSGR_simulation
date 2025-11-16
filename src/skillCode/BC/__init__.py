@@ -18,6 +18,7 @@ from . import sid105241  # 夏威夷-1
 from . import sid105401  # 伊兹梅尔-1
 from . import sid105651  # 塞瓦斯托波尔-1
 from . import sid105901  # 金伯恩-1
+from . import sid106051  # 卡萨诺方案-1
 
 # 改造
 from . import sid110011  # 胡德-1

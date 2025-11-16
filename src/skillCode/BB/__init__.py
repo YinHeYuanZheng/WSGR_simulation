@@ -43,6 +43,7 @@ from . import sid105471  # 勃艮第-1
 from . import sid105691  # 布勃诺夫方案-1
 from . import sid105721  # 骏河-1
 from . import sid105821  # H43-1
+from . import sid106021  # 密西西比-1
 
 # 改造BB
 from . import sid110061  # 俾斯麦-1

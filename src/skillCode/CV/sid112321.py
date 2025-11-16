@@ -41,7 +41,7 @@ class Skill_112321_2(Skill):
         self.buff = [
             CoeffBuff(
                 timer=timer,
-                name='air_con_buff',
+                name='air_ctrl_buff',
                 phase=AirPhase,
                 value=30,
                 bias_or_weight=0
