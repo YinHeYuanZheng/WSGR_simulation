@@ -9,6 +9,7 @@ import sys
 import copy
 import numpy as np
 import yaml
+import threading
 
 curDir = os.path.dirname(__file__)
 srcDir = os.path.dirname(curDir)
@@ -42,7 +43,19 @@ class App:
         self.getBattleConfig = self.mainDlg.getBattleConfig
         self.getSimulationSettings = self.mainDlg.getSimulationSettings
 
+        self.simulation_thread = None
+        self.stop_event = threading.Event()
+
     def simulation(self):
+        if self.simulation_thread is not None and self.simulation_thread.is_alive():
+            return
+
+        self.stop_event.clear()
+        self.simulation_thread = threading.Thread(target=self._run_simulation)
+        self.simulation_thread.daemon = True
+        self.simulation_thread.start()
+
+    def _run_simulation(self):
         self.mainDlg.frameResult.clear()
 
         # 获取战斗设置
@@ -57,8 +70,12 @@ class App:
         set_supply(battle, battleNum)
         prebattle_info(battle)
         print('')
-        fun(battle, epoch)
+        fun(battle, epoch, stop_event=self.stop_event)
         sys.stdout = sys.__stdout__
+
+    def stop_simulation(self):
+        if self.simulation_thread is not None and self.simulation_thread.is_alive():
+            self.stop_event.set()
 
     def saveFile(self, outfile=None):
         if outfile is None:
@@ -106,6 +123,7 @@ class MainDlg(Frame):
         self.saveFile = self.app.saveFile
         self.openFile = self.app.openFile
         self.simulation = self.app.simulation
+        self.stop = self.app.stop_simulation
 
         # 建立友方船名-cid互查字典
         self.friendNameDict = {name: cid for name, cid in
@@ -695,6 +713,7 @@ class FrameSettings(LabelFrame):
         super().__init__(master, text='模拟选项')
         self.master = master
         self.simulation = self.master.simulation
+        self.stop = self.master.stop
         self.createFrame()
 
     def createFrame(self):
@@ -768,9 +787,6 @@ class FrameSettings(LabelFrame):
         except:
             self.phaseComb.current(0)
             raise ResourceWarning('Battle type not accepted, setting as default')
-
-    def stop(self):
-        pass
 
     def clear(self):
         # self.epochEntry.insert(0, '1000')

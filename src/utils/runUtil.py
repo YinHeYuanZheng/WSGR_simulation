@@ -4,14 +4,18 @@
 
 import copy
 import numpy as np
+import threading
 from src.wsgr.wsgrTimer import damagePhaseList
 from src.wsgr.ship import Ship
 
 
-def run_victory(battle, epoch):
+def run_victory(battle, epoch,
+                stop_event:threading.Event=None):
     result = [0] * 6
     result_flag_list = ['SS', 'S', 'A', 'B', 'C', 'D']
     for i in range(epoch):
+        if stop_event is not None and stop_event.is_set():
+            break
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
@@ -53,9 +57,12 @@ def run_map_victory(battle, epoch):
               end='',)
 
 
-def run_hit_rate(battle, epoch, phase:str=None):
+def run_hit_rate(battle, epoch, phase:str=None,
+                 stop_event:threading.Event=None):
     hit_rate = 0
     for i in range(epoch):
+        if stop_event is not None and stop_event.is_set():
+            break
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
@@ -70,11 +77,14 @@ def run_hit_rate(battle, epoch, phase:str=None):
               end='',)
 
 
-def run_avg_damage(battle, epoch, phase:str=None):
+def run_avg_damage(battle, epoch, phase:str=None,
+                   stop_event:threading.Event=None):
     avg_damage = 0
     avg_damage_phase = 0
     defeat_num = 0
     for i in range(epoch):
+        if stop_event is not None and stop_event.is_set():
+            break
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
@@ -94,9 +104,12 @@ def run_avg_damage(battle, epoch, phase:str=None):
               end='',)
 
 
-def run_supply_cost(battle, epoch):
+def run_supply_cost(battle, epoch,
+                    stop_event:threading.Event=None):
     supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0, 'repeat': 0}
     for i in range(epoch):
+        if stop_event is not None and stop_event.is_set():
+            break
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         log = tmp_battle.report()
@@ -116,9 +129,12 @@ def run_supply_cost(battle, epoch):
               end='',)
 
 
-def run_damaged(battle, epoch):
+def run_damaged(battle, epoch,
+                stop_event:threading.Event=None):
     damaged_rate = np.zeros((6, 2))
     for i in range(epoch):
+        if stop_event is not None and stop_event.is_set():
+            break
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
         for j in range(6):

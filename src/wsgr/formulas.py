@@ -1545,21 +1545,20 @@ def get_ship_aerial(ship):
     if not ship.get_act_indicator():
         return result
 
-    eloc_list = [tmp_equip.enum - 1
-                 for tmp_equip in ship.equipment
-                 if isinstance(tmp_equip, (Fighter, Bomber, DiveBomber))
-                 and tmp_equip.load > 0]  # 参与航空战的飞机索引
+    equip_list = [tmp_equip for tmp_equip in ship.equipment
+                  if isinstance(tmp_equip, (Fighter, Bomber, DiveBomber))
+                  and tmp_equip.load > 0]  # 参与航空战的飞机索引
 
     # 没有可行动飞机
-    if not len(eloc_list):
+    if not len(equip_list):
         return result
 
     # 计算制空
     flight_limit = get_flightlimit(ship)
-    actual_flight = np.array([min(ship.equipment[i].load, flight_limit)
-                              for i in eloc_list])  # 可行动飞机的实际放飞
-    antiair = np.array([ship.equipment[i].get_final_status('antiair')
-                        for i in eloc_list])  # 可行动飞机的对空
+    actual_flight = np.array([min(tmp_equip.load, flight_limit)
+                              for tmp_equip in equip_list])  # 可行动飞机的实际放飞
+    antiair = np.array([tmp_equip.get_final_status('antiair')
+                        for tmp_equip in equip_list])  # 可行动飞机的对空
 
     air = np.log(2 * (actual_flight + 1)) * antiair  # 总制空
     result += np.sum(air) * (1 + buff_scale)  # 总加成制空
