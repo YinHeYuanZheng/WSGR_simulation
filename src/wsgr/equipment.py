@@ -32,7 +32,7 @@ class Equipment(Time):
                 raise ValueError("'name', 'value' and 'status' should not be all None!")
         else:
             if isinstance(status, dict):
-                self.status = status
+                self.status.update(status)
             else:
                 raise AttributeError(f"'status' should be dict, got {type(status)} instead.")
 
@@ -71,13 +71,13 @@ class Equipment(Time):
                     tmp_buff.is_active():
                 scale_add += tmp_buff.value
         status = status * (1 + scale_add) + bias
-        return max(0, status)
+        return status
 
     def get_final_status(self, name):
         """根据属性名称获取最终属性"""
         buff_scale_1, buff_scale_2, buff_bias = self.get_buff(name)
         status = self.get_status(name) * (1 + buff_scale_1) * buff_scale_2 + buff_bias
-        return max(0, status)
+        return status
 
     def get_range(self):
         equip_range = self.status.get('range', 0)
@@ -239,10 +239,15 @@ class Missile(Equipment):
 
 
 class NormalMissile(Missile):
-    """通用型导弹"""
+    """反舰导弹"""
+    pass
+
+
+class LongMissile(NormalMissile):
+    """远程反舰导弹"""
     pass
 
 
 class AntiMissile(Missile):
-    """防空型导弹"""
+    """防空导弹"""
     pass

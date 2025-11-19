@@ -54,7 +54,8 @@ class Request_1(Request):
             side=1,
             shiptype=(CV, CVL, AV)
         ).get_target(self.friend, self.enemy)
-        target.remove(self.master)
+        if self.master in target:
+            target.remove(self.master)  # 去除自身
         num = len(target)
         return num == 0
 

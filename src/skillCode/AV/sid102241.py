@@ -19,14 +19,14 @@ class Skill_102241(Skill):
             StatusBuff(
                 timer,
                 name='accuracy',
-                phase=(AirPhase,),
+                phase=AirPhase,
                 value=15,
                 bias_or_weight=0
             ),
-            AtkBuff(
+            CoeffBuff(
                 timer,
                 name='ignore_armor',
-                phase=(ShellingPhase,),
+                phase=ShellingPhase,
                 value=-0.3,
                 bias_or_weight=1
             )

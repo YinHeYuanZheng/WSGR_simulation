@@ -18,7 +18,7 @@ class Skill_104981(Skill):
             CoeffBuff(
                 timer=self.timer,
                 name='air_atk_buff',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=0.08,
                 bias_or_weight=2
             )

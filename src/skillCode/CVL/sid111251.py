@@ -17,13 +17,13 @@ class Skill_110231_1(CommonSkill):
         self.target = EquipTarget(
             side=1,
             target=SelfTarget(master),
-            equiptype=(DiveBomber,)
+            equiptype=DiveBomber,
         )
         self.buff = [
             CommonBuff(
                 timer=timer,
                 name='antisub',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=8,
                 bias_or_weight=0
             )
@@ -38,13 +38,13 @@ class Skill_110231_2(CommonSkill):
         self.target = EquipTarget(
             side=1,
             target=SelfTarget(master),
-            equiptype=(Bomber,)
+            equiptype=Bomber,
         )
         self.buff = [
             CommonBuff(
                 timer=timer,
                 name='bomb',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=8,
                 bias_or_weight=0
             )

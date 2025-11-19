@@ -7,7 +7,7 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""狼群战术:队伍中每有一艘潜艇，都会增加所有潜艇的命中值 2 点及暴击率 2%，这个技能只在旗舰是 U 型潜艇时生效。"""
+"""狼群战术:队伍中每有一艘潜艇，都会增加所有潜艇的命中率 2% 及暴击率 2%，这个技能只在旗舰是 U 型潜艇时生效。"""
 
 
 class Skill_111972_1(Skill):
@@ -15,11 +15,11 @@ class Skill_111972_1(Skill):
         super().__init__(timer, master)
         self.target = TypeTarget(side=1, shiptype=SS)
         self.buff = [
-            StatusBuff(
+            CoeffBuff(
                 timer=timer,
-                name='accuracy',
+                name='hit_rate',
                 phase=AllPhase,
-                value=2,
+                value=0.02,
                 bias_or_weight=0
             ),
             CoeffBuff(

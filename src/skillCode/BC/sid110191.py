@@ -60,7 +60,7 @@ class Skill_110191(Skill):
         ]
 
     def activate(self, friend, enemy):
-        buff_mul = self.timer.get_dist_from_start()
+        buff_mul = self.timer.get_dist_to_boss()
         for tmp_buff in self.buff[:]:
             tmp_buff = copy.copy(tmp_buff)
             tmp_buff.value *= buff_mul

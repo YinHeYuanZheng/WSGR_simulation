@@ -20,38 +20,35 @@ class Skill_110222_1(Skill):
             CoeffBuff(
                 timer=timer,
                 name='air_bomb_atk_buff',
-                phase=(AirPhase,),
+                phase=AirPhase,
                 value=-0.25,
                 bias_or_weight=2
             ),
             CoeffBuff(
                 timer=timer,
                 name='air_dive_atk_buff',
-                phase=(AirPhase,),
+                phase=AirPhase,
                 value=0.25,
                 bias_or_weight=2
             )
         ]
 
-    def is_active(self, friend, enemy):
-        return bool(self.request[0](self.timer, self.master, friend, enemy))
-
 
 class Request_1(Request):
     def __bool__(self):
-        # 轰炸机数量（搭载量，不是装备格）
+        # 轰炸机数量（当前搭载量，不是装备格）
         bomb = EquipTarget(
             side=1,
             target=SelfTarget(self.master),
-            equiptype=(Bomber,)
+            equiptype=Bomber
         ).get_target(self.friend, self.enemy)
         num_bomb = sum([plane.load for plane in bomb])
 
-        # 鱼雷机数量（搭载量，不是装备格）
+        # 鱼雷机数量（当前搭载量，不是装备格）
         dive = EquipTarget(
             side=1,
             target=SelfTarget(self.master),
-            equiptype=(DiveBomber,)
+            equiptype=DiveBomber
         ).get_target(self.friend, self.enemy)
         num_dive = sum([plane.load for plane in dive])
 
@@ -70,38 +67,35 @@ class Skill_110222_2(Skill):
             CoeffBuff(
                 timer=timer,
                 name='air_bomb_atk_buff',
-                phase=(AirPhase,),
+                phase=AirPhase,
                 value=0.25,
                 bias_or_weight=2
             ),
             CoeffBuff(
                 timer=timer,
                 name='air_dive_atk_buff',
-                phase=(AirPhase,),
+                phase=AirPhase,
                 value=-0.25,
                 bias_or_weight=2
             )
         ]
 
-    def is_active(self, friend, enemy):
-        return bool(self.request[0](self.timer, self.master, friend, enemy))
-
 
 class Request_2(Request):
     def __bool__(self):
-        # 轰炸机数量（搭载量，不是装备格）
+        # 轰炸机数量（当前搭载量，不是装备格）
         bomb = EquipTarget(
             side=1,
             target=SelfTarget(self.master),
-            equiptype=(Bomber,)
+            equiptype=Bomber
         ).get_target(self.friend, self.enemy)
         num_bomb = sum([plane.load for plane in bomb])
 
-        # 鱼雷机数量（搭载量，不是装备格）
+        # 鱼雷机数量（当前搭载量，不是装备格）
         dive = EquipTarget(
             side=1,
             target=SelfTarget(self.master),
-            equiptype=(DiveBomber,)
+            equiptype=DiveBomber
         ).get_target(self.friend, self.enemy)
         num_dive = sum([plane.load for plane in dive])
 

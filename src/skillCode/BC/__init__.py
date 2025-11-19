@@ -4,6 +4,7 @@
 # BC
 
 # 未改
+from . import sid101891  # 天城-1
 from . import sid103311  # 无比-1
 from . import sid103971  # 斯大林格勒-1
 from . import sid104351  # B65-1
@@ -12,7 +13,12 @@ from . import sid104461  # 狮(战巡)-1
 from . import sid104611  # 无敌-1
 from . import sid104841  # 安森-1
 from . import sid104901  # 克劳塞维茨-1
+from . import sid105211  # 1913战巡-1
 from . import sid105241  # 夏威夷-1
+from . import sid105401  # 伊兹梅尔-1
+from . import sid105651  # 塞瓦斯托波尔-1
+from . import sid105901  # 金伯恩-1
+from . import sid106051  # 卡萨诺方案-1
 
 # 改造
 from . import sid110011  # 胡德-1

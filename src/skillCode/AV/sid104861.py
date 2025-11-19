@@ -42,13 +42,13 @@ class Skill_104861_2(Skill):
         self.buff = [
             MagnetBuff(
                 timer=timer,
-                phase=(AirPhase,),
+                phase=AirPhase,
                 rate=0.4
             ),
             CoeffBuff(
                 timer=timer,
                 name='reduce_damage',
-                phase=(AirPhase,),
+                phase=AirPhase,
                 value=15,
                 bias_or_weight=0
             )

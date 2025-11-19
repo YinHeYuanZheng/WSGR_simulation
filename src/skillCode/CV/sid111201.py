@@ -22,7 +22,7 @@ class Skill_111201_1(CommonSkill):
             CommonBuff(
                 timer=timer,
                 name='fire',
-                phase=(AllPhase, ),
+                phase=AllPhase,
                 value=10,
                 bias_or_weight=0
             )
@@ -37,8 +37,8 @@ class Skill_111201_2(Skill):
         self.buff = [
             CoeffBuff(
                 timer=timer,
-                name='air_con_buff',
-                phase=(AirPhase,),
+                name='air_ctrl_buff',
+                phase=AirPhase,
                 value=25,
                 bias_or_weight=0
             )
@@ -54,7 +54,7 @@ class Skill_111201_3(Skill):
             AtkCoefProcess(
                 timer=timer,
                 name='air_con_coef',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=1.,
                 atk_request=[BuffRequest_1])
         ]
@@ -74,7 +74,7 @@ class Skill_111201_4(Skill):
             AtkBuff(
                 timer=timer,
                 name='air_atk_buff',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=0.15,
                 bias_or_weight=2,
                 atk_request=[BuffRequest_2]

@@ -78,7 +78,8 @@ class Skill_104361_3(Skill):
 
     def activate(self, friend, enemy):
         target = self.target.get_target(friend, enemy)
-        target.remove(self.master)  # 去除自身
+        if self.master in target:
+            target.remove(self.master)  # 去除自身
         for tmp_target in target:
             this_buff = copy.copy(self.buff[0])
             if tmp_target.status['country'] == 'J' and self.master.loc == 1:

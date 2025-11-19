@@ -40,5 +40,5 @@ class Skill_101191(Skill):
         ]
 
 
-name = '精准打击('
+name = '精准打击'
 skill = [Skill_101191]

@@ -16,14 +16,16 @@ class Skill_110021_1(CommonSkill):
     """提升自身所装备的大口径主炮类装备的火力5点。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = EquipTarget(side=1,
-                                  target=SelfTarget(master),
-                                  equiptype=MainGun)
+        self.target = EquipTarget(
+            side=1,
+            target=SelfTarget(master),
+            equiptype=MainGun
+        )
         self.buff = [
             CommonBuff(
                 timer=timer,
                 name='fire',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=5,
                 bias_or_weight=0
             )

@@ -13,7 +13,7 @@ from src.wsgr.phase import *
 class Strategy_233(SelfStrategy):
     def __init__(self, timer, master, level=3):
         super().__init__(timer, master, level)
-        value = [0.1, 0.1, 0.1, 0.2]
+        value = [1, 1, 1, 2]
         self.stid = '233'
         self.buff = [
             CoeffBuff(

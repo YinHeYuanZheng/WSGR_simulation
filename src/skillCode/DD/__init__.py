@@ -50,9 +50,13 @@ from . import sid111851  # 机灵改-1
 from . import sid111871  # 安东尼奥·达诺利改-1
 from . import sid111881  # 乌戈里尼·维瓦尔迪改-1
 from . import sid111921  # 塔什干改-1
+from . import sid112441  # 灵敏改-1
+from . import sid112581  # 高波改-1
 from . import sid112651  # 岚改-1
 from . import sid112691  # z-17改-1
 from . import sid112701  # z-18改-1
+from . import sid112731  # 赛尔弗里吉改-1
+from . import sid112751  # 31节中队(康弗斯改-1、克拉克斯顿改-1)
 from . import sid112781  # 霍埃尔改-1
 from . import sid112782  # 大卫·塔菲3
 from . import sid112791  # 塞缪尔•罗伯茨改-1
@@ -65,4 +69,9 @@ from . import sid113351  # 伏尔塔改-1
 from . import sid113421  # 江原改-1
 from . import sid113441  # 忠武改-1
 from . import sid113721  # 早春改-1
+from . import sid114141  # 凯利改-1
+from . import sid114161  # 47工程改-1
+from . import sid114251  # 史密斯改-1
 from . import sid114961  # 诺福克改-1
+from . import sid115031  # T-23改-1
+from . import sid115171  # 吕贝克改-1

@@ -17,7 +17,7 @@ class Eskill_005(EquipSkill):
             EquipEffect(
                 timer=timer,
                 effect_type=5,
-                name='air_atk_buff',
+                name='air_bomb_atk_buff',
                 phase=AirPhase,
                 value=self.value[0],
                 bias_or_weight=2

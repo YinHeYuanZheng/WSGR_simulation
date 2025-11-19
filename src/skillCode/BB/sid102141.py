@@ -26,9 +26,8 @@ class Skill_102141(Skill):
 
 
 class RandomFinalDamage(FinalDamageBuff):
-    def is_active(self, *args, **kwargs):
+    def change_value(self, *args, **kwargs):
         self.value = np.random.uniform(0.9, 1.3) - 1
-        return isinstance(self.timer.phase, self.phase)
 
 
 skill = [Skill_102141]

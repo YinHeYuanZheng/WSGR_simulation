@@ -1,0 +1,141 @@
+battle_type: DaytimeBattle
+friend_fleet:
+  form: 4
+  side: 1
+  ships:
+  - loc: 1
+    cid: '10513'
+    level: 110
+    affection: 200
+    skill: 1
+    equipment:
+    - loc: 1
+      eid: '10653'
+    - loc: 2
+      eid: '10653'
+    - loc: 3
+      eid: '10653'
+    - loc: 4
+      eid: '10633'
+    strategy:
+    - stid: '233'
+      level: 3
+  - loc: 2
+    cid: '10469'
+    level: 110
+    affection: 200
+    skill: 1
+    equipment:
+    - loc: 1
+      eid: '10653'
+    - loc: 2
+      eid: '10653'
+    - loc: 3
+      eid: '10653'
+    - loc: 4
+      eid: '10633'
+    strategy:
+    - stid: '233'
+      level: 3
+  - loc: 3
+    cid: '11031'
+    level: 110
+    affection: 200
+    skill: 1
+    equipment:
+    - loc: 1
+      eid: '10626'
+    - loc: 2
+      eid: '10662'
+    - loc: 3
+      eid: '10662'
+    - loc: 4
+      eid: '10630'
+    strategy:
+    - stid: '233'
+      level: 3
+  - loc: 4
+    cid: '10576'
+    level: 110
+    affection: 200
+    skill: 1
+    equipment:
+    - loc: 1
+      eid: '10690'
+    - loc: 2
+      eid: '10690'
+    - loc: 3
+      eid: '10690'
+    - loc: 4
+      eid: '10630'
+    strategy:
+    - stid: '233'
+      level: 3
+  - loc: 5
+    cid: '11029'
+    level: 110
+    affection: 200
+    skill: 1
+    equipment:
+    - loc: 1
+      eid: '10626'
+    - loc: 2
+      eid: '10681'
+    - loc: 3
+      eid: '10681'
+    - loc: 4
+      eid: '10630'
+    strategy:
+    - stid: '233'
+      level: 3
+  - loc: 6
+    cid: '11325'
+    level: 110
+    affection: 200
+    skill: 2
+    equipment:
+    - loc: 1
+      eid: '10652'
+    - loc: 2
+      eid: '10652'
+    - loc: 3
+      eid: '10652'
+    - loc: 4
+      eid: '10681'
+    strategy:
+    - stid: '233'
+      level: 3
+enemy_fleet:
+  form: 4
+  side: 0
+  ships:
+  - loc: 1
+    cid: '01055'
+    level: 110
+    affection: 50
+    skill: 1
+  - loc: 2
+    cid: '01056'
+    level: 110
+    affection: 50
+    skill: 1
+  - loc: 3
+    cid: '01057'
+    level: 110
+    affection: 50
+    skill: 1
+  - loc: 4
+    cid: '01058'
+    level: 110
+    affection: 50
+    skill: 1
+  - loc: 5
+    cid: '01059'
+    level: 110
+    affection: 50
+    skill: 1
+  - loc: 6
+    cid: '01060'
+    level: 110
+    affection: 50
+    skill: 1

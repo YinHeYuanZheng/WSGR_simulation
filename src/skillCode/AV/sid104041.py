@@ -16,7 +16,7 @@ class Skill_104041_1(Skill):
 
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = TypeTarget(side=0, shiptype=(MainShip,))
+        self.target = TypeTarget(side=0, shiptype=MainShip)
         self.buff = [
             StatusBuff(
                 timer=timer,

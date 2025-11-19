@@ -43,7 +43,7 @@ class Skill_105131_2(Skill):
                 name='air_atk_buff',
                 phase=AirPhase,
                 value=0.07,
-                bias_or_weight=1
+                bias_or_weight=2
             )
         ]
 

@@ -8,8 +8,7 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""加自身及相邻船只对空值8点
-自身鱼雷暴击率增加15%(多个单位携带此技能不重复生效)。"""
+"""加自身及相邻船只对空值8点，自身鱼雷暴击率增加15%。"""
 
 
 class Skill_111641_1(Skill):
@@ -24,9 +23,8 @@ class Skill_111641_1(Skill):
             master_include=True
         )
         self.buff = [
-            UniqueEffect(
+            StatusBuff(
                 timer=timer,
-                effect_type=2.3,
                 name='antiair',
                 phase=AllPhase,
                 value=8,

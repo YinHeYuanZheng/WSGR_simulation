@@ -21,14 +21,7 @@ class Skill_110592(Skill):
                 phase=NightPhase,
                 num=3,
                 rate=0.25,
-                during_buff=[
-                    FinalDamageBuff(
-                        timer=timer,
-                        name='final_damage_buff',
-                        phase=NightPhase,
-                        value=-0.5
-                    )
-                ]
+                coef={'final_damage_buff': -0.5},
             )
         ]
 

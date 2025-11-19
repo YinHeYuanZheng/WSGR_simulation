@@ -21,7 +21,7 @@ class Skill_103881(Skill):
                 phase=ShellingPhase,
                 rate=0.35,
                 during_buff=[
-                    AtkBuff_1(
+                    HealthExtraDamage(
                         timer=timer,
                         name='extra_damage',
                         phase=ShellingPhase,
@@ -42,15 +42,13 @@ class Skill_103881(Skill):
         ]
 
 
-class AtkBuff_1(AtkBuff):
-    def is_active(self, *args, **kwargs):
+class HealthExtraDamage(AtkBuff):
+    def change_value(self, *args, **kwargs):
         try:
             atk = kwargs['atk']
         except:
             atk = args[0]
-
         self.value = np.ceil(atk.target.status['standard_health'] * 0.2)
-        return self.rate_verify()
 
 
 name = '超额'

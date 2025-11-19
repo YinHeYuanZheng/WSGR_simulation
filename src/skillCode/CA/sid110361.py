@@ -16,7 +16,6 @@ class Skill_110361(Skill):
         self.buff = [
             SpecialAtkBuff(
                 timer=timer,
-                name='special_attack',
                 phase=ShellingPhase,
                 rate=0.3,
                 target=TypeTarget(side=0, shiptype=DD),

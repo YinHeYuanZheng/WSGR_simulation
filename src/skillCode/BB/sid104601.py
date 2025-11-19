@@ -31,29 +31,6 @@ class Skill_104601_1(Skill):
         self.master.add_buff(buff_0)
 
 
-class ConditionFinalDamage(FinalDamageBuff):
-    """备用接口，随时切换"""
-    def __init__(self, timer, name, phase, value_0, value_1,
-                 value=0, bias_or_weight=2, atk_request=None, rate=1):
-        super().__init__(timer, name, phase, value, bias_or_weight, atk_request, rate)
-        self.value_0 = value_0
-        self.value_1 = value_1
-
-    def is_active(self, *args, **kwargs):
-        try:
-            atk = kwargs['atk']
-        except:
-            atk = args[0]
-
-        if bool(self.atk_request[0](self.timer, atk)):
-            self.value = self.value_0 + self.value_1
-        else:
-            self.value = self.value_0
-
-        return isinstance(self.timer.phase, self.phase) and \
-               self.rate_verify()
-
-
 class Skill_104601_2(Skill):
     """宾夕法尼亚击中非满血敌方单位时造成额外15%的伤害。"""
 

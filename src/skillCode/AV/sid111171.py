@@ -17,13 +17,13 @@ class Skill_111171_1(Skill):
             StatusBuff(
                 timer=timer,
                 name='fire',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=-40,
                 bias_or_weight=0),
             StatusBuff(
                 timer=timer,
                 name='accuracy',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=-40,
                 bias_or_weight=0)
         ]
@@ -33,19 +33,19 @@ class Skill_111171_2(Skill):
     """降低敌方主力舰20点火力值和20点装甲值"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = TypeTarget(side=0, shiptype=(MainShip,))
+        self.target = TypeTarget(side=0, shiptype=MainShip)
         self.buff = [
             StatusBuff(
                 timer=timer,
                 name='fire',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=-20,
                 bias_or_weight=0
             ),
             StatusBuff(
                 timer=timer,
                 name='armor',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=-20,
                 bias_or_weight=0
             )
@@ -56,19 +56,19 @@ class Skill_111171_3(Skill):
     """降低敌方护卫舰15点闪避值和20点对空值"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = TypeTarget(side=0, shiptype=(CoverShip,))
+        self.target = TypeTarget(side=0, shiptype=CoverShip)
         self.buff = [
             StatusBuff(
                 timer=timer,
                 name='evasion',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=-15,
                 bias_or_weight=0
             ),
             StatusBuff(
                 timer=timer,
                 name='antiair',
-                phase=(AllPhase,),
+                phase=AllPhase,
                 value=-20,
                 bias_or_weight=0
             )

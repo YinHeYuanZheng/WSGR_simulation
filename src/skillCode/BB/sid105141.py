@@ -7,12 +7,12 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""自身与相邻上方舰船增加8点火力值和装甲值，如果相邻上方为J国舰船，则该船获得两倍效果。
+"""自身与编队相邻左边一艘舰船增加8点火力值和装甲值，如果编队相邻左边一艘舰船为J国舰船，则该船获得两倍效果。
 炮击战阶段50%概率发动，对敌方造成130%伤害。"""
 
 
 class Skill_105141_1(Skill):
-    """自身与相邻上方舰船增加8点火力值和装甲值，如果相邻上方为J国舰船，则该船获得两倍效果。"""
+    """自身与相邻左边舰船增加8点火力值和装甲值，如果相邻左边为J国舰船，则该船获得两倍效果。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = NearestLocTarget(

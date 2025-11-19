@@ -22,7 +22,7 @@ class Skill_104991(Skill):
                 value=-0.5,
                 bias_or_weight=1
             ),
-            AtkBuff_1(
+            ArmorExtraDamage(
                 timer=timer,
                 name='extra_damage',
                 phase=AllPhase,
@@ -32,15 +32,14 @@ class Skill_104991(Skill):
         ]
 
 
-class AtkBuff_1(AtkBuff):
-    def is_active(self, *args, **kwargs):
+class ArmorExtraDamage(AtkBuff):
+    def change_value(self, *args, **kwargs):
         try:
             atk = kwargs['atk']
         except:
             atk = args[0]
-
         self.value = np.ceil(atk.target.get_final_status('armor') * 0.5)
-        return self.rate_verify()
 
 
+name = '集火攻击'
 skill = [Skill_104991]

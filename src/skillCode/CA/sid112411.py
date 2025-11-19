@@ -13,16 +13,7 @@ from src.wsgr.phase import *
 
 class U_TypeTarget(TypeTarget):
     def get_target(self, friend, enemy):
-        if isinstance(friend, Fleet):
-            friend = friend.ship
-        if isinstance(enemy, Fleet):
-            enemy = enemy.ship
-
-        if self.side == 1:
-            fleet = friend
-        else:
-            fleet = enemy
-
+        fleet = self.get_target_fleet(friend, enemy)
         target = [ship for ship in fleet
                   if isinstance(ship, self.shiptype) and ship.status['country'] == 'U']
         return target

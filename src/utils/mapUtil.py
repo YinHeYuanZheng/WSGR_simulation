@@ -169,19 +169,6 @@ class MapUtil(Time):
             name = point.start(self.timer, self.friend)
 
     def report(self):
-        # 命中率
-        try:
-            hit_rate = self.timer.log['hit'] / \
-                       (self.timer.log['hit'] + self.timer.log['miss'])
-            self.timer.log['hit_rate'] = hit_rate
-        except:
-            self.timer.log['hit_rate'] = 0
-
-        # 伤害量
-        self.timer.log['create_damage'] = {
-            1: [sum(ship.created_damage.values()) for ship in self.friend.ship],
-        }
-
         # 消耗
         supply = self.timer.log['supply']
         for tmp_ship in self.friend.ship:
@@ -190,7 +177,7 @@ class MapUtil(Time):
             supply['ammo'] += int(ship_supply['ammo'])
             supply['steel'] += int(ship_supply['steel'])
             supply['almn'] += int(ship_supply['almn'])
-        self.timer.log['supply'] = supply
+        self.timer.report_log('supply', supply)
 
         return self.timer.log
 
@@ -256,6 +243,11 @@ class Point:
             if self.level == 5:
                 self.battle.timer.log['end_with_boss'] = True
             return None
+
+        # todo 迂回失败回港
+        # if self.roundabout and \
+        #         not self.battle.timer.round_flag:
+        #     return None
 
         for tmp_ship in friend.ship:
             # 大破不再前进

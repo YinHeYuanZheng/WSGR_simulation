@@ -6,6 +6,9 @@
 # 未改
 from . import sid101191  # 皇家方舟-1
 from . import sid102261  # 埃塞克斯-1
+from . import sid102311  # 伦道夫-1
+from . import sid102851  # 85工程-1
+from . import sid103001  # 马耳他-1
 from . import sid103251  # 列克星敦(cv-16)-1
 from . import sid103741  # 汉考克-1
 from . import sid104261  # 彼得·施特拉塞尔-1
@@ -16,6 +19,8 @@ from . import sid104741  # 72工程-1
 from . import sid104941  # G6-1
 from . import sid104981  # 复仇-1
 from . import sid105131  # 勇猛-1
+from . import sid105941  # 黄蜂(CV-18)-1
+from . import sid106091  # 香格里拉-1
 
 # 改造
 from . import sid110221  # 赤城改-1
@@ -34,5 +39,8 @@ from . import sid112211  # 飞龙改-1
 from . import sid112212  # 飞龙改-2
 from . import sid112221  # 苍龙改-1
 from . import sid112251  # 黄蜂改-1
+from . import sid112321  # 贝亚恩改-1
+from . import sid113252  # 列克星敦(cv-16)-1
 from . import sid113391  # 帝国改-1
 from . import sid113392  # 帝国改-2
+from . import sid114262  # 彼得·施特拉塞尔改-2

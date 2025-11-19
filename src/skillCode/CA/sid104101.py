@@ -48,45 +48,33 @@ class Skill_104101_2(Skill):
                 phase=ShellingPhase,
                 num=2,
                 rate=0.25,
-                during_buff=[
-                    FinalDamageBuff(
-                        timer=timer,
-                        name='final_damage_buff',
-                        phase=ShellingPhase,
-                        value=-0.2
-                    )
-                ]
+                coef={'final_damage_buff': -0.2},
             )
         ]
 
 
 class SecondAtkBuff(MultipleAtkBuff):
     """同时攻击两个目标，第二个目标造成80%的伤害"""
-    def active_start(self, atk, enemy, *args, **kwargs):
+    def active_start(self, atk: ATK, enemy, *args, **kwargs):
         assert self.master is not None
-        def_list = enemy.get_atk_target(atk_type=atk)
+        def_list = atk.def_list
+        self.add_during_buff()  # 攻击时效果
+        yield atk
 
-        buff_flag = False
-        for i in range(self.num):
+        def_list.remove(atk.target)
+        for i in range(self.num - 1):
             if not len(def_list):
                 break
-
-            if i == self.num - 1:
-                self.add_during_buff()  # 攻击时效果
-                buff_flag = True
-
-            tmp_atk = atk(
+            tmp_atk = type(atk)(
                 timer=self.timer,
                 atk_body=self.master,
                 def_list=def_list,
                 coef=copy.copy(self.coef),
             )
-            tmp_target = tmp_atk.target_init()
-            def_list.remove(tmp_target)
             yield tmp_atk
+            def_list.remove(tmp_atk.target)
 
-        if buff_flag:
-            self.remove_during_buff()  # 去除攻击时效果
+        self.remove_during_buff()  # 去除攻击时效果
         self.add_end_buff()  # 攻击结束效果
 
 

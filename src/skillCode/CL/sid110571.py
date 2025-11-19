@@ -21,47 +21,43 @@ class Skill_110571(Skill):
                 phase=ShellingPhase,
                 num=2,
                 rate=0.4,
-                during_buff=[
-                    FinalDamageBuff(
-                        timer=timer,
-                        name='final_damage_buff',
-                        phase=ShellingPhase,
-                        value=-0.1
-                    )
-                ]
+                coef={'final_damage_buff': -0.1},
             )
         ]
 
 
 class NeighborAtkBuff(ActiveBuff):
+    def is_active(self, atk_type, enemy, *args, **kwargs):
+        from src.wsgr.formulas import AntiSubAtk
+        if issubclass(atk_type, AntiSubAtk):
+            return False
+        return super().is_active(atk_type, enemy, *args, **kwargs)
+
     def active_start(self, atk, enemy, *args, **kwargs):
         assert self.master is not None
-        def_list = enemy.get_atk_target(atk_type=atk)
-        assert len(def_list)
-        self.add_during_buff()  # 攻击时效果
+        from src.wsgr.formulas import AntiSubAtk
+        assert not isinstance(atk, AntiSubAtk)
+        def_list = atk.def_list
 
-        atk_sample = atk(
-            timer=self.timer,
-            atk_body=self.master,
-            def_list=def_list,
-            coef=copy.copy(self.coef),
-        )
-        tmp_target = atk_sample.target_init()
-        # def_list.remove(tmp_target)
-        yield atk_sample
+        self.add_during_buff()  # 攻击时效果
+        atk.set_coef(self.coef)  # 添加参数
+        yield atk
+        tmp_target = atk.target
 
         neighbor_target = NearestLocTarget(
             side=0, master=tmp_target, radius=1, direction='near'
         ).get_target(None, def_list)
-        if not len(neighbor_target):
-            return
-        another_atk = atk(
-            timer=self.timer,
-            atk_body=self.master,
-            def_list=neighbor_target,
-            coef=copy.copy(self.coef),
-        )
-        yield another_atk
+        if len(neighbor_target):
+            another_atk = type(atk)(
+                timer=self.timer,
+                atk_body=self.master,
+                def_list=neighbor_target,
+                coef=copy.copy(self.coef),
+            )
+            yield another_atk
+
+        self.remove_during_buff()  # 去除攻击时效果
+        self.add_end_buff()  # 攻击结束效果
 
 
 name = '高速弹幕'

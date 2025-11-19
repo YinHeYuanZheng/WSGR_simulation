@@ -32,7 +32,7 @@ class Skill_102081(Skill):
                 side=0,
                 rate=0.4
             ),
-            AtkBuff_1(
+            HealthExtraDamage(
                 timer=timer,
                 name='extra_damage',
                 phase=AllPhase,
@@ -43,15 +43,14 @@ class Skill_102081(Skill):
         ]
 
 
-class AtkBuff_1(AtkBuff):
-    def is_active(self, *args, **kwargs):
+class HealthExtraDamage(AtkBuff):
+    def change_value(self, *args, **kwargs):
         try:
             atk = kwargs['atk']
         except:
             atk = args[0]
-
         self.value = np.ceil(atk.target.status['standard_health'] * 0.2)
-        return self.rate_verify()
 
 
+name = '重击'
 skill = [Skill_102081]

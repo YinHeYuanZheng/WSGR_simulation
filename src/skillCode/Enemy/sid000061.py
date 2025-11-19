@@ -6,7 +6,7 @@
 from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
-from src.wsgr.formulas import NormalAtk
+from src.wsgr.formulas import MagicAtk
 
 """炮击战阶段受到伤害后对敌人发动反击，伤害为40点且必定命中（大破状态不发动）"""
 
@@ -39,8 +39,8 @@ class HitBack_Bismark(HitBack):
         return hit_back
 
 
-class BismarkHitBackAtk(NormalAtk):
-    def final_damage(self, damage):
+class BismarkHitBackAtk(MagicAtk):
+    def formula(self):
         return 40
 
 

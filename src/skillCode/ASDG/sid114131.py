@@ -43,16 +43,15 @@ class Skill_114131_2(Skill):
                 timer=timer,
                 name='final_damage_buff',
                 phase=ShellingPhase,
-                value=0.3,
+                value=0,
                 rate=0.7
             )
         ]
 
 
 class RandomFinalDamage(FinalDamageBuff):
-    def is_active(self, *args, **kwargs):
+    def change_value(self, *args, **kwargs):
         self.value = np.random.uniform(0.3, 1.)
-        return isinstance(self.timer.phase, self.phase)
 
 
 name = '北极星威慑'

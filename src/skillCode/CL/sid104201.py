@@ -8,7 +8,7 @@ from src.wsgr.ship import *
 from src.wsgr.phase import *
 
 """征战四海(3级)：全阶段损失自身总生命值的30%血量后本场战斗获得一次100%的减伤（每次出击限发动一次）。
-炮击战阶段我方每命中敌方单位一次，都会提升亚尔古水手5点火力值。"""
+炮击战阶段我方每命中敌方单位一次，都会提升自身5点火力值。"""
 
 
 class Skill_104201_1(Skill):
@@ -17,11 +17,9 @@ class Skill_104201_1(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            SpecialShield(
+            Shield_104201(
                 timer=timer,
-                name='shield',
                 phase=AllPhase,
-                exhaust=1
             )
         ]
 
@@ -30,17 +28,21 @@ class Skill_104201_1(Skill):
         self.master.add_buff(self.buff[0])
 
 
-class SpecialShield(SpecialBuff):
+class Shield_104201(DamageShield):
     def is_active(self, *args, **kwargs):
-        lost_health_rate = self.master.status['health'] / \
+        lost_health_rate = 1 - self.master.status['health'] / \
                            self.master.status['standard_health']
-        return lost_health_rate >= 0.3 and \
-               self.master.got_damage > 0 and \
-               self.exhaust > 0
+        if lost_health_rate >= 0.3 and \
+                self.master.got_damage > 0 and \
+                self.exhaust > 0:
+            self.exhaust -= 1
+            return True
+        else:
+            return False
 
 
 class Skill_104201_2(Skill):
-    """炮击战阶段我方每命中敌方单位一次，都会提升亚尔古水手5点火力值。"""
+    """炮击战阶段我方每命中敌方单位一次，都会提升自身5点火力值。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = Target(side=1)

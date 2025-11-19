@@ -4,15 +4,21 @@
 # BB
 
 # 未改BB
+from . import sid101901  # 土佐-1
+from . import sid101911  # A150-1
 from . import sid102001  # 兴登堡-1
+from . import sid102011  # V方案-1
+from . import sid102021  # 伊利诺伊-1
 from . import sid102051  # 约克公爵-1
 from . import sid102081  # 马萨诸塞-1
 from . import sid102091  # 密苏里-1
 from . import sid102101  # 衣阿华-1
+from . import sid102121  # 利托里奥-1
 from . import sid102131  # 罗马-1
 from . import sid102141  # 苏联-1
 from . import sid102991  # 让巴尔-1
 from . import sid103051  # 英王乔治五世-1
+from . import sid103211  # 费拉迪D-1
 from . import sid103451  # 威斯康星-1
 from . import sid103671  # 乌尔里希·冯·胡滕-1
 from . import sid103811  # 印第安纳-1
@@ -24,12 +30,20 @@ from . import sid104501  # L20-1
 from . import sid104541  # 征服者-1
 from . import sid104601  # 宾夕法尼亚-1
 from . import sid104641  # 南达科他(1920)-1
+from . import sid104661  # 1939战列舰-1
 from . import sid104681  # 猎户座-1
 from . import sid104991  # 克里蒙梭-1
 from . import sid105061  # 1938(I)-1
 from . import sid105141  # 近江-1
 from . import sid105201  # 蒙大拿-1
+from . import sid105231  # 亚拉巴马-1
 from . import sid105321  # 但丁-1
+from . import sid105341  # 24型-1
+from . import sid105471  # 勃艮第-1
+from . import sid105691  # 布勃诺夫方案-1
+from . import sid105721  # 骏河-1
+from . import sid105821  # H43-1
+from . import sid106021  # 密西西比-1
 
 # 改造BB
 from . import sid110061  # 俾斯麦-1
@@ -57,10 +71,13 @@ from . import sid111112  # 华盛顿-2
 from . import sid111121  # 维内托-1
 from . import sid111131  # 黎塞留-1
 from . import sid111132  # 黎塞留-2
+from . import sid112052  # 约克公爵-2
 from . import sid112061  # 北卡罗来纳-1
 from . import sid112062  # 北卡罗来纳-2
 from . import sid112071  # 南达科他-1
 from . import sid112072  # 南达科他-2
 from . import sid112111  # 卡约•杜伊里奥-1
+from . import sid112151  # 玛丽亚皇后-1
 from . import sid113801  # 圣乔治-1
 from . import sid113802  # 圣乔治-2
+from . import sid115322  # 但丁-2

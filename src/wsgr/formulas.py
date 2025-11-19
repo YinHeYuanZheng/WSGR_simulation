@@ -9,6 +9,7 @@ from src.wsgr.wsgrTimer import Time
 from src.wsgr.equipment import *
 
 __all__ = ['ATK',
+           'SupportAtk',
            'AirAtk',
            'AirStrikeAtk',
            'AirBombAtk',
@@ -18,12 +19,13 @@ __all__ = ['ATK',
            'AirAntiSubAtk',
            'TorpedoAtk',
            'NormalAtk',
+           'MagicAtk',
            'SpecialAtk',
            'AirNormalAtk',
            'NightAtk',
            'NightNormalAtk',
-           'NightFirelAtk',
-           'NightFireTorpedolAtk',
+           'NightFireAtk',
+           'NightFireTorpedoAtk',
            'NightTorpedoAtk',
            'NightMissileAtk',
            'NightAntiSubAtk'
@@ -37,17 +39,15 @@ class ATK(Time):
     def __init__(self, timer, atk_body, def_list, coef=None, target=None,
                  *args, **kwargs):
         super().__init__(timer)
-        self.timer.set_atk(self)
         self.atk_body = atk_body
         self.def_list = def_list  # 可被攻击目标列表
 
         self.target = target  # 攻击目标，可被更改
         self.changeable = True  # 攻击目标是否可被更改
 
-        if coef is None:
-            self.coef = {}
-        else:
-            self.coef = coef  # 伤害计算相关参数
+        self.coef = {}
+        if coef is not None:
+            self.coef.update(coef)  # 伤害计算相关参数
 
         self.form_coef = {
             'power': [],
@@ -68,7 +68,7 @@ class ATK(Time):
 
     def start(self):
         """攻击开始命令，结算到攻击结束"""
-
+        self.timer.set_atk(self)
         damage_flag = False
         self.target_init()
         self.start_atk()
@@ -78,17 +78,17 @@ class ATK(Time):
         self.process_coef()  # 生成公式相关系数
 
         if not self.coef['hit_flag']:
-            return self.end_atk(damage_flag, 'miss')
+            return self.end_atk(damage_flag, 'miss', False)
 
         real_atk = self.formula()
         damage = self.real_damage(real_atk)
         if damage == 0:
-            return self.end_atk(damage_flag, 'jump')
+            return self.end_atk(damage_flag, 'jump', False)
 
+        damage_flag = True
         damage = self.final_damage(damage)
-        damage = self.target.get_damage(damage)
-        damage_flag = bool(damage)
-        return self.end_atk(damage_flag, damage)
+        damage, sink = self.target.get_damage(damage)
+        return self.end_atk(damage_flag, damage, sink)
 
     def target_init(self):
         """决定攻击目标，技能可以影响优先目标"""
@@ -128,7 +128,8 @@ class ATK(Time):
         self.target.atk_hit('get_atk', self)
 
     def set_coef(self, coef):
-        self.coef.update(coef)
+        if coef is not None:
+            self.coef.update(coef)
 
     def process_coef(self):
         # 阵型系数
@@ -136,6 +137,7 @@ class ATK(Time):
 
         # 技能系数
         skill_scale, _ = self.atk_body.get_atk_buff('power_buff', self)
+        skill_scale += self.get_coef_value('power_buff')
         self.coef['skill_coef'] = 1 + skill_scale
 
         # 航向系数
@@ -150,6 +152,7 @@ class ATK(Time):
         # 暴击系数
         if self.coef['crit_flag']:
             _, crit_bias = self.atk_body.get_atk_buff('crit_coef', self)
+            crit_bias += self.get_coef_value('crit_coef')
             self.coef['crit_coef'] = 1.5 + crit_bias
         else:
             self.coef['crit_coef'] = 1.
@@ -170,11 +173,11 @@ class ATK(Time):
         self.atk_body.atk_coef_process(self)
 
     def get_coef(self, name):
-        """获取指定名称的参数"""
+        """获取指定名称的参数，通常为bool值"""
         return self.coef.get(name, None)
 
     def get_coef_value(self, name):
-        """获取指定名称的参数值"""
+        """获取指定名称的参数值，通常为float值"""
         return self.coef.get(name, 0)
 
     def get_form_coef(self, name, form_num):
@@ -183,7 +186,31 @@ class ATK(Time):
         return coef
 
     def get_dir_coef(self, dir_num):
+        if self.get_coef('ignore_dir_coef'):
+            return 1.
+        elif self.atk_body.get_special_buff('ignore_dir_coef', self):
+            return 1.
         return self.dir_coef[dir_num - 1]
+
+    def get_dmg_coef(self):
+        if self.get_coef('ignore_damaged'):
+            return 1.
+        elif self.atk_body.get_special_buff('ignore_damaged', self):
+            return 1.
+        elif self.atk_body.damaged == 1:
+            return 1.
+        elif self.atk_body.damaged == 2:
+            return .6
+        else:
+            return .3
+
+    def get_supply_coef(self):
+        if self.get_coef('ignore_supply'):
+            return 1.
+        elif self.atk_body.get_special_buff('ignore_supply', self):
+            return 1.
+        else:
+            return min(1., self.atk_body.supply_ammo * 2. / 10.)
 
     def crit_verify(self):
         """暴击检定"""
@@ -221,38 +248,26 @@ class ATK(Time):
 
     def hit_verify(self):
         """命中检定"""
-        # 护盾
-        if self.target.get_special_buff('shield', self):
-            self.coef['hit_flag'] = False
+        # 技能、战术判定
+        if self.skill_hit_verify():
             return
 
-        # 大角度
-        if self.target.get_strategy_buff('strategy_shield', self):
-            self.coef['hit_flag'] = False
-            return
-
-        # 技能必中
-        if self.get_coef('must_hit') or \
-                self.get_coef('hit_back') or \
-                self.atk_body.get_special_buff('must_hit', self):
-            self.coef['hit_flag'] = True
-            return
-
-        # 技能必不中
-        if self.get_coef('must_not_hit') or \
-                self.target.get_special_buff('must_not_hit', self):
-            self.coef['hit_flag'] = False
+        # 外部命中率修改
+        if self.outer_hit_verify():
             return
 
         # 基础命中率
         accuracy = self.atk_body.get_final_status('accuracy')
-        evasion = self.target.get_final_status('evasion')
+        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_evasion', self)  # 无视回避
+        evasion = self.target.get_final_status('evasion') * \
+                  (1 + ignore_scale) + ignore_bias
 
         # 梯形锁定减少闪避
         if self.target.get_special_buff('t_lock'):
             evasion *= 0.9  # todo 数值未知
+        evasion = max(1, evasion)
 
-        hit_rate = accuracy / max(1, evasion) / 2
+        hit_rate = accuracy / evasion / 2
 
         # 阵型命中率补正
         hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
@@ -271,12 +286,16 @@ class ATK(Time):
         # 单纵、复纵额外补正
         add = 0
         if self.target.get_form() == 2:
-            add = -0.05
+            add -= 0.05
         from src.wsgr.phase import SecondShellingPhase
         if self.atk_body.get_form() == 1 and \
                 isinstance(self.timer.phase, SecondShellingPhase):
-            add = 0.05
+            add += 0.05
         hit_rate += add
+
+        # 好感补正
+        hit_rate += (self.atk_body.affection - 50) * 0.001
+        hit_rate -= (self.target.affection - 50) * 0.001
 
         # 技能补正
         _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
@@ -293,20 +312,35 @@ class ATK(Time):
             self.coef['hit_flag'] = False
             return
 
-    def get_dmg_coef(self):
-        if self.get_coef('ignore_damaged'):
-            return 1.
-        elif self.atk_body.get_special_buff('ignore_damaged', self):
-            return 1.
-        elif self.atk_body.damaged == 1:
-            return 1.
-        elif self.atk_body.damaged == 2:
-            return .6
-        else:
-            return .3
+    def skill_hit_verify(self):
+        """必中/护盾等技能/战术判定"""
+        # 护盾
+        if self.target.get_special_buff('shield', self):
+            self.coef['hit_flag'] = False
+            return True
 
-    def get_supply_coef(self):
-        return min(1., self.atk_body.supply_ammo * 2)
+        # 大角度类战术
+        if self.target.get_strategy_buff('strategy_shield', self):
+            self.coef['hit_flag'] = False
+            return True
+
+        # 技能必中
+        if self.get_coef('must_hit') or \
+                self.get_coef('hit_back') or \
+                self.atk_body.get_special_buff('must_hit', self):
+            self.coef['hit_flag'] = True
+            return True
+
+        # 技能必不中
+        if self.get_coef('must_not_hit') or \
+                self.target.get_special_buff('must_not_hit', self):
+            self.coef['hit_flag'] = False
+            return True
+
+        return False
+
+    def outer_hit_verify(self):
+        pass
 
     def formula(self):
         pass
@@ -376,23 +410,58 @@ class ATK(Time):
 
         return max(0, damage)
 
-    def end_atk(self, damage_flag, damage_value):
+    def end_atk(self, damage_flag, damage_value, sink):
         """
         攻击结束时点，进行受伤时点效果、反击等
         :param damage_flag: 是否受到了伤害
         :param damage_value: 伤害记录
+        :param sink: 是否被击沉
         """
+        hit_back = None
+        chase_atk = None
         if not damage_flag:
-            hit_back = None
-            self.timer.report('miss')
+            assert sink is False
+            self.timer.report_damage('miss', sink)
         else:
             self.atk_body.atk_hit('atk_hit', self)
             hit_back = self.target.atk_hit('atk_be_hit', self)
-            self.timer.report(damage_value)
+            for tmp_buff in self.timer.queue['chase']:
+                if tmp_buff.is_active(self):
+                    chase_atk = tmp_buff.activate(self)
+                    break
+            self.timer.report_damage(damage_value, sink)
 
         self.atk_body.remove_during_buff()
         self.target.remove_during_buff()
-        return hit_back
+        return hit_back, chase_atk
+
+
+class SupportAtk(ATK):
+    """支援攻击"""
+    def __init__(self, timer, atk_body, def_list, limit: list, coef=None, target=None):
+        super().__init__(timer, atk_body, def_list, coef, target)
+        self.limit = limit  # 攻击上下限
+
+    def start(self):
+        self.timer.set_atk(self)
+        damage = self.formula()
+        damage_flag = bool(damage)
+        damage, sink = self.target.get_damage(damage)
+        return self.end_atk(damage_flag, damage, sink)
+
+    def formula(self):
+        damage = np.random.uniform(self.limit[0], self.limit[1])
+        return np.ceil(damage)
+
+    def end_atk(self, damage_flag, damage_value, sink):
+        hit_back = None
+        chase_atk = None
+        if not damage_flag:
+            assert sink is False
+            self.timer.report_damage('miss', sink)
+        else:
+            self.timer.report_damage(damage_value, sink)
+        return hit_back, chase_atk
 
 
 class AirAtk(ATK):
@@ -408,7 +477,7 @@ class AirAtk(ATK):
                           (1 + ignore_scale) + ignore_bias  # 本体裸对空
         target_anti_air = max(0, target_anti_air)
         aa_value = target_anti_air + get_scaled_anti_air(self.target)
-        return aa_value
+        return max(0, aa_value)
 
 
 class AirStrikeAtk(AirAtk):
@@ -426,6 +495,7 @@ class AirStrikeAtk(AirAtk):
         })  # 阵型系数
 
     def start(self):
+        self.timer.set_atk(self)
         damage_flag = False
         self.target_init()
         self.start_atk()
@@ -435,20 +505,20 @@ class AirStrikeAtk(AirAtk):
         self.process_coef()  # 生成公式相关系数
 
         if not self.coef['hit_flag']:
-            return self.end_atk(damage_flag, 'miss')
+            return self.end_atk(damage_flag, 'miss', False)
 
         if self.coef['plane_rest'] == 0:
-            return self.end_atk(damage_flag, 'miss')
+            return self.end_atk(damage_flag, 'miss', False)
 
         real_atk = self.formula()
         damage = self.real_damage(real_atk)
         if damage == 0:
-            return self.end_atk(damage_flag, 'jump')
+            return self.end_atk(damage_flag, 'jump', False)
 
+        damage_flag = True
         damage = self.final_damage(damage)
-        damage = self.target.get_damage(damage)
-        damage_flag = bool(damage)
-        return self.end_atk(damage_flag, damage)
+        damage, sink = self.target.get_damage(damage)
+        return self.end_atk(damage_flag, damage, sink)
 
     def get_anti_air_fall(self, anti_num):
         """计算防空击坠"""
@@ -460,6 +530,7 @@ class AirStrikeAtk(AirAtk):
         team_anti_air = get_team_anti_air(self.def_list)  # 全队对空补正
         equip_anti_air = self.target.get_equip_status('antiair')  # 装备对空总和
         aa_value = target_anti_air + team_anti_air + equip_anti_air
+        aa_value = max(0, aa_value)
         if self.target.function == 'cover':
             aa_value *= self.get_form_coef('anti_def', self.target.get_form())  # todo 未明确
 
@@ -469,27 +540,13 @@ class AirStrikeAtk(AirAtk):
         return aa_fall
 
     def hit_verify(self):
-        """航空攻击命中检定，含对空预警，含飞机装备命中率buff"""
-        # 护盾
-        if self.target.get_special_buff('shield', self):
-            self.coef['hit_flag'] = False
+        """航空攻击命中检定，含飞机装备命中率buff"""
+        # 技能、战术判定
+        if self.skill_hit_verify():
             return
 
-        # 对空预警
-        if self.target.get_strategy_buff('strategy_shield', self):
-            self.coef['hit_flag'] = False
-            return
-
-        # 技能必中
-        if self.get_coef('must_hit') or \
-                self.atk_body.get_special_buff('must_hit', self):
-            self.coef['hit_flag'] = True
-            return
-
-        # 技能必不中
-        if self.get_coef('must_not_hit') or \
-                self.target.get_special_buff('must_not_hit', self):
-            self.coef['hit_flag'] = False
+        # 外部命中率修改
+        if self.outer_hit_verify():
             return
 
         # 基础命中率
@@ -524,10 +581,16 @@ class AirStrikeAtk(AirAtk):
             mul_rate = 0.5
         aa_hit_coef = aa_base / (aa_base + aa_value)
         hit_rate *= aa_hit_coef * mul_rate
+        # todo 可能的航空命中公式修正
+        # hit_rate = min(hit_rate, aa_hit_coef + (hit_rate - aa_hit_coef) * mul_rate)
 
         # 装备补正
         _, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
         hit_rate += hitrate_bias
+
+        # 好感补正
+        hit_rate += (self.atk_body.affection - 50) * 0.001
+        hit_rate -= (self.target.affection - 50) * 0.001
 
         # 技能补正
         _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
@@ -623,6 +686,8 @@ class AirBombAtk(AirStrikeAtk):
         self.coef['skill_coef'] = 1 + skill_scale
         skill_scale, _ = self.atk_body.get_atk_buff('air_bomb_atk_buff', self)
         self.coef['skill_coef'] *= (1 + skill_scale)
+        skill_scale, _ = self.atk_body.get_atk_buff('power_buff', self)
+        self.coef['skill_coef'] *= (1 + skill_scale)
 
         # 船损系数
         self.coef['dmg_coef'] = self.get_dmg_coef()
@@ -688,6 +753,8 @@ class AirDiveAtk(AirStrikeAtk):
         skill_scale, _ = self.atk_body.get_atk_buff('air_atk_buff', self)
         self.coef['skill_coef'] = 1 + skill_scale
         skill_scale, _ = self.atk_body.get_atk_buff('air_dive_atk_buff', self)
+        self.coef['skill_coef'] *= (1 + skill_scale)
+        skill_scale, _ = self.atk_body.get_atk_buff('power_buff', self)
         self.coef['skill_coef'] *= (1 + skill_scale)
 
         # 船损系数
@@ -785,35 +852,27 @@ class MissileAtk(ATK):
             return
 
     def hit_verify(self):
-        """航空攻击命中检定，含对空预警，含飞机装备命中率buff"""
-        # 护盾
-        if self.target.get_special_buff('shield', self):
-            self.coef['hit_flag'] = False
+        """导弹攻击命中检定，含导弹装备命中率、必中buff"""
+        # 技能、战术判定
+        if self.skill_hit_verify():
             return
 
-        # 技能必中
-        if self.get_coef('must_hit') or \
-                self.atk_body.get_special_buff('must_hit', self) or \
-                self.equip.get_special_buff('must_hit', self):
-            self.coef['hit_flag'] = True
-            return
-
-        # 技能必不中
-        if self.get_coef('must_not_hit') or \
-                self.target.get_special_buff('must_not_hit', self) or \
-                self.equip.get_special_buff('must_not_hit', self):
-            self.coef['hit_flag'] = False
+        # 外部命中率修改
+        if self.outer_hit_verify():
             return
 
         # 基础命中率
         accuracy = self.atk_body.get_final_status('accuracy')
-        evasion = self.target.get_final_status('evasion')
+        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_evasion', self)  # 无视回避
+        evasion = self.target.get_final_status('evasion') * \
+                  (1 + ignore_scale) + ignore_bias
 
         # 梯形锁定减少闪避
         if self.target.get_special_buff('t_lock'):
             evasion *= 0.9  # todo 数值未知
+        evasion = max(1, evasion)
 
-        hit_rate = accuracy / max(1, evasion) / 2
+        hit_rate = accuracy / evasion / 2
 
         # 阵型命中率补正
         hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
@@ -836,6 +895,10 @@ class MissileAtk(ATK):
         _, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
         hit_rate += hitrate_bias
 
+        # 好感补正
+        hit_rate += (self.atk_body.affection - 50) * 0.001
+        hit_rate -= (self.target.affection - 50) * 0.001
+
         # 技能补正
         _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
         hit_rate += hitrate_bias
@@ -850,6 +913,30 @@ class MissileAtk(ATK):
         else:
             self.coef['hit_flag'] = False
             return
+
+    def skill_hit_verify(self):
+        """必中/护盾等技能/战术判定"""
+        # 护盾
+        if self.target.get_special_buff('shield', self):
+            self.coef['hit_flag'] = False
+            return True
+
+        # 技能必中
+        if self.get_coef('must_hit') or \
+                self.atk_body.get_special_buff('must_hit', self) or \
+                self.equip.get_special_buff('must_hit', self):
+            self.coef['hit_flag'] = True
+            return True
+
+        # 技能必不中
+        if self.get_coef('must_not_hit') or \
+                self.target.get_special_buff('must_not_hit', self) or \
+                self.equip.get_special_buff('must_not_hit', self):
+            self.coef['hit_flag'] = False
+            return True
+
+        return False
+
 
     def formula(self):
         # 基础攻击力
@@ -1006,7 +1093,7 @@ class NormalAtk(ATK):
         return real_atk
 
 
-class SpecialAtk(NormalAtk):
+class MagicAtk(NormalAtk):
     """技能特殊攻击(只包含固定伤害，不过甲)"""
 
     def hit_verify(self):
@@ -1032,32 +1119,59 @@ class SpecialAtk(NormalAtk):
         return real_atk
 
 
+class SpecialAtk(ATK):
+    """技能特殊攻击(不会触发普通攻击可以触发的特效)"""
+
+    def __init__(self, timer, atk_body, def_list, coef=None, target=None):
+        super().__init__(timer, atk_body, def_list, coef, target)
+
+        self.form_coef.update({
+            'power': [1, .8, .75, 1, .8],
+            'hit': [1.1, 1, .9, 1.2, .75],
+            'miss': [.9, 1.2, .9, .8, 1.3],
+        })  # 阵型系数
+
+    def formula(self):
+        # 基础攻击力
+        base_atk = self.atk_body.get_final_status('fire') + 5
+
+        # 实际威力
+        real_atk = (base_atk *
+                    self.coef['form_coef'] *
+                    self.coef['skill_coef'] *
+                    self.coef['dir_coef'] *
+                    self.coef['dmg_coef'] *
+                    self.coef['supply_coef'] *
+                    self.coef['crit_coef'] *
+                    self.coef['random_coef'])
+        return real_atk
+
+    def end_atk(self, damage_flag, damage_value, sink):
+        hit_back = None
+        chase_atk = None
+        if not damage_flag:
+            assert sink is False
+            self.timer.report_damage('miss', sink)
+        else:
+            self.atk_body.atk_hit('atk_hit', self)
+            self.timer.report_damage(damage_value, sink)
+
+        self.atk_body.remove_during_buff()
+        self.target.remove_during_buff()
+        return hit_back, chase_atk
+
+
 class AirNormalAtk(NormalAtk, AirAtk):
     """炮击战航空炮击"""
 
     def hit_verify(self):
         """命中检定"""
-        # 护盾
-        if self.target.get_special_buff('shield', self):
-            self.coef['hit_flag'] = False
+        # 技能、战术判定
+        if self.skill_hit_verify():
             return
 
-        # 大角度
-        if self.target.get_strategy_buff('strategy_shield', self):
-            self.coef['hit_flag'] = False
-            return
-
-        # 技能必中
-        if self.get_coef('must_hit') or \
-                self.get_coef('hit_back') or \
-                self.atk_body.get_special_buff('must_hit', self):
-            self.coef['hit_flag'] = True
-            return
-
-        # 技能必不中
-        if self.get_coef('must_not_hit') or \
-                self.target.get_special_buff('must_not_hit', self):
-            self.coef['hit_flag'] = False
+        # 外部命中率修改
+        if self.outer_hit_verify():
             return
 
         # 基础命中率
@@ -1093,6 +1207,10 @@ class AirNormalAtk(NormalAtk, AirAtk):
         aa_hit_coef = aa_base / (aa_base + aa_value)
         hit_rate *= aa_hit_coef * mul_rate
 
+        # 好感补正
+        hit_rate += (self.atk_body.affection - 50) * 0.001
+        hit_rate -= (self.target.affection - 50) * 0.001
+
         # 技能补正
         _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
         hit_rate += hitrate_bias
@@ -1117,6 +1235,8 @@ class AirNormalAtk(NormalAtk, AirAtk):
         # 技能系数
         skill_scale, _ = self.atk_body.get_atk_buff('air_atk_buff', self)
         self.coef['skill_coef'] = 1 + skill_scale
+        skill_scale, _ = self.atk_body.get_atk_buff('power_buff', self)
+        self.coef['skill_coef'] *= (1 + skill_scale)
 
         # 船损系数
         self.coef['dmg_coef'] = self.get_dmg_coef()
@@ -1147,14 +1267,17 @@ class AirNormalAtk(NormalAtk, AirAtk):
         fire = self.atk_body.get_final_status('fire')
         bomb = self.atk_body.get_final_status('bomb')
         torpedo = self.atk_body.get_final_status('torpedo')
-        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_antiair', self)  # 无视对空
-        target_anti_air = self.target.get_final_status('antiair') * \
-                          (1 + ignore_scale) + ignore_bias  # 本体总对空
-        target_anti_air = max(0, target_anti_air)
-        random_weight = np.random.random()
-        base_atk = (fire + 2 * bomb + torpedo)\
-                   * max(0, 1 - target_anti_air * random_weight / 150)\
-                   + 35
+        # ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_antiair', self)  # 无视对空
+        # target_anti_air = self.target.get_final_status('antiair', equip=False) * \
+        #                   (1 + ignore_scale) + ignore_bias  # 本体裸对空（无视对空不影响装备）
+        # target_anti_air = max(0, target_anti_air)
+        # target_anti_air += self.target.get_equip_status('antiair')  # 本体总对空
+        # target_anti_air = max(0, target_anti_air)
+        # random_weight = np.random.random()
+        # base_atk = (fire + 2 * bomb + torpedo)\
+        #            * max(0, 1 - target_anti_air * random_weight / 150)\
+        #            + 35
+        base_atk = (fire + 2 * bomb + torpedo) + 35
 
         # 实际威力
         real_atk = (base_atk *
@@ -1236,6 +1359,29 @@ class NightAtk(ATK):
         })  # 阵型系数
         self.dir_coef = [1, 1, 1, 1]  # 航向系数，按照优同反劣顺序
 
+    def real_damage(self, real_atk):
+        if real_atk is None:
+            raise ValueError(f'Formula of "{type(self).__name__}" is not defined!')
+
+        # 实际伤害
+        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_armor', self)  # 无视装甲
+        def_armor = self.target.get_final_status('armor') * \
+                    (1 + ignore_scale) + ignore_bias
+        def_armor = max(0, def_armor)
+
+        real_dmg = np.ceil(real_atk *
+                           (1 - def_armor /
+                            (0.5 * def_armor + self.coef['pierce_coef'] * real_atk)))
+
+        if real_dmg <= 0:
+            if np.random.random() < 0.5:  # 50% 跳弹
+                return 0
+            else:  # 50% 擦伤
+                real_dmg = np.ceil(
+                    min(real_atk, self.target.status['health']) * 0.1
+                )
+        return real_dmg
+
 
 class NightNormalAtk(NightAtk, NormalAtk):
     """夜战普通炮击"""
@@ -1259,7 +1405,7 @@ class NightNormalAtk(NightAtk, NormalAtk):
         return real_atk
 
 
-class NightFirelAtk(NightNormalAtk):
+class NightFireAtk(NightNormalAtk):
     """夜战纯火巡洋舰炮击"""
 
     def __init__(self, timer, atk_body, def_list, coef=None, target=None):
@@ -1267,7 +1413,7 @@ class NightFirelAtk(NightNormalAtk):
         self.random_range = [2.4, 3.6]  # 浮动系数上下限
 
 
-class NightFireTorpedolAtk(NightNormalAtk):
+class NightFireTorpedoAtk(NightNormalAtk):
     """夜战火雷连击"""
 
     def __init__(self, timer, atk_body, def_list, coef=None, target=None):
@@ -1312,8 +1458,8 @@ class NightTorpedoAtk(NightAtk, TorpedoAtk):
                     self.coef['crit_coef'] *
                     self.coef['random_coef'])
         return real_atk
-    
-    
+
+
 class NightMissileAtk(NightAtk, MissileAtk):
     """夜战导弹攻击"""
 
@@ -1387,24 +1533,35 @@ def get_fleet_aerial(ship_list):
 
 def get_ship_aerial(ship):
     """单船制空值"""
+    # 舰船基础制空值
+    buff_scale, _, buff_bias = ship.get_buff('air_ctrl_buff')
+    result = buff_bias
+
+    # 非航系
+    from src.wsgr.ship import Aircraft
+    if not isinstance(ship, Aircraft):
+        return result
+    # 航系检查是否可以行动
+    if not ship.get_act_indicator():
+        return result
+
+    equip_list = [tmp_equip for tmp_equip in ship.equipment
+                  if isinstance(tmp_equip, (Fighter, Bomber, DiveBomber))
+                  and tmp_equip.load > 0]  # 参与航空战的飞机索引
+
+    # 没有可行动飞机
+    if not len(equip_list):
+        return result
+
+    # 计算制空
     flight_limit = get_flightlimit(ship)
-    actual_flight = np.array([min(tmp_load, flight_limit)
-                              for tmp_load in ship.load])
+    actual_flight = np.array([min(tmp_equip.load, flight_limit)
+                              for tmp_equip in equip_list])  # 可行动飞机的实际放飞
     antiair = np.array([tmp_equip.get_final_status('antiair')
-                        for tmp_equip in ship.equipment
-                        if isinstance(tmp_equip, (Fighter, Bomber, DiveBomber))])
-    eloc_list = np.array([tmp_equip.enum - 1
-                          for tmp_equip in ship.equipment
-                          if isinstance(tmp_equip, (Fighter, Bomber, DiveBomber))])
-    if not len(eloc_list):
-        return 0
+                        for tmp_equip in equip_list])  # 可行动飞机的对空
 
-    actual_flight = actual_flight[eloc_list]
-    buff_scale, _, buff_bias = ship.get_buff('air_con_buff')
-
-    air = np.log(2 * (actual_flight + 1)) * antiair
-    result = np.sum(air) * (1 + buff_scale) + buff_bias
-
+    air = np.log(2 * (actual_flight + 1)) * antiair  # 总制空
+    result += np.sum(air) * (1 + buff_scale)  # 总加成制空
     return result
 
 
@@ -1471,7 +1628,7 @@ def get_total_plane_rest(shiplist):
 
 def get_flightlimit(ship):
     fire = max(ship.get_final_status('fire'), 0.)
-    flightlimit = np.floor(fire / ship.flightparam) + 3
+    flightlimit = np.floor(fire / ship.flight_param) + 3
     return flightlimit
 
 
