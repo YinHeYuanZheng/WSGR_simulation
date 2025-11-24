@@ -52,4 +52,5 @@ class Skill_102051(Skill):
             self.master.add_buff(tmp_buff)
 
 
+name = '骑士之矛'
 skill = [Skill_102051]

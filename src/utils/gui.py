@@ -60,6 +60,8 @@ class App:
 
         # 获取战斗设置
         battleConfig = self.getBattleConfig()
+        if battleConfig is None:
+            return
         epoch, battleNum, fun = self.getSimulationSettings()
 
         # 运行并输出结果
@@ -342,6 +344,7 @@ class FrameFriend(LabelFrame):
         self.equipEidList = list(equipNameDict.values())
 
         self.shipComb = np.empty(6, dtype=object)  # 友方舰船组合框
+        self.affectionEntry = np.empty(6, dtype=object)  # 友方舰船好感度输入框
         self.skillComb = np.empty(6, dtype=object)  # 友方舰船技能组合框
         self.strategyComb = np.empty((6, 3), dtype=object)  # 友方舰船战术组合框
         self.equipComb = np.empty((6, 4), dtype=object)  # 友方舰船装备组合框
@@ -377,6 +380,15 @@ class FrameFriend(LabelFrame):
             self.shipComb[i].bind("<FocusOut>",
                                   lambda event, x=i: self.deleteName(x))  # 在输入为空时失去焦点，清空当前行
             self.shipComb[i].grid(row=3*i+1, column=1, columnspan=2, sticky='WE')
+
+            # 好感设置
+            affectionLabel = Label(self, text=f'好感度：')
+            affectionLabel.grid(row=3*i+1, column=3, padx=5, sticky='E')
+            self.affectionEntry[i] = Entry(self, width=15,
+                                           textvariable=StringVar())
+            self.affectionEntry[i].grid(row=3*i+1, column=4, sticky='WE')
+            self.affectionEntry[i].insert(0, '200')
+            self.affectionEntry[i].config(state="disabled")
 
             # 舰船技能
             self.skillComb[i] = Combobox(self,
@@ -434,6 +446,11 @@ class FrameFriend(LabelFrame):
             self.skillComb[row].config(state='normal')
             self.skillComb[row]['values'] = skillVarList
             self.skillComb[row].set('无技能')
+
+            # 好感度设置
+            self.affectionEntry[row].config(state="normal")
+
+            # 战术选项设置
             for j in range(3):
                 self.strategyComb[row, j].config(state='normal')
 
@@ -493,6 +510,9 @@ class FrameFriend(LabelFrame):
         self.skillComb[row]['values'] = ['无技能']
         self.skillComb[row].set('技能')
         self.skillComb[row].config(state="disabled")
+        self.affectionEntry[row].delete(0, 'end')
+        self.affectionEntry[row].insert(0, '200')
+        self.affectionEntry[row].config(state="disabled")
 
         for j in range(3):
             self.strategyComb[row, j].set(f'{10 * j + 90}级战术')
@@ -522,7 +542,10 @@ class FrameFriend(LabelFrame):
                 'loc': i + 1,
                 'cid': self.shipNameDict[self.shipComb[i].get()],
                 'level': 110,
-                'affection': 200,  # todo 可从设置更改好感度
+                'affection':
+                    max(min(int(self.affectionEntry[i].get()), 200), 0)  # 好感度范围0-200
+                    if self.affectionEntry[i].get() != ''
+                    else 200,  # 好感度为空时默认200
                 'skill': self.skillComb[i].current(),
                 'equipment': [
                     {'loc': j + 1,
@@ -551,6 +574,10 @@ class FrameFriend(LabelFrame):
             self.shipComb[i].current(self.shipCidList.index(cid))
             self.setShip(i)
             self.skillComb[i].current(int(shipDict['skill']))
+
+            affection = shipDict['affection']
+            self.affectionEntry[i].delete(0, 'end')
+            self.affectionEntry[i].insert(0, affection)
 
             for eDict in shipDict['equipment']:
                 eid = eDict['eid']
