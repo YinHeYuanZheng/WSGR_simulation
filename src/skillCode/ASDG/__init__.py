@@ -13,6 +13,7 @@ from . import sid104671  # 鞍山-1
 from . import sid114672  # 鞍山-2
 from . import sid105021  # 济南-1
 from . import sid106171  # 南京-1
+from . import sid116061  # 汉堡改-1
 
 # 防驱
 from . import sid102871  # 鹰潭-1
