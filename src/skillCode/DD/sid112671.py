@@ -43,20 +43,29 @@ class Skill_112671_2(Skill):
                 phase=FirstTorpedoPhase,
                 num=1,
                 rate=1,
+            ),
+            ActPhaseBuff(
+                timer=timer,
+                name='act_phase',
+                phase=FirstTorpedoPhase
             )
         ]
 
     def activate(self, friend, enemy):
         buff0 = copy.copy(self.buff[0])
-        num_JDD = len(
-            CombinedTarget(
+        target_JDD = CombinedTarget(
                 side=1,
                 target_list=[TypeTarget(side=1, shiptype=DD),
                              CountryTarget(side=1, country='J')]
-            ).get_target(friend, enemy)
-        )
-        buff0.num = min(3, num_JDD)
+            ).get_target(friend, enemy).remove(self.master)
+        if self.master in target_JDD:
+            target_JDD.remove(self.master)
+
+        buff0.num = min(2, len(target_JDD))
         self.master.add_buff(buff0)
+
+        buff1 = copy.copy(self.buff[1])
+        self.master.add_buff(buff1)
 
 
 class Skill_112671_3(Skill):

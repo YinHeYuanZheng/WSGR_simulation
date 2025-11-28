@@ -581,7 +581,7 @@ class Buff(Time):
 
     def is_active(self, *args, **kwargs):
         """技能是否满足发动阶段"""
-        if not isinstance(self.timer.phase, self.phase):
+        if not self.phase_verify():
             return False
         self.change_value(*args, **kwargs)
         return self.rate_verify()
@@ -589,6 +589,9 @@ class Buff(Time):
     def change_value(self, *args, **kwargs):
         """动态修改技能数值时调用"""
         pass
+
+    def phase_verify(self):
+        return isinstance(self.timer.phase, self.phase)
 
     def rate_verify(self):
         if self.rate >= 1:
