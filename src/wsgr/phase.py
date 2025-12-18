@@ -401,9 +401,9 @@ class MissilePhase(DaytimePhase):
                 for tmp_equip in tmp_ship.equipment:
                     if isinstance(tmp_equip, NormalMissile) and tmp_equip.load > 0:
                         msl_list.append(tmp_equip)
-        msl_list.sort(key=lambda x: (x.get_final_status('missile_atk'),
-                                     -(x.enum + 4 * x.master.loc))
-                      )  # 按照突防从小到大+顺位倒序排序
+        # msl_list.sort(key=lambda x: (x.get_final_status('missile_atk'),
+        #                              -(x.enum + 4 * x.master.loc))
+        #               )  # 按照突防从小到大+顺位倒序排序
         return msl_list
 
     def get_def_missile(self, shiplist):
@@ -431,9 +431,9 @@ class MissilePhase(DaytimePhase):
                 for tmp_equip in tmp_ship.equipment:
                     if isinstance(tmp_equip, NormalMissile) and tmp_equip.load >= 2:
                         msl_list.append(tmp_equip)
-        msl_list.sort(key=lambda x: (x.get_final_status('missile_atk'),
-                                     -(x.enum + 4 * x.master.loc))
-                      )  # 按照突防从小到大+顺位倒序排序
+        # msl_list.sort(key=lambda x: (x.get_final_status('missile_atk'),
+        #                              -(x.enum + 4 * x.master.loc))
+        #               )  # 按照突防从小到大+顺位倒序排序
         return msl_list
 
 
@@ -452,18 +452,29 @@ class LongMissilePhase(MissilePhase):
         atk_missile_list = self.get_long_missile(attack)  # 远程反舰导弹
         def_missile_list = self.get_def_missile(defend)  # 防空导弹
 
-        total_msl_def = sum([msl.get_final_status('missile_def')
-                             for msl in def_missile_list])  # 总拦截
-
+        def_value_list = [msl.get_final_status('missile_def')
+                          for msl in def_missile_list]  # 拦截值列表
+        total_msl_def = sum(def_value_list)  # 总拦截
+        atk_master_loc = None
         for tmp_atk_msl in atk_missile_list:
+            if tmp_atk_msl.master.loc != atk_master_loc:  # 如果上一船的反舰导弹被耗尽
+                atk_master_loc = tmp_atk_msl.master.loc
+                total_msl_def = sum(def_value_list)  # 更新总拦截
+
             single_msl_atk = tmp_atk_msl.get_final_status('missile_atk')
 
             # 拦截条件：总拦截大于突防，且存在可用防空导弹
-            if total_msl_def >= single_msl_atk and len(def_missile_list):
-                total_msl_def -= single_msl_atk
+            if len(def_missile_list) and total_msl_def >= single_msl_atk:
                 tmp_atk_msl.load -= 2
                 tmp_def_msl = def_missile_list.pop(0)
+                def_value_list.pop(0)
                 tmp_def_msl.load -= 1
+
+                if len(def_missile_list) and \
+                        def_missile_list[0].master.loc != tmp_def_msl.master.loc:  # 如果上一船的拦截导弹被耗尽
+                    total_msl_def = sum(def_value_list)  # 更新总拦截
+                else:
+                    total_msl_def -= single_msl_atk
             else:
                 atk = MissileAtk(
                     timer=self.timer,
@@ -482,18 +493,29 @@ class FirstMissilePhase(MissilePhase):
         atk_missile_list = self.get_atk_missile(attack)  # 反舰导弹
         def_missile_list = self.get_def_missile(defend)  # 防空导弹
 
-        total_msl_def = sum([msl.get_final_status('missile_def')
-                             for msl in def_missile_list])  # 总拦截
-
+        def_value_list = [msl.get_final_status('missile_def')
+                          for msl in def_missile_list]  # 拦截值列表
+        total_msl_def = sum(def_value_list)  # 总拦截
+        atk_master_loc = None
         for tmp_atk_msl in atk_missile_list:
+            if tmp_atk_msl.master.loc != atk_master_loc:  # 如果上一船的反舰导弹被耗尽
+                atk_master_loc = tmp_atk_msl.master.loc
+                total_msl_def = sum(def_value_list)  # 更新总拦截
+
             single_msl_atk = tmp_atk_msl.get_final_status('missile_atk')
 
             # 拦截条件：总拦截大于突防，且存在可用防空导弹
-            if total_msl_def >= single_msl_atk and len(def_missile_list):
-                total_msl_def -= single_msl_atk
+            if len(def_missile_list) and total_msl_def >= single_msl_atk:
                 tmp_atk_msl.load -= 1
                 tmp_def_msl = def_missile_list.pop(0)
+                def_value_list.pop(0)
                 tmp_def_msl.load -= 1
+
+                if len(def_missile_list) and \
+                        def_missile_list[0].master.loc != tmp_def_msl.master.loc:  # 如果上一船的拦截导弹被耗尽
+                    total_msl_def = sum(def_value_list)  # 更新总拦截
+                else:
+                    total_msl_def -= single_msl_atk
             else:
                 # 检查是否存在优先攻击船型对象
                 prior = tmp_atk_msl.master.get_prior_type_target(defend)
