@@ -79,7 +79,7 @@ def run_hit_rate(battle, epoch, phase:str=None,
 
 def run_avg_damage(battle, epoch, phase:str=None,
                    stop_event:threading.Event=None):
-    avg_damage = 0
+    damage_list = np.zeros((epoch,), dtype=float)
     avg_damage_phase = 0
     defeat_num = 0
     for i in range(epoch):
@@ -95,12 +95,13 @@ def run_avg_damage(battle, epoch, phase:str=None,
             phase_info = f'{phase}平均伤害: {avg_damage_phase / (i + 1):.3f} '
         else:
             phase_info = ''
-        avg_damage += log['create_damage'][:, :6].sum()
+        damage_list[i] = log['create_damage'][:, :6].sum()
         defeat_num += log['defeat_num'][:, :6].sum()
         print("\r"
-              f"第{i + 1}次 - 平均伤害: {avg_damage / (i + 1):.3f} "
+              f"第{i + 1}次 - 平均伤害: {np.mean(damage_list[:i+1]):.3f} "
+              f"5%下限伤害: {int(np.percentile(damage_list[:i+1], 5, method='lower')):d} "
               f"{phase_info}"
-              f"平均击沉 {defeat_num / (i + 1):.3f}",
+              f"平均击沉: {defeat_num / (i + 1):.3f}",
               end='',)
 
 

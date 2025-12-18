@@ -356,6 +356,8 @@ class SpecialBattle(BattleUtil):
         supportUnit.set_side(side := 0)
         supportUnit.set_load([20])
         supportUnit.get_form = get_form
+        for buff in self.enemy.ship[0].temper_buff[:]:
+            supportUnit.add_buff(buff)
         from src.wsgr.equipment import Bomber
         supportBomber = Bomber(self.timer, master=supportUnit, enum=0)
         supportBomber.set_status(status={
