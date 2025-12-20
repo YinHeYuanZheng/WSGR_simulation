@@ -23,7 +23,7 @@ from src.wsgr.wsgrTimer import timer
 from src.wsgr.formulas import *
 from tkinter import *
 from tkinter.ttk import *
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 
 
 class App:
@@ -82,6 +82,9 @@ class App:
     def saveFile(self, outfile=None):
         if outfile is None:
             outfile = os.path.join(self.configDir, 'save/gui_config.yaml')
+        elif outfile.endswith('.xml'):
+            messagebox.showerror('错误', '保存文件后缀必须为 .yaml')
+            return
         battleConfig = self.getBattleConfig()
         if battleConfig is not None:
             with open(outfile, 'w') as f:
@@ -159,9 +162,15 @@ class MainDlg(Frame):
 
     def createBindings(self):
         """绑定全局事件"""
+        # 打开
+        self.master.bind('<Control-o>', lambda event: self.openFileDialog())
+        self.master.bind('<Control-O>', lambda event: self.openFileDialog())
         # 保存
         self.master.bind('<Control-s>', lambda event: self.saveFile())
         self.master.bind('<Control-S>', lambda event: self.saveFile())
+        # 另存为
+        self.master.bind('<Control-Shift-s>', lambda event: self.saveAsDialog())
+        self.master.bind('<Control-Shift-S>', lambda event: self.saveAsDialog())
         # 清除
         self.master.bind('<Control-d>', lambda event: self.clearAll())
         self.master.bind('<Control-D>', lambda event: self.clearAll())
@@ -239,6 +248,38 @@ class MainDlg(Frame):
             self.frameEnemy.clear()  # 清除敌舰选择
             self.frameResult.clear()  # 清除结果显示
 
+    def openFileDialog(self):
+        """打开文件选择对话框并处理选择的文件"""
+        # 打开文件对话框
+        file_path = filedialog.askopenfilename(
+            title="选择文件",
+            filetypes=[
+                ("配置文件", "*.xml;*.yaml"),
+                ("所有文件", "*.*"),
+            ],
+            initialdir=App.configDir  # 从用户目录开始
+        )
+        # 如果用户选择了文件（没有取消）
+        if file_path:
+            self.openFile(file_path)
+
+    def saveAsDialog(self):
+        """另存为文件对话框"""
+        file_path = filedialog.asksaveasfilename(
+            title="另存为",
+            defaultextension=".yaml",
+            filetypes=[
+                ("yaml文件", "*.yaml"),
+                ("所有文件", "*.*")
+            ],
+            initialdir=App.configDir,  # 从用户目录开始
+            initialfile="new_config.yaml"  # 默认文件名
+        )
+
+        # 如果用户选择了保存路径（没有取消）
+        if file_path:
+            self.saveFile(file_path)
+
 
 class Menubar(Menu):
     """菜单栏"""
@@ -250,6 +291,8 @@ class Menubar(Menu):
         # 复制指令
         self.saveFile = master.saveFile
         self.openFile = master.openFile
+        self.openFileDialog = master.openFileDialog
+        self.saveAsDialog = master.saveAsDialog
         self.clear = master.clearAll
 
         # 菜单变量
@@ -266,12 +309,14 @@ class Menubar(Menu):
 
         # 文件菜单内容
         self.openMenu = Menu(self.fileMenu, tearoff=False)
-        self.fileMenu.add_cascade(label="打开", menu=self.openMenu)
+        self.fileMenu.add_cascade(label="快捷打开...", menu=self.openMenu)
         self.createOpenMenu()  # 打开菜单内容
-        self.fileMenu.add_command(label="保存     Ctrl+S", command=self.saveFile)
-        self.fileMenu.add_command(label="清除     Ctrl+D", command=self.clear)
+        self.fileMenu.add_command(label="打开", command=self.openFileDialog, accelerator="Ctrl+O")
+        self.fileMenu.add_command(label="保存", command=self.saveFile, accelerator="Ctrl+S")
+        self.fileMenu.add_command(label="另存为...", command=self.saveAsDialog, accelerator="Ctrl+Shift+S")
+        self.fileMenu.add_command(label="清除", command=self.clear, accelerator="Ctrl+D")
         self.fileMenu.add_separator()  # 分割线
-        self.fileMenu.add_command(label="退出      Alt+X", command=self.quit)
+        self.fileMenu.add_command(label="退出", command=self.quit, accelerator="Alt+X")
 
     def createOpenMenu(self):
         """创建打开菜单，显示所有记录文件"""
