@@ -69,4 +69,5 @@ class BuffRequest_1(ATKRequest):
         return self.atk.target.loc != 1
 
 
+name = '公海舰队'
 skill = [Skill_104501_1, Skill_104501_2]

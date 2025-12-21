@@ -7,6 +7,8 @@
 import os
 import sys
 import copy
+from sys import exception
+
 import numpy as np
 import yaml
 import threading
@@ -486,8 +488,11 @@ class FrameFriend(LabelFrame):
                 sid = skillList[j]
                 if sid != '':
                     sid = 'sid' + sid
-                    skillName = getattr(skillCode, sid).name
-                    skillVarList.append(skillName)
+                    try:
+                        skillName = getattr(skillCode, sid).name
+                        skillVarList.append(skillName)
+                    except:
+                        print(f'SkillError: {sid}技能不存在或无法定位技能名')
             self.skillComb[row].config(state='normal')
             self.skillComb[row]['values'] = skillVarList
             self.skillComb[row].set('无技能')
@@ -618,7 +623,10 @@ class FrameFriend(LabelFrame):
             cid = shipDict['cid']
             self.shipComb[i].current(self.shipCidList.index(cid))
             self.setShip(i)
-            self.skillComb[i].current(int(shipDict['skill']))
+            self.skillComb[i].current(
+                min(len(self.skillComb[i]['values'])-1,
+                    int(shipDict['skill']))
+            )
 
             affection = shipDict['affection']
             self.affectionEntry[i].delete(0, 'end')
@@ -628,13 +636,19 @@ class FrameFriend(LabelFrame):
                 eid = eDict['eid']
                 loc = int(eDict['loc'])  # 装备栏位
                 idx = self.equipEidList.index(eid)
-                self.equipComb[i, loc - 1].current(idx)
+                try:
+                    self.equipComb[i, loc - 1].current(idx)
+                except:
+                    pass
 
             for stDict in shipDict['strategy']:
                 stid = stDict['stid']
                 stLevel = int(stid[1])  # 战术等级
                 idx = list(self.strategyDict[stLevel].values()).index(stid)
-                self.strategyComb[i, stLevel - 1].current(idx)
+                try:
+                    self.strategyComb[i, stLevel - 1].current(idx)
+                except:
+                    pass
 
     def checkShipOrder(self) -> bool:
         """检查舰队是否符合要求"""
