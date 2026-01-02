@@ -1525,11 +1525,12 @@ class Port(LandUnit):
         self.type = 'Port'
 
 
-class Tuning(SmallShip, CoverShip):
+class Tuning(Aircraft, AtkMissileShip, DefMissileShip, AntiSubShip, SmallShip, CoverShip):
     """调谐"""
     def __init__(self, timer):
         super().__init__(timer)
         self.type = 'Tuning'
+        self.flight_param = 10
 
         self.act_phase_flag = {
             'AirPhase': True,
