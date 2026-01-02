@@ -57,7 +57,7 @@ class Skill_112671_2(Skill):
                 side=1,
                 target_list=[TypeTarget(side=1, shiptype=DD),
                              CountryTarget(side=1, country='J')]
-            ).get_target(friend, enemy).remove(self.master)
+            ).get_target(friend, enemy)
         if self.master in target_JDD:
             target_JDD.remove(self.master)
 
