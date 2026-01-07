@@ -1473,10 +1473,6 @@ class Elite(Aircraft, LargeShip, MainShip):
         self.type = 'Elite'
         self.flight_param = 10
 
-        self.act_phase_flag.update({
-            'SecondTorpedoPhase': False,
-        })
-
 
 class Fortness(LandUnit, Aircraft):
     """要塞"""
