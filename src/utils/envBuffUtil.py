@@ -822,6 +822,101 @@ class Event_G_buff(Skill):
         ]
 
 
+class Event_U_buff(Skill):
+    """U国无视战损"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = CountryTarget(side=1, country='U')
+        self.buff = [
+            SpecialBuff(
+                timer=timer,
+                name='ignore_damaged',
+                phase=AllPhase
+            )
+        ]
+
+
+class Event_DD_FirstTorpedo(Skill):
+    """DD开幕雷"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = CountryTarget(side=1, country='U')
+        self.buff = [
+            ActPhaseBuff(
+                timer=timer,
+                name='act_phase',
+                phase=TorpedoPhase,
+            )
+        ]
+
+
+class Event_SpecialBuff_Skill(Skill):
+    """活动彩蛋船专属buff(圣地亚哥)"""
+    def __init__(self, timer):
+        super().__init__(timer, master=None)
+        self.target = CidTarget(side=1, cid_list=['10157'])
+        self.buff = [
+            CommonBuff(
+                timer=timer,
+                name='fire',
+                phase=AllPhase,
+                value=53,
+                bias_or_weight=0
+            ),
+            CommonBuff(
+                timer=timer,
+                name='accuracy',
+                phase=AllPhase,
+                value=53,
+                bias_or_weight=0
+            ),
+            CommonBuff(
+                timer=timer,
+                name='armor',
+                phase=AllPhase,
+                value=53,
+                bias_or_weight=0
+            ),
+            CommonBuff(
+                timer=timer,
+                name='evasion',
+                phase=AllPhase,
+                value=53,
+                bias_or_weight=0
+            ),
+            CommonBuff(
+                timer=timer,
+                name='antiair',
+                phase=AllPhase,
+                value=53,
+                bias_or_weight=0
+            ),
+            CoeffBuff(
+                timer=timer,
+                name='crit',
+                phase=AllPhase,
+                value=.53,
+                bias_or_weight=0
+            ),
+            FinalDamageBuff(
+                timer=timer,
+                name='final_damage_buff',
+                phase=AllPhase,
+                value=2.18
+            ),
+            SpecialBuff(
+                timer=timer,
+                name='ignore_damaged',
+                phase=AllPhase
+            ),
+            SpecialBuff(
+                timer=timer,
+                name='ignore_supply',
+                phase=AllPhase
+            ),
+        ]
+
+
 class Normal_map9_lock_buff(Skill):
     """9图解封锁buff"""
     def __init__(self, timer):
