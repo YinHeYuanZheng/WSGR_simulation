@@ -881,14 +881,14 @@ class Event_SpecialBuff_Skill(Skill):
                 timer=timer,
                 name='evasion',
                 phase=AllPhase,
-                value=53,
+                value=106,
                 bias_or_weight=0
             ),
             CommonBuff(
                 timer=timer,
                 name='antiair',
                 phase=AllPhase,
-                value=53,
+                value=106,
                 bias_or_weight=0
             ),
             CoeffBuff(
