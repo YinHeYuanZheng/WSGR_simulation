@@ -1525,7 +1525,7 @@ class Port(LandUnit):
         self.type = 'Port'
 
 
-class Tuning(Aircraft, AtkMissileShip, DefMissileShip, AntiSubShip, SmallShip, CoverShip):
+class Tuning(Aircraft, AtkMissileShip, DefMissileShip, SmallShip, MainShip):
     """调谐"""
     def __init__(self, timer):
         super().__init__(timer)
@@ -1533,9 +1533,10 @@ class Tuning(Aircraft, AtkMissileShip, DefMissileShip, AntiSubShip, SmallShip, C
         self.flight_param = 10
 
         self.act_phase_flag = {
+            'LongMissilePhase': False,
             'AirPhase': True,
             'FirstMissilePhase': True,
-            'AntiSubPhase': True,
+            'AntiSubPhase': False,
             'FirstTorpedoPhase': True,
             'FirstShellingPhase': True,
             'SecondShellingPhase': True,
@@ -1545,12 +1546,13 @@ class Tuning(Aircraft, AtkMissileShip, DefMissileShip, AntiSubShip, SmallShip, C
         }  # 可参与阶段
 
         self.act_phase_indicator = {
+            'LongMissilePhase': lambda x: False,
             'AirPhase':
                 lambda x: x.damaged < 3,
             'FirstMissilePhase':
                 lambda x: (x.damaged < 3) and x.check_missile(),
             'AntiSubPhase':
-                lambda x: (x.get_form() == 5) and (x.damaged < 4),
+                lambda x: False,
             'FirstTorpedoPhase':
                 lambda x: (x.level > 10) and (x.damaged < 3),
             'FirstShellingPhase':
@@ -1566,11 +1568,12 @@ class Tuning(Aircraft, AtkMissileShip, DefMissileShip, AntiSubShip, SmallShip, C
         }  # 可行动标准
 
         from src.wsgr.formulas import \
-            NormalAtk, AntiSubAtk, NightFireTorpedoAtk, NightAntiSubAtk
+            NormalAtk, NightFireTorpedoAtk, TorpedoAtk
         self.normal_atk = NormalAtk  # 普通炮击
-        self.anti_sub_atk = AntiSubAtk  # 反潜攻击
+        self.torpedo_atk = TorpedoAtk
+        self.anti_sub_atk = None  # 反潜攻击
         self.night_atk = NightFireTorpedoAtk  # 夜战普通炮击
-        self.night_anti_sub_atk = NightAntiSubAtk  # 夜战反潜攻击
+        self.night_anti_sub_atk = None  # 夜战反潜攻击
 
 
 class Fleet(Time):
