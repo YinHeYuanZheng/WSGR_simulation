@@ -327,7 +327,8 @@ class Menubar(Menu):
             os.mkdir(saveDir)
 
         fileList = os.listdir(path=saveDir)
-        yamlList = [fname for fname in fileList if fname.endswith('.yaml')]
+        yamlList = [fname for fname in fileList
+                    if fname.endswith('.yaml') and not fname.startswith('.')]
         if len(yamlList):
             for fname in yamlList:
                 self.openMenu.add_command(label=os.path.splitext(fname)[0],
