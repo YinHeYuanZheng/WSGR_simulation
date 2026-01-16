@@ -1063,33 +1063,10 @@ class AntiSubAtk(ATK):
 
         self.form_coef.update({
             'power': [1, 1, 1, 1, 1],
-            'hit': [1, 1, 1, 1, 1.2],
-            'miss': [1, 1, 1, 1, 1.2],
+            'hit': [1, 1, 1, 1, 1],
+            'miss': [.8, 1, 1.2, .8, .9],
         })  # 阵型系数
         self.pierce_base = 2  # 穿甲基础值
-
-    # def get_form_coef(self, name, form_num):
-    #     """获取阵型系数"""
-    #     from src.wsgr.phase import AntiSubPhase, ShellingPhase
-    #     if isinstance(self.timer.phase, AntiSubPhase):
-    #         form_coef = {
-    #             'power': [1, 1, 1, 1, 1],
-    #             'hit': [1, 1, 1, 1, 1.2],
-    #             'miss': [1, 1, 1, 1, 1.2],
-    #             'crit': [0, 0, 0, .25, 0],
-    #             'be_crit': [0, 0, 0, .25, -.1],
-    #         }
-    #     elif isinstance(self.timer.phase, ShellingPhase):
-    #         form_coef = {
-    #             'power': [1, 1, 1, 1, 1],
-    #             'hit': [1.1, 1, .9, 1.2, .75],
-    #             'miss': [.9, 1.2, .9, .8, 1.3],
-    #             'crit': [0, 0, 0, .25, 0],
-    #             'be_crit': [0, 0, 0, .25, -.1],
-    #         }
-    #     else:
-    #         raise Exception('未知的阵型')
-    #     return form_coef.get(name)[form_num - 1]
 
     def formula(self):
         # 基础攻击力
@@ -1144,9 +1121,9 @@ class AntiSubAtk(ATK):
         if self.target.get_form() == 2:
             hit_rate -= 0.05
 
-        # 好感补正
-        hit_rate += (self.atk_body.affection - 50) * 0.001
-        hit_rate -= (self.target.affection - 50) * 0.001
+        # 好感补正(反潜攻击无好感补正)
+        # hit_rate += (self.atk_body.affection - 50) * 0.001
+        # hit_rate -= (self.target.affection - 50) * 0.001
 
         # 技能补正
         _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
@@ -1420,16 +1397,6 @@ class AirNormalAtk(NormalAtk, AirAtk):
         fire = self.atk_body.get_final_status('fire')
         bomb = self.atk_body.get_final_status('bomb')
         torpedo = self.atk_body.get_final_status('torpedo')
-        # ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_antiair', self)  # 无视对空
-        # target_anti_air = self.target.get_final_status('antiair', equip=False) * \
-        #                   (1 + ignore_scale) + ignore_bias  # 本体裸对空（无视对空不影响装备）
-        # target_anti_air = max(0, target_anti_air)
-        # target_anti_air += self.target.get_equip_status('antiair')  # 本体总对空
-        # target_anti_air = max(0, target_anti_air)
-        # random_weight = np.random.random()
-        # base_atk = (fire + 2 * bomb + torpedo)\
-        #            * max(0, 1 - target_anti_air * random_weight / 150)\
-        #            + 35
         base_atk = (fire + 2 * bomb + torpedo) + 35
 
         # 实际威力
@@ -1626,47 +1593,28 @@ class NightMissileAtk(NightAtk, MissileAtk):
 class NightAntiSubAtk(AntiSubAtk, NightAtk):
     """夜战反潜"""
 
-    def final_damage(self, damage):
-        damage = np.ceil(damage * 0.1)
+    def __init__(self, timer, atk_body, def_list, coef=None, target=None):
+        super().__init__(timer, atk_body, def_list, coef, target)
+        self.random_range = [0.89, 1.22]  # 浮动系数上下限
+        self.pierce_base = .2  # 穿甲基础值
 
-        # 额外伤害
-        _, extra_damage = self.atk_body.get_atk_buff('extra_damage', self)
-        damage += extra_damage
+    def formula(self):
+        # 基础攻击力
+        s_antisub = self.atk_body.get_final_status('antisub', equip=False)  # 裸反潜
+        e_antisub = self.atk_body.get_equip_status('antisub', equiptype=DepthMine)  # 深投反潜
+        sonar = 1 + (self.atk_body.get_equip_status('antisub') - e_antisub) / 30  # 声纳系数
+        base_atk = np.floor(
+            (pow(e_antisub + 1, 1/3) * 20 + s_antisub / 3) * sonar
+        )
 
-        # 终伤增伤系数
-        for buff_scale in self.atk_body.get_final_damage_buff(self):
-            damage = np.ceil(damage * (1 + buff_scale))
-        buff_scale = self.get_coef('final_damage_buff')
-        if buff_scale:
-            damage = np.ceil(damage * (1 + buff_scale))
-
-        # 终伤减伤系数
-        for debuff_scale in self.target.get_final_damage_debuff(self):
-            damage = np.ceil(damage * (1 + debuff_scale))
-        buff_scale = self.get_coef('final_damage_debuff')
-        if buff_scale:
-            damage = np.ceil(damage * (1 + buff_scale))
-
-        # 挡枪减伤
-        tank_damage_debuff = self.get_coef('tank_damage_debuff')
-        if tank_damage_debuff is not None:
-            damage = np.ceil(damage * (1 + tank_damage_debuff))
-
-        # 战术终伤
-        buff_scale = self.atk_body.get_strategy_value('final_damage_buff', self)
-        if buff_scale:
-            damage = np.ceil(damage * (1 + buff_scale))
-        debuff_scale = self.target.get_strategy_value('final_damage_debuff', self)
-        if debuff_scale:
-            damage = np.ceil(damage * (1 + debuff_scale))
-
-        # 技能伤害减免
-        _, reduce_damage = self.target.get_atk_buff(name='reduce_damage',
-                                                    atk=self,
-                                                    damage=damage)
-        damage -= reduce_damage
-
-        return max(0, damage)
+        # 实际威力
+        real_atk = (base_atk *
+                    self.coef['skill_coef'] *
+                    self.coef['dmg_coef'] *
+                    self.coef['supply_coef'] *
+                    self.coef['crit_coef'] *
+                    self.coef['random_coef'])
+        return real_atk
 
 
 def cap(x):
