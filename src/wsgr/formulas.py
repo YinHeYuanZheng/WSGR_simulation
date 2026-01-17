@@ -213,16 +213,8 @@ class ATK(Time):
         else:
             return min(1., self.atk_body.supply_ammo * 2. / 10.)
 
-    def get_shipton_coef(self):
+    def get_shipsize_coef(self):
         """船型补正闪避系数"""
-        from src.wsgr.phase import AirPhase, TorpedoPhase, ShellingPhase
-        if isinstance(self.timer.phase, ShellingPhase):
-            d_size = self.atk_body.size - self.target.size
-            return 1 - max(0, d_size * 0.1)
-        if isinstance(self.timer.phase, AirPhase):
-            return 0.25 + 0.25 * self.target.size
-        if isinstance(self.timer.phase, TorpedoPhase):
-            return 0.4 + 0.2 * self.target.size
         return 1.
 
     def crit_verify(self):
@@ -293,7 +285,7 @@ class ATK(Time):
             hit_rate *= 0.95
 
         # 船型补正
-        hit_rate *= self.get_shipton_coef()
+        hit_rate *= self.get_shipsize_coef()
 
         # 单纵、复纵额外补正
         add = 0
@@ -488,8 +480,17 @@ class AirAtk(ATK):
         target_anti_air = self.target.get_final_status('antiair', equip=False) * \
                           (1 + ignore_scale) + ignore_bias  # 本体裸对空
         target_anti_air = max(0, target_anti_air)
-        aa_value = target_anti_air + get_scaled_anti_air(self.target)
+        aa_value = target_anti_air + self.get_scaled_anti_air()
         return max(0, aa_value)
+
+    def get_scaled_anti_air(self):
+        """获取(装备防空*防空倍率)之和"""
+        anti_air = 0
+        for tmp_equip in self.target.equipment:
+            equip_aa = tmp_equip.get_final_status('antiair')
+            equip_aa_scale = tmp_equip.get_final_status('aa_scale')
+            anti_air += 2.5 * equip_aa * equip_aa_scale
+        return anti_air
 
 
 class AirStrikeAtk(AirAtk):
@@ -539,17 +540,35 @@ class AirStrikeAtk(AirAtk):
                           (1 + ignore_scale) + ignore_bias  # 本体裸对空
         target_anti_air = max(0, target_anti_air)
 
-        team_anti_air = get_team_anti_air(self.def_list)  # 全队对空补正
+        team_anti_air = self.get_team_anti_air()  # 全队对空补正
+        team_anti_air *= self.get_form_coef('anti_def', self.target.get_form())
+
         equip_anti_air = self.target.get_equip_status('antiair')  # 装备对空总和
+
         aa_value = target_anti_air + team_anti_air + equip_anti_air
         aa_value = max(0, aa_value)
-        if self.target.function == 'cover':
-            aa_value *= self.get_form_coef('anti_def', self.target.get_form())  # todo 未明确
 
         alpha = np.random.random()
-        bottom_a = 0.618
-        aa_fall = np.floor(alpha * aa_value * bottom_a ** (anti_num - 1) / 10)
+        bottom_a = 0.6
+        aa_fall = np.floor(np.floor(alpha * aa_value / 10) * bottom_a ** (anti_num - 1))
         return aa_fall
+
+    def get_team_anti_air(self):
+        """获取全队补正防空"""
+        anti_air = 0
+        for tmp_ship in self.def_list:
+            ship_anti_air = 0
+            aa_coef = 0
+            for tmp_equip in tmp_ship.equipment:
+                equip_aa_coef = tmp_equip.get_final_status('aa_coef')
+                ship_anti_air += tmp_equip.get_final_status('antiair')
+                aa_coef = max(equip_aa_coef, aa_coef)
+            anti_air += ship_anti_air * aa_coef
+        return anti_air
+
+    def get_shipsize_coef(self):
+        """船型补正闪避系数"""
+        return 0.25 + 0.25 * self.target.size
 
     def hit_verify(self):
         """航空攻击命中检定，含飞机装备命中率buff"""
@@ -565,12 +584,12 @@ class AirStrikeAtk(AirAtk):
         accuracy = self.atk_body.get_final_status('accuracy')
         aa_value = 0.4 * self.get_anti_air_def()
         if self.target.size == 3:
-            mul_rate = .2
+            aa_mult = .2
         elif self.target.size == 2:
-            mul_rate = .8
+            aa_mult = .8
         else:
-            mul_rate = 2
-        hit_rate = accuracy / (aa_value * mul_rate + accuracy)
+            aa_mult = 2
+        hit_rate = accuracy / (aa_value * aa_mult + accuracy)
 
         # 阵型命中率补正
         hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
@@ -586,7 +605,7 @@ class AirStrikeAtk(AirAtk):
         hit_rate *= 1 + get_air_hit_coef(self.atk_body.get_air_con_flag())
 
         # 船型补正
-        hit_rate *= self.get_shipton_coef()
+        hit_rate *= self.get_shipsize_coef()
 
         # 复纵额外补正
         if self.target.get_form() == 2:
@@ -895,10 +914,7 @@ class MissileAtk(ATK):
         # 导弹补正
         hit_rate += 0.5
 
-        # 船型补正
-        hit_rate *= self.get_shipton_coef()
-
-        # 装备补正
+        # 装备补正(被特殊技能附加在装备上的独立命中补正，装备词条算作技能补正)
         _, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
         hit_rate += hitrate_bias
 
@@ -1025,10 +1041,7 @@ class LongMissileAtk(MissileAtk):
         # 导弹补正
         hit_rate += 0.5
 
-        # 船型补正
-        hit_rate *= self.get_shipton_coef()
-
-        # 装备补正
+        # 装备补正(被特殊技能附加在装备上的独立命中补正，装备词条算作技能补正)
         _, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
         hit_rate += hitrate_bias
         from src.wsgr.ship import KP
@@ -1039,11 +1052,11 @@ class LongMissileAtk(MissileAtk):
         hit_rate += (self.atk_body.affection - 50) * 0.001
         hit_rate -= (self.target.affection - 50) * 0.001
 
-        # # 技能补正(远程打击无技能加成)
-        # _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
-        # hit_rate += hitrate_bias
-        # _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
-        # hit_rate -= hitrate_bias
+        # 技能补正
+        _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
+        hit_rate += hitrate_bias
+        _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
+        hit_rate -= hitrate_bias
 
         hit_rate = cap(hit_rate)
         verify = np.random.random()
@@ -1114,9 +1127,6 @@ class AntiSubAtk(ATK):
         if self.target.get_recon_flag():
             hit_rate *= 0.95
 
-        # 船型补正
-        hit_rate *= self.get_shipton_coef()
-
         # 复纵额外补正
         if self.target.get_form() == 2:
             hit_rate -= 0.05
@@ -1181,6 +1191,10 @@ class TorpedoAtk(ATK):
         })  # 阵型系数
         self.pierce_base = 1  # 穿甲基础值
 
+    def get_shipsize_coef(self):
+        """船型补正闪避系数"""
+        return 0.4 + 0.2 * self.target.size
+
     def formula(self):
         # 基础攻击力
         base_atk = self.atk_body.get_final_status('torpedo') + 5
@@ -1208,6 +1222,11 @@ class NormalAtk(ATK):
             'hit': [1.1, 1, .9, 1.2, .75],
             'miss': [.9, 1.2, .9, .8, 1.3],
         })  # 阵型系数
+
+    def get_shipsize_coef(self):
+        """船型补正闪避系数"""
+        d_size = self.atk_body.size - self.target.size
+        return 1 - max(0, d_size * 0.1)
 
     def formula(self):
         # 基础攻击力
@@ -1310,12 +1329,12 @@ class AirNormalAtk(NormalAtk, AirAtk):
         accuracy = self.atk_body.get_final_status('accuracy')
         aa_value = 0.4 * self.get_anti_air_def()
         if self.target.size == 3:
-            mul_rate = .2
+            aa_mult = .2
         elif self.target.size == 2:
-            mul_rate = .8
+            aa_mult = .8
         else:
-            mul_rate = 2
-        hit_rate = accuracy / (aa_value * mul_rate + accuracy)
+            aa_mult = 2
+        hit_rate = accuracy / (aa_value * aa_mult + accuracy)
 
         # 阵型命中率补正
         hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
@@ -1331,7 +1350,7 @@ class AirNormalAtk(NormalAtk, AirAtk):
         # hit_rate *= 1 + get_air_hit_coef(self.atk_body.get_air_con_flag())
 
         # 船型补正
-        hit_rate *= self.get_shipton_coef()
+        hit_rate *= self.get_shipsize_coef()
 
         # 复纵额外补正
         if self.target.get_form() == 2:
@@ -1735,29 +1754,6 @@ def get_flightlimit(ship):
 
 def get_air_con_fall(load, plane_rest, aerial, fall_rand):
     return np.floor((load / plane_rest) * aerial * fall_rand)
-
-
-def get_team_anti_air(team):
-    """获取全队补正防空"""
-    anti_air = 0
-    aa_coef = 0
-    for tmp_ship in team:
-        for tmp_equip in tmp_ship.equipment:
-            equip_aa_coef = tmp_equip.get_final_status('aa_coef')
-            if equip_aa_coef != 0:
-                anti_air += tmp_equip.get_final_status('antiair')
-                aa_coef = max(equip_aa_coef, aa_coef)
-    return anti_air * aa_coef
-
-
-def get_scaled_anti_air(ship):
-    """获取(装备防空*防空倍率)之和"""
-    anti_air = 0
-    for tmp_equip in ship.equipment:
-        equip_aa = tmp_equip.get_final_status('antiair')
-        equip_aa_scale = tmp_equip.get_final_status('aa_scale')
-        anti_air += 2.5 * equip_aa * equip_aa_scale
-    return anti_air
 
 
 if __name__ == "__main__":
