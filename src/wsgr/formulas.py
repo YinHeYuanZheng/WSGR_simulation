@@ -294,7 +294,7 @@ class ATK(Time):
         from src.wsgr.phase import SecondShellingPhase
         if self.atk_body.get_form() == 1 and \
                 isinstance(self.timer.phase, SecondShellingPhase):
-            add += 0.05  # todo 待验证，次轮单纵可能取消复纵减益
+            add = 0.05  # todo 待验证，次轮单纵可能取消复纵减益
         hit_rate += add
 
         # 好感补正
@@ -1549,7 +1549,7 @@ class NightFireAtk(NightNormalAtk):
 
     def __init__(self, timer, atk_body, def_list, coef=None, target=None):
         super().__init__(timer, atk_body, def_list, coef, target)
-        self.random_range = [2.4, 3.6]  # 浮动系数上下限
+        self.random_range = [2.4, 3.3]  # 浮动系数上下限
 
 
 class NightFireTorpedoAtk(NightNormalAtk):
