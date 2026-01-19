@@ -26,9 +26,15 @@ def main(infile, epoch, battle_num, fun, **kwargs):
         battleConfig = load_yaml(infile, mapDir)
     else:
         raise Exception(f"未许可的文件后缀'{os.path.splitext(infile)[1]}'")
-    battle = load_config(battleConfig, mapDir, ds, timer_init)
-    # for ship in battle.enemy.ship:
-    #     ship.status['armor'] = 250
+    battle = load_config(battleConfig, mapDir, ds, timer_init)  # 加载战斗配置
+    # for ship in battle.enemy.ship:  # 属性修改
+    #     ship.status['armor'] = 180
+    #     ship.status['fire'] = 200
+    #     ship.status['accuracy'] = 120
+    #     ship.status['total_health'] = 450
+    #     ship.status['antiair'] = 100
+    #     ship.status['recon'] = 100
+    # battle.friend.ship[1].status['health'] = 29
     set_supply(battle, battle_num)
     prebattle_info(battle)
     fun(battle, epoch, **kwargs)
