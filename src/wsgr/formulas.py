@@ -139,7 +139,7 @@ class ATK(Time):
         # 技能系数
         skill_scale, _ = self.atk_body.get_atk_buff('power_buff', self)
         self.coef['skill_coef'] = 1 + skill_scale
-        skill_scale, _ = self.get_coef_value('power_buff')
+        skill_scale = self.get_coef_value('power_buff')
         self.coef['skill_coef'] *= (1 + skill_scale)
 
         # 航向系数
@@ -1387,7 +1387,7 @@ class AirNormalAtk(NormalAtk, AirAtk):
         self.coef['skill_coef'] = 1 + skill_scale
         skill_scale, _ = self.atk_body.get_atk_buff('power_buff', self)
         self.coef['skill_coef'] *= (1 + skill_scale)
-        skill_scale, _ = self.get_coef_value('power_buff')
+        skill_scale = self.get_coef_value('power_buff')
         self.coef['skill_coef'] *= (1 + skill_scale)
 
         # 船损系数
