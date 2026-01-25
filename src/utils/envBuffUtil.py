@@ -32,7 +32,7 @@ class AllTarget(Target):
             return friend + enemy
 
 
-class Collection_C_fire(Skill):
+class Collection_C_fire(PrepSkill):
     """C国火力+5 +3"""
     def __init__(self, timer):
         super().__init__(timer, master=None)
@@ -55,7 +55,7 @@ class Collection_C_fire(Skill):
         ]
 
 
-class Collection_U_torpedo(Skill):
+class Collection_U_torpedo(PrepSkill):
     """U国鱼雷+2"""
     def __init__(self, timer):
         super().__init__(timer, master=None)
@@ -71,7 +71,7 @@ class Collection_U_torpedo(Skill):
         ]
 
 
-class Dish_C_fire(Skill):
+class Dish_C_fire(PrepSkill):
     """C国火力+11"""
     def __init__(self, timer):
         super().__init__(timer, master=None)
@@ -87,7 +87,7 @@ class Dish_C_fire(Skill):
         ]
 
 
-class Car_Large_fire(Skill):
+class Car_Large_fire(PrepSkill):
     """大型船火力+5"""
     def __init__(self, timer):
         super().__init__(timer, master=None)
@@ -109,7 +109,7 @@ class Car_Large_fire(Skill):
         ]
 
 
-class Event_U_buff(Skill):
+class Event_U_buff(PrepSkill):
     """U国无视战损"""
     def __init__(self, timer):
         super().__init__(timer, master=None)
@@ -123,7 +123,7 @@ class Event_U_buff(Skill):
         ]
 
 
-class Event_SpecialBuff_Skill(Skill):
+class Event_SpecialBuff_Skill(PrepSkill):
     """活动彩蛋船专属buff(圣地亚哥)"""
     def __init__(self, timer):
         super().__init__(timer, master=None)
@@ -190,7 +190,7 @@ class Event_SpecialBuff_Skill(Skill):
         ]
 
 
-class Normal_map9_lock_buff(Skill):
+class Normal_map9_lock_buff(PrepSkill):
     """9图解封锁buff"""
     def __init__(self, timer):
         class LeaderSurviveBuff(FinalDamageBuff):
@@ -241,7 +241,7 @@ def dynamic_init(self, timer, config: dict):
 
     # A. 基础属性 (StatusBuff)
     status_name_list = ['fire', 'torpedo', 'armor', 'antiair', 'antisub',
-                        'accuracy', 'evasion', 'recon', 'luck'
+                        'accuracy', 'evasion', 'recon', 'speed', 'luck'
                         ]
     for name in status_name_list:
         val = config.get(name)
@@ -337,7 +337,7 @@ def create_skill_class(cls, config):
         dynamic_init(self, timer, config)
 
     # 参数：类名，父类元组，属性字典
-    return type(cls, (Skill,), {"__init__": wrapped_init})
+    return type(cls, (PrepSkill,), {"__init__": wrapped_init})
 
 
 def load_env_buffs(file_path):
@@ -355,6 +355,7 @@ def load_env_buffs(file_path):
         '命中': 'accuracy',
         '回避': 'evasion',
         '索敌': 'recon',
+        '航速': 'speed',
         '幸运': 'luck',
         '暴击': 'crit',
         '伤害提升': 'final_damage_buff',

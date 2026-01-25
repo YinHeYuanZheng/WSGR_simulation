@@ -1603,6 +1603,7 @@ class Fleet(Time):
     def get_init_status(self, enemy):
         """计算带路相关属性"""
         # 结算影响队友航速、索敌的技能，不结算让巴尔
+        self.timer.run_prepare_skill(self, enemy)
         for tmp_ship in self.ship:
             tmp_ship.run_raw_prepare_skill(self, enemy)
 
