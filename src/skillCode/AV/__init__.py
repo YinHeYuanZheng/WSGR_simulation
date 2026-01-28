@@ -14,6 +14,7 @@ from . import sid104831  # 胜利-1
 from . import sid104861  # G15-1
 from . import sid105101  # G14-1
 from . import sid105761  # 中途岛-1
+from . import sid106191  # 罗斯福-1
 
 # 改造
 from . import sid111171  # 大凤改-1

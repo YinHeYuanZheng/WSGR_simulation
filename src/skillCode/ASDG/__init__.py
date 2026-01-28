@@ -22,6 +22,7 @@ from . import sid105591  # 不惧-1
 from . import sid110941  # 基阿特改-1
 from . import sid113631  # 炽热改-1
 from . import sid115751  # 威武改-1
+from . import sid115091  # 谦逊改-1
 
 # 导巡
 from . import sid105331  # 格罗兹尼-1

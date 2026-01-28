@@ -1100,7 +1100,7 @@ class ActiveBuff(Buff):
 
     def is_active(self, atk_type: type(ATK), enemy, *args, **kwargs):
         """
-        :param atk: ATK
+        :param atk_type: type(ATK)
         :param enemy: Fleet
         """
         if not isinstance(self.timer.phase, self.phase):

@@ -10,7 +10,7 @@ from src.wsgr.phase import *
 """夜战旗舰(3级)：全队鱼雷值增加5%，索敌增加3点。"""
 
 
-class Skill_110331(Skill):
+class Skill_110331_1(Skill):
     def __init__(self, timer, master):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
@@ -21,7 +21,15 @@ class Skill_110331(Skill):
                 phase=AllPhase,
                 value=0.05,
                 bias_or_weight=1
-            ),
+            )
+        ]
+
+
+class Skill_110331_2(PrepSkill):
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = SelfTarget(master)
+        self.buff = [
             StatusBuff(
                 timer=timer,
                 name='recon',
@@ -33,4 +41,4 @@ class Skill_110331(Skill):
 
 
 name = '夜战旗舰'
-skill = [Skill_110331]
+skill = [Skill_110331_1, Skill_110331_2]

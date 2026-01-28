@@ -18,6 +18,7 @@ from . import sid110751  # Z16改-1
 from . import sid110752  # Z16改-2
 from . import sid110761  # Z21改-1
 from . import sid110771  # Z22改-1
+from . import sid110791  # Z28改-1
 from . import sid110801  # Z31改-1
 from . import sid110811  # 紫石英改-1
 from . import sid110821  # 萤火虫改-1
@@ -76,3 +77,4 @@ from . import sid114251  # 史密斯改-1
 from . import sid114961  # 诺福克改-1
 from . import sid115031  # T-23改-1
 from . import sid115171  # 吕贝克改-1
+from . import sid115191  # T.995改-1
