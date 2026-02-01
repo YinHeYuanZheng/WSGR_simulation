@@ -372,7 +372,7 @@ def load_env_buffs(file_path):
     for i, row in df.iterrows():
         config = row.to_dict()
         # 检查buff是否生效
-        if not bool(config.get('valid')):
+        if config.get('valid') in ['', '0', 'FALSE', 'False']:
             continue
         name = config.get('name', f'DynamicSkill_{i+1}').replace(' ', '_')
         # 过滤非法字符确保符合Python类名规范(支持字符：字母、数字、下划线)
