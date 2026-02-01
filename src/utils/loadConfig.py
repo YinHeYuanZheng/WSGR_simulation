@@ -157,11 +157,11 @@ def load_fleet(fleetDict, dataset, timer):
     return fleet
 
 
-def load_map(map_root, mapdir, dataset, timer, friend):
-    mapid = map_root.getAttribute('mapid')
-    entrance_id = int(map_root.getAttribute('entrance'))
+def load_map(mapDict, mapDir, dataset, timer, friend):
+    mapid = mapDict['mapid']
+    entrance_id = int(mapDict['entrance'])
 
-    map_xml = os.path.join(mapdir, 'mapid'+mapid+'.xml')
+    map_xml = os.path.join(mapDir, 'mapid'+mapid+'.xml')
     map_dom = xml.dom.minidom.parse(map_xml)
     root = map_dom.documentElement
     entrance = root.getElementsByTagName('entrance')[entrance_id]

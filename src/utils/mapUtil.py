@@ -58,6 +58,7 @@ class MapUtil(Time):
                 self.point[name] = p
 
     def load_fleet(self, enemy_ids, dataset, timer):
+        """读取敌方舰队"""
         fleet = rship.Fleet(timer)
         fleet.set_form(int(enemy_ids[0]))
 
@@ -65,7 +66,7 @@ class MapUtil(Time):
         for i in range(len(enemy_ids) - 1):
             cid = enemy_ids[i + 1]
             if cid != '':
-                ship = self.load_ship(cid, len(shiplist) + 1, dataset, timer)
+                ship = self.load_enemy_ship(cid, len(shiplist) + 1, dataset, timer)
                 ship.set_master(fleet)
                 shiplist.append(ship)
 
@@ -74,7 +75,7 @@ class MapUtil(Time):
         fleet.set_side(0)
         return fleet
 
-    def load_ship(self, cid, loc, dataset, timer):
+    def load_enemy_ship(self, cid, loc, dataset, timer):
         # 读取舰船属性
         status = dataset.get_enemy_ship_status(cid)
 
@@ -125,11 +126,12 @@ class MapUtil(Time):
                 equip = getattr(requip, equip_type)(timer, ship, i + 1)  # 根据装备类型获取类，并实例化
 
                 # 如果装备也存在特殊效果，当作技能写入舰船skill内
-                esid = estatus.pop('skill')
-                if esid != '':
-                    esid = 'esid' + esid
-                    skill = getattr(skillCode, esid).skill  # 根据技能设置获取技能列表，未实例化
-                    equip.add_skill(skill)  # 写入装备技能
+                esid_list = estatus.pop('skill')
+                if len(esid_list):
+                    for esid in esid_list:
+                        esid = 'esid' + esid
+                        skill = getattr(skillCode, esid).skill  # 根据技能设置获取技能列表，未实例化
+                        equip.add_skill(skill)  # 写入装备技能
 
                 # 写入装备属性
                 equip.set_status(status=estatus)
