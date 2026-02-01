@@ -8,12 +8,12 @@ from src.wsgr.phase import *
 
 
 class Eskill_690(EquipSkill):
-    """中途岛装备时增加10%攻击威力"""
+    """中途岛级装备时增加10%攻击威力"""
     def __init__(self, timer, master, value):
         super().__init__(timer, master, value)
         self.target = SelfTarget(master)
         self.buff = []
-        if master.cid in ['10576', '11576']:
+        if master.cid in ['10576', '11576', '10619', '11619']:
             self.buff = [
                 EquipEffect(
                     timer=timer,
@@ -24,5 +24,6 @@ class Eskill_690(EquipSkill):
                     bias_or_weight=2
                 )
             ]
+
 
 skill = [Eskill_690]
