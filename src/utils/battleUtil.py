@@ -214,8 +214,8 @@ class NormalBattle(BattleUtil):
             return
         self.run_phase(LongMissilePhase)
         self.run_phase(BuffPhase)
-        if (self.timer.point is not None) and (self.timer.point.level == 5):
-            self.run_phase(SupportPhase)
+        # if (self.timer.point is not None) and (self.timer.point.level == 5):
+        #     self.run_phase(SupportPhase)
         self.run_phase(AirPhase)
         self.run_phase(TLockPhase)
         self.run_phase(FirstMissilePhase)
