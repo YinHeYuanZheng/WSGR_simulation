@@ -780,6 +780,8 @@ class Ship(Time):
         if self.status['health'] <= 0:
             if self.use_dcitem():  # 检测能否损管
                 self.status['health'] = standard_health
+                self.damaged = 1
+                self.damage_protect = True
             else:
                 self.status['health'] = 0
                 if self.damaged != 4:

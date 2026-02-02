@@ -130,6 +130,31 @@ def run_supply_cost(battle, epoch,
               end='',)
 
 
+def run_map_supply_cost(battle, epoch):
+    supply = {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0,
+              'repeat': 0, 'dcitem': 0}
+    for i in range(epoch):
+        tmp_battle = copy.deepcopy(battle)
+        tmp_battle.start()
+        log = tmp_battle.report()
+
+        supply['oil'] += log['supply']['oil']
+        supply['ammo'] += log['supply']['ammo']
+        supply['steel'] += log['supply']['steel']
+        supply['almn'] += log['supply']['almn']
+        supply['repeat'] += log['supply']['repeat']
+        supply['dcitem'] += log['dcitem']
+        print("\r"
+              f"第{i + 1}次 - 资源消耗: "
+              f"油 {supply['oil'] / (i + 1):.1f}, "
+              f"弹 {supply['ammo'] / (i + 1):.1f}, "
+              f"钢 {supply['steel'] / (i + 1):.1f}, "
+              f"铝 {supply['almn'] / (i + 1):.1f},"
+              f"桶 {supply['repeat'] / (i + 1):.2f}."
+              f"损管 {supply['dcitem'] / (i + 1):.2f}.",
+              end='',)
+
+
 def run_damaged(battle, epoch,
                 stop_event:threading.Event=None):
     damaged_rate = np.zeros((6, 2))

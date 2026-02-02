@@ -252,9 +252,13 @@ class Point:
         #     return None
 
         for tmp_ship in friend.ship:
-            # 大破不再前进
-            if tmp_ship.damaged >= 3:
+            # 旗舰大破不再前进
+            if tmp_ship.loc == 1 and tmp_ship.damaged >= 3:
                 return None
+
+            # 大破不再前进
+            # if tmp_ship.damaged >= 3:
+            #     return None
 
             # 油弹耗尽不再前进
             if tmp_ship.supply_oil <= 0 or tmp_ship.supply_ammo <= 0:
