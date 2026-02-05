@@ -368,6 +368,11 @@ class Ship(Time):
 
         return max(0, ship_range)
 
+    def get_aerial(self):
+        """单船制空值"""
+        buff_scale, _, buff_bias = self.get_buff('air_ctrl_buff')
+        return buff_bias * (1 + buff_scale)
+
     def add_buff(self, buff):
         """分类添加增益"""
         buff.set_master(self)
@@ -1011,6 +1016,39 @@ class Aircraft(Ship):
                 return True
         return False
 
+    def get_flightlimit(self):
+        fire = max(self.get_final_status('fire'), 0)
+        flightlimit = np.floor(fire / self.flight_param) + 3
+        return flightlimit
+
+    def get_aerial(self):
+        """单船制空值"""
+        buff_scale, _, buff_bias = self.get_buff('air_ctrl_buff')
+        result = buff_bias
+
+        # 航系检查是否可以行动
+        if not self.get_act_indicator():
+            return result * (1 + buff_scale)
+
+        equip_list = [tmp_equip for tmp_equip in self.equipment
+                      if isinstance(tmp_equip, (Fighter, Bomber, DiveBomber))
+                      and tmp_equip.load > 0]  # 参与航空战的飞机索引
+
+        # 没有可行动飞机
+        if not len(equip_list):
+            return result * (1 + buff_scale)
+
+        # 计算制空
+        flight_limit = self.get_flightlimit()
+        actual_flight = np.array([min(tmp_equip.load, flight_limit)
+                                  for tmp_equip in equip_list])  # 可行动飞机的实际放飞
+        antiair = np.array([tmp_equip.get_final_status('antiair')
+                            for tmp_equip in equip_list])  # 可行动飞机的对空
+
+        air = np.log(2 * (actual_flight + 1)) * antiair  # 总制空
+        result += np.sum(air)  # 总加成制空
+        return result * (1 + buff_scale)
+
 
 class CV(Aircraft, LargeShip, MainShip):
     def __init__(self, timer):
@@ -1227,7 +1265,7 @@ class CAV(Aircraft, AntiSubShip, MidShip, CoverShip):
     def __init__(self, timer):
         super().__init__(timer)
         self.type = 'CAV'
-        self.flight_param = 10
+        self.flight_param = 5
 
 
 class CA(MidShip, CoverShip):
@@ -1713,6 +1751,13 @@ class Fleet(Time):
                 antisub_recon += tmp_ship.get_final_status('recon')
                 antisub_recon += tmp_ship.get_final_status('antisub', equip=False)
         return antisub_recon
+
+    def get_fleet_aerial(self):
+        """全队制空"""
+        aerial = 0
+        for tmp_ship in self.ship:
+            aerial += tmp_ship.get_aerial()
+        return aerial
 
     def get_member_inphase(self):
         """确定舰队中参与当前阶段的成员(不论是否可以行动，以满足炮序计算需求)"""

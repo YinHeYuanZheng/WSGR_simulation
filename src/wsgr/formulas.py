@@ -493,6 +493,22 @@ class AirAtk(ATK):
             anti_air += 2.5 * equip_aa * equip_aa_scale
         return anti_air
 
+    def get_air_coef(self):
+        """制空命中、伤害系数"""
+        air_con_flag = self.atk_body.get_air_con_flag()
+        if air_con_flag == 1:
+            hit_rate = 0.1
+        elif air_con_flag == 2:
+            hit_rate = 0.05
+        elif air_con_flag == 3:
+            hit_rate = 0
+        elif air_con_flag == 4:
+            hit_rate = -0.05
+        else:
+            hit_rate = -0.1
+
+        return hit_rate
+
 
 class AirStrikeAtk(AirAtk):
     """航空战航空攻击"""
@@ -534,6 +550,48 @@ class AirStrikeAtk(AirAtk):
         damage, sink = self.target.get_damage(damage)
         return self.end_atk(damage_flag, damage, sink)
 
+    def process_coef(self):
+        # 制空系数
+        self.coef['air_con_coef'] = 1 + self.get_air_coef()
+
+        target_num = self.def_list.index(self.target)
+        self.coef['anti_num'][target_num] += 1
+        anti_num = self.coef['anti_num'][target_num]
+        aa_fall = self.get_anti_air_fall(anti_num)  # 防空击坠
+
+        # 最大击坠量不超过实际放飞量
+        actual_fall = min(self.coef['actual_flight'],
+                          self.coef['air_con_fall'] + aa_fall)
+
+        # 减少击坠技能
+        fall_scale, fall_bias = self.atk_body.get_atk_buff('fall_rest', self)
+        actual_fall = np.ceil(actual_fall * (1 + fall_scale) + fall_bias)
+        actual_fall = max(0, actual_fall)  # 不会减到负数
+
+        # 击坠结算与本次剩余载机量计算
+        self.equip.fall(actual_fall)
+        self.coef['plane_rest'] = self.coef['actual_flight'] - actual_fall
+
+        # 船损系数
+        self.coef['dmg_coef'] = self.get_dmg_coef()
+
+        # 弹损系数
+        self.coef['supply_coef'] = self.get_supply_coef()
+
+        # 暴击系数
+        if self.coef['crit_flag']:
+            _, crit_bias = self.atk_body.get_atk_buff('crit_coef', self)
+            self.coef['crit_coef'] = 1.5 + crit_bias
+        else:
+            self.coef['crit_coef'] = 1.
+
+        # 浮动系数
+        self.coef['random_coef'] = np.random.uniform(self.random_range[0],
+                                                     self.random_range[1])
+
+        # 攻击者对系数进行最终修正（最高优先级）
+        self.atk_body.atk_coef_process(self)
+
     def get_anti_air_fall(self, anti_num):
         """计算防空击坠"""
         ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_antiair', self)  # 无视对空
@@ -549,9 +607,10 @@ class AirStrikeAtk(AirAtk):
         aa_value = target_anti_air + team_anti_air + equip_anti_air
         aa_value = max(0, aa_value)
 
-        alpha = np.random.random()
+        alpha = np.round(np.random.random(), 2)
         bottom_a = 0.6
         aa_fall = np.floor(np.floor(alpha * aa_value / 10) * bottom_a ** (anti_num - 1))
+        self.coef['antiair_fall'] = aa_fall
         return aa_fall
 
     def get_team_anti_air(self):
@@ -691,24 +750,6 @@ class AirStrikeAtk(AirAtk):
 
 class AirBombAtk(AirStrikeAtk):
     def process_coef(self):
-        target_num = self.def_list.index(self.target)
-        self.coef['anti_num'][target_num] += 1
-        anti_num = self.coef['anti_num'][target_num]
-        aa_fall = self.get_anti_air_fall(anti_num)  # 防空击坠
-
-        # 最大击坠量不超过实际放飞量
-        actual_fall = min(self.coef['actual_flight'],
-                          self.coef['air_con_fall'] + aa_fall)
-
-        # 减少击坠技能
-        fall_scale, fall_bias = self.atk_body.get_atk_buff('fall_rest', self)
-        actual_fall = np.ceil(actual_fall * (1 + fall_scale) + fall_bias)
-        actual_fall = max(0, actual_fall)  # 不会减到负数
-
-        # 击坠结算与本次剩余载机量计算
-        self.equip.fall(actual_fall)
-        self.coef['plane_rest'] = self.coef['actual_flight'] - actual_fall
-
         # 技能系数
         skill_scale, _ = self.atk_body.get_atk_buff('air_atk_buff', self)
         self.coef['skill_coef'] = 1 + skill_scale
@@ -717,29 +758,11 @@ class AirBombAtk(AirStrikeAtk):
         skill_scale, _ = self.atk_body.get_atk_buff('power_buff', self)
         self.coef['skill_coef'] *= (1 + skill_scale)
 
-        # 船损系数
-        self.coef['dmg_coef'] = self.get_dmg_coef()
-
-        # 弹损系数
-        self.coef['supply_coef'] = self.get_supply_coef()
-
-        # 暴击系数
-        if self.coef['crit_flag']:
-            _, crit_bias = self.atk_body.get_atk_buff('crit_coef', self)
-            self.coef['crit_coef'] = 1.5 + crit_bias
-        else:
-            self.coef['crit_coef'] = 1.
-
-        # 浮动系数
-        self.coef['random_coef'] = np.random.uniform(self.random_range[0],
-                                                     self.random_range[1])
-
         # 穿甲系数
         _, pierce_bias = self.atk_body.get_atk_buff('pierce_coef', self)
         self.coef['pierce_coef'] = 1. + pierce_bias
 
-        # 攻击者对系数进行最终修正（最高优先级）
-        self.atk_body.atk_coef_process(self)
+        super().process_coef()
 
     def formula(self):
         # 基础攻击力
@@ -759,24 +782,6 @@ class AirBombAtk(AirStrikeAtk):
 
 class AirDiveAtk(AirStrikeAtk):
     def process_coef(self):
-        target_num = self.def_list.index(self.target)
-        self.coef['anti_num'][target_num] += 1
-        anti_num = self.coef['anti_num'][target_num]
-        aa_fall = self.get_anti_air_fall(anti_num)  # 防空击坠
-
-        # 最大击坠量不超过实际放飞量
-        actual_fall = min(self.coef['actual_flight'],
-                          self.coef['air_con_fall'] + aa_fall)
-
-        # 减少击坠技能
-        fall_scale, fall_bias = self.atk_body.get_atk_buff('fall_rest', self)
-        actual_fall = np.ceil(actual_fall * (1 + fall_scale) + fall_bias)
-        actual_fall = max(0, actual_fall)  # 不会减到负数
-
-        # 击坠结算与本次剩余载机量计算
-        self.equip.fall(actual_fall)
-        self.coef['plane_rest'] = self.coef['actual_flight'] - actual_fall
-
         # 技能系数
         skill_scale, _ = self.atk_body.get_atk_buff('air_atk_buff', self)
         self.coef['skill_coef'] = 1 + skill_scale
@@ -785,23 +790,6 @@ class AirDiveAtk(AirStrikeAtk):
         skill_scale, _ = self.atk_body.get_atk_buff('power_buff', self)
         self.coef['skill_coef'] *= (1 + skill_scale)
 
-        # 船损系数
-        self.coef['dmg_coef'] = self.get_dmg_coef()
-
-        # 弹损系数
-        self.coef['supply_coef'] = self.get_supply_coef()
-
-        # 暴击系数
-        if self.coef['crit_flag']:
-            _, crit_bias = self.atk_body.get_atk_buff('crit_coef', self)
-            self.coef['crit_coef'] = 1.5 + crit_bias
-        else:
-            self.coef['crit_coef'] = 1.
-
-        # 浮动系数
-        self.coef['random_coef'] = np.random.uniform(self.random_range[0],
-                                                     self.random_range[1])
-
         # 鱼雷机系数
         self.coef['dive_random_coef'] = np.random.uniform(.5, 1.)
 
@@ -809,8 +797,7 @@ class AirDiveAtk(AirStrikeAtk):
         _, pierce_bias = self.atk_body.get_atk_buff('pierce_coef', self)
         self.coef['pierce_coef'] = 2. + pierce_bias
 
-        # 攻击者对系数进行最终修正（最高优先级）
-        self.atk_body.atk_coef_process(self)
+        super().process_coef()
 
     def formula(self):
         # 基础攻击力
@@ -1377,8 +1364,7 @@ class AirNormalAtk(NormalAtk, AirAtk):
 
     def process_coef(self):
         # 制空系数
-        _, self.coef['air_con_coef'] = get_air_coef(self.timer.air_con_flag,
-                                                    self.atk_body.side)
+        self.coef['air_con_coef'] = 1 + self.get_air_coef()
         # 阵型系数
         self.coef['form_coef'] = self.get_form_coef('power', self.atk_body.get_form())
 
@@ -1644,119 +1630,6 @@ def cap(x):
     x = max(0.05, x)
     x = min(0.95, x)
     return x
-
-
-def get_fleet_aerial(ship_list):
-    """全队制空"""
-    aerial = 0
-    for tmp_ship in ship_list:
-        aerial += get_ship_aerial(tmp_ship)
-    return aerial
-
-
-def get_ship_aerial(ship):
-    """单船制空值"""
-    # 舰船基础制空值
-    buff_scale, _, buff_bias = ship.get_buff('air_ctrl_buff')
-    result = buff_bias
-
-    # 非航系
-    from src.wsgr.ship import Aircraft
-    if not isinstance(ship, Aircraft):
-        return result
-    # 航系检查是否可以行动
-    if not ship.get_act_indicator():
-        return result
-
-    equip_list = [tmp_equip for tmp_equip in ship.equipment
-                  if isinstance(tmp_equip, (Fighter, Bomber, DiveBomber))
-                  and tmp_equip.load > 0]  # 参与航空战的飞机索引
-
-    # 没有可行动飞机
-    if not len(equip_list):
-        return result
-
-    # 计算制空
-    flight_limit = get_flightlimit(ship)
-    actual_flight = np.array([min(tmp_equip.load, flight_limit)
-                              for tmp_equip in equip_list])  # 可行动飞机的实际放飞
-    antiair = np.array([tmp_equip.get_final_status('antiair')
-                        for tmp_equip in equip_list])  # 可行动飞机的对空
-
-    air = np.log(2 * (actual_flight + 1)) * antiair  # 总制空
-    result += np.sum(air) * (1 + buff_scale)  # 总加成制空
-    return result
-
-
-def compare_aerial(aerial_friend, aerial_enemy):
-    """制空结果"""
-    if aerial_friend >= aerial_enemy * 3:
-        return 1  # 空确
-    elif aerial_enemy * 3 > aerial_friend >= aerial_enemy * 3 / 2:
-        return 2  # 优势
-    elif aerial_enemy * 3 / 2 > aerial_friend >= aerial_enemy * 2 / 3:
-        return 3  # 均势
-    elif aerial_enemy * 2 / 3 > aerial_friend >= aerial_enemy * 1 / 3:
-        return 4  # 劣势
-    else:
-        return 5  # 丧失
-
-
-def get_air_coef(air_con_flag, side):
-    if side == 0:
-        air_con_flag = 6 - air_con_flag
-
-    if air_con_flag == 1:
-        fall_coef = [0, 0.1]
-        air_con_coef = 1.1
-    elif air_con_flag == 2:
-        fall_coef = [0.1, 0.3]
-        air_con_coef = 1.05
-    elif air_con_flag == 3:
-        fall_coef = [0.3, 0.7]
-        air_con_coef = 1.
-    elif air_con_flag == 4:
-        fall_coef = [0.7, 0.9]
-        air_con_coef = .95
-    else:
-        fall_coef = [0.9, 1]
-        air_con_coef = .9
-
-    return fall_coef, air_con_coef
-
-
-def get_air_hit_coef(air_con_flag):
-    if air_con_flag == 1:
-        hit_rate = 0.1
-    elif air_con_flag == 2:
-        hit_rate = 0.05
-    elif air_con_flag == 3:
-        hit_rate = 0
-    elif air_con_flag == 4:
-        hit_rate = -0.05
-    else:
-        hit_rate = -0.1
-
-    return hit_rate
-
-
-def get_total_plane_rest(shiplist):
-    rest = 0
-    for tmp_ship in shiplist:
-        for tmp_equip in tmp_ship.equipment:
-            if isinstance(tmp_equip, Plane):
-                rest += tmp_equip.load
-    return rest
-
-
-def get_flightlimit(ship):
-    fire = max(ship.get_final_status('fire'), 0.)
-    flightlimit = np.floor(fire / ship.flight_param) + 3
-    return flightlimit
-
-
-def get_air_con_fall(load, plane_rest, aerial, fall_rand):
-    return np.floor((load / plane_rest) * aerial * fall_rand)
 
 
 if __name__ == "__main__":

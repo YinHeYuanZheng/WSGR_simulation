@@ -365,19 +365,14 @@ class SpecialBattle(BattleUtil):
             'bomb': 10,
         })
 
-        # 录入制空结果
+        # 录入制空结果为空丧
         self.timer.report_log('aerial', [5, 0, 0])
         self.timer.set_air_con(5)
 
         # 结算攻击
-        import src.wsgr.formulas as rform
-        fall_coef, air_con_coef = rform.get_air_coef(self.timer.air_con_flag,
-                                                     side)
-        total_plane_rest = 20 * air_strike_num
         anti_num = [0] * len(def_friend)  # 迎击序数
         coef = {'actual_flight': 20,
-                'air_con_fall': 0,
-                'air_con_coef': air_con_coef}
+                'air_con_fall': 0}
         for i in range(air_strike_num):
             coef['anti_num'] = anti_num
             from src.wsgr.formulas import AirBombAtk

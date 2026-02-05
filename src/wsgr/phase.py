@@ -227,10 +227,10 @@ class AirPhase(DaytimePhase):
             return
 
         # 计算双方制空
-        aerial_friend = rform.get_fleet_aerial(self.friend.ship)
-        aerial_enemy = rform.get_fleet_aerial(self.enemy.ship)
+        aerial_friend = self.friend.get_fleet_aerial()
+        aerial_enemy = self.enemy.get_fleet_aerial()
         # 制空结果, 从空确到空丧分别为1-5
-        air_con_flag = rform.compare_aerial(aerial_friend, aerial_enemy)
+        air_con_flag = self.compare_aerial(aerial_friend, aerial_enemy)
         # 制空均为0时特殊情况, 检查双方攻击性飞机
         if aerial_friend == 0 and aerial_enemy == 0:
             if atk_plane_friend and not atk_plane_enemy:
@@ -244,27 +244,24 @@ class AirPhase(DaytimePhase):
         self.timer.set_air_con(air_con_flag)
 
         # 航空轰炸阶段，先结算我方
-        self.air_strike(atk_friend, def_enemy, aerial_enemy, side=1)
-        self.air_strike(atk_enemy, def_friend, aerial_friend, side=0)
+        self.air_strike(atk_friend, def_enemy, aerial_enemy)
+        self.air_strike(atk_enemy, def_friend, aerial_friend)
 
-    def air_strike(self, attack, defend, aerial, side):
+    def air_strike(self, attack, defend, aerial) -> None:
         """
-
+        航空轰炸
         :param attack: 攻击方对象
         :param defend: 被攻击对象
         :param aerial: 被攻击方制空
-        :param side: 1: friend; 0: enemy
-        :return:
+        :return: None
         """
-        fall_coef, air_con_coef = rform.get_air_coef(self.timer.air_con_flag,
-                                                     side)  # 制空击坠系数，航空战系数
-
-        anti_num = [0] * len(defend)  # 迎击序数
-        total_plane_rest = rform.get_total_plane_rest(attack)  # 总剩余载机量
+        anti_num = [0] * len(defend)  # 迎击序数(全阶段共享)
+        total_plane_rest = self.get_total_plane_rest(attack)  # 总剩余载机量
 
         for tmp_ship in attack:
+            fall_coef = self.get_air_fall_coef(tmp_ship.get_air_con_flag())  # 制空击坠系数范围
             fall_rand = np.random.uniform(*fall_coef)  # 每艘船固定一个制空击坠随机数
-            flight_limit = rform.get_flightlimit(tmp_ship)  # 放飞限制
+            flight_limit = tmp_ship.get_flightlimit()  # 放飞限制
             for tmp_equip in tmp_ship.equipment:
                 coef = {}  # 公式参数
 
@@ -283,21 +280,17 @@ class AirPhase(DaytimePhase):
                 coef['actual_flight'] = actual_flight
 
                 # 制空击坠
-                air_con_fall = rform.get_air_con_fall(
-                    tmp_equip.load,
-                    total_plane_rest,
-                    aerial,
-                    fall_rand
-                )
+                air_con_fall = np.floor((tmp_equip.load / total_plane_rest)
+                                        * aerial * fall_rand)
                 coef['air_con_fall'] = air_con_fall
 
-                # 攻击结算前参数生成
+                # 传入迎击序数(全阶段共享)
                 coef['anti_num'] = anti_num
-                coef['air_con_coef'] = air_con_coef
 
                 # 战斗机仅计算制空击坠就结束
                 if isinstance(tmp_equip, Fighter):
-                    tmp_equip.fall(air_con_fall)  # 最大击坠量可超过实际放飞量（存在洗甲板）
+                    # 最大击坠量可超过实际放飞量(存在洗甲板,不受不挠技能影响)
+                    tmp_equip.fall(air_con_fall)
                     continue
 
                 # 检查是否存在优先攻击船型对象
@@ -331,13 +324,48 @@ class AirPhase(DaytimePhase):
                     atk.start()
                     anti_num = atk.get_coef('anti_num')
 
-    def get_atk_plane(self, shiplist):
+    def get_atk_plane(self, shiplist) -> bool:
         for tmp_ship in shiplist:
             for tmp_equip in tmp_ship.equipment:
                 if isinstance(tmp_equip, (Fighter, Bomber, DiveBomber)):
                     if tmp_equip.load > 0:
                         return True
         return False
+
+    def get_total_plane_rest(self, shiplist):
+        rest = 0
+        for tmp_ship in shiplist:
+            for tmp_equip in tmp_ship.equipment:
+                if isinstance(tmp_equip, Plane):
+                    rest += tmp_equip.load
+        return rest
+
+    def compare_aerial(self, aerial_friend, aerial_enemy):
+        """制空结果"""
+        if aerial_friend >= aerial_enemy * 3:
+            return 1  # 空确
+        elif aerial_enemy * 3 > aerial_friend >= aerial_enemy * 3 / 2:
+            return 2  # 优势
+        elif aerial_enemy * 3 / 2 > aerial_friend >= aerial_enemy * 2 / 3:
+            return 3  # 均势
+        elif aerial_enemy * 2 / 3 > aerial_friend >= aerial_enemy * 1 / 3:
+            return 4  # 劣势
+        else:
+            return 5  # 丧失
+
+    def get_air_fall_coef(self, air_con_flag):
+        if air_con_flag == 1:
+            fall_coef = [0, 0.1]
+        elif air_con_flag == 2:
+            fall_coef = [0.1, 0.3]
+        elif air_con_flag == 3:
+            fall_coef = [0.3, 0.7]
+        elif air_con_flag == 4:
+            fall_coef = [0.7, 0.9]
+        else:
+            fall_coef = [0.9, 1]
+
+        return fall_coef
 
 
 class TLockPhase(DaytimePhase):
