@@ -214,10 +214,6 @@ class ATK(Time):
         else:
             return min(1., self.atk_body.supply_ammo * 2. / 10.)
 
-    def get_shipsize_coef(self):
-        """船型补正闪避系数"""
-        return 1.
-
     def crit_verify(self):
         """暴击检定"""
         if self.get_coef('must_crit') or \
@@ -252,17 +248,12 @@ class ATK(Time):
             self.coef['crit_flag'] = False
             return
 
-    def hit_verify(self):
-        """命中检定"""
-        # 技能、战术判定
-        if self.skill_hit_verify():
-            return
+    @property
+    def base_hit_rate(self):
+        """基础命中率"""
+        if self.target is None:  # 此逻辑仅供debug查看使用
+            return 'Target not specified'
 
-        # 外部命中率修改
-        if self.outer_hit_verify():
-            return
-
-        # 基础命中率
         accuracy = self.atk_body.get_final_status('accuracy')
         ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_evasion', self)  # 无视回避
         evasion = self.target.get_final_status('evasion') * \
@@ -274,21 +265,24 @@ class ATK(Time):
         evasion = max(1, evasion)
 
         hit_rate = accuracy / evasion / 2
+        return hit_rate
 
-        # 阵型命中率补正
-        hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
-                    self.get_form_coef('miss', self.target.get_form())
+    @property
+    def hit_special_coef(self):
+        """攻击特有补正"""
+        return 0.
 
-        # 索敌补正
-        if self.atk_body.get_recon_flag():
-            hit_rate *= 1.05
-        if self.target.get_recon_flag():
-            hit_rate *= 0.95
+    @ property
+    def hit_shipsize_coef(self):
+        """船型补正闪避系数"""
+        return 1.
 
-        # 船型补正
-        hit_rate *= self.get_shipsize_coef()
+    @property
+    def hit_form_correction(self):
+        """单纵、复纵额外补正"""
+        if self.target is None:  # 此逻辑仅供debug查看使用
+            return 'Target not specified'
 
-        # 单纵、复纵额外补正
         add = 0
         if self.target.get_form() == 2:
             add -= 0.05
@@ -296,17 +290,55 @@ class ATK(Time):
         if self.atk_body.get_form() == 1 and \
                 isinstance(self.timer.phase, SecondShellingPhase):
             add = 0.05  # todo 待验证，次轮单纵可能取消复纵减益
-        hit_rate += add
+        return add
 
-        # 好感补正
-        hit_rate += (self.atk_body.affection - 50) * 0.001
-        hit_rate -= (self.target.affection - 50) * 0.001
+    @property
+    def hit_affection_coef(self):
+        """好感补正"""
+        if self.target is None:  # 此逻辑仅供debug查看使用
+            return 'Target not specified'
+        return (self.atk_body.affection - self.target.affection) * 0.001
 
-        # 技能补正
+    @property
+    def hit_skill_coef(self):
+        """技能补正"""
+        if self.target is None:  # 此逻辑仅供debug查看使用
+            return 'Target not specified'
+        hit_rate = 0
         _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
         hit_rate += hitrate_bias
         _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
         hit_rate -= hitrate_bias
+        return hit_rate
+
+    def hit_verify(self):
+        """命中检定"""
+        # 技能、战术判定
+        if self.skill_hit_verify():
+            return
+
+        # 外部命中率修改
+        if self.outer_hit_verify():
+            return
+
+        # 基础命中率
+        hit_rate = self.base_hit_rate
+
+        # 阵型命中率补正
+        hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
+                    self.get_form_coef('miss', self.target.get_form())
+
+        # 索敌补正
+        if self.atk_body.get_recon_flag():
+            hit_rate += .05
+        if self.target.get_recon_flag():
+            hit_rate -= .05
+
+        hit_rate += self.hit_special_coef     # 攻击特有补正
+        hit_rate *= self.hit_shipsize_coef    # 船型补正
+        hit_rate += self.hit_form_correction  # 单纵、复纵额外补正
+        hit_rate += self.hit_affection_coef   # 好感补正
+        hit_rate += self.hit_skill_coef       # 技能补正(部分攻击含装备补正)
 
         hit_rate = cap(hit_rate)
         verify = np.random.random()
@@ -626,21 +658,9 @@ class AirStrikeAtk(AirAtk):
             anti_air += ship_anti_air * aa_coef
         return anti_air
 
-    def get_shipsize_coef(self):
-        """船型补正闪避系数"""
-        return 0.25 + 0.25 * self.target.size
-
-    def hit_verify(self):
-        """航空攻击命中检定，含飞机装备命中率buff"""
-        # 技能、战术判定
-        if self.skill_hit_verify():
-            return
-
-        # 外部命中率修改
-        if self.outer_hit_verify():
-            return
-
-        # 基础命中率
+    @property
+    def base_hit_rate(self):
+        """航空攻击基础命中率"""
         accuracy = self.atk_body.get_final_status('accuracy')
         aa_value = 0.4 * self.get_anti_air_def()
         if self.target.size == 3:
@@ -650,49 +670,35 @@ class AirStrikeAtk(AirAtk):
         else:
             aa_mult = 2
         hit_rate = accuracy / (aa_value * aa_mult + accuracy)
+        return hit_rate
 
-        # 阵型命中率补正
-        hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
-                    self.get_form_coef('miss', self.target.get_form())
+    @property
+    def hit_special_coef(self):
+        """攻击特有补正(制空命中加成)"""
+        return self.get_air_coef()
 
-        # 索敌补正
-        if self.atk_body.get_recon_flag():
-            hit_rate *= 1.05
-        if self.target.get_recon_flag():
-            hit_rate *= 0.95
+    @property
+    def hit_shipsize_coef(self):
+        """船型补正闪避系数"""
+        if self.target is None:  # 此逻辑仅供debug查看使用
+            return 'Target not specified'
+        return 0.25 + 0.25 * self.target.size
 
-        # 制空补正
-        hit_rate *= 1 + get_air_hit_coef(self.atk_body.get_air_con_flag())
-
-        # 船型补正
-        hit_rate *= self.get_shipsize_coef()
-
-        # 复纵额外补正
-        if self.target.get_form() == 2:
-            hit_rate -= 0.05
+    @property
+    def hit_skill_coef(self):
+        """技能、装备补正"""
+        hit_rate = 0
 
         # 装备补正(被特殊技能附加在装备上的独立命中补正，装备词条算作技能补正)
         _, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
         hit_rate += hitrate_bias
-
-        # 好感补正
-        hit_rate += (self.atk_body.affection - 50) * 0.001
-        hit_rate -= (self.target.affection - 50) * 0.001
 
         # 技能补正
         _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
         hit_rate += hitrate_bias
         _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
         hit_rate -= hitrate_bias
-
-        hit_rate = cap(hit_rate)
-        verify = np.random.random()
-        if verify <= hit_rate:
-            self.coef['hit_flag'] = True
-            return
-        else:
-            self.coef['hit_flag'] = False
-            return
+        return hit_rate
 
     def final_damage(self, damage):
         """航空攻击终伤"""
@@ -866,64 +872,26 @@ class MissileAtk(ATK):
             self.coef['crit_flag'] = False
             return
 
-    def hit_verify(self):
-        """导弹攻击命中检定，含导弹装备命中率、必中buff"""
-        # 技能、战术判定
-        if self.skill_hit_verify():
-            return
+    @property
+    def hit_special_coef(self):
+        """导弹攻击特有补正"""
+        return 0.5
 
-        # 外部命中率修改
-        if self.outer_hit_verify():
-            return
-
-        # 基础命中率
-        accuracy = self.atk_body.get_final_status('accuracy')
-        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_evasion', self)  # 无视回避
-        evasion = self.target.get_final_status('evasion') * \
-                  (1 + ignore_scale) + ignore_bias
-
-        # 梯形锁定减少闪避
-        if self.target.get_special_buff('t_lock'):
-            evasion *= 0.6
-        evasion = max(1, evasion)
-
-        hit_rate = accuracy / evasion / 2
-
-        # 阵型命中率补正
-        hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
-                    self.get_form_coef('miss', self.target.get_form())
-
-        # 索敌补正
-        if self.atk_body.get_recon_flag():
-            hit_rate *= 1.05
-        if self.target.get_recon_flag():
-            hit_rate *= 0.95
-
-        # 导弹补正
-        hit_rate += 0.5
+    @property
+    def hit_skill_coef(self):
+        """技能、装备补正"""
+        hit_rate = 0
 
         # 装备补正(被特殊技能附加在装备上的独立命中补正，装备词条算作技能补正)
         _, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
         hit_rate += hitrate_bias
-
-        # 好感补正
-        hit_rate += (self.atk_body.affection - 50) * 0.001
-        hit_rate -= (self.target.affection - 50) * 0.001
 
         # 技能补正
         _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
         hit_rate += hitrate_bias
         _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
         hit_rate -= hitrate_bias
-
-        hit_rate = cap(hit_rate)
-        verify = np.random.random()
-        if verify <= hit_rate:
-            self.coef['hit_flag'] = True
-            return
-        else:
-            self.coef['hit_flag'] = False
-            return
+        return hit_rate
 
     def skill_hit_verify(self):
         """必中/护盾等技能/战术判定"""
@@ -993,67 +961,31 @@ class MissileAtk(ATK):
 class LongMissileAtk(MissileAtk):
     """远程导弹攻击"""
 
-    def hit_verify(self):
-        """远程导弹攻击命中检定，含导弹装备命中率、无buff"""
-        # 技能、战术判定
-        if self.skill_hit_verify():
-            return
+    @property
+    def hit_form_correction(self):
+        """单纵、复纵额外补正"""
+        return 0.
 
-        # 外部命中率修改
-        if self.outer_hit_verify():
-            return
-
-        # 基础命中率
-        accuracy = self.atk_body.get_final_status('accuracy')
-        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_evasion', self)  # 无视回避
-        evasion = self.target.get_final_status('evasion') * \
-                  (1 + ignore_scale) + ignore_bias
-
-        # 梯形锁定减少闪避
-        if self.target.get_special_buff('t_lock'):
-            evasion *= 0.6
-        evasion = max(1, evasion)
-
-        hit_rate = accuracy / evasion / 2
-
-        # 阵型命中率补正
-        hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
-                    self.get_form_coef('miss', self.target.get_form())
-
-        # 索敌补正
-        if self.atk_body.get_recon_flag():
-            hit_rate *= 1.05
-        if self.target.get_recon_flag():
-            hit_rate *= 0.95
-
-        # 导弹补正
-        hit_rate += 0.5
+    @property
+    def hit_skill_coef(self):
+        """技能、装备补正"""
+        hit_rate = 0
 
         # 装备补正(被特殊技能附加在装备上的独立命中补正，装备词条算作技能补正)
         _, hitrate_bias = self.equip.get_atk_buff('hit_rate', self)
         hit_rate += hitrate_bias
+
+        # 导巡远程打击额外补正
         from src.wsgr.ship import KP
         if isinstance(self.atk_body, KP):
             hit_rate += 0.05
 
-        # 好感补正
-        hit_rate += (self.atk_body.affection - 50) * 0.001
-        hit_rate -= (self.target.affection - 50) * 0.001
-
-        # 技能补正
+        # 技能补正(在此时只有装备词条等 PrepSkill 或 CommonSkill 技能被结算)
         _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
         hit_rate += hitrate_bias
         _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
         hit_rate -= hitrate_bias
-
-        hit_rate = cap(hit_rate)
-        verify = np.random.random()
-        if verify <= hit_rate:
-            self.coef['hit_flag'] = True
-            return
-        else:
-            self.coef['hit_flag'] = False
-            return
+        return hit_rate
 
 
 class AntiSubAtk(ATK):
@@ -1068,6 +1000,25 @@ class AntiSubAtk(ATK):
             'miss': [.8, 1, 1.2, .8, .9],
         })  # 阵型系数
         self.pierce_base = 2  # 穿甲基础值
+
+    @property
+    def base_hit_rate(self):
+        """基础命中率"""
+        if self.target is None:  # 此逻辑仅供debug查看使用
+            return 'Target not specified'
+
+        antisub = self.atk_body.get_final_status('antisub', equip=False)  # 裸反潜
+        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_evasion', self)  # 无视回避
+        evasion = self.target.get_final_status('evasion') * \
+                  (1 + ignore_scale) + ignore_bias
+
+        hit_rate = antisub / evasion / 2
+        return hit_rate
+
+    @property
+    def hit_affection_coef(self):
+        """好感补正"""
+        return 0.
 
     def formula(self):
         # 基础攻击力
@@ -1087,57 +1038,6 @@ class AntiSubAtk(ATK):
                     self.coef['random_coef'])
         return real_atk
 
-    def hit_verify(self):
-        """命中检定"""
-        # 技能、战术判定
-        if self.skill_hit_verify():
-            return
-
-        # 外部命中率修改
-        if self.outer_hit_verify():
-            return
-
-        # 基础命中率
-        antisub = self.atk_body.get_final_status('antisub', equip=False)  # 裸反潜
-        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_evasion', self)  # 无视回避
-        evasion = self.target.get_final_status('evasion') * \
-                  (1 + ignore_scale) + ignore_bias
-
-        hit_rate = antisub / evasion / 2
-
-        # 阵型命中率补正
-        hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
-                    self.get_form_coef('miss', self.target.get_form())
-
-        # 索敌补正
-        if self.atk_body.get_recon_flag():
-            hit_rate *= 1.05
-        if self.target.get_recon_flag():
-            hit_rate *= 0.95
-
-        # 复纵额外补正
-        if self.target.get_form() == 2:
-            hit_rate -= 0.05
-
-        # 好感补正(反潜攻击无好感补正)
-        # hit_rate += (self.atk_body.affection - 50) * 0.001
-        # hit_rate -= (self.target.affection - 50) * 0.001
-
-        # 技能补正
-        _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
-        hit_rate += hitrate_bias
-        _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
-        hit_rate -= hitrate_bias
-
-        hit_rate = cap(hit_rate)
-        verify = np.random.random()
-        if verify <= hit_rate:
-            self.coef['hit_flag'] = True
-            return
-        else:
-            self.coef['hit_flag'] = False
-            return
-
 
 class AirAntiSubAtk(AntiSubAtk, AirAtk):
     """航空反潜攻击"""
@@ -1145,6 +1045,32 @@ class AirAntiSubAtk(AntiSubAtk, AirAtk):
     def __init__(self, timer, atk_body, def_list, coef=None, target=None):
         super().__init__(timer, atk_body, def_list, coef, target)
         self.pierce_base = 10  # 穿甲基础值
+
+    @property
+    def base_hit_rate(self):
+        """基础命中率"""
+        if self.target is None:  # 此逻辑仅供debug查看使用
+            return 'Target not specified'
+
+        accuracy = self.atk_body.get_final_status('accuracy')
+        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_evasion', self)  # 无视回避
+        evasion = self.target.get_final_status('evasion') * \
+                  (1 + ignore_scale) + ignore_bias
+
+        # 梯形锁定减少闪避
+        if self.target.get_special_buff('t_lock'):
+            evasion *= 0.6
+        evasion = max(1, evasion)
+
+        hit_rate = accuracy / evasion / 2
+        return hit_rate
+
+    @property
+    def hit_affection_coef(self):
+        """好感补正"""
+        if self.target is None:  # 此逻辑仅供debug查看使用
+            return 'Target not specified'
+        return (self.atk_body.affection - self.target.affection) * 0.001
 
     def formula(self):
         # 基础攻击力
@@ -1162,9 +1088,6 @@ class AirAntiSubAtk(AntiSubAtk, AirAtk):
                     self.coef['random_coef'])
         return real_atk
 
-    def hit_verify(self):
-        return ATK.hit_verify(self)
-
 
 class TorpedoAtk(ATK):
     """鱼雷攻击"""
@@ -1179,8 +1102,11 @@ class TorpedoAtk(ATK):
         })  # 阵型系数
         self.pierce_base = 1  # 穿甲基础值
 
-    def get_shipsize_coef(self):
+    @property
+    def hit_shipsize_coef(self):
         """船型补正闪避系数"""
+        if self.target is None:  # 此逻辑仅供debug查看使用
+            return 'Target not specified'
         return 0.4 + 0.2 * self.target.size
 
     def formula(self):
@@ -1211,8 +1137,11 @@ class NormalAtk(ATK):
             'miss': [.9, 1.2, .9, .8, 1.3],
         })  # 阵型系数
 
-    def get_shipsize_coef(self):
+    @property
+    def hit_shipsize_coef(self):
         """船型补正闪避系数"""
+        if self.target is None:  # 此逻辑仅供debug查看使用
+            return 'Target not specified'
         d_size = self.atk_body.size - self.target.size
         return 1 - max(0, d_size * 0.1)
 
@@ -1303,17 +1232,9 @@ class SpecialAtk(ATK):
 class AirNormalAtk(NormalAtk, AirAtk):
     """炮击战航空炮击"""
 
-    def hit_verify(self):
-        """命中检定"""
-        # 技能、战术判定
-        if self.skill_hit_verify():
-            return
-
-        # 外部命中率修改
-        if self.outer_hit_verify():
-            return
-
-        # 基础命中率
+    @property
+    def base_hit_rate(self):
+        """航空攻击基础命中率"""
         accuracy = self.atk_body.get_final_status('accuracy')
         aa_value = 0.4 * self.get_anti_air_def()
         if self.target.size == 3:
@@ -1323,44 +1244,12 @@ class AirNormalAtk(NormalAtk, AirAtk):
         else:
             aa_mult = 2
         hit_rate = accuracy / (aa_value * aa_mult + accuracy)
+        return hit_rate
 
-        # 阵型命中率补正
-        hit_rate *= self.get_form_coef('hit', self.atk_body.get_form()) / \
-                    self.get_form_coef('miss', self.target.get_form())
-
-        # 索敌补正
-        if self.atk_body.get_recon_flag():
-            hit_rate *= 1.05
-        if self.target.get_recon_flag():
-            hit_rate *= 0.95
-
-        # 制空补正
-        # hit_rate *= 1 + get_air_hit_coef(self.atk_body.get_air_con_flag())
-
-        # 船型补正
-        hit_rate *= self.get_shipsize_coef()
-
-        # 复纵额外补正
-        if self.target.get_form() == 2:
-            hit_rate -= 0.05
-
-        # 好感补正
-        hit_rate += (self.atk_body.affection - 50) * 0.001
-        hit_rate -= (self.target.affection - 50) * 0.001
-
-        # 技能补正
-        _, hitrate_bias = self.atk_body.get_atk_buff('hit_rate', self)
-        hit_rate += hitrate_bias
-        _, hitrate_bias = self.target.get_atk_buff('miss_rate', self)
-        hit_rate -= hitrate_bias
-
-        hit_rate = cap(hit_rate)
-        verify = np.random.random()
-        if verify <= hit_rate:
-            self.coef['hit_flag'] = True
-            return
-        else:
-            self.coef['hit_flag'] = False
+    # @property
+    # def hit_shipsize_coef(self):
+    #     """船型补正闪避系数"""
+    #     return NormalAtk.hit_shipsize_coef
 
     def process_coef(self):
         # 制空系数

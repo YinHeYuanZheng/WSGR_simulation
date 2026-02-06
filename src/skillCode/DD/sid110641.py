@@ -24,7 +24,7 @@ class Skill_110641_1(Skill):
                 phase=AllPhase,
                 value=.3,
                 bias_or_weight=0,
-                atk_request=ATK_request_1
+                atk_request=[ATK_request_1]
             )
         ]
 
