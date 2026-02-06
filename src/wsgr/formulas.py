@@ -1376,6 +1376,11 @@ class NightAtk(ATK):
         })  # 阵型系数
         self.dir_coef = [1, 1, 1, 1]  # 航向系数，按照优同反劣顺序
 
+    @ property
+    def hit_shipsize_coef(self):
+        """船型补正闪避系数"""
+        return 1.
+
     def real_damage(self, real_atk):
         if real_atk is None:
             raise ValueError(f'Formula of "{type(self).__name__}" is not defined!')

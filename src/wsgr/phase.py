@@ -164,9 +164,9 @@ class BuffPhase(AllPhase):
     """buff阶段"""
 
     def start(self):
-        # 结算战术
-        for tmp_ship in self.friend.ship:
-            tmp_ship.run_strategy()
+        # 结算战术(战术不会被清空，初始化时已经结算过，不用再次结算)
+        # for tmp_ship in self.friend.ship:
+        #     tmp_ship.run_strategy()
 
         # 结算环境buff
         self.timer.run_normal_skill(self.friend, self.enemy)
