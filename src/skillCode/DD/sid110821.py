@@ -30,11 +30,17 @@ class SpecialAtkBuff_110821(SpecialAtkBuff):
             """造成自身装甲80%的固定伤害"""
             return np.ceil(cls.atk_body.get_final_status('armor') * 0.8)
 
+        def real_damage(cls, real_atk):
+            if real_atk is None:
+                raise ValueError(f'Formula of "{type(self).__name__}" is not defined!')
+            return real_atk
+
         assert self.master is not None
         self.add_during_buff()  # 攻击时效果
 
         from types import MethodType
         atk.formula = MethodType(formula, atk)  # 修改伤害公式
+        atk.real_damage = MethodType(real_damage, atk)  # 修改真实伤害函数
         atk.set_coef(self.coef)  # 更新参数
         yield atk
 

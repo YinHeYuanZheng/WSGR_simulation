@@ -1049,28 +1049,12 @@ class AirAntiSubAtk(AntiSubAtk, AirAtk):
     @property
     def base_hit_rate(self):
         """基础命中率"""
-        if self.target is None:  # 此逻辑仅供debug查看使用
-            return 'Target not specified'
-
-        accuracy = self.atk_body.get_final_status('accuracy')
-        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_evasion', self)  # 无视回避
-        evasion = self.target.get_final_status('evasion') * \
-                  (1 + ignore_scale) + ignore_bias
-
-        # 梯形锁定减少闪避
-        if self.target.get_special_buff('t_lock'):
-            evasion *= 0.6
-        evasion = max(1, evasion)
-
-        hit_rate = accuracy / evasion / 2
-        return hit_rate
+        return ATK.base_hit_rate.fget(self)
 
     @property
     def hit_affection_coef(self):
         """好感补正"""
-        if self.target is None:  # 此逻辑仅供debug查看使用
-            return 'Target not specified'
-        return (self.atk_body.affection - self.target.affection) * 0.001
+        return ATK.hit_affection_coef.fget(self)
 
     def formula(self):
         # 基础攻击力
@@ -1249,7 +1233,7 @@ class AirNormalAtk(NormalAtk, AirAtk):
     # @property
     # def hit_shipsize_coef(self):
     #     """船型补正闪避系数"""
-    #     return NormalAtk.hit_shipsize_coef
+    #     return NormalAtk.hit_shipsize_coef.fget(self)
 
     def process_coef(self):
         # 制空系数
@@ -1378,31 +1362,12 @@ class NightAtk(ATK):
 
     @ property
     def hit_shipsize_coef(self):
-        """船型补正闪避系数"""
-        return 1.
+        """规范化子类船型补正闪避系数"""
+        return ATK.hit_shipsize_coef.fget(self)
 
     def real_damage(self, real_atk):
-        if real_atk is None:
-            raise ValueError(f'Formula of "{type(self).__name__}" is not defined!')
-
-        # 实际伤害
-        ignore_scale, ignore_bias = self.atk_body.get_atk_buff('ignore_armor', self)  # 无视装甲
-        def_armor = self.target.get_final_status('armor') * \
-                    (1 + ignore_scale) + ignore_bias
-        def_armor = max(0, def_armor)
-
-        real_dmg = np.ceil(real_atk *
-                           (1 - def_armor /
-                            (0.5 * def_armor + self.coef['pierce_coef'] * real_atk)))
-
-        if real_dmg <= 0:
-            if np.random.random() < 0.5:  # 50% 跳弹
-                return 0
-            else:  # 50% 擦伤
-                real_dmg = np.ceil(
-                    min(real_atk, self.target.status['health']) * 0.1
-                )
-        return real_dmg
+        """规范化子类伤害结算"""
+        return ATK.real_damage(self, real_atk)
 
 
 class NightNormalAtk(NightAtk, NormalAtk):
