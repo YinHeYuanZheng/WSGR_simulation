@@ -7,8 +7,6 @@
 import os
 import sys
 import copy
-from sys import exception
-
 import numpy as np
 import yaml
 import threading
@@ -303,6 +301,7 @@ class Menubar(Menu):
 
         # 生成菜单
         self.createFileMenu()
+        # self.add_command(label="设置", command=self.createConfigWindow)
 
     def createFileMenu(self):
         """文件菜单"""
@@ -335,6 +334,12 @@ class Menubar(Menu):
                                           command=lambda x=os.path.join(saveDir, fname): self.openFile(x))
         else:
             self.openMenu.add_command(label="（无存档）")
+
+    def createConfigWindow(self):
+        """todo 创建配置菜单，显示所有配置选项"""
+        skill_window = Toplevel()
+        skill_window.title("设置")
+        skill_window.attributes('-topmost', True)
 
 
 class FrameFriend(LabelFrame):
