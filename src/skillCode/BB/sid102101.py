@@ -32,4 +32,5 @@ class Skill_102101(Skill):
         ]
 
 
+name = '止战之戈'
 skill = [Skill_102101]

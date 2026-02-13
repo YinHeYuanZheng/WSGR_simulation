@@ -65,7 +65,7 @@ class Skill_104611_2(Skill):
         ]
 
     def is_active(self, friend, enemy):
-        return self.master.get_form() == 3
+        return self.master.get_form() == 4
 
 
 class Skill_104611_3(Skill):
