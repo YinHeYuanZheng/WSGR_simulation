@@ -101,9 +101,16 @@ class HitBack_106131(HitBack):
         super().set_master(master)
 
     def is_active(self, atk, *args, **kwargs):
+        if not isinstance(self.timer.phase, self.phase):
+            return False
+        if atk.get_coef('hit_back'):  # 无法反击反击
+            return False
+        if not self.master.get_act_indicator():  # 无法行动时不能反击
+            return False
+
         # 如果战损状态缓存是中破，技能发动
         if self.master_damaged == 2:
-            return super().is_active(atk, *args, **kwargs)
+            return True
         # 否则更新战损状态缓存，技能不发动
         self.master_damaged = self.master.damaged
         return False
