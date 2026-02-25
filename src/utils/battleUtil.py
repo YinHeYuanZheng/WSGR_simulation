@@ -131,11 +131,12 @@ class BattleUtil(Time):
             0: 1 - end_health[1] / self.start_health[1]
         }
 
-        # 被击沉数量
-        enemy_retreat_num = 0
-        for tmp_ship in self.enemy.ship:
-            if tmp_ship.damaged == 4:
-                enemy_retreat_num += 1
+        # 更新最终受损状态，统计被击沉数量
+        friend_damaged_state = np.array([tmp_ship.damaged for tmp_ship in self.friend.ship])
+        self.timer.log['damaged_state'][-1, :len(friend_damaged_state)] = friend_damaged_state
+        enemy_damaged_state = np.array([tmp_ship.damaged for tmp_ship in self.enemy.ship])
+        self.timer.log['damaged_state'][-1, 6:6+len(enemy_damaged_state)] = enemy_damaged_state
+        enemy_retreat_num = np.sum(enemy_damaged_state == 4)
 
         # 敌方全部被击沉
         if damage_progress[1] == 1:

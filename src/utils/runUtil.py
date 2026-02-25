@@ -36,6 +36,7 @@ def run_victory(battle, epoch,
 def run_map_victory(battle, epoch):
     result = [0] * 7
     result_flag_list = ['SS', 'S', 'A', 'B', 'C', 'D', '']
+    defeat_flag_num = 0
     for i in range(epoch):
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
@@ -43,6 +44,7 @@ def run_map_victory(battle, epoch):
         if log.get('end_with_boss'):
             result_flag_id = result_flag_list.index(log['result'])
             result[result_flag_id] += 1
+            defeat_flag_num += int(log['damaged_state'][-1, 6] == 4)
         else:
             result[6] += 1
         print("\r"
@@ -53,7 +55,8 @@ def run_map_victory(battle, epoch):
               f"B {result[3] / (i + 1) * 100:.2f}% "
               f"C {result[4] / (i + 1) * 100:.2f}% "
               f"D {result[5] / (i + 1) * 100:.2f}% "
-              f"撤退 {result[6] / (i + 1) * 100:.2f}% ",
+              f"撤退 {result[6] / (i + 1) * 100:.2f}% "
+              f"终点旗舰击沉率: {defeat_flag_num / (i - result[6] + 1) * 100:.2f}%",
               end='',)
 
 
@@ -73,7 +76,7 @@ def run_hit_rate(battle, epoch, phase:str=None,
         else:
             hit_rate += log['hit_rate'][:, 1].mean()
         print("\r"
-              f"第{i + 1}次 - 命中率: {hit_rate / (i + 1) * 100: .4f}%",
+              f"第{i + 1}次 - 命中率: {hit_rate / (i + 1) * 100:.4f}%",
               end='',)
 
 
@@ -82,6 +85,7 @@ def run_avg_damage(battle, epoch, phase:str=None,
     damage_list = np.zeros((epoch,), dtype=float)
     avg_damage_phase = 0
     defeat_num = 0
+    defeat_flag_num = 0
     for i in range(epoch):
         if stop_event is not None and stop_event.is_set():
             break
@@ -97,11 +101,13 @@ def run_avg_damage(battle, epoch, phase:str=None,
             phase_info = ''
         damage_list[i] = log['create_damage'][:, :6].sum()
         defeat_num += log['defeat_num'][:, :6].sum()
+        defeat_flag_num += int(log['damaged_state'][-1, 6] == 4)
         print("\r"
               f"第{i + 1}次 - 平均伤害: {np.mean(damage_list[:i+1]):.3f} "
               f"5%下限伤害: {int(np.percentile(damage_list[:i+1], 5, method='lower')):d} "
               f"{phase_info}"
-              f"平均击沉: {defeat_num / (i + 1):.3f}",
+              f"平均击沉: {defeat_num / (i + 1):.3f} "
+              f"旗舰击沉率: {defeat_flag_num / (i + 1) * 100:.2f}%",
               end='',)
 
 
