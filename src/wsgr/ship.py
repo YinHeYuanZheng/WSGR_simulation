@@ -1642,8 +1642,14 @@ class Fleet(Time):
 
     def get_init_status(self, enemy):
         """计算带路相关属性"""
+        # 结算环境buff(只传入需要计算的舰队, 防止清空buff时遗漏)
+        # timer.run_prepare_skill无法识别敌我, 根据side判断传入参数
+        if self.side:
+            self.timer.run_prepare_skill(friend=self, enemy=[])
+        else:
+            self.timer.run_prepare_skill(friend=[], enemy=enemy)
+
         # 结算影响队友航速、索敌的技能，不结算让巴尔
-        self.timer.run_prepare_skill(self, enemy)
         for tmp_ship in self.ship:
             tmp_ship.run_raw_prepare_skill(self, enemy)
 
@@ -1661,6 +1667,7 @@ class Fleet(Time):
             'luck': self.get_total_status('luck'),
         })
 
+        # 清空buff
         for tmp_ship in self.ship:
             tmp_ship.clear_buff()
 

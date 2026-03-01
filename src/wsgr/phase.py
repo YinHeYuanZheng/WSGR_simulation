@@ -75,8 +75,8 @@ class PreparePhase(AllPhase):
 
     def check_roundabout(self):
         # 舰队航速差
-        friend_fleet_speed = np.round(self.friend.get_fleet_speed(), 2)
-        enemy_fleet_speed = self.enemy.get_fleet_speed()
+        friend_fleet_speed = np.round(self.friend.status['speed'], 2)
+        enemy_fleet_speed = self.enemy.status['speed']
         d_fleet_speed = friend_fleet_speed - enemy_fleet_speed
 
         # 迂回检定
@@ -129,13 +129,13 @@ class PreparePhase(AllPhase):
     def compare_speed(self):
         """计算航向，并记录相关信息"""
         # 旗舰航速差
-        friend_leader_speed = self.friend.ship[0].get_final_status('speed')
-        enemy_leader_speed = self.enemy.ship[0].get_final_status('speed')
+        friend_leader_speed = self.friend.status['leader_speed']
+        enemy_leader_speed = self.enemy.status['leader_speed']
         d_leader_speed = int(friend_leader_speed - enemy_leader_speed)
 
         # 舰队航速差
-        friend_fleet_speed = self.friend.get_fleet_speed()
-        enemy_fleet_speed = self.enemy.get_fleet_speed()
+        friend_fleet_speed = self.friend.status['speed']
+        enemy_fleet_speed = self.enemy.status['speed']
         d_fleet_speed = int(friend_fleet_speed - enemy_fleet_speed)
 
         # 航向权重，顺序为优同反劣
