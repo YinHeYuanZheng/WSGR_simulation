@@ -1020,7 +1020,8 @@ class HitBack(SpecialBuff):
         super().__init__(timer, name, phase, exhaust, atk_request, bias_or_weight, rate)
         if coef is None:
             coef = {}
-        self.coef = coef  # hit_back参数会在攻击结算时添加
+        self.coef = coef
+        self.coef.update({'hit_back': True})  # 添加一个hit_back参数
 
     def is_active(self, atk, *args, **kwargs):
         if not isinstance(self.timer.phase, self.phase):

@@ -695,7 +695,6 @@ class ShellingPhase(DaytimePhase):
                 chase_atk_list.append(chase_atk)  # 追击结算放在反击攻击结束后
         if len(hit_back_list):
             hit_back = hit_back_list[0]  # 只结算第一个反击
-            hit_back.set_coef({'hit_back': True})
             hit_back.start()
         if len(chase_atk_list):
             chase_atk = chase_atk_list[0]  # 只结算第一个有效追击

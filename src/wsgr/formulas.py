@@ -40,6 +40,7 @@ class ATK(Time):
     def __init__(self, timer, atk_body, def_list, coef=None, target=None,
                  *args, **kwargs):
         super().__init__(timer)
+        self.atk_name = '攻击'
         self.atk_body = atk_body
         self.def_list = def_list  # 可被攻击目标列表
 
@@ -65,7 +66,8 @@ class ATK(Time):
         source_name = self.atk_body.status['name']
         target_name = self.target.status['name'] \
             if self.target is not None else '未确定'
-        return f"{source_name} -> {target_name} ({type(self).__name__})"
+        atk_info = self.atk_name if hasattr(self, 'atk_name') else type(self).__name__
+        return f"{source_name} -> {target_name} ({atk_info})"
 
     def start(self):
         """攻击开始命令，结算到攻击结束"""
@@ -478,6 +480,7 @@ class SupportAtk(ATK):
     def __init__(self, timer, atk_body, def_list, limit: list, coef=None, target=None):
         super().__init__(timer, atk_body, def_list, coef, target)
         self.limit = limit  # 攻击上下限
+        self.atk_name = '支援攻击'
 
     def start(self):
         self.timer.set_atk(self)
@@ -505,6 +508,7 @@ class AirAtk(ATK):
     """航空攻击，包含航空战AirStrikeAtk、炮击战AirNormalAtk、炮击战航空反潜AirAntiSubAtk"""
     def __init__(self, timer, atk_body, def_list, coef=None, target=None):
         super().__init__(timer, atk_body, def_list, coef, target)
+        self.atk_name = '航空攻击'
         self.equip = None
 
     def get_anti_air_def(self):
@@ -755,6 +759,13 @@ class AirStrikeAtk(AirAtk):
 
 
 class AirBombAtk(AirStrikeAtk):
+    def __repr__(self):
+        source_name = self.atk_body.status['name']
+        target_name = self.target.status['name'] \
+            if self.target is not None else '未确定'
+        atk_info = f"航空轰炸机-{self.equip.status['name']}"
+        return f"{source_name} -> {target_name} ({atk_info})"
+
     def process_coef(self):
         # 技能系数
         skill_scale, _ = self.atk_body.get_atk_buff('air_atk_buff', self)
@@ -787,6 +798,13 @@ class AirBombAtk(AirStrikeAtk):
 
 
 class AirDiveAtk(AirStrikeAtk):
+    def __repr__(self):
+        source_name = self.atk_body.status['name']
+        target_name = self.target.status['name'] \
+            if self.target is not None else '未确定'
+        atk_info = f"航空鱼雷机-{self.equip.status['name']}"
+        return f"{source_name} -> {target_name} ({atk_info})"
+
     def process_coef(self):
         # 技能系数
         skill_scale, _ = self.atk_body.get_atk_buff('air_atk_buff', self)
@@ -835,6 +853,23 @@ class MissileAtk(ATK):
             'miss': [.9, 1.2, .9, .8, 1.3],
         })  # 阵型系数
         self.pierce_base = 0  # 穿甲基础值
+
+    def __repr__(self):
+        source_name = self.atk_body.status['name']
+        target_name = self.target.status['name'] \
+            if self.target is not None else '未确定'
+
+        from src.wsgr.phase import \
+            FirstMissilePhase, SecondMissilePhase, LongMissilePhase
+        if isinstance(self.timer.phase, FirstMissilePhase):
+            atk_info = f"开幕导弹-{self.equip.status['name']}"
+        elif isinstance(self.timer.phase, SecondMissilePhase):
+            atk_info = f"闭幕导弹-{self.equip.status['name']}"
+        elif isinstance(self.timer.phase, LongMissilePhase):
+            atk_info = f"远程打击-{self.equip.status['name']}"
+        else:
+            atk_info = '导弹攻击'
+        return f"{source_name} -> {target_name} ({atk_info})"
 
     def crit_verify(self):
         """暴击检定"""
@@ -993,7 +1028,7 @@ class AntiSubAtk(ATK):
 
     def __init__(self, timer, atk_body, def_list, coef=None, target=None):
         super().__init__(timer, atk_body, def_list, coef, target)
-
+        self.atk_name = '反潜攻击'
         self.form_coef.update({
             'power': [1, 1, 1, 1, 1],
             'hit': [1, 1, 1, 1, 1],
@@ -1044,6 +1079,7 @@ class AirAntiSubAtk(AntiSubAtk, AirAtk):
 
     def __init__(self, timer, atk_body, def_list, coef=None, target=None):
         super().__init__(timer, atk_body, def_list, coef, target)
+        self.atk_name = '航空反潜攻击'
         self.pierce_base = 10  # 穿甲基础值
 
     @property
@@ -1078,7 +1114,7 @@ class TorpedoAtk(ATK):
 
     def __init__(self, timer, atk_body, def_list, coef=None, target=None):
         super().__init__(timer, atk_body, def_list, coef, target)
-
+        self.atk_name = '鱼雷攻击'
         self.form_coef.update({
             'power': [1, .9, .8, 1, .8],
             'hit': [1, 1.1, .9, 1.2, .5],
@@ -1114,12 +1150,27 @@ class NormalAtk(ATK):
 
     def __init__(self, timer, atk_body, def_list, coef=None, target=None):
         super().__init__(timer, atk_body, def_list, coef, target)
-
         self.form_coef.update({
             'power': [1, .8, .75, 1, .8],
             'hit': [1.1, 1, .9, 1.2, .75],
             'miss': [.9, 1.2, .9, .8, 1.3],
         })  # 阵型系数
+
+    def __repr__(self):
+        source_name = self.atk_body.status['name']
+        target_name = self.target.status['name'] \
+            if self.target is not None else '未确定'
+
+        from src.wsgr.phase import FirstShellingPhase, SecondShellingPhase
+        if self.get_coef('hit_back'):
+            atk_info = '反击'
+        elif isinstance(self.timer.phase, FirstShellingPhase):
+            atk_info = '首轮炮击'
+        elif isinstance(self.timer.phase, SecondShellingPhase):
+            atk_info = '次轮炮击'
+        else:
+            atk_info = '普通炮击'
+        return f"{source_name} -> {target_name} ({atk_info})"
 
     @property
     def hit_shipsize_coef(self):
@@ -1352,13 +1403,20 @@ class NightAtk(ATK):
                  *args, **kwargs):
         super().__init__(timer, atk_body, def_list, coef=coef, target=target,
                          *args, **kwargs)
-
+        self.atk_name = '夜战攻击'
         self.form_coef.update({
             'power': [1.1, .9, 1, 1, 1],
             'hit': [1, 1.1, 1, 1.2, 1],
             'miss': [1, 1.1, .9, 1, 1.2],
         })  # 阵型系数
         self.dir_coef = [1, 1, 1, 1]  # 航向系数，按照优同反劣顺序
+
+    def __repr__(self):
+        source_name = self.atk_body.status['name']
+        target_name = self.target.status['name'] \
+            if self.target is not None else '未确定'
+        atk_info = self.atk_name if hasattr(self, 'atk_name') else type(self).__name__
+        return f"{source_name} -> {target_name} ({atk_info})"
 
     @ property
     def hit_shipsize_coef(self):
@@ -1375,6 +1433,7 @@ class NightNormalAtk(NightAtk, NormalAtk):
 
     def __init__(self, timer, atk_body, def_list, coef=None, target=None):
         super().__init__(timer, atk_body, def_list, coef, target)
+        self.atk_name = '夜战普通炮击'
         self.random_range = [1.2, 1.8]  # 浮动系数上下限
 
     def formula(self):
@@ -1397,6 +1456,7 @@ class NightFireAtk(NightNormalAtk):
 
     def __init__(self, timer, atk_body, def_list, coef=None, target=None):
         super().__init__(timer, atk_body, def_list, coef, target)
+        self.atk_name = '夜战火巡炮击'
         self.random_range = [2.4, 3.3]  # 浮动系数上下限
 
 
@@ -1405,6 +1465,7 @@ class NightFireTorpedoAtk(NightNormalAtk):
 
     def __init__(self, timer, atk_body, def_list, coef=None, target=None):
         super().__init__(timer, atk_body, def_list, coef, target)
+        self.atk_name = '夜战火雷连击'
         self.pierce_base = 0.8  # 穿甲基础值
 
     def formula(self):
@@ -1429,6 +1490,7 @@ class NightTorpedoAtk(NightAtk, TorpedoAtk):
 
     def __init__(self, timer, atk_body, def_list, coef=None, target=None):
         super().__init__(timer, atk_body, def_list, coef, target)
+        self.atk_name = '夜战雷击'
         self.random_range = [2.4, 3]  # 浮动系数上下限
         self.pierce_base = 1  # 穿甲基础值
 
@@ -1456,12 +1518,20 @@ class NightMissileAtk(NightAtk, MissileAtk):
         self.random_range = [1.2, 1.5]  # 浮动系数上下限
         self.pierce_base = 1  # 穿甲基础值
 
+    def __repr__(self):
+        source_name = self.atk_body.status['name']
+        target_name = self.target.status['name'] \
+            if self.target is not None else '未确定'
+        atk_info = f"夜战导弹-{self.equip.status['name']}"
+        return f"{source_name} -> {target_name} ({atk_info})"
+
 
 class NightAntiSubAtk(AntiSubAtk, NightAtk):
     """夜战反潜"""
 
     def __init__(self, timer, atk_body, def_list, coef=None, target=None):
         super().__init__(timer, atk_body, def_list, coef, target)
+        self.atk_name = '夜战反潜攻击'
         self.random_range = [0.89, 1.22]  # 浮动系数上下限
         self.pierce_base = .2  # 穿甲基础值
 

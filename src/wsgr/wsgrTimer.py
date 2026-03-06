@@ -48,25 +48,16 @@ class timer:
 
     def set_point(self, point):
         self.point = point
-        if self.point.roundabout:
-            rd = '/迂回'
-        else:
-            rd = ''
-        self.info(f'-> {point}: {point.type.__name__}{rd}\n')
+        self.info(f"-> {point}: {point.type.__name__}"
+                  f"{'/迂回' if self.point.roundabout else ''}\n")
 
     def set_recon(self, recon_flag):
         self.recon_flag = recon_flag
-        if recon_flag:
-            self.info(f'索敌成功\n')
-        else:
-            self.info(f'索敌失败\n')
+        self.info(f"{'索敌成功' if recon_flag else '索敌失败'}\n")
 
     def set_round(self, round_flag):
         self.round_flag = round_flag
-        if round_flag:
-            self.info(f'迂回成功\n')
-        else:
-            self.info(f'迂回失败\n')
+        self.info(f"{'迂回成功' if round_flag else '迂回失败'}\n")
 
     def set_direction(self, direction_flag):
         self.direction_flag = direction_flag
@@ -163,11 +154,6 @@ class timer:
 
     def report_damage(self, damage_value, sink):
         """伤害细节报告"""
-        self.log['record'] += f"{type(self.atk).__name__}: " \
-                              f"{self.atk.atk_body.status['name']} -> " \
-                              f"{self.atk.target.status['name']}: " \
-                              f"{str(damage_value)}\n"
-
         # 命中/闪避报告
         phase = type(self.phase).__name__
         phaseId = damagePhaseList.index(phase)
@@ -178,10 +164,16 @@ class timer:
                 self.log['hit'][phaseId, self.atk.atk_body.side] += 1
 
         # 伤害报告
-        if not isinstance(damage_value, str):
-            self.atk.atk_body.create_damage(damage_value)
-            if sink:
+        damage_info = str(damage_value)
+        if not isinstance(damage_value, str):  # 如果造成伤害
+            self.atk.atk_body.create_damage(damage_value)  # 结算伤害记录
+            if self.atk.coef['crit_flag']:  # 检查暴击
+                damage_info += "(暴击)"
+            if sink:  # 检查是否击沉
                 self.atk.atk_body.defeat_enemy()
+                damage_info += "(击沉)"
+
+        self.log['record'] += f"{self.atk}: {damage_info}\n"
 
     def phase_end_report(self, friend, enemy):
         """一个伤害阶段结束后统计战斗伤害信息"""

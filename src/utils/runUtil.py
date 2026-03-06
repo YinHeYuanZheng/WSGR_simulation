@@ -201,6 +201,14 @@ def run_damaged(battle, epoch,
               f"(注：中破率包含大破率)",
               end='',)
 
+def run_battle_info(battle, *args, **kwargs):
+    """战斗详报
+    不论输入多少轮次，只运行一次并输出战斗细节"""
+    tmp_battle = copy.deepcopy(battle)
+    tmp_battle.start()
+    log = tmp_battle.report()
+    print(log['record'], end='',)
+
 
 def new_hit_verify(value):
     """

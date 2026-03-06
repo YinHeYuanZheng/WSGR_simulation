@@ -798,7 +798,8 @@ class FrameSettings(LabelFrame):
         '胜率': run_victory,
         '总伤害': run_avg_damage,
         '消耗': run_supply_cost,
-        '破损率': run_damaged
+        '破损率': run_damaged,
+        '战斗详报': run_battle_info,
     }
 
     def __init__(self, master: MainDlg):
