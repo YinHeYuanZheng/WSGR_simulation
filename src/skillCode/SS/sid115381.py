@@ -60,4 +60,4 @@ class Skill_115381_2(CommonSkill):
 
 
 name = '大洋巡弋'
-skill = []
+skill = [Skill_115381_1, Skill_115381_2]

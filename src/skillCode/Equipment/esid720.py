@@ -27,7 +27,7 @@ class Eskill_720(EquipSkill):
             self.buff.extend([
                 EquipEffect(
                     timer=timer,
-                    effect_type=712.1,
+                    effect_type=720.1,
                     name='power_buff',
                     phase=AllPhase,
                     value=0.05,
@@ -35,7 +35,7 @@ class Eskill_720(EquipSkill):
                 ),
                 EquipEffect(
                     timer=timer,
-                    effect_type=712.2,
+                    effect_type=720.2,
                     name='miss_rate',
                     phase=AllPhase,
                     value=0.05,
@@ -44,4 +44,4 @@ class Eskill_720(EquipSkill):
             ])
 
 
-skill = []
+skill = [Eskill_720]

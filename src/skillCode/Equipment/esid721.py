@@ -35,4 +35,4 @@ class Eskill_721(EquipSkill):
             ]
 
 
-skill = []
+skill = [Eskill_721]
