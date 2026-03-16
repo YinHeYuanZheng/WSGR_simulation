@@ -30,7 +30,7 @@ class Eskill_692(EquipSkill):
                     effect_type=692,
                     name='pierce_coef',
                     phase=AllPhase,
-                    value=0.1,
+                    value=0.05,
                     bias_or_weight=0
                 )
             )

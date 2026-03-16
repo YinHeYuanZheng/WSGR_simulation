@@ -1,39 +1,39 @@
 # -*- coding:utf-8 -*-
 # Author:银河远征
 # env:py38
-# П-35反舰导弹
+# TBF(VT-8)
 
 from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
 
-class Eskill_612(EquipSkill):
-    """增加10%护甲穿透(同类弹药效果只生效一个)，格罗兹尼装备时额外提高5%护甲穿透"""
+class Eskill_750(EquipSkill):
+    """航空战阶段增加8%鱼雷机攻击威力，萨拉托加装备时额外增加12%攻击威力"""
     def __init__(self, timer, master, value):
         super().__init__(timer, master, value)
         self.target = SelfTarget(master)
         self.buff = [
             EquipEffect(
                 timer=timer,
-                effect_type=3,
-                name='pierce_coef',
-                phase=AllPhase,
-                value=0.1,
-                bias_or_weight=0
+                effect_type=750.1,
+                name='air_dive_atk_buff',
+                phase=AirPhase,
+                value=0.08,
+                bias_or_weight=2
             )
         ]
-        if master.cid in ['10533', '11533']:
+        if master.cid in ['10030', '11030']:
             self.buff.append(
                 EquipEffect(
                     timer=timer,
-                    effect_type=612,
-                    name='pierce_coef',
+                    effect_type=750.2,
+                    name='power_buff',
                     phase=AllPhase,
-                    value=0.05,
-                    bias_or_weight=0
+                    value=0.12,
+                    bias_or_weight=2
                 )
             )
 
 
-skill = [Eskill_612]
+skill = [Eskill_750]

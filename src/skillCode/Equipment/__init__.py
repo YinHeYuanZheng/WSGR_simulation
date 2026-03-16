@@ -62,3 +62,6 @@ from . import esid729  # 海鹰-1甲反舰导弹
 from . import esid730  # 海鹰导弹发射器（352）
 from . import esid736  # BM-14-17火箭炮
 from . import esid737  # 特殊炮塔（T-34/76）
+from . import esid747  # 五联鱼雷发射器（53-65）
+from . import esid750  # TBF(VT-8)
+from . import esid751  # “白蛉”反舰导弹
