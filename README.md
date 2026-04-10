@@ -160,10 +160,13 @@ WSGR/
 
 | 类型 | 说明 |
 |------|------|
-| `StatusBuff` | 属性值增减（火力、装甲等） |
-| `CoeffBuff` | 系数修正（命中率、回避率等） |
-| `ATKBuff` | 攻击时触发的动态 Buff（每次攻击时重新求值） |
-| `FinalDamageBuff` | 最终伤害倍率修正 |
+| `StatusBuff` | 属性值增减（火力、装甲等面板数值） |
+| `CommonBuff` | 常驻属性加成，存入 `common_buff`，配合 `CommonSkill` 使用 |
+| `CoeffBuff` | 无条件百分比修正（暴击率、命中率、回避率等） |
+| `AtkBuff` | 有攻击条件（`atk_request`）的百分比修正 |
+| `FinalDamageBuff` | 最终伤害倍率修正（继承自 `AtkBuff`，支持 `rate` 触发概率） |
+| `AtkHitBuff` | 攻击/被攻击事件触发，将内层 buff 施加给指定目标（支持叠加） |
+| `RoundaboutBuff` | 迂回成功率直接加成，继承自 `CommonBuff`，配合 `CommonSkill + SelfTarget` 防止重复计算 |
 
 ### ATK：攻击执行流程
 
@@ -189,6 +192,32 @@ WSGR/
 
 技能文件结构：
 ```python
+# -*- coding:utf-8 -*-
+# Author:作者署名
+# env:py38
+# 船名-技能序号
+
+from src.wsgr.skill import *
+from src.wsgr.ship import *
+from src.wsgr.phase import *
+
+"""技能描述"""
+
+class SkillClass_section1(CommonSkill):
+    """技能语段1(根据实际目标、效果、条件等进行拆分)
+    CommonSkill仅包含战斗外面板加成
+    PrepSkill仅包含影响迂回、索敌的战斗内加成"""
+    def __init__(self, timer, master):
+        super().__init__(timer, master)
+        self.target = Target
+        self.buff = []
+        self.request = None
+
+class SkillClass_section2(Skill):
+    """技能语段2(根据实际目标、效果、条件等进行拆分)
+    CommonSkill、PrepSkill外的所有加成都需要通过Skill实现"""
+    pass
+
 name = "技能名称"
 skill = [SkillClass_section1, SkillClass_section2]  # 列表索引对应技能拆分语段
 ```
