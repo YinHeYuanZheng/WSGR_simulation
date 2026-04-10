@@ -737,7 +737,7 @@ class AtkHitBuff(Buff):
     def activate(self, atk, *args, **kwargs):
         if (self.name in ['atk_hit', 'give_atk'] and self.side == 1) or \
                 (self.name in ['atk_be_hit', 'get_atk'] and self.side == 0):
-            target = atk.atk_body
+            target = atk.source
         else:
             target = atk.target
 
@@ -849,7 +849,7 @@ class ChaseAtkBuff(EventBuff):
             return False
         if not self.master.get_act_indicator():  # 无法行动时不能追击
             return False
-        if atk.atk_body.side != self.master.side:  # 追击性质决定攻击者必须是友方
+        if atk.source.side != self.master.side:  # 追击性质决定攻击者必须是友方
             return False
         from src.wsgr.formulas import SpecialAtk
         if not atk.target.can_be_atk(SpecialAtk):  # 只追击可以攻击的该敌方
@@ -867,7 +867,7 @@ class ChaseAtkBuff(EventBuff):
         from src.wsgr.formulas import SpecialAtk
         chase_atk = SpecialAtk(
             timer=self.timer,
-            atk_body=self.master,
+            source=self.master,
             def_list=None,
             coef=copy.copy(self.coef),
             target=atk.target
@@ -1052,7 +1052,7 @@ class HitBack(SpecialBuff):
                self.rate_verify()
 
     def activate(self, atk, *args, **kwargs):
-        assert atk.atk_body.side != self.master.side  # 反击性质决定攻击者必须是敌方
+        assert atk.source.side != self.master.side  # 反击性质决定攻击者必须是敌方
 
         if self.exhaust is not None:
             self.exhaust -= 1
@@ -1065,10 +1065,10 @@ class HitBack(SpecialBuff):
 
         hit_back = normal_atk(
             timer=self.timer,
-            atk_body=self.master,
+            source=self.master,
             def_list=None,
             coef=copy.copy(self.coef),
-            target=atk.atk_body
+            target=atk.source
         )
         hit_back.changable = False
         return hit_back
@@ -1156,7 +1156,7 @@ class MultipleAtkBuff(ActiveBuff):
                 break
             tmp_atk = type(atk)(
                 timer=self.timer,
-                atk_body=self.master,
+                source=self.master,
                 def_list=def_list,
                 coef=copy.copy(self.coef),
             )
@@ -1179,7 +1179,7 @@ class MultipleTorpedoAtkBuff(ActiveBuff):
         for i in range(self.num):
             tmp_atk = atk(
                 timer=self.timer,
-                atk_body=self.master,
+                source=self.master,
                 def_list=enemy,
                 coef=copy.copy(self.coef),
             )
@@ -1206,7 +1206,7 @@ class ExtraAtkBuff(ActiveBuff):
                 break
             tmp_atk = type(atk)(
                 timer=self.timer,
-                atk_body=self.master,
+                source=self.master,
                 def_list=def_list,
                 coef=copy.copy(self.coef),
                 target=target,
@@ -1273,7 +1273,7 @@ class SpecialAtkBuff(ActiveBuff):
 
         special_atk = atk_type(
             timer=self.timer,
-            atk_body=self.master,
+            source=self.master,
             def_list=def_list,
             coef=copy.copy(self.coef),
         )

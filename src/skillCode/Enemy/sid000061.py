@@ -26,14 +26,14 @@ class Skill_000061_1(Skill):
 
 class HitBack_Bismark(HitBack):
     def activate(self, atk, *args, **kwargs):
-        assert atk.atk_body.side != self.master.side
+        assert atk.source.side != self.master.side
 
         hit_back = BismarkHitBackAtk(
             timer=self.timer,
-            atk_body=self.master,
+            source=self.master,
             def_list=None,
             coef=copy.copy(self.coef),
-            target=atk.atk_body
+            target=atk.source
         )
         hit_back.changable = False
         return hit_back

@@ -28,7 +28,7 @@ class SpecialAtkBuff_110821(SpecialAtkBuff):
     def active_start(self, atk: ATK, enemy, *args, **kwargs):
         def formula(cls):
             """造成自身装甲80%的固定伤害"""
-            return np.ceil(cls.atk_body.get_final_status('armor') * 0.8)
+            return np.ceil(cls.source.get_final_status('armor') * 0.8)
 
         def real_damage(cls, real_atk):
             if real_atk is None:

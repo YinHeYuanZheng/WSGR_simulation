@@ -60,7 +60,7 @@ class Skill_103191_2(Skill):
 
 class BuffRequest_1(ATKRequest):
     def __bool__(self):
-        return self.atk.atk_body.damaged < 3
+        return self.atk.source.damaged < 3
 
 
 name = '持久作战'

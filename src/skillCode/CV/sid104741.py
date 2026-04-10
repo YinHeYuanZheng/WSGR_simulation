@@ -59,7 +59,7 @@ class Skill_101471_2(Skill):
 
 class BuffRequest_1(ATKRequest):
     def __bool__(self):
-        return self.atk.target.loc == self.atk.atk_body.loc
+        return self.atk.target.loc == self.atk.source.loc
 
 
 name = '定点击破'

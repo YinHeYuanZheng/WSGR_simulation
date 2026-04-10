@@ -53,7 +53,7 @@ class Skill_105941_1(Skill):
 
 class BuffRequest_1(ATKRequest):
     def __bool__(self):
-        return self.atk.atk_body.damaged == 2
+        return self.atk.source.damaged == 2
 
 
 class Skill_105941_2(Skill):
@@ -81,7 +81,7 @@ class Skill_105941_2(Skill):
 
 class BuffRequest_2(ATKRequest):
     def __bool__(self):
-        return isinstance(self.atk.atk_body, (Fortness, Airfield, Port))
+        return isinstance(self.atk.source, (Fortness, Airfield, Port))
 
 
 class BuffRequest_3(ATKRequest):

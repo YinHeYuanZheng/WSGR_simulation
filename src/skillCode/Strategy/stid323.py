@@ -28,7 +28,7 @@ class Strategy_323(SelfStrategy):
 
 class ATKRequest_1(ATKRequest):
     def __bool__(self):
-        return isinstance(self.atk.atk_body, CVL)
+        return isinstance(self.atk.source, CVL)
 
 
 skill = [Strategy_323]

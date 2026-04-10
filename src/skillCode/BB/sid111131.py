@@ -37,8 +37,8 @@ class Skill_111131(Skill):
 
 class BuffRequest_1(ATKRequest):
     def __bool__(self):
-        if self.atk.atk_body.damaged == 2 or \
-                self.atk.atk_body.damaged == 3:
+        if self.atk.source.damaged == 2 or \
+                self.atk.source.damaged == 3:
             return True
         if self.atk.get_coef('crit_flag'):
             return True

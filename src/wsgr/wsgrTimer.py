@@ -159,18 +159,18 @@ class timer:
         phaseId = damagePhaseList.index(phase)
         if phase != 'SupportPhase':
             if isinstance(damage_value, str):
-                self.log['miss'][phaseId, self.atk.atk_body.side] += 1
+                self.log['miss'][phaseId, self.atk.source.side] += 1
             else:
-                self.log['hit'][phaseId, self.atk.atk_body.side] += 1
+                self.log['hit'][phaseId, self.atk.source.side] += 1
 
         # 伤害报告
         damage_info = str(damage_value)
         if not isinstance(damage_value, str):  # 如果造成伤害
-            self.atk.atk_body.create_damage(damage_value)  # 结算伤害记录
+            self.atk.source.create_damage(damage_value)  # 结算伤害记录
             if self.atk.coef['crit_flag']:  # 检查暴击
                 damage_info += "(暴击)"
             if sink:  # 检查是否击沉
-                self.atk.atk_body.defeat_enemy()
+                self.atk.source.defeat_enemy()
                 damage_info += "(击沉)"
 
         self.log['record'] += f"{self.atk}: {damage_info}\n"

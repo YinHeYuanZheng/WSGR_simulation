@@ -121,14 +121,14 @@ class ATKRequest_LowFire(ATKRequest):
     """目标火力低于自身火力"""
     def __bool__(self):
         return self.atk.target.get_final_status('fire') < \
-               self.atk.atk_body.get_final_status('fire')
+               self.atk.source.get_final_status('fire')
 
 
 class ATKRequest_HighFire(ATKRequest):
     """目标火力高于自身火力"""
     def __bool__(self):
         return self.atk.target.get_final_status('fire') > \
-               self.atk.atk_body.get_final_status('fire')
+               self.atk.source.get_final_status('fire')
 
 
 name = '巨炮火力'

@@ -50,7 +50,7 @@ class NeighborAtkBuff(ActiveBuff):
         if len(neighbor_target):
             another_atk = type(atk)(
                 timer=self.timer,
-                atk_body=self.master,
+                source=self.master,
                 def_list=neighbor_target,
                 coef=copy.copy(self.coef),
             )

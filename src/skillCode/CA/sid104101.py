@@ -67,7 +67,7 @@ class SecondAtkBuff(MultipleAtkBuff):
                 break
             tmp_atk = type(atk)(
                 timer=self.timer,
-                atk_body=self.master,
+                source=self.master,
                 def_list=def_list,
                 coef=copy.copy(self.coef),
             )

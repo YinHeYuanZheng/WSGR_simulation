@@ -35,7 +35,7 @@ class Skill_102001(Skill):
 
 class BuffRequest_1(ATKRequest):
     def __bool__(self):
-        return self.atk.atk_body.damaged == 1
+        return self.atk.source.damaged == 1
 
 
 skill = [Skill_102001]

@@ -37,7 +37,7 @@ class Skill_111301(Skill):
 
 class Request_1(ATKRequest):
     def __bool__(self):
-        return self.atk.atk_body.get_final_status('speed') >= \
+        return self.atk.source.get_final_status('speed') >= \
                self.atk.target.get_final_status('speed')
 
 

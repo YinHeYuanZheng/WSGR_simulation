@@ -77,7 +77,7 @@ class SpecialAtkBuff_110661(SpecialAtkBuff):
 
         special_atk = atk_type(
             timer=self.timer,
-            atk_body=self.master,
+            source=self.master,
             def_list=def_list,
             coef=copy.copy(self.coef),
         )
@@ -90,7 +90,7 @@ class SpecialAtkBuff_110661(SpecialAtkBuff):
 class MagicAtk_110661(MagicAtk):
     """造成火力值 100% 的伤害且必定命中"""
     def formula(self):
-        return np.ceil(self.atk_body.get_final_status('fire'))
+        return np.ceil(self.source.get_final_status('fire'))
 
 
 name = '零距炮击'

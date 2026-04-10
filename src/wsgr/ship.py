@@ -552,7 +552,7 @@ class Ship(Time):
         if prior is not None:
             atk = self.normal_atk(
                 timer=self.timer,
-                atk_body=self,
+                source=self,
                 def_list=prior,
             )
             yield atk
@@ -566,7 +566,7 @@ class Ship(Time):
             if len(def_list):
                 atk = self.anti_sub_atk(
                     timer=self.timer,
-                    atk_body=self,
+                    source=self,
                     def_list=def_list,
                 )
 
@@ -576,7 +576,7 @@ class Ship(Time):
             if len(def_list):
                 atk = self.normal_atk(
                     timer=self.timer,
-                    atk_body=self,
+                    source=self,
                     def_list=def_list,
                 )
         if atk is None:  # 无普通炮击
@@ -611,7 +611,7 @@ class Ship(Time):
         for i in range(num):
             atk = self.torpedo_atk(
                 timer=self.timer,
-                atk_body=self,
+                source=self,
                 def_list=target_list,
             )
             yield atk
@@ -628,7 +628,7 @@ class Ship(Time):
         if prior is not None:
             atk = self.night_atk(
                 timer=self.timer,
-                atk_body=self,
+                source=self,
                 def_list=prior,
             )
             yield atk
@@ -648,7 +648,7 @@ class Ship(Time):
             if len(def_list):
                 atk = self.night_anti_sub_atk(
                     timer=self.timer,
-                    atk_body=self,
+                    source=self,
                     def_list=def_list,
                 )
                 yield atk  # 反潜攻击优先级高于技能（与炮击战不同，可能会改动）
@@ -660,7 +660,7 @@ class Ship(Time):
             if len(def_list):
                 atk = self.night_atk(
                     timer=self.timer,
-                    atk_body=self,
+                    source=self,
                     def_list=def_list,
                 )
         if atk is None:  # 无夜战攻击
@@ -742,7 +742,7 @@ class Ship(Time):
         if isinstance(self.timer.phase, (AntiSubPhase, ShellingPhase, NightPhase)) \
                 and self.damaged == 4:
             raise SyntaxError(f"{type(self.timer.phase).__name__}: 已击沉船只受到攻击! "
-                              f"{self.timer.atk.atk_body.status['name']} -> "
+                              f"{self.timer.atk.source.status['name']} -> "
                               f"{self.timer.atk.target.status['name']}")
 
         standard_health = self.status['standard_health']
@@ -1208,7 +1208,7 @@ class BBV(Aircraft, LargeShip, MainShip):
         if prior is not None:
             atk = self.normal_atk(
                 timer=self.timer,
-                atk_body=self,
+                source=self,
                 def_list=prior,
             )
             yield atk
@@ -1221,7 +1221,7 @@ class BBV(Aircraft, LargeShip, MainShip):
             if len(def_list):
                 atk = self.anti_sub_atk(
                     timer=self.timer,
-                    atk_body=self,
+                    source=self,
                     def_list=def_list,
                 )
 
@@ -1231,7 +1231,7 @@ class BBV(Aircraft, LargeShip, MainShip):
             if len(def_list):
                 atk = self.normal_atk(
                     timer=self.timer,
-                    atk_body=self,
+                    source=self,
                     def_list=def_list,
                 )
         if atk is None:  # 无普通炮击
@@ -1365,7 +1365,7 @@ class MissileShip(Ship):
 
                 atk = self.night_atk(
                     timer=self.timer,
-                    atk_body=self,
+                    source=self,
                     def_list=def_enemy,
                     equip=tmp_msl
                 )
@@ -1379,7 +1379,7 @@ class MissileShip(Ship):
                 return
             atk = NightNormalAtk(
                 timer=self.timer,
-                atk_body=self,
+                source=self,
                 def_list=def_enemy,
             )
             yield atk

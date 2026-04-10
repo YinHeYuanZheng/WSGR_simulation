@@ -379,7 +379,7 @@ class SpecialBattle(BattleUtil):
             from src.wsgr.formulas import AirBombAtk
             atk = AirBombAtk(
                 timer=self.timer,
-                atk_body=supportUnit,
+                source=supportUnit,
                 def_list=def_friend,
                 equip=supportBomber,
                 coef=coef,

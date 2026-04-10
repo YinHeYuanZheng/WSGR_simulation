@@ -196,7 +196,7 @@ class SupportPhase(AllPhase):
         for ship in self.enemy.ship:
             atk = SupportAtk(
                 timer=self.timer,
-                atk_body=supportUnit,
+                source=supportUnit,
                 def_list=None,
                 target=ship,
                 limit=[60, 100]
@@ -311,7 +311,7 @@ class AirPhase(DaytimePhase):
                 if isinstance(tmp_equip, Bomber):
                     atk = AirBombAtk(
                         timer=self.timer,
-                        atk_body=tmp_ship,
+                        source=tmp_ship,
                         def_list=def_list,
                         equip=tmp_equip,
                         coef=coef,
@@ -323,7 +323,7 @@ class AirPhase(DaytimePhase):
                 elif isinstance(tmp_equip, DiveBomber):
                     atk = AirDiveAtk(
                         timer=self.timer,
-                        atk_body=tmp_ship,
+                        source=tmp_ship,
                         def_list=def_list,
                         equip=tmp_equip,
                         coef=coef,
@@ -513,7 +513,7 @@ class LongMissilePhase(MissilePhase):
             else:
                 atk = LongMissileAtk(
                     timer=self.timer,
-                    atk_body=tmp_atk_msl.master,
+                    source=tmp_atk_msl.master,
                     def_list=defend,
                     equip=tmp_atk_msl
                 )
@@ -561,7 +561,7 @@ class FirstMissilePhase(MissilePhase):
 
                 atk = MissileAtk(
                     timer=self.timer,
-                    atk_body=tmp_atk_msl.master,
+                    source=tmp_atk_msl.master,
                     def_list=def_list,
                     equip=tmp_atk_msl
                 )
@@ -584,7 +584,7 @@ class SecondMissilePhase(MissilePhase):
 
             atk = MissileAtk(
                 timer=self.timer,
-                atk_body=tmp_atk_msl.master,
+                source=tmp_atk_msl.master,
                 def_list=def_list,
                 equip=tmp_atk_msl
             )
@@ -616,7 +616,7 @@ class AntiSubPhase(DaytimePhase):
             # 发起反潜攻击
             atk = tmp_ship.anti_sub_atk(
                 timer=self.timer,
-                atk_body=tmp_ship,
+                source=tmp_ship,
                 def_list=defend,
             )
             atk.start()

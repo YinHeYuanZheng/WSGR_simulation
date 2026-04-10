@@ -50,7 +50,7 @@ class Skill_111812_2(Skill):
 
 class ATKRequest_1(ATKRequest):
     def __bool__(self):
-        return isinstance(self.atk.atk_body, (CV, CVL, AV))
+        return isinstance(self.atk.source, (CV, CVL, AV))
 
 
 name = '幸运的威利'

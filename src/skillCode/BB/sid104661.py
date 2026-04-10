@@ -65,7 +65,7 @@ class ArmorExtraDamage(AtkBuff):
             atk = kwargs['atk']
         except:
             atk = args[0]
-        self.value = np.ceil(atk.atk_body.get_final_status('armor') * 0.5)
+        self.value = np.ceil(atk.source.get_final_status('armor') * 0.5)
 
 
 class Skill_104661_3(Skill):

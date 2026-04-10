@@ -36,7 +36,7 @@ class Skill_101911_1(Skill):
 
 class BuffRequest_1(ATKRequest):
     def __bool__(self):
-        return self.atk.atk_body.damaged in [2, 3]
+        return self.atk.source.damaged in [2, 3]
 
 
 class Skill_101911_2(Skill):
@@ -106,7 +106,7 @@ class ArmorExtraDamage(AtkBuff):
             atk = kwargs['atk']
         except:
             atk = args[0]
-        self.value = np.ceil(atk.atk_body.get_final_status('armor') * 0.5)
+        self.value = np.ceil(atk.source.get_final_status('armor') * 0.5)
 
 
 name = '泡沫幻影'

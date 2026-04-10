@@ -181,7 +181,7 @@ class SkillMultiAtkBuff(MultipleAtkBuff):
             if len(def_list):
                 atk = self.master.anti_sub_atk(
                     timer=self.timer,
-                    atk_body=self.master,
+                    source=self.master,
                     def_list=def_list,
                     coef=self.coef
                 )
@@ -194,7 +194,7 @@ class SkillMultiAtkBuff(MultipleAtkBuff):
             if len(def_list):
                 atk = self.master.normal_atk(
                     timer=self.timer,
-                    atk_body=self.master,
+                    source=self.master,
                     def_list=def_list,
                     coef=self.coef
                 )

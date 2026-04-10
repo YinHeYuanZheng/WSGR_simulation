@@ -216,7 +216,7 @@ def new_hit_verify(value):
     ATK.outer_hit_verify = new_hit_verify(hit_rate)
     """
     def f(cls):
-        if cls.atk_body.side == 1:  # 只修改深海命中
+        if cls.source.side == 1:  # 只修改深海命中
             return False
         if cls.target.size != 1:
             return False

@@ -88,7 +88,7 @@ class Skill_106131_2(Skill):
 
 class BuffRequest_1(ATKRequest):
     def __bool__(self):
-        return self.atk.atk_body.damaged in [2, 3]
+        return self.atk.source.damaged in [2, 3]
 
 
 class HitBack_106131(HitBack):

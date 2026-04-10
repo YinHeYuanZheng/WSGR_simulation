@@ -61,7 +61,7 @@ class Skill_103671_2(Skill):
 class BuffRequest_1(ATKRequest):
     def __bool__(self):
         return self.atk.target.get_final_status('armor') > \
-               self.atk.atk_body.get_final_status('armor')
+               self.atk.source.get_final_status('armor')
 
 
 name = '德式设计'

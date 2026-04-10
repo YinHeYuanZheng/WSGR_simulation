@@ -32,7 +32,7 @@ class Skill_104331_1(Skill):
 
 class BuffRequest_1(ATKRequest):
     def __bool__(self):
-        return isinstance(self.atk.atk_body, CV)
+        return isinstance(self.atk.source, CV)
 
 
 class Skill_104331_2(Skill):
@@ -64,7 +64,7 @@ class Skill_104331_2(Skill):
 
 class BuffRequest_2(ATKRequest):
     def __bool__(self):
-        return self.atk.atk_body.get_air_con_flag() <= 3
+        return self.atk.source.get_air_con_flag() <= 3
 
 
 name = '制空权'

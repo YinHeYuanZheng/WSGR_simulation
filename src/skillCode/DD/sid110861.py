@@ -89,7 +89,7 @@ class SpecialLock(ActiveBuff):
 
         special_atk = atk_type(
             timer=self.timer,
-            atk_body=self.master,
+            source=self.master,
             def_list=def_list
         )
         yield special_atk

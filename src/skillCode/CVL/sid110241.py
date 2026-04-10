@@ -60,7 +60,7 @@ class Skill_110241_2(Skill):
 
 class BuffRequest_1(ATKRequest):
     def __bool__(self):
-        return isinstance(self.atk.atk_body, (CV, AV))
+        return isinstance(self.atk.source, (CV, AV))
 
 
 name = '战队直卫'

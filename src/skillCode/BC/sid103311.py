@@ -50,7 +50,7 @@ class Request_1(ATKRequest):
 class Request_2(ATKRequest):
     def __bool__(self):
         return self.atk.target.get_final_status(name='speed') < \
-               self.atk.atk_body.get_final_status(name='speed')
+               self.atk.source.get_final_status(name='speed')
 
 
 name = '完美战巡'

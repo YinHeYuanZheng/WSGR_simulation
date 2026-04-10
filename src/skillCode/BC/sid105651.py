@@ -51,7 +51,7 @@ class BuffRequest_1(ATKRequest):
 
 class BuffRequest_2(ATKRequest):
     def __bool__(self):
-        return isinstance(self.atk.atk_body, (BC, CA, CL))
+        return isinstance(self.atk.source, (BC, CA, CL))
 
 
 name = '巡洋舰杀手'

@@ -100,7 +100,7 @@ class Skill_110432(Skill):
 
 class BuffRequest_1(ATKRequest):
     def __bool__(self):
-        return self.atk.atk_body.damaged == 2
+        return self.atk.source.damaged == 2
 
 
 name = '渐减雷击'

@@ -50,7 +50,7 @@ class Skill_115601_2(Skill):
 class BuffRequest_1(ATKRequest):
     def __bool__(self):
         return self.atk.target.get_final_status('speed') < \
-               self.atk.atk_body.get_final_status('speed')
+               self.atk.source.get_final_status('speed')
 
 
 name = '凯撒炮术'

@@ -61,15 +61,15 @@ class Skill_113622_2(Skill):
 
 class Request_1(ATKRequest):
     def __bool__(self):
-        if self.atk.atk_body.loc == 1:
+        if self.atk.source.loc == 1:
             return False
-        return self.atk.atk_body.get_final_status('speed') <= 27 and \
-               isinstance(self.atk.atk_body, LargeShip)
+        return self.atk.source.get_final_status('speed') <= 27 and \
+               isinstance(self.atk.source, LargeShip)
 
 
 class Request_2(ATKRequest):
     def __bool__(self):
-        return self.atk.atk_body.get_final_status('speed') >= 27
+        return self.atk.source.get_final_status('speed') >= 27
 
 
 name = '先头部队'

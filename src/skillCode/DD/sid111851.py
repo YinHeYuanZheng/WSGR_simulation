@@ -57,7 +57,7 @@ class Skill_111851_2(Skill):
 
 class ATKRequest_1(ATKRequest):
     def __bool__(self):
-        return self.atk.target.loc == self.atk.atk_body.loc
+        return self.atk.target.loc == self.atk.source.loc
 
 
 name = '海峡勇者'
