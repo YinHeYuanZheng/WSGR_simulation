@@ -7,8 +7,8 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""不朽的英魂(3级)：当自身在场时，队伍中每有一艘U国重巡洋舰，则为全队轻巡、重巡、航巡提供5火力加成，
-队伍中每有一艘U国轻巡洋舰，则为全队轻巡、重巡、航巡提供5对空和回避加成。"""
+"""不朽的英魂(3级)：队伍中每有一艘U国重巡，全队中型船火力值和命中值增加10点，暴击率提高5%。
+队伍中每有一艘U国轻巡，全队中型船回避值、装甲值和对空值增加10点，回避率提高5%。"""
 
 
 class U_TypeTarget(TypeTarget):
@@ -20,16 +20,30 @@ class U_TypeTarget(TypeTarget):
 
 
 class Skill_112411_1(Skill):
-    """队伍中每有一艘U国重巡洋舰，则为全队轻巡、重巡、航巡提供5火力加成"""
+    """队伍中每有一艘U国重巡，全队中型船火力值和命中值增加10点，暴击率提高5%"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = TypeTarget(side=1, shiptype=(CL, CA, CAV))
+        self.target = TypeTarget(side=1, shiptype=MidShip)
         self.buff = [
             StatusBuff(
                 timer=timer,
                 name='fire',
                 phase=AllPhase,
-                value=5,
+                value=10,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='accuracy',
+                phase=AllPhase,
+                value=10,
+                bias_or_weight=0
+            ),
+            CoeffBuff(
+                timer=timer,
+                name='crit',
+                phase=AllPhase,
+                value=0.05,
                 bias_or_weight=0
             )
         ]
@@ -47,23 +61,37 @@ class Skill_112411_1(Skill):
 
 
 class Skill_112411_2(Skill):
-    """队伍中每有一艘U国轻巡洋舰，则为全队轻巡、重巡、航巡提供5对空和回避加成"""
+    """队伍中每有一艘U国轻巡，全队中型船回避值、装甲值和对空值增加10点，回避率提高5%"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
-        self.target = TypeTarget(side=1, shiptype=(CL, CA, CAV))
+        self.target = TypeTarget(side=1, shiptype=MidShip)
         self.buff = [
-            StatusBuff(
-                timer=timer,
-                name='antiair',
-                phase=AllPhase,
-                value=5,
-                bias_or_weight=0
-            ),
             StatusBuff(
                 timer=timer,
                 name='evasion',
                 phase=AllPhase,
-                value=5,
+                value=10,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='armor',
+                phase=AllPhase,
+                value=10,
+                bias_or_weight=0
+            ),
+            StatusBuff(
+                timer=timer,
+                name='antiair',
+                phase=AllPhase,
+                value=10,
+                bias_or_weight=0
+            ),
+            CoeffBuff(
+                timer=timer,
+                name='miss_rate',
+                phase=AllPhase,
+                value=0.05,
                 bias_or_weight=0
             )
         ]

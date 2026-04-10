@@ -620,6 +620,17 @@ class CommonBuff(StatusBuff):
         return True
 
 
+class RoundaboutBuff(CommonBuff):
+    """迂回成功率buff(存入 common_buff，在迂回判定前即生效)
+    配合 CommonSkill + SelfTarget 使用，防止多舰持有时重复计算。"""
+    def __init__(self, timer, phase, value, bias_or_weight, name='roundabout', rate=1):
+        """
+        :param name: roundabout
+        :param value: 成功率加成，如 0.1 表示 +10%
+        """
+        super().__init__(timer, name, phase, value, bias_or_weight, rate)
+
+
 class CoeffBuff(Buff):
     """系数增益"""
     def __init__(self, timer, name, phase, value, bias_or_weight, rate=1):

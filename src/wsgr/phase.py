@@ -52,10 +52,10 @@ class PreparePhase(AllPhase):
     """准备阶段"""
 
     def start(self):
-        # 索敌(注意！不受技能影响！)
+        # 索敌(注意！不受技能索敌影响！)
         self.compare_recon()
 
-        # 迂回(注意！不受技能影响！)
+        # 迂回(注意！不受技能航速影响！)
         if self.timer.point is not None and \
                 self.timer.point.roundabout and \
                 self.timer.recon_flag:  # 索敌成功才可迂回
@@ -81,6 +81,13 @@ class PreparePhase(AllPhase):
 
         # 迂回检定
         rd_rate = np.floor(50 * 2 ** (d_fleet_speed / 5) - 20) / 100
+
+        # 技能迂回成功率加成
+        for tmp_ship in self.friend.ship:
+            for tmp_buff in tmp_ship.common_buff:
+                if tmp_buff.name == 'roundabout':
+                    rd_rate += tmp_buff.value
+
         rd_rate = rform.cap(rd_rate)
         self.timer.report_log('round',
                               [np.floor(rd_rate * 100),
