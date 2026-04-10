@@ -81,14 +81,14 @@ class PreparePhase(AllPhase):
 
         # 迂回检定
         rd_rate = np.floor(50 * 2 ** (d_fleet_speed / 5) - 20) / 100
+        rd_rate = rform.cap(rd_rate)
 
         # 技能迂回成功率加成
         for tmp_ship in self.friend.ship:
             for tmp_buff in tmp_ship.common_buff:
                 if tmp_buff.name == 'roundabout':
                     rd_rate += tmp_buff.value
-
-        rd_rate = rform.cap(rd_rate)
+        rd_rate = min(1, rd_rate)  # 最大为100%
         self.timer.report_log('round',
                               [np.floor(rd_rate * 100),
                                friend_fleet_speed,
