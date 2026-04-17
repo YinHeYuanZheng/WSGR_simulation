@@ -47,7 +47,7 @@ class Skill_112901_2(Skill):
         super().__init__(timer, master)
         self.target = SelfTarget(master)
         self.buff = [
-            AtkBuff(
+            CoeffBuff(
                 timer=timer,
                 name='crit_coef',
                 phase=DaytimePhase,

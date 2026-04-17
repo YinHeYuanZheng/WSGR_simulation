@@ -11,10 +11,14 @@ from . import esid006  # 开幕鱼雷机威力特效
 from . import esid007  # 命中率特效
 from . import esid008  # 最终伤害
 from . import esid009  # 攻击力
-from . import esid012  # 降低敌方航空战阶段命中率
+from . import esid011  # 鱼雷战阶段增加X%命中率
+from . import esid012  # 降低敌方航空战阶段X%命中率
+from . import esid013  # 航空战阶段增加X%鱼雷机命中率
 from . import esid018  # 远程对空警戒雷达
 from . import esid023  # 暴击率特效
 
+from . import esid248  # PAT-52火箭鱼雷
+from . import esid337  # 空射火箭弹
 from . import esid427  # 蒙巴顿粉
 from . import esid581  # 海鹰反舰导弹
 from . import esid582  # 海鹰导弹发射器
@@ -66,3 +70,5 @@ from . import esid737  # 特殊炮塔（T-34/76）
 from . import esid747  # 五联鱼雷发射器（53-65）
 from . import esid750  # TBF(VT-8)
 from . import esid751  # “白蛉”反舰导弹
+from . import esid753  # “海标枪”GWS30导弹
+from . import esid754  # “海标枪”导弹发射器
