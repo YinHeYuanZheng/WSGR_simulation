@@ -88,7 +88,7 @@ class Skill_115091_3(CommonSkill):
         ]
 
 
-class Skill_115091_4(CommonSkill):
+class Skill_115091_4(Skill):
     """当敌方存在航母时，全队回避值和对空值增加20点。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)

@@ -25,6 +25,7 @@ from . import esid596  # 掠夺者攻击机
 from . import esid601  # 海雌狐FAW.2战斗机
 from . import esid603  # F6F地狱猫战斗机(麦坎贝尔)
 from . import esid605  # E国双联15英寸主炮（BM）
+from . import esid607  # CM.170
 from . import esid612  # П-35反舰导弹
 from . import esid613  # СМ-70旋转发射器
 from . import esid619  # AM-1拳击手（HVAR）

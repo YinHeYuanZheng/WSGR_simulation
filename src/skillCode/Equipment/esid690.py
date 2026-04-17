@@ -13,7 +13,7 @@ class Eskill_690(EquipSkill):
         super().__init__(timer, master, value)
         self.target = SelfTarget(master)
         self.buff = []
-        if master.cid in ['10576', '11576', '10619', '11619']:
+        if master.status['tag'] == 'midway':
             self.buff = [
                 EquipEffect(
                     timer=timer,

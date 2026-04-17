@@ -30,3 +30,4 @@ from . import sid111301  # 斯佩伯爵海军上将-1
 from . import sid111302  # 斯佩伯爵海军上将-2
 from . import sid113621  # 星座-1
 from . import sid113622  # 星座-2
+from . import sid115902  # 金伯恩-2

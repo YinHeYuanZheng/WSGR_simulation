@@ -54,6 +54,7 @@ from . import sid111921  # 塔什干改-1
 from . import sid112441  # 灵敏改-1
 from . import sid112581  # 高波改-1
 from . import sid112651  # 岚改-1
+from . import sid112661  # 初夏改-1
 from . import sid112671  # 岛风改-1
 from . import sid112691  # z-17改-1
 from . import sid112701  # z-18改-1
