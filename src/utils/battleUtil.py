@@ -145,16 +145,16 @@ class BattleUtil(Time):
             else:
                 self.timer.report_result('S')
 
+        # 敌方被击沉超过2/3
+        elif enemy_retreat_num >= len(self.enemy.ship) * 2/3:
+            self.timer.report_result('A')
+
         # 敌方旗舰被击沉
         elif self.enemy.ship[0].damaged == 4:
             if damage_progress[0] == 0:
                 self.timer.report_result('A')
             else:
                 self.timer.report_result('B')
-
-        # 敌方被击沉超过2/3
-        elif enemy_retreat_num >= len(self.enemy.ship) * 2/3:
-            self.timer.report_result('A')
 
         # 敌方被击沉小于2/3，但战损比超过3倍，且我方战果条大于等于21%
         elif enemy_retreat_num < len(self.enemy.ship) * 2/3 and \
