@@ -264,9 +264,8 @@ class ATK(Time):
         # 梯形锁定减少闪避
         if self.target.get_special_buff('t_lock'):
             evasion *= 0.6
-        evasion = max(1, evasion)
 
-        hit_rate = accuracy / evasion / 2
+        hit_rate = accuracy / max(1, evasion) / 2
         return hit_rate
 
     @property
@@ -673,7 +672,7 @@ class AirStrikeAtk(AirAtk):
             aa_mult = .8
         else:
             aa_mult = 2
-        hit_rate = accuracy / (aa_value * aa_mult + accuracy)
+        hit_rate = accuracy / max(1, aa_value * aa_mult + accuracy)
         return hit_rate
 
     @property
@@ -1047,7 +1046,7 @@ class AntiSubAtk(ATK):
         evasion = self.target.get_final_status('evasion') * \
                   (1 + ignore_scale) + ignore_bias
 
-        hit_rate = antisub / evasion / 2
+        hit_rate = antisub / max(1, evasion) / 2
         return hit_rate
 
     @property
@@ -1278,7 +1277,7 @@ class AirNormalAtk(NormalAtk, AirAtk):
             aa_mult = .8
         else:
             aa_mult = 2
-        hit_rate = accuracy / (aa_value * aa_mult + accuracy)
+        hit_rate = accuracy / max(1, aa_value * aa_mult + accuracy)
         return hit_rate
 
     # @property
