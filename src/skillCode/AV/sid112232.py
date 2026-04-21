@@ -56,7 +56,7 @@ class Skill_112232_2(Skill):
             side=1,
             shiptype=(CV, CVL, AV)
         ).get_target(friend, enemy)
-        if self.target in craft:
+        if self.master in craft:
             craft.remove(self.master)
         return len(craft) == 0
 
