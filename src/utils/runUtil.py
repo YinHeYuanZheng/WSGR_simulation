@@ -163,43 +163,33 @@ def run_map_supply_cost(battle, epoch):
 
 def run_damaged(battle, epoch,
                 stop_event:threading.Event=None):
-    damaged_rate = np.zeros((6, 2))
+    n = len(battle.friend.ship)
+    damaged_rate = np.zeros((n, 2))
+    ship_names = [s.status['name'] for s in battle.friend.ship]
     for i in range(epoch):
         if stop_event is not None and stop_event.is_set():
             break
         tmp_battle = copy.deepcopy(battle)
         tmp_battle.start()
-        for j in range(6):
+        if ship_names is None:
+            ship_names = [s.status['name'] for s in tmp_battle.friend.ship]
+        for j in range(n):
             ship = tmp_battle.friend.ship[j]
             if ship.damaged >= 2:
                 damaged_rate[j, 0] += 1
             if ship.damaged >= 3:
                 damaged_rate[j, 1] += 1
+        names_str = ' '.join(ship_names)
+        mid_str = ' '.join(f"{damaged_rate[j, 0] / (i + 1) * 100:.2f}%" for j in range(n))
+        heavy_str = ' '.join(f"{damaged_rate[j, 1] / (i + 1) * 100:.2f}%" for j in range(n))
         print("\r"
               f"第{i + 1}次 - "
-              f"船名: "
-              f"{tmp_battle.friend.ship[0].status['name']} "
-              f"{tmp_battle.friend.ship[1].status['name']} "
-              f"{tmp_battle.friend.ship[2].status['name']} "
-              f"{tmp_battle.friend.ship[3].status['name']} "
-              f"{tmp_battle.friend.ship[4].status['name']} "
-              f"{tmp_battle.friend.ship[5].status['name']} "
-              f"中破率: "
-              f"{damaged_rate[0, 0] / (i + 1) * 100:.2f}% "
-              f"{damaged_rate[1, 0] / (i + 1) * 100:.2f}% "
-              f"{damaged_rate[2, 0] / (i + 1) * 100:.2f}% "
-              f"{damaged_rate[3, 0] / (i + 1) * 100:.2f}% "
-              f"{damaged_rate[4, 0] / (i + 1) * 100:.2f}% "
-              f"{damaged_rate[5, 0] / (i + 1) * 100:.2f}% "
-              f"大破率: "
-              f"{damaged_rate[0, 1] / (i + 1) * 100:.2f}% "
-              f"{damaged_rate[1, 1] / (i + 1) * 100:.2f}% "
-              f"{damaged_rate[2, 1] / (i + 1) * 100:.2f}% "
-              f"{damaged_rate[3, 1] / (i + 1) * 100:.2f}% "
-              f"{damaged_rate[4, 1] / (i + 1) * 100:.2f}% "
-              f"{damaged_rate[5, 1] / (i + 1) * 100:.2f}% "
+              f"船名: {names_str} "
+              f"中破率: {mid_str} "
+              f"大破率: {heavy_str} "
               f"(注：中破率包含大破率)",
               end='',)
+
 
 def run_battle_info(battle, *args, **kwargs):
     """战斗详报
