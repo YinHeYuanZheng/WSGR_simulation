@@ -70,4 +70,5 @@ class Skill_104481_3(Skill):
         return self.master.get_dir_flag() == 1
 
 
+name = '主炮群覆盖'
 skill = [Skill_104481_1, Skill_104481_2, Skill_104481_3]

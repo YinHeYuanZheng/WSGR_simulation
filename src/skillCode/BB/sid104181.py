@@ -82,4 +82,5 @@ class Skill_104181_3(Skill):
         return self.master.get_form() == 4
 
 
+name = '战列线'
 skill = [Skill_104181_1, Skill_104181_2, Skill_104181_3]

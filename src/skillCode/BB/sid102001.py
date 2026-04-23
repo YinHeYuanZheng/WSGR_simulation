@@ -38,4 +38,5 @@ class BuffRequest_1(ATKRequest):
         return self.atk.source.damaged == 1
 
 
+name = '高速轻弹'
 skill = [Skill_102001]

@@ -111,4 +111,5 @@ class Skill_104541_5(Skill):
         return self.master.get_form() == 2
 
 
+name = '新锐战舰'
 skill = [Skill_104541_1, Skill_104541_2, Skill_104541_3, Skill_104541_4, Skill_104541_5]

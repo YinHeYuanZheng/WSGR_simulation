@@ -7,7 +7,7 @@ from src.wsgr.skill import *
 from src.wsgr.ship import *
 from src.wsgr.phase import *
 
-"""	T优时，自身基础火力值提升40%，基础命中值提升40%。"""
+"""T优时，自身基础火力值提升40%，基础命中值提升40%。"""
 
 
 class Skill_111061(Skill):
@@ -35,4 +35,5 @@ class Skill_111061(Skill):
         return self.master.get_dir_flag() == 1
 
 
+name = '最后的T字'
 skill = [Skill_111061]

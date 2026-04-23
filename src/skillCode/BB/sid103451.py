@@ -58,4 +58,5 @@ class Skill_103451_2(Skill):
         return self.master.loc == 1
 
 
+name = '高速特遣队'
 skill = [Skill_103451_1, Skill_103451_2]

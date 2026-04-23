@@ -30,4 +30,5 @@ class RandomFinalDamage(FinalDamageBuff):
         self.value = np.random.uniform(0.9, 1.3) - 1
 
 
+name = '神圣的战争'
 skill = [Skill_102141]

@@ -55,4 +55,5 @@ class Request_1(ATKRequest):
                self.atk.target.status['health']
 
 
+name = '主炮支援'
 skill = [Skill_104601_1, Skill_104601_2]

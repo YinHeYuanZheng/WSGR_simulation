@@ -66,4 +66,5 @@ class Skill_111071_3(Skill):
         ]
 
 
+name = '战列线复仇'
 skill = [Skill_111071_1, Skill_111071_2, Skill_111071_3]

@@ -64,6 +64,5 @@ class Skill_105321_2(Skill):
                 tmp_target.add_buff(tmp_buff)
 
 
-
 name = '最初三联'
 skill = [Skill_105321_1, Skill_105321_2]

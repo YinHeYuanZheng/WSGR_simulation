@@ -106,4 +106,5 @@ class Skill_104681_3(Skill):
                 tmp_target.add_buff(tmp_buff)
 
 
+name = '纵列火力'
 skill = [Skill_104681_1, Skill_104681_2, Skill_104681_3]

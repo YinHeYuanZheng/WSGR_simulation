@@ -63,4 +63,5 @@ class Skill_104641_2(Skill):
         return self.master.get_dir_flag() == 4
 
 
+name = '主炮火力'
 skill = [Skill_104641_1, Skill_104641_2]

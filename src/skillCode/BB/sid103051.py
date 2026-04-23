@@ -31,4 +31,5 @@ class BuffRequest_1(ATKRequest):
         return self.atk.target.get_final_status(name='armor') > 50
 
 
+name = '圣剑之击'
 skill = [Skill_103051]

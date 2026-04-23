@@ -57,4 +57,5 @@ class Skill_103811(Skill):
         self.master.add_buff(buff_1)
 
 
+name = '战列舰支队'
 skill = [Skill_103811]

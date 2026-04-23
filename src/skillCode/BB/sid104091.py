@@ -71,4 +71,5 @@ class ATKRequest_1(ATKRequest):
         return self.atk.target.loc == 1
 
 
+name = '重火力炮击'
 skill = [Skill_104091_1, Skill_104091_2, Skill_104091_3]
