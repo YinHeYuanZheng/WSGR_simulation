@@ -683,6 +683,8 @@ class AtkBuff(CoeffBuff):
         self.change_value(*args, **kwargs)
         if self.atk_request is None:
             return self.rate_verify()
+        if len(args) == 0 and len(kwargs) == 0:
+            return False
 
         try:
             atk = kwargs['atk']
