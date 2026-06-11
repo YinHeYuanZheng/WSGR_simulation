@@ -53,7 +53,7 @@ class CombineEquipment(DepthMine, AntiAirGun):
         # 复制属性
         self.status = equipment.status
         # 复制技能
-        e_skill, _ = equipment.get_skill()
+        e_skill = equipment.get_skill()
         self.add_skill(e_skill)
         # 复制加成
         self.common_buff = equipment.common_buff

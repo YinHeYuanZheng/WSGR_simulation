@@ -8,7 +8,7 @@ from src.wsgr.ship import *
 from src.wsgr.phase import *
 
 
-class Skill_110231(Skill):
+class Skill_112221(Skill):
     """增加自身暴击率10%，被暴击率5%，自身攻击附带25%护甲穿透效果（不能和装备叠加）。"""
     def __init__(self, timer, master):
         super().__init__(timer, master)
@@ -40,4 +40,4 @@ class Skill_110231(Skill):
 
 
 name = '舰爆出击'
-skill = [Skill_110231]
+skill = [Skill_112221]

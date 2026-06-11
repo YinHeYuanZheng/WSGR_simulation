@@ -9,7 +9,7 @@ from src.wsgr.phase import *
 
 
 class Eskill_753(EquipSkill):
-    """考文垂装备时额外增加10%护甲穿透"""
+    """考文垂装备时额外增加15%护甲穿透"""
     def __init__(self, timer, master, value):
         super().__init__(timer, master, value)
         self.target = SelfTarget(master)
@@ -21,7 +21,7 @@ class Eskill_753(EquipSkill):
                     effect_type=753,
                     name='pierce_coef',
                     phase=AllPhase,
-                    value=0.10,
+                    value=0.15,
                     bias_or_weight=0
                 )
             ]

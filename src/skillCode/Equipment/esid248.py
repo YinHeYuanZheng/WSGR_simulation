@@ -28,7 +28,7 @@ class Eskill_248(EquipSkill):
                 effect_type=248,
                 name='hit_rate',
                 phase=ShellingPhase,
-                value=0.03,
+                value=0.05,
                 bias_or_weight=0
             )
         ]

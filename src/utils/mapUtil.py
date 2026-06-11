@@ -6,6 +6,7 @@ import numpy as np
 
 from src.wsgr.wsgrTimer import Time
 from src.utils import battleUtil
+from src.utils.parseEquipSkill import load_equip_config
 import src.wsgr.ship as rship
 import src.wsgr.equipment as requip
 from src import skillCode
@@ -125,13 +126,10 @@ class MapUtil(Time):
                 equip_type = estatus.pop('type')
                 equip = getattr(requip, equip_type)(timer, ship, i + 1)  # 根据装备类型获取类，并实例化
 
-                # 如果装备也存在特殊效果，当作技能写入舰船skill内
-                esid_list = estatus.pop('skill')
-                if len(esid_list):
-                    for esid in esid_list:
-                        esid = 'esid' + esid
-                        skill = getattr(skillCode, esid).skill  # 根据技能设置获取技能列表，未实例化
-                        equip.add_skill(skill)  # 写入装备技能
+                # 读取装备特效配置
+                skill_config = estatus.pop('skill_config')
+                if skill_config != '':
+                    equip.add_skill(load_equip_config(skill_config, eid))
 
                 # 写入装备属性
                 equip.set_status(status=estatus)

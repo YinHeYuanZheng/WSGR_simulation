@@ -115,6 +115,151 @@ enemy_fleet:
 | `OnlyAirBattle` | 纯航空战        |
 | `SpecialBattle` | 特殊战斗        |
 
+## 装备特效配置
+
+装备技能通过 `depend/ship/database.xlsx` 装备表中的 `特效配置` 列读取。旧的
+`特效` 和 `特效数值` 列仅作为历史数据保留，运行时不再使用。
+
+### 普通词条
+
+普通词条的完整格式为：
+
+```text
+词条名:数值[,stack][,阶段]
+```
+
+| 写法 | 说明 |
+|------|------|
+| `hit_rate:0.05` | 使用词条默认阶段 |
+| `hit_rate:0.05,ShellingPhase` | 覆盖默认阶段 |
+| `pierce_coef:0.05,stack` | 允许原本不可叠加的词条正常叠加 |
+| `pierce_coef:0.05,stack,ShellingPhase` | 同时指定 `stack` 和阶段 |
+
+`stack` 必须写在阶段之前。它对普通可叠加词条没有额外作用，
+目前主要用于使`pierce_coef`(穿甲) 和 `uplimit_buff`(超重弹) 正常叠加。
+不填写 `stack` 时，这两类词条只保留最高值。
+
+当前支持的普通词条：
+
+| 词条名 | 默认阶段 | 说明 |
+|--------|----------|------|
+| `pierce_coef` | `AllPhase` | 穿甲系数，默认不可叠加 |
+| `uplimit_buff` | `ShellingPhase` | 攻击上限加成，默认不可叠加 |
+| `hit_rate` | `AllPhase` | 命中率 |
+| `miss_rate` | `AllPhase` | 回避率 |
+| `crit` | `AllPhase` | 暴击率 |
+| `power_buff` | `AllPhase` | 攻击威力倍率 |
+| `final_damage_buff` | `AllPhase` | 最终伤害倍率 |
+| `air_ctrl_buff` | `AirPhase` | 制空值加成 |
+| `air_atk_buff` | `AirPhase` | 舰载机威力倍率 |
+| `air_bomb_atk_buff` | `AirPhase` | 轰炸机威力倍率 |
+| `air_dive_atk_buff` | `AirPhase` | 鱼雷机威力倍率 |
+
+阶段参数直接使用 `src/wsgr/phase.py` 中已有的阶段类名，例如
+`AirPhase`、`ShellingPhase` 和 `AllPhase`。
+
+### 并列与合并
+
+使用分号并列多个配置项：
+
+```text
+air_atk_buff:0.05;hit_rate:0.05,ShellingPhase
+```
+
+上述配置生成两个独立的 `EquipSkill`，每个技能包含一个 `EquipEffect`。
+
+主动使用大括号包裹两个或更多最终普通词条时，它们会合并为一个
+`EquipSkill`，内部包含多个 `EquipEffect`(推荐这样写)：
+
+```text
+{air_atk_buff:0.05;hit_rate:0.05,ShellingPhase}
+```
+
+每个 `EquipEffect` 仍拥有独立的可读特效编号，例如 `10619.001` 和
+`10619.002`。顶层大括号不能只包裹一个普通词条，也不能在同一组内混合普通
+词条与包装器。
+
+### 包装器
+
+包装器用于限制装备技能的生效条件或目标。包装普通词条时必须使用大括号；
+包装另一个包装器时直接嵌套，不额外添加大括号。
+
+| 包装器 | 参数 | 说明           |
+|--------|------|--------------|
+| `Cid` | 舰船编号或编号数组 | 仅指定舰船装备时生效   |
+| `Country` | 国籍或国籍数组 | 仅指定国籍装备时生效      |
+| `Tag` | 标签或标签数组 | 仅指定标签装备时生效      |
+| `ShipType` | 舰种或舰种数组 | 仅指定舰种装备时生效      |
+| `Side` | `0` 或 `1` | 将目标改为敌方或我方全队 |
+
+示例：
+
+```text
+Cid(533,{crit:0.1})
+Country(C,{crit:0.1;miss_rate:0.05})
+Country(C,ShipType(CLT,{crit:0.1;miss_rate:0.05}))
+Side(0,{hit_rate:-0.1,AirPhase})
+ShipType(BM,{pierce_coef:0.1,stack;miss_rate:0.1})
+```
+
+包装器内的大括号同样具有合并语义，因此
+`Country(C,{crit:0.1;miss_rate:0.05})` 会生成一个包含两个效果的技能。
+
+`Cid` 支持以下编号规则：
+
+- 三位编号表示友方舰船，并自动展开为未改造 `10xxx` 和改造 `11xxx`。
+- 五位且以 `0` 开头的编号表示敌方舰船，直接使用。
+- 五位且以 `1` 开头的编号表示友方舰船，直接使用。
+- 同一个 `Cid` 参数中不能混用三位和五位编号。
+
+```text
+Cid(533,{crit:0.1})
+Cid(["030","552"],{crit:0.1})
+Cid("00048",{crit:0.1})
+```
+
+### Python 定向
+
+无法用普通词条和包装器表达的复杂效果，可以通过 `@特效编号` 定向调用
+`src/skillCode/Equipment/esid{编号}.py`：
+
+```text
+@013:0.1
+@013:0.1;hit_rate:0.05,ShellingPhase
+Cid(552,{@013:0.1})
+```
+
+冒号后的值会作为参数传给原 Python 装备技能。Python 定向可以与其他配置项
+并列，也可以被包装器限制，但不能参与普通词条的大括号合并组。
+
+配置通过数据库加载时，语法错误会同时显示装备 ID 和原始配置内容，例如：
+
+```text
+装备 10999 的特效配置错误: 未知装备特效词条: unknown_effect
+配置内容: unknown_effect:0.1
+```
+
+### 完整语法示例
+
+以下 `#` 行仅为 README 注释，填写 Excel 单元格时只填写对应配置文本。
+
+```text
+# 两个独立技能
+air_atk_buff:0.05;hit_rate:0.05,ShellingPhase
+
+# 一个包含两个效果的技能
+{air_atk_buff:0.05;hit_rate:0.05,ShellingPhase}
+
+# 指定舰种生效，并将两个效果合并为一个技能
+ShipType(BM,{pierce_coef:0.1,stack;miss_rate:0.1})
+
+# 普通穿甲不可叠加，指定舰船获得的额外穿甲可以叠加
+pierce_coef:0.1;Cid(533,{pierce_coef:0.05,stack})
+
+# 复用现有 Python 技能并追加普通词条
+@013:0.1;hit_rate:0.05,ShellingPhase
+```
+
 ## 项目结构
 
 ```
@@ -136,6 +281,7 @@ WSGR/
     │   ├── phase.py         # 战斗阶段（侦察→航空→雷击→炮击→夜战）
     │   ├── loadConfig.py    # 配置文件解析
     │   ├── loadDataset.py   # 数据库读取
+    │   ├── parseEquipSkill.py # 装备特效配置语法解析
     │   ├── runUtil.py       # 统计分析函数
     │   ├── mapUtil.py       # 关卡地图逻辑
     │   ├── envBuffUtil.py   # 环境Buff定义
@@ -185,7 +331,7 @@ WSGR/
 ## 扩展开发
 
 - **新增舰船技能：** 在 `src/skillCode/{舰种}/sid{N}.py` 中按现有格式添加
-- **新增装备特效：** 在 `src/skillCode/Equipment/esid{N}.py` 中添加
+- **新增装备特效：** 优先在数据库 `特效配置` 列组合已有词条；无法声明式表达时，在 `src/skillCode/Equipment/esid{N}.py` 中添加并使用 `@N` 定向
 - **新增战术效果：** 在 `src/skillCode/Strategy/stid{N}.py` 中添加
 - **新增分析函数：** 在 `src/utils/runUtil.py` 中按 `run_*` 命名规范添加
 - **新增战斗类型：** 继承 `BattleUtil` 并在 `src/utils/battleUtil.py` 中组合所需阶段

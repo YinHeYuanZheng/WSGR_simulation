@@ -42,9 +42,7 @@ class Equipment(Time):
 
     def get_skill(self):
         """获取技能，master调用"""
-        skill = self._skill[:]
-        skill_value = self.status['skill_value']
-        return skill, skill_value
+        return self._skill[:]
 
     def get_status(self, name):
         """根据属性名称获取装备属性，包含常驻面板加成"""

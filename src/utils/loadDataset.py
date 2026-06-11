@@ -163,17 +163,7 @@ class Dataset:
             'name': equip.loc['名称'],  # 装备名
         }
 
-        if equip.loc['特效'] != '':
-            status['skill'] = equip.loc['特效'].split(',')  # 特殊效果
-        else:
-            status['skill'] = []
-
-        if equip.loc['特效数值'] != '':
-            status['skill_value'] = [
-                float(x) for x in equip.loc['特效数值'].split(',')  # 特效数值
-            ]
-        else:
-            status['skill_value'] = ''
+        status['skill_config'] = equip.get('特效配置', '')
 
         for i, name in enumerate(name_list):
             value = equip.loc[name]
