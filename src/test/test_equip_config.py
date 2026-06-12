@@ -4,7 +4,13 @@
 
 import unittest
 
-from src.utils.parseEquipSkill import load_equip_config, parse_equip_config
+from src.utils.parseEquipSkill import (
+    Condition,
+    GroupEntry,
+    PythonEntry,
+    load_equip_config,
+    parse_equip_config,
+)
 from src.wsgr.phase import AllPhase, AirPhase
 from src.wsgr.ship import BM, Ship
 from src.wsgr.wsgrTimer import timer
@@ -15,37 +21,37 @@ class EquipConfigParserTest(unittest.TestCase):
         entries = parse_equip_config(
             'pierce_coef:0.1;hit_rate:0.05,AirPhase'
         )
-        self.assertEqual(entries[0]['name'], 'pierce_coef')
-        self.assertEqual(entries[0]['value'], 0.1)
-        self.assertIsNone(entries[0]['phase'])
-        self.assertEqual(entries[1]['phase'], 'AirPhase')
+        self.assertEqual(entries[0].name, 'pierce_coef')
+        self.assertEqual(entries[0].value, 0.1)
+        self.assertIsNone(entries[0].phase)
+        self.assertEqual(entries[1].phase, 'AirPhase')
 
     def test_nested_wrappers(self):
         entries = parse_equip_config(
             'Country(C,ShipType(CLT,{crit:0.1;miss_rate:0.05}))'
         )
         self.assertEqual(len(entries), 1)
-        self.assertEqual(entries[0]['kind'], 'group')
+        self.assertIsInstance(entries[0], GroupEntry)
         self.assertEqual(
-            entries[0]['entries'][0]['conditions'],
-            [('Country', 'C'), ('ShipType', 'CLT')]
+            entries[0].entries[0].conditions,
+            (Condition('Country', 'C'), Condition('ShipType', 'CLT'))
         )
 
     def test_side_and_python_directive(self):
         entries = parse_equip_config(
             'Cid(552,Side(0,{hit_rate:-0.05,AirPhase}));@013:0.1'
         )
-        self.assertEqual(entries[0]['side'], 0)
-        self.assertEqual(entries[1]['kind'], 'python')
-        self.assertEqual(entries[1]['values'], [0.1])
+        self.assertEqual(entries[0].side, 0)
+        self.assertIsInstance(entries[1], PythonEntry)
+        self.assertEqual(entries[1].values, (0.1,))
 
     def test_wrapper_can_wrap_single_python_directive(self):
         entries = parse_equip_config('Cid(552,{@013:0.1})')
 
-        self.assertEqual(entries[0]['kind'], 'python')
+        self.assertIsInstance(entries[0], PythonEntry)
         self.assertEqual(
-            entries[0]['conditions'],
-            [('Cid', ['10552', '11552'])]
+            entries[0].conditions,
+            (Condition('Cid', ['10552', '11552']),)
         )
 
     def test_ungrouped_effects_create_separate_skills(self):
@@ -108,15 +114,15 @@ class EquipConfigParserTest(unittest.TestCase):
     def test_short_cid_expands_friend_variants(self):
         entries = parse_equip_config('Cid(["030","552"],{crit:0.1})')
         self.assertEqual(
-            entries[0]['conditions'],
-            [('Cid', ['10030', '11030', '10552', '11552'])]
+            entries[0].conditions,
+            (Condition('Cid', ['10030', '11030', '10552', '11552']),)
         )
 
     def test_full_cid_is_used_directly(self):
         friend = parse_equip_config('Cid(10552,{crit:0.1})')
         enemy = parse_equip_config('Cid("00048",{crit:0.1})')
-        self.assertEqual(friend[0]['conditions'], [('Cid', ['10552'])])
-        self.assertEqual(enemy[0]['conditions'], [('Cid', ['00048'])])
+        self.assertEqual(friend[0].conditions, (Condition('Cid', ['10552']),))
+        self.assertEqual(enemy[0].conditions, (Condition('Cid', ['00048']),))
 
     def test_short_and_full_cid_cannot_be_mixed(self):
         with self.assertRaisesRegex(ValueError, '不能混用三位和五位'):
@@ -163,8 +169,11 @@ class EquipConfigParserTest(unittest.TestCase):
         entries = parse_equip_config(
             'Cid(533,{pierce_coef:0.05,stack})'
         )
-        self.assertEqual(entries[0]['conditions'], [('Cid', ['10533', '11533'])])
-        self.assertTrue(entries[0]['stackable'])
+        self.assertEqual(
+            entries[0].conditions,
+            (Condition('Cid', ['10533', '11533']),)
+        )
+        self.assertTrue(entries[0].stackable)
 
     def test_wrapper_around_bare_effect_requires_braces(self):
         with self.assertRaisesRegex(ValueError, '普通词条时必须使用大括号'):
@@ -228,8 +237,8 @@ class EquipConfigParserTest(unittest.TestCase):
         entry = parse_equip_config(
             'pierce_coef:0.1,stack,ShellingPhase'
         )[0]
-        self.assertTrue(entry['stackable'])
-        self.assertEqual(entry['phase'], 'ShellingPhase')
+        self.assertTrue(entry.stackable)
+        self.assertEqual(entry.phase, 'ShellingPhase')
 
     def test_dynamic_effect_type_identifies_eid_and_entry(self):
         skills = load_equip_config(

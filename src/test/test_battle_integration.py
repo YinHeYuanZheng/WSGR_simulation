@@ -5,7 +5,7 @@
 import os
 import unittest
 
-from src.utils.loadConfig import load_config, load_xml
+from src.utils.loadConfig import load_config, load_yaml
 from src.utils.loadDataset import Dataset
 from src.wsgr.wsgrTimer import timer
 
@@ -20,13 +20,13 @@ class BattleIntegrationTest(unittest.TestCase):
             PROJECT_DIR, 'depend', 'ship', 'database.xlsx'
         )
         config_file = os.path.join(
-            PROJECT_DIR, 'config', 'config.xml'
+            PROJECT_DIR, 'config', 'config_test.yaml'
         )
         map_dir = os.path.join(PROJECT_DIR, 'depend', 'map')
 
         dataset = Dataset(database_file)
         battle_timer = timer()
-        battle_config = load_xml(config_file, map_dir)
+        battle_config = load_yaml(config_file, map_dir)
         battle = load_config(battle_config, map_dir, dataset, battle_timer)
 
         battle.start()
