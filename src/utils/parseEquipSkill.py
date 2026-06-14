@@ -466,7 +466,7 @@ def _build_effect(timer, entry, effect_type):
     )
 
 
-def _build_effect_skill(entries, effect_types):
+def _build_equip_skill(entries, effect_types):
     """根据一组最终普通词条动态创建一个 EquipSkill 子类。"""
     first_entry = entries[0]
 
@@ -486,7 +486,7 @@ def _build_effect_skill(entries, effect_types):
     return ConfigEquipSkill
 
 
-def _build_python_skills(entry, eid, config):
+def _build_python_skill(entry, eid, config):
     """包装现有 esid 技能，使配置参数、条件和目标仍可作用于它。"""
     module = importlib.import_module(f'src.skillCode.Equipment.esid{entry.esid}')
     result = []
@@ -525,7 +525,7 @@ def load_equip_config(config, eid='config'):
         effect_index = 0
         for entry in parsed_entries:
             if isinstance(entry, PythonEntry):
-                skills.extend(_build_python_skills(entry, eid, config))
+                skills.extend(_build_python_skill(entry, eid, config))
                 continue
 
             entries = entry.entries if isinstance(entry, GroupEntry) else (entry,)
@@ -533,7 +533,7 @@ def load_equip_config(config, eid='config'):
             for _ in entries:
                 effect_index += 1
                 effect_types.append(ConfigEffectType(eid, effect_index))
-            skills.append(_build_effect_skill(entries, effect_types))
+            skills.append(_build_equip_skill(entries, effect_types))
         return skills
     except EquipConfigError:
         raise
