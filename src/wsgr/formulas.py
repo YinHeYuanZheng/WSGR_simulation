@@ -29,6 +29,7 @@ __all__ = ['ATK',
            'NightFireTorpedoAtk',
            'NightTorpedoAtk',
            'NightMissileAtk',
+           'NightAirAtk',
            'NightAntiSubAtk'
            ]
 
@@ -1073,7 +1074,7 @@ class AntiSubAtk(ATK):
         return real_atk
 
 
-class AirAntiSubAtk(AntiSubAtk, AirAtk):
+class AirAntiSubAtk(AntiSubAtk):
     """航空反潜攻击"""
 
     def __init__(self, timer, source, def_list, coef=None, target=None):
@@ -1269,16 +1270,17 @@ class AirNormalAtk(NormalAtk, AirAtk):
     @property
     def base_hit_rate(self):
         """航空攻击基础命中率"""
-        accuracy = self.source.get_final_status('accuracy')
-        aa_value = 0.4 * self.get_anti_air_def()
-        if self.target.size == 3:
-            aa_mult = .2
-        elif self.target.size == 2:
-            aa_mult = .8
-        else:
-            aa_mult = 2
-        hit_rate = accuracy / max(1, aa_value * aa_mult + accuracy)
-        return hit_rate
+        return AirStrikeAtk.base_hit_rate.fget(self)
+        # accuracy = self.source.get_final_status('accuracy')
+        # aa_value = 0.4 * self.get_anti_air_def()
+        # if self.target.size == 3:
+        #     aa_mult = .2
+        # elif self.target.size == 2:
+        #     aa_mult = .8
+        # else:
+        #     aa_mult = 2
+        # hit_rate = accuracy / max(1, aa_value * aa_mult + accuracy)
+        # return hit_rate
 
     # @property
     # def hit_shipsize_coef(self):
@@ -1523,6 +1525,16 @@ class NightMissileAtk(NightAtk, MissileAtk):
             if self.target is not None else '未确定'
         atk_info = f"夜战导弹-{self.equip.status['name']}"
         return f"{source_name} -> {target_name} ({atk_info})"
+
+
+class NightAirAtk(NightAtk, AirNormalAtk):
+    """夜战航空攻击"""
+    def __init__(self, timer, source, def_list, coef=None, target=None):
+        super().__init__(timer, source, def_list,
+                         coef=coef, target=target)
+        self.atk_name = '夜战航空攻击'
+        self.random_range = [1.2, 1.5]  # 浮动系数上下限
+        self.pierce_base = 1.  # 穿甲基础值
 
 
 class NightAntiSubAtk(AntiSubAtk, NightAtk):

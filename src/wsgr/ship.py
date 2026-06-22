@@ -1530,7 +1530,6 @@ class Airfield(LandUnit, Aircraft):
 
         self.act_phase_flag.update({
             'SecondTorpedoPhase': False,
-            'NightPhase': False,
         })
 
         self.act_phase_indicator.update({
@@ -1539,10 +1538,13 @@ class Airfield(LandUnit, Aircraft):
                 (x.damaged < 3) and (x.check_atk_plane_load()),
             'SecondShellingPhase': lambda x:
                 (x.damaged < 3) and (x.check_atk_plane_load()) and (x.get_range() >= 3),
+            'NightPhase': lambda x:
+                (x.damaged < 3) and (x.check_atk_plane_load()),
         })
 
-        from src.wsgr.formulas import AirNormalAtk
+        from src.wsgr.formulas import AirNormalAtk, NightAirAtk
         self.normal_atk = AirNormalAtk  # 炮击战航空攻击
+        self.night_atk = NightAirAtk  # 夜战航空攻击
 
 
 class Port(LandUnit):
