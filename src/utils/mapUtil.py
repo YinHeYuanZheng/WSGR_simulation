@@ -231,7 +231,9 @@ class Point:
             enemy = np.random.choice(self.enemy_list)
             self.battle = self.type(timer, friend, enemy)
         else:
-            self.battle = self.type(timer, friend, None)
+            from src.wsgr.ship import Fleet
+            enemy = Fleet(timer)
+            self.battle = self.type(timer, friend, enemy)
         self.battle.start()
         return self.move(friend)
 

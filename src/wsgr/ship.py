@@ -405,6 +405,7 @@ class Ship(Time):
     def add_strategy_buff(self, buff, stid):
         """增加战术效果"""
         if stid not in self.strategy_buff.keys():
+            buff.set_master(self)
             self.strategy_buff[stid] = buff
 
     def get_buff(self, name, *args, **kwargs):

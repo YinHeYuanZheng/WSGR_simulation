@@ -16,8 +16,10 @@ friend_fleet:
     - loc: 3
       eid: '10695'
     - loc: 4
-      eid: '10726'
-    strategy: []
+      eid: '10342'
+    strategy:
+      - stid: '231'
+        level: 3
   - loc: 2
     cid: '10202'
     level: 110
@@ -32,7 +34,9 @@ friend_fleet:
       eid: '10130'
     - loc: 4
       eid: '10129'
-    strategy: []
+    strategy:
+      - stid: '131'
+        level: 3
   - loc: 3
     cid: '10613'
     level: 110
