@@ -75,7 +75,9 @@ from . import sid113721  # 早春改-1
 from . import sid114141  # 凯利改-1
 from . import sid114161  # 47工程改-1
 from . import sid114251  # 史密斯改-1
+from . import sid114291  # 马伊·布雷泽改
 from . import sid114961  # 诺福克改-1
 from . import sid115031  # T-23改-1
 from . import sid115171  # 吕贝克改-1
 from . import sid115191  # T.995改-1
+from . import sid115891  # 休·W·哈德利改

@@ -83,3 +83,4 @@ from . import sid112151  # 玛丽亚皇后-1
 from . import sid113801  # 圣乔治-1
 from . import sid113802  # 圣乔治-2
 from . import sid115322  # 但丁-2
+from . import sid115831  # 卡拉乔洛改

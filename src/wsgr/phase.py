@@ -296,7 +296,11 @@ class AirPhase(DaytimePhase):
 
                 # 战斗机仅计算制空击坠就结束
                 if isinstance(tmp_equip, Fighter):
-                    # 最大击坠量可超过实际放飞量(存在洗甲板,不受不挠技能影响)
+                    # 最大击坠量可超过实际放飞量(存在洗甲板, 20260708 受击坠减免技能影响)
+                    fall_scale_add, fall_scale_mult, fall_bias = \
+                        tmp_equip.master.get_buff('fall_rest')
+                    fall_scale = (1 + fall_scale_add) * fall_scale_mult - 1
+                    air_con_fall = np.ceil(air_con_fall * (1 + fall_scale) + fall_bias)
                     tmp_equip.fall(air_con_fall)
                     continue
 

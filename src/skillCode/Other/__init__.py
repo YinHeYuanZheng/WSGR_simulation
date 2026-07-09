@@ -15,3 +15,4 @@ from . import sid103771  # 重雷装舰突袭(木曾、北上改-1、大井改-1
 from . import sid110432  # 渐减雷击(北上改-2、大井改-2)
 from . import sid113401  # 波尔扎诺-1
 from . import sid115601  # 石勒苏益格-荷尔施泰因改-1
+from . import sid106351  # 10581工程

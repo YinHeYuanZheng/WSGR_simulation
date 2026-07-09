@@ -47,20 +47,25 @@ class Skill_103191_2(Skill):
                 name='ignore_damaged',
                 phase=AllPhase,
             ),
-            AtkBuff(
+            UnDamagedFallRest(
                 timer=timer,
                 name='fall_rest',
                 phase=AirPhase,
                 value=-0.3,
                 bias_or_weight=1,
-                atk_request=[BuffRequest_1]
             )
         ]
 
 
-class BuffRequest_1(ATKRequest):
-    def __bool__(self):
-        return self.atk.source.damaged < 3
+class UnDamagedFallRest(CoeffBuff):
+    """仅在非大破时减少舰载机损失。
+    击坠减免在战斗机与轰炸机(ATK 作为 atk 传入)两条路径下均会被查询，
+    因此依据 buff 持有者自身的制空结果判定，避免依赖传入的 atk 对象类型。"""
+
+    def is_active(self, *args, **kwargs):
+        if not super().is_active(*args, **kwargs):
+            return False
+        return self.master.damaged < 3
 
 
 name = '持久作战'

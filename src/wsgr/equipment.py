@@ -160,7 +160,9 @@ class Plane(Equipment):
                f"({self.load}/{self.master.load[self.enum-1]})"
 
     def fall(self, fall_num):
-        fall_num = min(self.load, fall_num)
+        """处理飞机击坠"""
+        fall_num = max(0, fall_num)  # 不会击坠负数个
+        fall_num = min(self.load, fall_num)  # 机库不会变为负数
         self.load -= int(fall_num)
 
 

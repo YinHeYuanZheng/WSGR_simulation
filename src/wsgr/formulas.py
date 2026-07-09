@@ -602,7 +602,6 @@ class AirStrikeAtk(AirAtk):
         # 减少击坠技能
         fall_scale, fall_bias = self.source.get_atk_buff('fall_rest', self)
         actual_fall = np.ceil(actual_fall * (1 + fall_scale) + fall_bias)
-        actual_fall = max(0, actual_fall)  # 不会减到负数
 
         # 击坠结算与本次剩余载机量计算
         self.equip.fall(actual_fall)

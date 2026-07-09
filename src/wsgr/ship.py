@@ -881,9 +881,9 @@ class Ship(Time):
             for i in range(len(self.equipment)):
                 tmp_equip = self.equipment[i]
                 if isinstance(tmp_equip, (Plane, Missile)):
-                    supply_num = self.load[i] - tmp_equip.load
+                    supply_num = self.load[tmp_equip.enum - 1] - tmp_equip.load
                     supply['almn'] += supply_num * tmp_equip.status['supply_almn']
-                    tmp_equip.load = self.load[i]
+                    tmp_equip.load = self.load[tmp_equip.enum - 1]
         return supply
 
 
