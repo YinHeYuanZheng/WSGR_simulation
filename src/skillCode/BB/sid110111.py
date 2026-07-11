@@ -28,7 +28,7 @@ class Skill_110111(Skill):
                         value=-0.5,
                         bias_or_weight=2
                     ),
-                    DuringAtkBuff(
+                    DuringSpecialBuff(
                         timer=timer,
                         name='must_not_be_crit',
                         phase=AllPhase,
@@ -39,6 +39,10 @@ class Skill_110111(Skill):
                 rate=0.5
             )
         ]
+
+
+class DuringSpecialBuff(SpecialBuff, DuringAtkBuff):
+    pass
 
 
 name = '重点防御'
