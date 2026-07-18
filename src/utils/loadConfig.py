@@ -124,10 +124,10 @@ def load_yaml(infile: str, mapDir: str) -> dict:
     return battleConfig
 
 
-def load_config(battleConfig, mapDir, dataset, timer) -> BattleUtil or MapUtil:
+def load_config(battleConfig, mapDir, dataset, timer, log_func=print) -> BattleUtil or MapUtil:
     """加载战斗配置"""
     friendDict = battleConfig['friend_fleet']
-    friend = load_fleet(friendDict, dataset, timer)
+    friend = load_fleet(friendDict, dataset, timer, log_func=log_func)
 
     # 根据战斗类型调用不同流程类
     battle_type = battleConfig['battle_type']
@@ -135,7 +135,7 @@ def load_config(battleConfig, mapDir, dataset, timer) -> BattleUtil or MapUtil:
         battle = getattr(battleUtil, battle_type)
 
         enemyDict = battleConfig['enemy_fleet']
-        enemy = load_fleet(enemyDict, dataset, timer)
+        enemy = load_fleet(enemyDict, dataset, timer, log_func=log_func)
         return battle(timer, friend, enemy)
     else:
         mapDict = battleConfig['map']
@@ -143,13 +143,13 @@ def load_config(battleConfig, mapDir, dataset, timer) -> BattleUtil or MapUtil:
         return battle_map
 
 
-def load_fleet(fleetDict, dataset, timer):
+def load_fleet(fleetDict, dataset, timer, log_func=print):
     fleet = rship.Fleet(timer)
     fleet.set_form(int(fleetDict['form']))
 
     shipList = []
     for shipDict in fleetDict['ships']:
-        ship = load_ship(shipDict, dataset, timer)
+        ship = load_ship(shipDict, dataset, timer, log_func=log_func)
         ship.set_master(fleet)
         shipList.append(ship)
 
@@ -170,15 +170,15 @@ def load_map(mapDict, mapDir, dataset, timer, friend):
     return MapUtil(timer, entrance, dataset, friend)
 
 
-def load_ship(shipDict, dataset, timer):
+def load_ship(shipDict, dataset, timer, log_func=print):
     cid = shipDict['cid']
     if cid[0] == '1':
-        return load_friend_ship(shipDict, dataset, timer)
+        return load_friend_ship(shipDict, dataset, timer, log_func=log_func)
     else:
-        return load_enemy_ship(shipDict, dataset, timer)
+        return load_enemy_ship(shipDict, dataset, timer, log_func=log_func)
 
 
-def load_friend_ship(shipDict, dataset, timer):
+def load_friend_ship(shipDict, dataset, timer, log_func=print):
     # 读取舰船属性
     cid = shipDict['cid']
     status = dataset.get_friend_ship_status(cid)
@@ -219,9 +219,9 @@ def load_friend_ship(shipDict, dataset, timer):
     # 获取技能名称并输出
     try:
         skill_name = getattr(skillCode, sid).name
-        print(f"{ship.status['name']} {skill_name}")
+        log_func(f"{ship.status['name']} {skill_name}")
     except:
-        print(f"{ship.status['name']} 未获取到技能名称")
+        log_func(f"{ship.status['name']} 未获取到技能名称")
 
     # 读取装备属性并写入
     for eDict in shipDict['equipment']:
@@ -243,7 +243,7 @@ def load_friend_ship(shipDict, dataset, timer):
     return ship
 
 
-def load_enemy_ship(shipDict, dataset, timer):
+def load_enemy_ship(shipDict, dataset, timer, log_func=print):
     # 读取舰船属性
     cid = shipDict['cid']
     status = dataset.get_enemy_ship_status(cid)
@@ -284,9 +284,9 @@ def load_enemy_ship(shipDict, dataset, timer):
         # 获取技能名称并输出
         try:
             skill_name = getattr(skillCode, sid).name
-            print(f"{ship.status['name']} {skill_name}")
+            log_func(f"{ship.status['name']} {skill_name}")
         except:
-            print(f"{ship.status['name']} 未获取到技能名称")
+            log_func(f"{ship.status['name']} 未获取到技能名称")
 
     # 读取装备属性并写入
     for i, eid in enumerate(eid_list):

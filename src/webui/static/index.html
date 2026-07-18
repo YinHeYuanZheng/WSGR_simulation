@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WSGR · 战斗模拟</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top"><b aria-hidden="true"><img src="assets/anchor-solid.png" alt=""></b><span>WSGR<small>SIMULATION</small></span></a>
+    <nav aria-label="主功能"><button class="active">战斗模拟</button><button>配置档案</button><button>历史战报</button></nav>
+    <div class="top-actions">
+      <button id="load-config" class="plain">载入配置</button><button id="save-config" class="plain">保存</button><button id="clear-workspace" class="plain">清空</button>
+      <button id="mode-switch" class="mode-switch" aria-label="切换深色模式" aria-pressed="false"><i class="mode-thumb"></i><span>☼</span><span>☾</span></button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="stats" aria-label="模拟概览">
+      <article><span>综合胜率</span><strong id="win-rate-stat">—<em>%</em></strong></article>
+      <article><span>旗舰击沉</span><strong id="flagship-stat">—<em>%</em></strong></article>
+      <article><span>平均伤害</span><strong id="average-damage-stat">—</strong></article>
+      <article><span>平均桶耗</span><strong id="average-loss-stat">—</strong></article>
+      <article class="resource-stat"><span>资源消耗</span><strong id="resource-stat">—</strong><small>油 + 弹 + 钢 + 3×铝</small></article>
+      <article><span>模拟次数</span><strong id="epoch-stat">0<em>次</em></strong></article>
+    </section>
+
+    <section class="workspace">
+      <article class="panel fleet-panel friend-panel">
+        <div class="heading">
+          <div class="panel-title"><h2>我方舰队</h2></div>
+          <div class="heading-actions">
+            <div class="formation compact"><span>阵型</span><div id="friend-formation"><button>单纵</button><button>复纵</button><button>轮形</button><button class="selected">梯形</button><button>单横</button></div></div>
+            <button class="quiet fleet-load" data-side="friend">载入舰队</button>
+          </div>
+        </div>
+        <p class="drag-tip"><span aria-hidden="true">☰</span>拖动调整出击顺序</p>
+        <ol id="friendly-fleet" class="ship-list"></ol>
+        <button class="add-row" id="add-friendly">＋ 添加我方舰船</button>
+      </article>
+
+      <div class="center-column">
+        <article class="panel settings-panel">
+          <div class="heading"><div class="panel-title"><h2>模拟设置</h2></div></div>
+          <div class="battle-type-row"><span>战斗类型</span><details id="battle-type-picker" class="battle-type-picker"><summary><span id="battle-type-value">常规战</span><b aria-hidden="true"></b></summary><div class="battle-type-menu"><button class="selected" data-value="NormalBattle">常规战</button><button data-value="DaytimeBattle">昼战</button><button data-value="NightBattle">夜战</button><button data-value="AirBattle">航空战</button><button data-value="OnlyAirBattle">仅航空战</button><button data-value="BattleUtil">自定义</button><button data-value="SpecialBattle">特殊战</button></div></details></div>
+          <div class="range-field"><label for="epoch-range">模拟次数</label><input id="epoch-range" type="range" min="1000" max="20000" step="1000" value="5000"><span class="epoch-input"><input id="epoch-value" class="range-value" type="number" min="1" max="1000000" step="1000" value="5000" aria-label="手动输入模拟次数，最小值 1"></span></div>
+          <div class="range-field"><label for="rounds-range">战斗轮次</label><input id="rounds-range" type="range" min="1" max="5" step="1" value="1"><output id="rounds-value">1</output></div>
+          <div class="buttons"><button id="simulation-button" class="run simulation-button"><span class="simulation-content"><span class="simulation-icon play-icon"><svg class="play-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l12-8z"/></svg></span><span>开始模拟</span></span><span class="stop-content" aria-hidden="true"><span class="simulation-icon stop-icon"><svg class="stop-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1"/></svg></span><span>停止模拟</span></span></button></div>
+        </article>
+
+        <article class="panel fleet-panel enemy-panel">
+          <div class="heading">
+            <div class="panel-title"><h2>敌方舰队</h2></div>
+            <div class="heading-actions">
+              <div class="formation compact"><span>阵型</span><div id="enemy-formation"><button>单纵</button><button>复纵</button><button>轮形</button><button class="selected">梯形</button><button>单横</button></div></div>
+            <button class="quiet fleet-load" data-side="enemy">载入舰队</button>
+            </div>
+          </div>
+          <ol id="enemy-list" class="ship-list enemy-list"></ol>
+          <button class="add-row" id="add-enemy">＋ 添加敌方舰船</button>
+        </article>
+      </div>
+
+      <div class="result-column">
+        <div class="result-tabs" role="tablist" aria-label="分析结果">
+          <button class="active" role="tab" aria-selected="true" data-view="win">胜率统计</button><button role="tab" aria-selected="false" data-view="damage">伤害统计</button><button role="tab" aria-selected="false" data-view="report">战后报告</button><button role="tab" aria-selected="false" data-view="detail">战斗详情</button>
+        </div>
+
+        <article class="panel result-panel">
+        <button id="export-report" class="quiet export-report">导出战报</button>
+
+        <section class="result-view-panel active" data-panel="win">
+          <div class="result-summary"><div id="win-chart" class="chart win-chart"><div class="chart-center"><strong id="win-chart-value">—<small>%</small></strong><span>综合胜率</span></div></div><ul id="win-legend" class="legend"><li><i class="ss"></i><span>SS 完胜</span><b>—</b><em>—</em></li><li><i class="s"></i><span>S 胜利</span><b>—</b><em>—</em></li><li><i class="a"></i><span>A 小胜</span><b>—</b><em>—</em></li><li><i class="b"></i><span>B 战术胜利</span><b>—</b><em>—</em></li><li><i class="c"></i><span>C 战术失败</span><b>—</b><em>—</em></li><li><i class="d"></i><span>D 失败</span><b>—</b><em>—</em></li></ul></div>
+          <pre id="log" class="result-log shared-result-log">正在载入舰船数据库…</pre>
+        </section>
+
+        <section class="result-view-panel" data-panel="damage" hidden>
+          <div class="result-summary"><div class="damage-chart-column"><div id="damage-chart" class="chart damage-chart"><div class="chart-center"><strong id="damage-chart-value">—</strong><span>总伤害</span></div></div><div class="damage-floor-note"><span>5%下限伤害</span><strong id="damage-floor-value">—</strong></div></div><ul id="phase-legend" class="legend phase-legend"></ul></div>
+          <div class="result-summary ship-damage-summary"><div id="ship-damage-chart" class="chart ship-damage-chart"><div class="chart-center"><strong id="ship-damage-chart-value">—</strong><span id="ship-damage-chart-label">舰船伤害</span></div></div><ul id="ship-damage-legend" class="legend ship-damage-legend" hidden><li class="empty"><i></i><span>——</span><b>——</b><em>——</em></li><li class="empty"><i></i><span>——</span><b>——</b><em>——</em></li><li class="empty"><i></i><span>——</span><b>——</b><em>——</em></li><li class="empty"><i></i><span>——</span><b>——</b><em>——</em></li><li class="empty"><i></i><span>——</span><b>——</b><em>——</em></li><li class="empty"><i></i><span>——</span><b>——</b><em>——</em></li></ul></div>
+        </section>
+
+        <section class="result-view-panel" data-panel="report" hidden>
+          <div class="resource-grid"><article><span>燃油</span><strong id="oil-value">—</strong></article><article><span>弹药</span><strong id="ammo-value">—</strong></article><article><span>钢材</span><strong id="steel-value">—</strong></article><article><span>铝材</span><strong id="aluminum-value">—</strong></article></div>
+          <div class="fleet-rate-columns">
+            <section class="fleet-rate-column friend-rate-column"><h3>我方破损率</h3><div class="rate-split friend-rate-split"><div><h4>中破率</h4><ul id="friend-mid-rates" class="rate-list"></ul></div><div><h4>大破率</h4><ul id="friend-heavy-rates" class="rate-list"></ul></div></div><p class="rate-note">中破率包含大破率</p></section>
+            <section class="fleet-rate-column enemy-rate-column"><h3>敌方状态</h3><div class="rate-split enemy-rate-split"><div><h4>击沉率</h4><ul id="enemy-sink-rates" class="rate-list"></ul></div><div><h4>剩余血量</h4><ul id="enemy-health-rates" class="rate-list value-list"></ul></div></div></section>
+          </div>
+        </section>
+
+        <section class="result-view-panel detail-panel" data-panel="detail" hidden>
+          <p class="detail-note">只输出第一轮模拟结果</p>
+          <pre id="battle-detail" class="detail-log">模拟完成后将在这里显示一场战斗的详细记录。</pre>
+        </section>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="ship-editor" class="ship-editor">
+    <form method="dialog">
+      <div class="dialog-heading"><div class="panel-title"><h2>编辑舰船</h2></div><button value="cancel" aria-label="关闭">×</button></div>
+      <div class="editor-grid">
+        <label class="editor-wide">舰船名称<span id="editor-ship-picker" class="searchable-picker"><input id="editor-name" autocomplete="off" aria-autocomplete="list"><button type="button" class="picker-toggle" aria-label="展开舰船列表">⌄</button><span class="picker-menu" role="listbox"></span></span></label>
+        <label id="editor-level-field">等级<input id="editor-level" type="number" min="1" max="110" value="110"></label>
+        <div id="friend-editor-fields" class="friend-editor-fields">
+          <label>好感度<input id="editor-affection" type="number" min="0" max="200" value="200"></label>
+          <label>技能<select id="editor-skill"></select></label>
+          <label class="strategy-field">攻击战术<span class="strategy-control"><select id="editor-attack-strategy"></select><input id="editor-attack-strategy-level" type="number" min="0" max="3" step="1" value="0" aria-label="攻击战术等级"></span></label>
+          <label class="strategy-field">防御战术<span class="strategy-control"><select id="editor-defense-strategy"></select><input id="editor-defense-strategy-level" type="number" min="0" max="3" step="1" value="0" aria-label="防御战术等级"></span></label>
+          <label class="strategy-field">特殊战术<span class="strategy-control"><select id="editor-special-strategy"></select><input id="editor-special-strategy-level" type="number" min="0" max="3" step="1" value="0" aria-label="特殊战术等级"></span></label>
+          <label>装备 1<span id="editor-equipment-picker-1" class="searchable-picker"><input id="editor-equipment-1" autocomplete="off" aria-autocomplete="list"><button type="button" class="picker-toggle" aria-label="展开装备列表">⌄</button><span class="picker-menu" role="listbox"></span></span></label>
+          <label>装备 2<span id="editor-equipment-picker-2" class="searchable-picker"><input id="editor-equipment-2" autocomplete="off" aria-autocomplete="list"><button type="button" class="picker-toggle" aria-label="展开装备列表">⌄</button><span class="picker-menu" role="listbox"></span></span></label>
+          <label>装备 3<span id="editor-equipment-picker-3" class="searchable-picker"><input id="editor-equipment-3" autocomplete="off" aria-autocomplete="list"><button type="button" class="picker-toggle" aria-label="展开装备列表">⌄</button><span class="picker-menu" role="listbox"></span></span></label>
+          <label>装备 4<span id="editor-equipment-picker-4" class="searchable-picker"><input id="editor-equipment-4" autocomplete="off" aria-autocomplete="list"><button type="button" class="picker-toggle" aria-label="展开装备列表">⌄</button><span class="picker-menu" role="listbox"></span></span></label>
+        </div>
+      </div>
+      <div class="dialog-actions"><button id="delete-editor-ship" value="delete" class="danger">删除舰船</button><span></span><button value="cancel" class="quiet">取消</button><button id="save-ship" value="default" class="run">保存修改</button></div>
+    </form>
+  </dialog>
+  <dialog id="clear-confirm" class="confirm-dialog">
+    <form method="dialog">
+      <h2>清空页面？</h2>
+      <p>这会移除双方舰队配置，并重置模拟设置与所有统计结果。</p>
+      <div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="confirm-clear" type="button" class="danger">确认清空</button></div>
+    </form>
+  </dialog>
+  <input id="config-file" type="file" accept=".yaml,.yml,.xml" hidden>
+  <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>
