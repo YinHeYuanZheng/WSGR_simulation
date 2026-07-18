@@ -53,6 +53,8 @@ class Skill_111671_2(Skill):
         ]
 
     def is_active(self, friend, enemy):
+        if isinstance(friend, Fleet):
+            friend = friend.ship
         count = 0 
         for ship in friend:
             if ship.get_final_status('torpedo') > 0:
