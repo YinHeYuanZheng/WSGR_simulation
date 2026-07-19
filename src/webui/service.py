@@ -159,6 +159,22 @@ class SimulationManager:
             state["live_progress"] = self._completed / max(self._target, 1) * 100
         return state
 
+    def reset(self) -> dict[str, Any]:
+        """Discard the current job and forget its result snapshot."""
+        with self._lock:
+            process = self._process
+            running = process is not None and process.is_alive()
+        if running:
+            self.stop()
+        with self._lock:
+            self._active_job_id += 1
+            self._process = None
+            self._completed = 0
+            self._target = 0
+            self._stop_requested_completed = None
+            self._state = self._initial_state()
+            return copy.deepcopy(self._state)
+
     def start(self, battle_config: dict[str, Any], epoch: int, battle_num: int) -> dict[str, Any]:
         epoch = max(1, min(int(epoch), 1_000_000))
         battle_num = max(1, min(int(battle_num), 5))
@@ -276,6 +292,11 @@ class SimulationManager:
 
     def _run(self, battle_config: dict[str, Any], epoch: int, battle_num: int) -> None:
         try:
+            # On POSIX the WebUI starts simulations with ``fork``.  Without
+            # reseeding here, each child inherits the parent's unchanged
+            # NumPy RNG state, so repeated runs with the same fleet can replay
+            # the exact same first battle and detail log.
+            np.random.seed(None)
             skill_messages: list[str] = []
             battle_timer = timer()
             battle = load_config(

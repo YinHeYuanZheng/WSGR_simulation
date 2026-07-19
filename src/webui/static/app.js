@@ -148,6 +148,11 @@ async function clearWorkspace() {
       // Clearing the page must not be blocked by an already-ending simulation.
     }
   }
+  try {
+    await api('/api/simulation/reset', { method: 'POST', body: '{}' });
+  } catch {
+    // The local view is still reset if the service is temporarily unavailable.
+  }
   friendlyFleet.replaceChildren();
   enemyFleet.replaceChildren();
   updateAllSlots();
@@ -771,9 +776,12 @@ function setDonut(chart, values, colors, indexes = null) {
   renderChartOverlay(chart);
 }
 
-function chartArcPoint(angle) {
+const CHART_OUTER_RADIUS = 50;
+const CHART_INNER_RADIUS = 38;
+
+function chartArcPoint(angle, radius = CHART_OUTER_RADIUS) {
   const radians = (angle - 90) * Math.PI / 180;
-  return [50 + 48 * Math.cos(radians), 50 + 48 * Math.sin(radians)];
+  return [50 + radius * Math.cos(radians), 50 + radius * Math.sin(radians)];
 }
 
 function renderChartOverlay(chart) {
@@ -783,16 +791,20 @@ function renderChartOverlay(chart) {
   overlay.setAttribute('viewBox', '0 0 100 100');
   (chart._segments || []).forEach(segment => {
     if (segment.end <= segment.start) return;
-    const [startX, startY] = chartArcPoint(segment.start / 100 * 360);
-    const [endX, endY] = chartArcPoint(segment.end / 100 * 360);
+    const startAngle = segment.start / 100 * 360;
+    const endAngle = segment.end / 100 * 360;
+    const [startX, startY] = chartArcPoint(startAngle);
+    const [endX, endY] = chartArcPoint(endAngle);
+    const [innerStartX, innerStartY] = chartArcPoint(startAngle, CHART_INNER_RADIUS);
+    const [innerEndX, innerEndY] = chartArcPoint(endAngle, CHART_INNER_RADIUS);
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     const largeArc = segment.end - segment.start > 50 ? 1 : 0;
     const fullCircle = segment.end - segment.start >= 99.999;
     path.dataset.index = String(segment.index);
     path.style.stroke = segment.color;
     path.setAttribute('d', fullCircle
-      ? 'M 50 2 A 48 48 0 1 1 49.99 2 Z'
-      : `M 50 50 L ${startX} ${startY} A 48 48 0 ${largeArc} 1 ${endX} ${endY} Z`);
+      ? `M 50 ${50 - CHART_OUTER_RADIUS} A ${CHART_OUTER_RADIUS} ${CHART_OUTER_RADIUS} 0 1 1 50 ${50 + CHART_OUTER_RADIUS} A ${CHART_OUTER_RADIUS} ${CHART_OUTER_RADIUS} 0 1 1 50 ${50 - CHART_OUTER_RADIUS} M 50 ${50 - CHART_INNER_RADIUS} A ${CHART_INNER_RADIUS} ${CHART_INNER_RADIUS} 0 1 1 50 ${50 + CHART_INNER_RADIUS} A ${CHART_INNER_RADIUS} ${CHART_INNER_RADIUS} 0 1 1 50 ${50 - CHART_INNER_RADIUS}`
+      : `M ${startX} ${startY} A ${CHART_OUTER_RADIUS} ${CHART_OUTER_RADIUS} 0 ${largeArc} 1 ${endX} ${endY} L ${innerEndX} ${innerEndY} A ${CHART_INNER_RADIUS} ${CHART_INNER_RADIUS} 0 ${largeArc} 0 ${innerStartX} ${innerStartY} Z`);
     overlay.append(path);
   });
   chart.prepend(overlay);
@@ -858,7 +870,14 @@ function renderLegend(list, entries, total, colors, slots = entries.length, opti
     if (entry && options.chart) {
       item.addEventListener('mouseenter', () => setChartHighlight(options.chart, entryIndex));
       item.addEventListener('mouseleave', () => setChartHighlight(options.chart, null));
-      if (options.onSegmentClick) item.addEventListener('click', () => options.onSegmentClick(entryIndex));
+      if (options.onSegmentClick) item.addEventListener('pointerdown', event => {
+        if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
+        // While a simulation is running the legend is rebuilt every poll.
+        // Handle selection on press, before that rebuild can discard the DOM
+        // node and prevent the later click event from being dispatched.
+        event.preventDefault();
+        options.onSegmentClick(entryIndex);
+      });
     }
     return item;
   }));
@@ -877,7 +896,10 @@ function renderRateList(list, entries, valueKey = 'rate') {
     if (valueKey === 'rate') {
       const track = document.createElement('i');
       const bar = document.createElement('b');
-      if (entry) bar.style.width = `${Math.max(0, Math.min(100, entry.rate))}%`;
+      // Empty ship slots keep the row layout but must not look like a full
+      // progress bar.  A block-level bar without an explicit width expands
+      // to the entire track by default.
+      bar.style.width = entry ? `${Math.max(0, Math.min(100, entry.rate))}%` : '0%';
       track.append(bar);
       item.append(track);
     }
@@ -891,8 +913,8 @@ function renderSummary(summary) {
     return;
   }
   latestSummary = summary;
-  document.querySelector('#win-rate-stat').innerHTML = `${summary.win_rate.toFixed(1)}<em>%</em>`;
-  document.querySelector('#flagship-stat').innerHTML = `${summary.flagship_sink_rate.toFixed(1)}<em>%</em>`;
+  document.querySelector('#win-rate-stat').innerHTML = `${summary.win_rate.toFixed(2)}<em>%</em>`;
+  document.querySelector('#flagship-stat').innerHTML = `${summary.flagship_sink_rate.toFixed(2)}<em>%</em>`;
   document.querySelector('#average-damage-stat').textContent = formatNumber(summary.average_damage);
   document.querySelector('#average-loss-stat').textContent = formatNumber(summary.average_bucket, 2);
   document.querySelector('#resource-stat').textContent = formatNumber(summary.resource_total, 1);
@@ -903,7 +925,7 @@ function renderSummary(summary) {
   const totalCount = counts.reduce((sum, value) => sum + value, 0);
   const winChart = document.querySelector('#win-chart');
   const winLegend = document.querySelector('#win-legend');
-  document.querySelector('#win-chart-value').innerHTML = `${summary.win_rate.toFixed(1)}<small>%</small>`;
+  document.querySelector('#win-chart-value').innerHTML = `${summary.win_rate.toFixed(2)}<small>%</small>`;
   setDonut(winChart, counts, ['var(--ss)', 'var(--s)', 'var(--a)', 'var(--b)', 'var(--c)', 'var(--d)']);
   const winColors = ['var(--ss)', 'var(--s)', 'var(--a)', 'var(--b)', 'var(--c)', 'var(--d)'];
   renderLegend(winLegend, counts.map((value, index) => ({ name: flagNames[index], value, index })), totalCount, winColors, 6, { chart: winChart, percentOnly: true });
@@ -911,7 +933,8 @@ function renderSummary(summary) {
 
   const phaseValues = summary.phase_damage.map(item => item.value);
   const damageTotal = phaseValues.reduce((sum, value) => sum + value, 0);
-  const phaseColors = ['#d05b3f', '#e79d55', '#e7c76e', '#9bb49b', '#7897a2', '#94919d', '#b77f91', '#779cba', '#9f835b', '#78a395', '#ba7171'];
+  const phaseColors = ['var(--phase-1)', 'var(--phase-2)', 'var(--phase-3)', 'var(--phase-4)', 'var(--phase-5)',
+                               'var(--phase-6)', 'var(--phase-7)', 'var(--phase-8)', 'var(--phase-9)', 'var(--phase-10)', 'var(--phase-11)'];
   const damageChart = document.querySelector('#damage-chart');
   const phaseLegend = document.querySelector('#phase-legend');
   document.querySelector('#damage-chart-value').textContent = formatNumber(summary.average_damage);
@@ -951,7 +974,7 @@ function renderSummary(summary) {
   renderRateList(document.querySelector('#enemy-sink-rates'), summary.enemy_sink_rates);
   renderRateList(document.querySelector('#enemy-health-rates'), summary.enemy_remaining_health, 'value');
   document.querySelector('#battle-detail').textContent = summary.battle_detail
-    ? `【一场战斗】\n${summary.battle_detail}`
+    ? `${summary.battle_detail}`
     : '本轮模拟尚未生成战斗详情。';
 }
 
@@ -1177,8 +1200,14 @@ async function initialise() {
     });
     setupFormations();
     setupBattleTypes(metadata.config.battle_type);
+    // A full page reload starts a fresh WebUI session.  Do not restore the
+    // previous server snapshot (or leave its worker running) into this page.
+    await api('/api/simulation/reset', { method: 'POST', body: '{}' });
     applyConfig(metadata.config);
-    await pollSimulation();
+    resetResultDisplay();
+    simulationState = 'idle';
+    updateSimulationCountStat(0);
+    setSimulationButtonContent('play', '开始模拟');
   } catch (error) {
     setResultLog(`WebUI 初始化失败：${error.message}`);
     showNotice(error.message, true);

@@ -52,6 +52,9 @@ class WebUIRequestHandler(SimpleHTTPRequestHandler):
             if path == "/api/simulation/stop":
                 self._send_json(self.service.simulations.stop())
                 return
+            if path == "/api/simulation/reset":
+                self._send_json(self.service.simulations.reset())
+                return
             if path == "/api/config/import":
                 config = self.service.load_uploaded_config(payload["filename"], payload["content"])
                 self._send_json({"config": config})
@@ -119,4 +122,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
