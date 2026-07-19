@@ -312,13 +312,13 @@ class SimulationManager:
                     })
                 return
             set_supply(battle, battle_num)
-            prebattle_messages = self._prebattle_messages(battle)
+            prebattle_info = self._prebattle_info(battle)
             log_prefix = "\n".join([
                 "【技能读取】",
                 *(skill_messages or ["未配置可读取的技能"]),
                 "",
-                "【战前信息】",
-                *prebattle_messages,
+                "【运行信息】",
+                "模拟已启动，正在收集运行结果",
                 "",
             ])
 
@@ -395,7 +395,7 @@ class SimulationManager:
                         phase_totals, ship_damage_totals, ship_damage_phase_totals, supply_totals,
                         friend_names, enemy_names, friend_mid_damage_hits, friend_heavy_damage_hits,
                         enemy_sink_hits, enemy_remaining_health_totals,
-                        battle_detail,
+                        battle_detail, prebattle_info,
                     )
                     self._publish("running", completed, epoch, summary, log_prefix)
 
@@ -405,7 +405,7 @@ class SimulationManager:
                 phase_totals, ship_damage_totals, ship_damage_phase_totals, supply_totals,
                 friend_names, enemy_names, friend_mid_damage_hits, friend_heavy_damage_hits,
                 enemy_sink_hits, enemy_remaining_health_totals,
-                battle_detail,
+                battle_detail, prebattle_info,
             )
             self._publish(final_state_name, completed, epoch, summary, log_prefix)
         except Exception as exc:  # keep the HTTP service alive and report the actual failure
@@ -435,6 +435,7 @@ class SimulationManager:
         enemy_sink_hits: np.ndarray,
         enemy_remaining_health_totals: np.ndarray,
         battle_detail: str,
+        prebattle_info: dict[str, Any],
     ) -> dict[str, Any]:
         divisor = max(completed, 1)
         supply = {key: value / divisor for key, value in supply_totals.items()}
@@ -483,6 +484,7 @@ class SimulationManager:
                 {"name": name, "value": float(enemy_remaining_health_totals[index] / divisor)}
                 for index, name in enumerate(enemy_names)
             ],
+            "prebattle": copy.deepcopy(prebattle_info),
             "battle_detail": battle_detail,
         }
 
@@ -529,25 +531,26 @@ class SimulationManager:
         self._send_state_to_parent()
 
     @staticmethod
-    def _prebattle_messages(battle) -> list[str]:
-        """Match the legacy ``prebattle_info`` output without writing to stdout."""
+    def _prebattle_info(battle) -> dict[str, Any]:
+        """Collect recon and aerial values for the compact result cards."""
         preview_battle = copy.deepcopy(battle)
         preview_battle.start()
         report = preview_battle.report()
         recon_rate, friend_recon, recon_request = report["recon"]
-        messages = [
-            f"我方索敌-{friend_recon}  索敌要求-{recon_request}  索敌成功率：{int(recon_rate)}%"
-        ]
         air_con_flag, aerial_friend, aerial_enemy = report["aerial"]
         if air_con_flag is None:
-            messages.append("未进行航空战")
+            air_con_text = "未进行航空战"
         else:
             air_con_info = ["空确", "空优", "均势", "劣势", "丧失"]
-            messages.append(
-                f"我方制空-{aerial_friend:.2f}  敌方制空-{aerial_enemy:.2f}  "
-                f"制空结果：{air_con_info[air_con_flag - 1]}"
-            )
-        return messages
+            air_con_text = air_con_info[int(air_con_flag) - 1]
+        return {
+            "recon_rate": int(recon_rate),
+            "friend_recon": float(friend_recon),
+            "recon_request": float(recon_request),
+            "air_con": air_con_text,
+            "friend_aerial": float(aerial_friend),
+            "enemy_aerial": float(aerial_enemy),
+        }
 
 
 def _run_forked_simulation(

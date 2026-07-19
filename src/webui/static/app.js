@@ -107,6 +107,12 @@ function resetResultDisplay() {
   document.querySelector('#resource-stat').textContent = '—';
   updateSimulationCountStat(0);
   document.querySelector('#win-chart-value').innerHTML = '—<small>%</small>';
+  document.querySelector('#recon-rate-value').innerHTML = '—<small>%</small>';
+  document.querySelector('#friend-recon-value').textContent = '—';
+  document.querySelector('#recon-request-value').textContent = '—';
+  document.querySelector('#air-con-value').textContent = '—';
+  document.querySelector('#friend-aerial-value').textContent = '—';
+  document.querySelector('#enemy-aerial-value').textContent = '—';
   document.querySelector('#damage-chart-value').textContent = '—';
   document.querySelector('#damage-floor-value').textContent = '—';
   document.querySelector('#ship-damage-chart-value').textContent = '—';
@@ -859,7 +865,8 @@ function renderLegend(list, entries, total, colors, slots = entries.length, opti
     const name = document.createElement('span');
     name.textContent = entry?.name || '——';
     const percent = document.createElement('em');
-    percent.textContent = entry && total ? `${(value / total * 100).toFixed(1)}%` : '——';
+    const percentDigits = options.percentDigits ?? 1;
+    percent.textContent = entry && total ? `${(value / total * 100).toFixed(percentDigits)}%` : '——';
     item.append(marker, name);
     if (!options.percentOnly) {
       const count = document.createElement('b');
@@ -918,6 +925,20 @@ function renderSummary(summary) {
   document.querySelector('#average-damage-stat').textContent = formatNumber(summary.average_damage);
   document.querySelector('#average-loss-stat').textContent = formatNumber(summary.average_bucket, 2);
   document.querySelector('#resource-stat').textContent = formatNumber(summary.resource_total, 1);
+  const prebattle = summary.prebattle || {};
+  const reconRate = Number(prebattle.recon_rate);
+  document.querySelector('#recon-rate-value').innerHTML = Number.isFinite(reconRate)
+    ? `${reconRate.toFixed(0)}<small>%</small>`
+    : '—<small>%</small>';
+  document.querySelector('#friend-recon-value').textContent = Number.isFinite(Number(prebattle.friend_recon))
+    ? formatNumber(prebattle.friend_recon, 0) : '—';
+  document.querySelector('#recon-request-value').textContent = Number.isFinite(Number(prebattle.recon_request))
+    ? formatNumber(prebattle.recon_request, 0) : '—';
+  document.querySelector('#air-con-value').textContent = prebattle.air_con || '—';
+  document.querySelector('#friend-aerial-value').textContent = Number.isFinite(Number(prebattle.friend_aerial))
+    ? formatNumber(prebattle.friend_aerial, 2) : '—';
+  document.querySelector('#enemy-aerial-value').textContent = Number.isFinite(Number(prebattle.enemy_aerial))
+    ? formatNumber(prebattle.enemy_aerial, 2) : '—';
 
   const flags = ['SS', 'S', 'A', 'B', 'C', 'D'];
   const flagNames = ['SS 完胜', 'S 胜利', 'A 小胜', 'B 战术胜利', 'C 战术失败', 'D 失败'];
@@ -928,7 +949,7 @@ function renderSummary(summary) {
   document.querySelector('#win-chart-value').innerHTML = `${summary.win_rate.toFixed(2)}<small>%</small>`;
   setDonut(winChart, counts, ['var(--ss)', 'var(--s)', 'var(--a)', 'var(--b)', 'var(--c)', 'var(--d)']);
   const winColors = ['var(--ss)', 'var(--s)', 'var(--a)', 'var(--b)', 'var(--c)', 'var(--d)'];
-  renderLegend(winLegend, counts.map((value, index) => ({ name: flagNames[index], value, index })), totalCount, winColors, 6, { chart: winChart, percentOnly: true });
+  renderLegend(winLegend, counts.map((value, index) => ({ name: flagNames[index], value, index })), totalCount, winColors, 6, { chart: winChart, percentOnly: true, percentDigits: 2 });
   bindChartInteractions(winChart, winLegend);
 
   const phaseValues = summary.phase_damage.map(item => item.value);

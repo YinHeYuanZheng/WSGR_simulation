@@ -183,12 +183,22 @@ main { max-width: 1440px; margin: auto; padding: 10px clamp(20px, 4vw, 64px) 0; 
 .result-tabs button.active { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
 .result-view-panel { display: flex; min-height: 0; flex: 1; flex-direction: column; overflow: hidden; padding-top: 8px; }
 .result-summary { display: grid; flex: 0 0 auto; grid-template-columns: 128px minmax(0, 1fr); align-items: center; gap: 12px; }
+.win-prebattle { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.win-prebattle article { min-width: 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--base); text-align: center; }
+.win-prebattle article > div { display: flex; align-items: baseline; justify-content: center; gap: 6px; }
+.win-prebattle article > div > span { color: var(--muted); font-size: 12px; }
+.win-prebattle article strong { color: var(--ink); font: 600 22px var(--serif); white-space: nowrap; }
+.win-prebattle article strong small { margin-left: 2px; color: var(--muted); font: 12px var(--sans); }
+.win-prebattle article p { display: grid; justify-items: center; gap: 2px; margin: 5px 0 0; overflow: hidden; color: var(--muted); font: 12px/1.35 var(--mono); text-overflow: ellipsis; white-space: nowrap; }
+.win-prebattle article p span { overflow: hidden; text-overflow: ellipsis; }
+.win-prebattle article p b { color: var(--ink); font-weight: 500; }
 .chart { position: relative; display: grid; place-items: center; width: 124px; aspect-ratio: 1; border-radius: 50%; }
 .win-chart, .damage-chart, .ship-damage-chart { background: var(--soft); }
 .chart::before { position: absolute; z-index: 1; inset: var(--chart-hole-inset); border-radius: 50%; background: var(--surface); content: ''; }
 .chart-center { position: relative; z-index: 3; text-align: center; }
 .chart-center strong { display: block; font: 600 22px var(--serif); }
 .chart-center small { color: var(--muted); font: 10px var(--sans); }
+.win-chart .chart-center small { font-size: 12px; }
 .chart-center span { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
 .chart-overlay { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .chart-overlay path { fill: transparent; stroke: transparent; stroke-linejoin: round; stroke-width: 0; }
@@ -203,9 +213,9 @@ main { max-width: 1440px; margin: auto; padding: 10px clamp(20px, 4vw, 64px) 0; 
 .damage-note { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--base); color: var(--muted); font-size: 10px; }
 .damage-note strong { color: var(--ink); font: 600 18px var(--serif); }
 .resource-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.resource-grid article { padding: 14px; border: 1px solid var(--line); border-radius: 9px; background: var(--base); }
+.resource-grid article { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 14px; border: 1px solid var(--line); border-radius: 9px; background: var(--base); }
 .resource-grid span { display: block; color: var(--muted); font-size: 9px; }
-.resource-grid strong { display: block; margin-top: 3px; font: 600 20px var(--serif); }
+.resource-grid strong { display: block; margin-top: 0; font: 600 20px var(--serif); }
 .damage-rates { display: grid; gap: 16px; margin-top: 18px; }
 .damage-rates > div { display: grid; grid-template-columns: 1fr auto; gap: 6px; color: var(--muted); font-size: 10px; }
 .damage-rates strong { color: var(--ink); }
@@ -361,8 +371,8 @@ body.dark .result-tabs button.active { background: linear-gradient(145deg, #1c25
 .result-view-panel[data-panel="damage"] .result-log, .result-view-panel[data-panel="report"] .result-log { margin-top: 8px; }
 .resource-grid { gap: 6px; }
 .resource-grid article { padding: 8px 10px; }
-.resource-grid span { font-size: 11px; }
-.resource-grid strong { font-size: 17px; }
+.resource-grid span { font-size: 13px; }
+.resource-grid strong { font-size: 19px; }
 .damage-rates { gap: 8px; margin-top: 9px; }
 .fleet-rate-columns { display: grid; min-height: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
 #friend-heavy-rates > li > span {visibility: hidden; }
