@@ -655,10 +655,19 @@ class WebUIService:
         if suffix == ".xml":
             import tempfile
 
-            with tempfile.NamedTemporaryFile("w", suffix=".xml", encoding="utf-8") as file:
-                file.write(content)
-                file.flush()
-                return load_xml(file.name, str(MAP_DIR))
+            temporary_path: str | None = None
+            try:
+                # Windows cannot reopen a NamedTemporaryFile while its file
+                # handle is still open.  Close it before load_xml reads it.
+                with tempfile.NamedTemporaryFile(
+                    "w", suffix=".xml", encoding="utf-8", delete=False
+                ) as file:
+                    file.write(content)
+                    temporary_path = file.name
+                return load_xml(temporary_path, str(MAP_DIR))
+            finally:
+                if temporary_path:
+                    Path(temporary_path).unlink(missing_ok=True)
         raise ValueError("仅支持 .yaml、.yml 或 .xml 配置文件")
 
     @staticmethod
