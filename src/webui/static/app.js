@@ -231,10 +231,24 @@ function setupSearchablePicker(container, input) {
   };
   picker.open = open;
   picker.close = close;
+  picker.setDisabled = disabled => {
+    input.disabled = disabled;
+    picker.toggle.disabled = disabled;
+    container.classList.toggle('disabled', disabled);
+    if (disabled) close();
+  };
   input.addEventListener('focus', open);
   input.addEventListener('input', open);
   input.addEventListener('keyup', open);
   input.addEventListener('change', open);
+  input.addEventListener('keydown', event => {
+    if (event.key !== 'Enter') return;
+    // Searching an equipment/ship list must not bubble into the editor's
+    // Enter-to-save shortcut.
+    event.preventDefault();
+    event.stopPropagation();
+    open();
+  });
   picker.toggle.addEventListener('mousedown', event => event.preventDefault());
   picker.toggle.addEventListener('click', () => {
     if (container.classList.contains('open')) close();
@@ -534,7 +548,7 @@ function updateFriendEditorFields(config = null) {
   equipmentEditors.forEach((input, index) => {
     const loc = index + 1;
     input.value = equipmentMap.get(equipmentByLoc.get(loc))?.name || '';
-    input.disabled = loc > ship.equip_slots;
+    equipmentPickers[index].setDisabled(loc > ship.equip_slots);
   });
 }
 

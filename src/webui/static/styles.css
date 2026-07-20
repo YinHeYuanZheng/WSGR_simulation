@@ -59,6 +59,9 @@
   --phase-11: #ba7171;
   --chart-highlight: #fff4a8;
   --chart-hole-inset: 15px;
+  --disabled-bg: #ebe6df;
+  --disabled-line: #c9c0b5;
+  --disabled-ink: #958b80;
   --sans: 'Noto Sans SC', sans-serif;
   --serif: 'Playfair Display', 'Noto Sans SC', serif;
   --mono: 'DM Mono', monospace;
@@ -239,6 +242,9 @@ main { max-width: 1900px; margin: auto; padding: 10px clamp(20px, 4vw, 64px) 0; 
 .ship-editor select, .ship-editor input { display: block; width: 100%; height: 34px; margin-top: 5px; padding: 0 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--base); color: var(--ink); }
 .ship-editor select, .searchable-picker input { padding-right: 30px; appearance: none; background-color: var(--base); background-image: linear-gradient(45deg, transparent 50%, var(--accent) 50%), linear-gradient(135deg, var(--accent) 50%, transparent 50%); background-position: calc(100% - 14px) 13px, calc(100% - 10px) 13px; background-repeat: no-repeat; background-size: 4px 4px, 4px 4px; }
 .searchable-picker { position: relative; display: block; margin-top: 5px; }
+.searchable-picker.disabled .picker-menu { display: none !important; }
+.searchable-picker.disabled input, .searchable-picker.disabled .picker-toggle { opacity: 1; cursor: not-allowed; }
+.searchable-picker.disabled input { border-color: var(--disabled-line); background-color: var(--disabled-bg); background-image: linear-gradient(45deg, transparent 50%, var(--disabled-ink) 50%), linear-gradient(135deg, var(--disabled-ink) 50%, transparent 50%); color: var(--disabled-ink); }
 .searchable-picker input { margin-top: 0; padding-right: 30px; }
 .editor-select-picker { position: relative; display: block; margin-top: 5px; }
 .editor-select-picker > select { position: absolute; width: 1px; height: 1px; margin: 0; padding: 0; border: 0; opacity: 0; pointer-events: none; }
@@ -264,7 +270,7 @@ main { max-width: 1900px; margin: auto; padding: 10px clamp(20px, 4vw, 64px) 0; 
 .confirm-actions button { height: 34px; min-width: 82px; font-size: 12px; }
 .confirm-actions .danger { border: 1px solid #c85b52; border-radius: 8px; background: transparent; color: #c85b52; }
 
-body.dark { --base: #10151a; --surface: #182128; --soft: #202c31; --ink: #e9efec; --muted: #9aa9a6; --line: #314248; --accent: #e1a066; --accent-soft: #3a3026; --green: #73b497; background: radial-gradient(circle at 88% 0, #263f49 0, transparent 30rem), var(--base); }
+body.dark { --base: #10151a; --surface: #182128; --soft: #202c31; --ink: #e9efec; --muted: #9aa9a6; --line: #314248; --accent: #e1a066; --accent-soft: #3a3026; --green: #73b497; --disabled-bg: #28343a; --disabled-line: #435057; --disabled-ink: #7d8b89; background: radial-gradient(circle at 88% 0, #263f49 0, transparent 30rem), var(--base); }
 body.dark .panel { background: linear-gradient(145deg, #1c252a, var(--surface)); }
 body.dark .chart::before { background: var(--surface); }
 body.dark .mode-thumb { transform: translateX(24px); }
@@ -351,7 +357,7 @@ body.dark .result-tabs button.active { background: linear-gradient(145deg, #1c25
 .legend li.highlighted, .legend li.selected { border-radius: 4px; background: var(--accent-soft); color: var(--accent); }
 .result-view-panel[data-panel="win"] .legend { height: 124px; align-content: space-between; }
 .result-view-panel[data-panel="win"] .legend li, .result-view-panel[data-panel="damage"] .legend li { grid-template-columns: 8px minmax(0, 1fr) 48px 42px; column-gap: 5px; font-size: 12px; }
-.result-view-panel[data-panel="win"] .legend li.percent-only { grid-template-columns: 8px minmax(0, 1fr) 42px; }
+.result-view-panel[data-panel="win"] .legend li.percent-only { grid-template-columns: 8px minmax(0, 1fr) 50px; column-gap: 2px; }
 .result-view-panel[data-panel="win"] .legend b, .result-view-panel[data-panel="damage"] .legend b { font-size: 12px; text-align: right; }
 .result-view-panel[data-panel="win"] .legend em, .result-view-panel[data-panel="damage"] .legend em { font-size: 12px; text-align: right; }
 .result-view-panel[data-panel="damage"] .result-summary { align-items: start; }
