@@ -368,6 +368,13 @@ function updateSlots(list, addButton) {
     slot.setAttribute('aria-label', `删除第 ${index + 1} 艘舰船`);
     card._shipConfig.loc = index + 1;
   });
+  const panel = list.closest('.fleet-panel');
+  if (panel) {
+    const panelRect = panel.getBoundingClientRect();
+    const listRect = list.getBoundingClientRect();
+    const slotHeight = listRect.height / 6;
+    addButton.style.top = `${listRect.top - panelRect.top + cards.length * slotHeight}px`;
+  }
   addButton.hidden = cards.length >= 6;
 }
 
@@ -375,6 +382,8 @@ function updateAllSlots() {
   updateSlots(friendlyFleet, addFriendly);
   updateSlots(enemyFleet, addEnemy);
 }
+
+window.addEventListener('resize', updateAllSlots);
 
 function strategyDetails(shipConfig) {
   const selected = { attack: null, defense: null, special: null };

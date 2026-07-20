@@ -64,8 +64,12 @@
   --mono: 'DM Mono', monospace;
 }
 
-* { box-sizing: border-box; }
+* { box-sizing: border-box; scrollbar-color: var(--line) var(--base); scrollbar-width: thin; }
 body { margin: 0; min-height: 100vh; color: var(--ink); background: radial-gradient(circle at 10% 0, #ffe1ba 0, transparent 30rem), var(--base); font-family: var(--sans); transition: background .25s, color .25s; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: var(--base); }
+*::-webkit-scrollbar-thumb { border: 2px solid var(--base); border-radius: 10px; background: var(--line); }
+*::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 button, input, select { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .5; }
@@ -87,7 +91,7 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .mode-thumb { position: absolute; z-index: 1; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); transition: transform .2s; }
 .mode-switch span:first-of-type { color: white; }
 
-main { max-width: 1440px; margin: auto; padding: 10px clamp(20px, 4vw, 64px) 0; }
+main { max-width: 1900px; margin: auto; padding: 10px clamp(20px, 4vw, 64px) 0; }
 .stats { display: grid; grid-template-columns: repeat(6, 1fr); height: 78px; margin-bottom: 10px; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
 .stats article { padding: 10px 16px; border-right: 1px solid var(--line); }
 .stats article:last-child { border: 0; }
@@ -95,7 +99,7 @@ main { max-width: 1440px; margin: auto; padding: 10px clamp(20px, 4vw, 64px) 0; 
 .stats strong { display: block; margin: 2px 0 1px; font: 600 21px var(--serif); }
 .stats em { margin-left: 3px; color: var(--muted); font: 11px var(--sans); font-style: normal; }
 
-.workspace { display: grid; grid-template-columns: minmax(0, 82fr) repeat(2, minmax(0, 59fr)); gap: 14px; height: clamp(500px, calc(100vh - 162px), 530px); align-items: stretch; }
+.workspace { display: grid; grid-template-columns: minmax(0, 82fr) repeat(2, minmax(0, 59fr)); gap: 14px; height: clamp(500px, calc(100vh - 177px), 600px); align-items: stretch; }
 .panel { min-width: 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(145deg, #fffdfa, var(--surface)); box-shadow: 0 18px 45px #7b58450f; }
 .heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 31px; margin-bottom: 8px; }
 .heading-actions { display: flex; align-items: center; gap: 6px; min-width: 0; }
@@ -107,9 +111,9 @@ main { max-width: 1440px; margin: auto; padding: 10px clamp(20px, 4vw, 64px) 0; 
 .formation button { height: 22px; padding: 0 4px; border: 0; border-radius: 5px; background: transparent; color: var(--muted); font-size: 9.5px; }
 .formation button.selected { background: var(--accent-soft); color: var(--accent); }
 
-.fleet-panel { display: flex; min-height: 0; flex-direction: column; overflow: hidden; }
+.fleet-panel { position: relative; display: flex; min-height: 0; flex-direction: column; overflow: hidden; }
 .drag-tip { flex: 0 0 auto; margin: 3px 0 2px; color: var(--muted); font-size: 9px; }
-.ship-list { flex: 0 0 auto; margin: 0; padding: 0; list-style: none; }
+.ship-list { display: grid; flex: 1 1 auto; min-height: 0; grid-template-rows: repeat(6, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
 .ship-card { position: relative; display: flex; align-items: center; gap: 9px; min-height: 64px; padding: 6px 0; border-bottom: 0; box-shadow: none; cursor: pointer; }
 .ship-card + .ship-card::before { position: absolute; z-index: 1; top: 0; right: 0; left: 0; height: 1px; background: var(--line); content: ''; pointer-events: none; }
 .ship-card.dragging { opacity: .35; }
@@ -129,7 +133,7 @@ main { max-width: 1440px; margin: auto; padding: 10px clamp(20px, 4vw, 64px) 0; 
 .ship-actions button { display: grid; height: 24px; place-items: center; padding: 0 4px; border: 0; background: transparent; color: var(--muted); font-size: 10px; }
 .ship-actions button:hover { color: var(--accent); }
 .ship-actions .drag-handle { font-size: 15px; cursor: grab; }
-.add-row { flex: 0 0 auto; width: 100%; margin-top: 6px; padding: 6px; border: 1px dashed var(--line); border-radius: 8px; background: transparent; color: var(--accent); font-size: 10px; }
+.add-row { position: absolute; right: 16px; left: 16px; width: auto; margin-top: 6px; padding: 6px; border: 1px dashed var(--line); border-radius: 8px; background: transparent; color: var(--accent); font-size: 10px; }
 .add-row:hover { border-color: var(--accent); }
 .fleet-panel .quiet { font-size: 11px; }
 
@@ -285,6 +289,7 @@ body.dark .mode-switch span:last-of-type { color: white; }
 .ship-card { display: grid; grid-template-columns: 27px 82px minmax(0, 1fr) 44px; gap: 8px; min-height: 64px; }
 .ship-name { min-width: 0; }
 .ship-name strong { display: block; overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.friend-panel .ship-name strong { white-space: normal; overflow-wrap: anywhere; line-height: 1.25; }
 .ship-details { display: grid; min-width: 0; gap: 4px; }
 .ship-meta, .enemy-status { overflow: hidden; color: var(--muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .equipment-list, .tactics-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
@@ -295,9 +300,9 @@ body.dark .mode-switch span:last-of-type { color: white; }
 .ship-actions .edit-ship { font: 700 20px/1 var(--sans); }
 .ship-actions .drag-handle { font: 500 15px/1 var(--sans); cursor: grab; }
 
-.friend-panel .ship-card { height: 74px; min-height: 74px; }
+.friend-panel .ship-card { height: auto; min-height: 0; }
 
-.enemy-panel .ship-card { height: 40.5px; min-height: 40.5px; grid-template-columns: 22px 110px minmax(0, 1fr) 40px; gap: 6px; }
+.enemy-panel .ship-card { height: auto; min-height: 0; grid-template-columns: 22px 110px minmax(0, 1fr) 40px; gap: 6px; }
 .enemy-panel .ship-name strong { font-size: 12.5px; }
 .enemy-panel .ship-meta, .enemy-panel .enemy-status { font-size: 9px; }
 .enemy-panel .ship-actions button { width: 20px; height: 24px; }
