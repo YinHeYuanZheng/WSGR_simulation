@@ -1,7 +1,7 @@
 battle_type: NormalBattle
 friend_fleet:
   side: 1
-  form: 4
+  form: 5
   ships:
   - loc: 1
     cid: '10586'
@@ -18,8 +18,8 @@ friend_fleet:
     - loc: 4
       eid: '10342'
     strategy:
-      - stid: '231'
-        level: 3
+    - stid: '231'
+      level: 3
   - loc: 2
     cid: '10202'
     level: 110
@@ -35,8 +35,8 @@ friend_fleet:
     - loc: 4
       eid: '10129'
     strategy:
-      - stid: '131'
-        level: 3
+    - stid: '131'
+      level: 3
   - loc: 3
     cid: '10613'
     level: 110
@@ -53,17 +53,17 @@ friend_fleet:
       eid: '10518'
     strategy: []
   - loc: 4
-    cid: '10640'
+    cid: '10559'
     level: 110
     affection: 200
     skill: 1
     equipment:
     - loc: 1
-      eid: '10670'
+      eid: '10655'
     - loc: 2
-      eid: '10670'
+      eid: '10654'
     - loc: 3
-      eid: '10754'
+      eid: '10654'
     strategy: []
   - loc: 5
     cid: '10601'
@@ -79,17 +79,17 @@ friend_fleet:
       eid: '10373'
     strategy: []
   - loc: 6
-    cid: '11099'
+    cid: '11097'
     level: 110
     affection: 200
     skill: 1
     equipment:
     - loc: 1
-      eid: '10282'
+      eid: '10638'
     - loc: 2
-      eid: '10592'
+      eid: '10705'
     - loc: 3
-      eid: '10598'
+      eid: '10705'
     strategy: []
 enemy_fleet:
   side: 0
@@ -97,31 +97,31 @@ enemy_fleet:
   ships:
   - loc: 1
     cid: '01106'
-    level: 110
+    level: 120
     affection: 50
     skill: 1
   - loc: 2
     cid: '01061'
-    level: 110
+    level: 120
     affection: 50
     skill: 1
   - loc: 3
     cid: '01061'
-    level: 110
+    level: 120
     affection: 50
     skill: 1
   - loc: 4
     cid: '00211'
-    level: 110
+    level: 90
     affection: 50
     skill: 1
   - loc: 5
     cid: '00211'
-    level: 110
+    level: 90
     affection: 50
     skill: 1
   - loc: 6
     cid: '00060'
-    level: 110
+    level: 80
     affection: 50
     skill: 1
