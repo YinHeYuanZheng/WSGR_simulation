@@ -180,6 +180,24 @@ class BattleUtil(Time):
         else:
             self.timer.report_result('C')
 
+        health_lines = ["我方血量："]
+        for index, ship in enumerate(self.friend.ship, start=1):
+            current_health = int(ship.status['health'])
+            max_health = int(ship.status['standard_health'])
+            health_lines.append(
+                f"[我方{index}号位]{ship.status['name']}：{current_health}/{max_health}"
+            )
+
+        health_lines.append("敌方血量：")
+        for index, ship in enumerate(self.enemy.ship, start=1):
+            current_health = int(ship.status['health'])
+            max_health = int(ship.status['standard_health'])
+            health_lines.append(
+                f"[敌方{index}号位]{ship.status['name']}：{current_health}/{max_health}"
+            )
+
+        self.timer.info("\n".join(health_lines) + "\n")
+
     def report(self):
         # 消耗
         supply = self.timer.log['supply']

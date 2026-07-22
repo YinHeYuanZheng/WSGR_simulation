@@ -168,6 +168,7 @@ class timer:
 
     def report_result(self, result):
         self.log['result'] = result
+        self.info(f"\n【战斗结果】\n战果等级: {result}\n")
 
     def report_damage(self, damage_value, sink):
         """伤害细节报告"""

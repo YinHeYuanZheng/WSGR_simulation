@@ -26,7 +26,7 @@ from src.utils.loadConfig import load_config, load_xml
 from src.utils.loadDataset import Dataset
 from src.utils.runUtil import set_supply
 from src.utils.battleUtil import CustomBattle
-from src.wsgr.wsgrTimer import damagePhaseList, timer
+from src.wsgr.wsgrTimer import PHASE_LABELS, timer
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -325,9 +325,9 @@ class SimulationManager:
             friend_names = [ship.status["name"] for ship in battle.friend.ship]
             enemy_names = [ship.status["name"] for ship in battle.enemy.ship]
             result_counts = {flag: 0 for flag in RESULT_FLAGS}
-            phase_totals = np.zeros(len(damagePhaseList), dtype=float)
+            phase_totals = np.zeros(len(PHASE_LABELS), dtype=float)
             ship_damage_totals = np.zeros(6, dtype=float)
-            ship_damage_phase_totals = np.zeros((len(damagePhaseList), 6), dtype=float)
+            ship_damage_phase_totals = np.zeros((len(PHASE_LABELS), 6), dtype=float)
             friend_mid_damage_hits = np.zeros(6, dtype=float)
             friend_heavy_damage_hits = np.zeros(6, dtype=float)
             enemy_sink_hits = np.zeros(6, dtype=float)
@@ -337,6 +337,7 @@ class SimulationManager:
             damage_total = 0.0
             damage_samples: list[float] = []
             battle_detail = ""
+            battle_detail_info: dict[str, Any] | None = None
             publish_every = max(1, epoch // 100)
             completed = 0
 
@@ -379,6 +380,7 @@ class SimulationManager:
                     supply_totals[key] += float(report.get("supply", {}).get(key, 0))
                 if not battle_detail:
                     battle_detail = report.get("record", "")
+                    battle_detail_info = self._detail_battle_info(current_battle, report)
 
                 if self._stop_event.is_set():
                     break
@@ -395,7 +397,7 @@ class SimulationManager:
                         phase_totals, ship_damage_totals, ship_damage_phase_totals, supply_totals,
                         friend_names, enemy_names, friend_mid_damage_hits, friend_heavy_damage_hits,
                         enemy_sink_hits, enemy_remaining_health_totals,
-                        battle_detail, prebattle_info,
+                        battle_detail, battle_detail_info, prebattle_info,
                     )
                     self._publish("running", completed, epoch, summary, log_prefix)
 
@@ -405,7 +407,7 @@ class SimulationManager:
                 phase_totals, ship_damage_totals, ship_damage_phase_totals, supply_totals,
                 friend_names, enemy_names, friend_mid_damage_hits, friend_heavy_damage_hits,
                 enemy_sink_hits, enemy_remaining_health_totals,
-                battle_detail, prebattle_info,
+                battle_detail, battle_detail_info, prebattle_info,
             )
             self._publish(final_state_name, completed, epoch, summary, log_prefix)
         except Exception as exc:  # keep the HTTP service alive and report the actual failure
@@ -435,6 +437,7 @@ class SimulationManager:
         enemy_sink_hits: np.ndarray,
         enemy_remaining_health_totals: np.ndarray,
         battle_detail: str,
+        battle_detail_info: dict[str, Any] | None,
         prebattle_info: dict[str, Any],
     ) -> dict[str, Any]:
         divisor = max(completed, 1)
@@ -449,7 +452,7 @@ class SimulationManager:
             "resource_total": supply["oil"] + supply["ammo"] + supply["steel"] + 3 * supply["almn"],
             "phase_damage": [
                 {"index": index, "name": PHASE_LABELS.get(phase, phase), "value": float(phase_totals[index] / divisor)}
-                for index, phase in enumerate(damagePhaseList)
+                for index, phase in enumerate(PHASE_LABELS.keys())
                 if phase_totals[index] > 0
             ],
             "ship_damage": [
@@ -465,7 +468,7 @@ class SimulationManager:
                         for ship_index in range(len(friend_names))
                     ],
                 }
-                for index, phase in enumerate(damagePhaseList)
+                for index, phase in enumerate(PHASE_LABELS.keys())
             ],
             "supply": supply,
             "friend_mid_damage_rates": [
@@ -486,6 +489,20 @@ class SimulationManager:
             ],
             "prebattle": copy.deepcopy(prebattle_info),
             "battle_detail": battle_detail,
+            "battle_detail_info": copy.deepcopy(battle_detail_info),
+        }
+
+    @staticmethod
+    def _detail_battle_info(battle, report: dict[str, Any]) -> dict[str, Any]:
+        """Return the compact status values belonging to the exported detail battle."""
+        air_con_flag = report.get("aerial", [None])[0]
+        recon_flag = battle.timer.recon_flag
+        direction_flag = battle.timer.direction_flag
+        return {
+            "result": report.get("result"),
+            "recon_success": None if recon_flag is None else bool(recon_flag),
+            "direction": None if direction_flag is None else int(direction_flag),
+            "air_con": None if air_con_flag is None else int(air_con_flag),
         }
 
     def _publish(

@@ -135,6 +135,10 @@ function resetResultDisplay() {
   ['#oil-value', '#ammo-value', '#steel-value', '#aluminum-value'].forEach(selector => { document.querySelector(selector).textContent = '—'; });
   ['#friend-mid-rates', '#friend-heavy-rates', '#enemy-sink-rates', '#enemy-health-rates'].forEach(selector => document.querySelector(selector).replaceChildren());
   document.querySelector('#battle-detail').textContent = '模拟完成后将在这里显示一场战斗的详细记录。';
+  document.querySelector('#detail-result-value').textContent = '—';
+  document.querySelector('#detail-recon-value').textContent = '—';
+  document.querySelector('#detail-direction-value').textContent = '—';
+  document.querySelector('#detail-air-con-value').textContent = '—';
   setResultLog('等待开始模拟');
   document.querySelectorAll('.result-tabs button').forEach(tab => {
     const active = tab.dataset.view === 'win';
@@ -1078,6 +1082,14 @@ function renderSummary(summary) {
   document.querySelector('#battle-detail').textContent = summary.battle_detail
     ? `${summary.battle_detail}`
     : '本轮模拟尚未生成战斗详情。';
+  const detailInfo = summary.battle_detail_info || {};
+  const directionNames = { 1: 'T优', 2: '同航', 3: '反航', 4: 'T劣' };
+  const airConNames = { 1: '空确', 2: '空优', 3: '均势', 4: '劣势', 5: '丧失' };
+  document.querySelector('#detail-result-value').textContent = detailInfo.result || '—';
+  document.querySelector('#detail-recon-value').textContent = detailInfo.recon_success == null
+    ? '—' : (detailInfo.recon_success ? '成功' : '失败');
+  document.querySelector('#detail-direction-value').textContent = directionNames[detailInfo.direction] || '—';
+  document.querySelector('#detail-air-con-value').textContent = airConNames[detailInfo.air_con] || '未进行航空战';
 }
 
 function renderSimulationStatus(status) {

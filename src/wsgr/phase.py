@@ -193,7 +193,8 @@ class SupportPhase(AllPhase):
         supportUnit = Ship(self.timer)
         supportUnit.set_status('name', '支援攻击')
         supportUnit.set_side(1)
-        for ship in self.enemy.ship:
+        def_enemy = self.enemy.get_atk_target(atk_type=SupportAtk)
+        for ship in def_enemy:
             atk = SupportAtk(
                 timer=self.timer,
                 source=supportUnit,

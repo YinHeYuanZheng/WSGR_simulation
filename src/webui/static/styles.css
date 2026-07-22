@@ -229,6 +229,14 @@ main { max-width: 1800px; margin: auto; padding: 10px clamp(20px, 4vw, 64px) 0; 
 .damage-rates i { grid-column: 1 / -1; height: 7px; overflow: hidden; border-radius: 7px; background: var(--soft); }
 .damage-rates b { display: block; height: 100%; border-radius: 7px; background: var(--accent); }
 .detail-panel { padding-top: 8px; }
+.detail-summary { display: grid; min-height: 76px; flex: 0 0 auto; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+.detail-summary article { min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--base); }
+.detail-result-card { display: grid; place-content: center; justify-items: center; gap: 4px; text-align: center; }
+.detail-result-card span { color: var(--muted); font-size: 12px; }
+.detail-result-card strong { color: var(--accent); font: 600 24px var(--serif); }
+.detail-status-card { display: grid; align-content: center; gap: 4px; }
+.detail-status-card p { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; color: var(--muted); font-size: 12px; }
+.detail-status-card b { color: var(--ink); font: 500 12px var(--mono); text-align: right; }
 
 .ship-editor { width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 32px); padding: 0; overflow-y: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); box-shadow: 0 24px 80px #0003; }
 .ship-editor::backdrop { background: #201b1870; backdrop-filter: blur(3px); }
