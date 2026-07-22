@@ -5,6 +5,9 @@ const addEnemy = document.querySelector('#add-enemy');
 const resultLogs = [...document.querySelectorAll('.shared-result-log')];
 const editor = document.querySelector('#ship-editor');
 const editorName = document.querySelector('#editor-name');
+const editorNameField = document.querySelector('#editor-name-field');
+const editorHealthField = document.querySelector('#editor-health-field');
+const editorHealth = document.querySelector('#editor-health');
 const editorLevel = document.querySelector('#editor-level');
 const editorLevelField = document.querySelector('#editor-level-field');
 const editorAffection = document.querySelector('#editor-affection');
@@ -73,6 +76,8 @@ let simulationDisplayFrozen = false;
 let latestSummary = null;
 let damagePhaseFilter = null;
 let customPhaseIds = new Set();
+let healthLimitTimer = null;
+let healthLimitRequest = 0;
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, character => ({
@@ -419,6 +424,39 @@ function strategyDetails(shipConfig) {
   return selected;
 }
 
+function updateFriendlyCardHealth(card, maximum) {
+  const value = card.querySelector('.ship-health');
+  if (!value) return;
+  const maxHealth = Math.max(1, Number(maximum) || 1);
+  const configured = Number(card._shipConfig.input_health);
+  const health = Math.max(1, Math.min(maxHealth, Number.isFinite(configured) ? configured : maxHealth));
+  value.textContent = `耐久 ${health}/${maxHealth}`;
+  value.classList.toggle('moderate-damage', health < maxHealth * 0.5 && health >= maxHealth * 0.25);
+  value.classList.toggle('heavy-damage', health < maxHealth * 0.25);
+  card._healthMaximum = maxHealth;
+}
+
+function refreshFriendlyFleetHealths() {
+  const cards = [...friendlyFleet.querySelectorAll('.ship-card')]
+    .filter(card => !card._shipConfig.pending);
+  cards.forEach(card => {
+    const config = card._shipConfig;
+    const ship = {
+      cid: config.cid,
+      skill: Number(config.skill) || 0,
+      equipment: (config.equipment || []).map(item => ({ loc: Number(item.loc), eid: item.eid })),
+    };
+    api('/api/ship/health-limit', {
+      method: 'POST',
+      body: JSON.stringify({ ship }),
+    }).then(result => {
+      if (card.isConnected && card._shipConfig === config) {
+        updateFriendlyCardHealth(card, result.max_health);
+      }
+    }).catch(() => {});
+  });
+}
+
 function createShipCard(side, sourceConfig = null) {
   const isFriend = side === 'friend';
   const catalog = isFriend ? metadata.friend_ships : metadata.enemy_ships;
@@ -469,7 +507,7 @@ function createShipCard(side, sourceConfig = null) {
     });
     const equipped = new Map(config.equipment.map(item => [Number(item.loc), equipmentMap.get(item.eid)?.name || item.eid]));
     const equipmentLabels = [1, 2, 3, 4].map(index => equipped.get(index) || '——');
-    card.innerHTML = `<button type="button" class="slot"></button><div class="ship-name"><strong>${escapeHtml(ship.name)}</strong></div><div class="ship-details"><div class="ship-meta">${escapeHtml(ship.type)} · ${escapeHtml(ship.country)} · Lv.${config.level} · 好感 ${config.affection}</div><div class="tactics-list"><span>${escapeHtml(skill?.name || '无技能')}</span>${tacticLabels.map(label => `<span>${escapeHtml(label)}</span>`).join('')}</div><div class="equipment-list">${equipmentLabels.map(label => `<span>${escapeHtml(label)}</span>`).join('')}</div></div><div class="ship-actions"><button class="edit-ship" aria-label="编辑${escapeHtml(ship.name)}">⋮</button><button class="drag-handle" aria-label="拖动${escapeHtml(ship.name)}">☰</button></div>`;
+    card.innerHTML = `<button type="button" class="slot"></button><div class="ship-name"><strong>${escapeHtml(ship.name)}</strong></div><div class="ship-details"><div class="ship-meta">${escapeHtml(ship.type)} · ${escapeHtml(ship.country)} · Lv.${config.level} · 好感 ${config.affection} · <span class="ship-health">耐久 —/—</span></div><div class="tactics-list"><span>${escapeHtml(skill?.name || '无技能')}</span>${tacticLabels.map(label => `<span>${escapeHtml(label)}</span>`).join('')}</div><div class="equipment-list">${equipmentLabels.map(label => `<span>${escapeHtml(label)}</span>`).join('')}</div></div><div class="ship-actions"><button class="edit-ship" aria-label="编辑${escapeHtml(ship.name)}">⋮</button><button class="drag-handle" aria-label="拖动${escapeHtml(ship.name)}">☰</button></div>`;
   } else {
     card.innerHTML = `<button type="button" class="slot"></button><div class="ship-name"><strong>${escapeHtml(ship.name)}</strong></div><div class="ship-details"><div class="ship-meta">${escapeHtml(ship.type)}·Lv.${config.level}·cid ${escapeHtml(ship.cid)}</div><div class="enemy-status">耐久 ${ship.health} · 装甲 ${ship.armor} · 对空 ${ship.antiair}</div></div><div class="ship-actions"><button class="edit-ship" aria-label="编辑${escapeHtml(ship.name)}">⋮</button><button class="drag-handle" aria-label="拖动${escapeHtml(ship.name)}">☰</button></div>`;
   }
@@ -529,6 +567,7 @@ function renderFleet(side, fleetConfig) {
   list.replaceChildren(...(fleetConfig?.ships || []).slice(0, 6).map(ship => createShipCard(side, ship)));
   setFormation(side, Number(fleetConfig?.form) || 4);
   updateSlots(list, side === 'friend' ? addFriendly : addEnemy);
+  if (side === 'friend') refreshFriendlyFleetHealths();
 }
 
 function populateStrategySelect(category, selected = '', level = 0) {
@@ -544,6 +583,7 @@ function populateStrategySelect(category, selected = '', level = 0) {
 
 function updateFriendEditorFields(config = null) {
   const ship = selectedEditorShip('friend');
+  if (!editorShipLabels.has(editorName.value.trim())) return;
   fillSelect(
     editorSkill,
     ship.skills.map(item => ({ value: item.id, label: item.name })),
@@ -563,25 +603,85 @@ function updateFriendEditorFields(config = null) {
   });
 }
 
+function editorFriendPreview() {
+  if (!currentEditing || currentEditing.dataset.side !== 'friend') return null;
+  if (!editorShipLabels.has(editorName.value.trim())) return null;
+  const ship = selectedEditorShip('friend');
+  if (!ship) return null;
+  return {
+    cid: ship.cid,
+    skill: Number(editorSkill.value) || 0,
+    equipment: equipmentEditors.flatMap((input, index) => {
+      const eid = selectedEquipmentId(input.value);
+      return input.disabled || !eid ? [] : [{ loc: index + 1, eid }];
+    }),
+  };
+}
+
+async function refreshEditorHealthLimit(resetToMaximum = false) {
+  const ship = editorFriendPreview();
+  if (!ship) return;
+  const request = ++healthLimitRequest;
+  editorHealth.disabled = true;
+  try {
+    const result = await api('/api/ship/health-limit', {
+      method: 'POST',
+      body: JSON.stringify({ ship }),
+    });
+    if (request !== healthLimitRequest || !editor.open) return;
+    const maximum = Math.max(1, Number(result.max_health) || 1);
+    const current = editorHealth.value === '' ? Number.NaN : Number(editorHealth.value);
+    editorHealth.min = '1';
+    editorHealth.max = String(maximum);
+    editorHealth.value = String(resetToMaximum
+      ? maximum
+      : Math.max(1, Math.min(maximum, Number.isFinite(current) ? current : maximum)));
+    editorHealth.disabled = false;
+  } catch (error) {
+    if (request !== healthLimitRequest || !editor.open) return;
+    editorHealth.disabled = false;
+    editorHealth.removeAttribute('max');
+    showNotice(error.message, true);
+  }
+}
+
+function scheduleEditorHealthLimitRefresh(resetToMaximum = false) {
+  clearTimeout(healthLimitTimer);
+  healthLimitTimer = setTimeout(() => refreshEditorHealthLimit(resetToMaximum), 120);
+}
+
 function openEditor(card) {
   currentEditing = card;
   const isFriend = card.dataset.side === 'friend';
   const catalog = isFriend ? metadata.friend_ships : metadata.enemy_ships;
   setEditorShipOptions(catalog, isFriend, card._shipConfig.pending ? null : card._shipConfig.cid);
+  editorNameField.classList.toggle('editor-wide', !isFriend);
+  editorHealthField.hidden = !isFriend;
   editorLevelField.hidden = !isFriend;
   if (isFriend) editorLevel.value = card._shipConfig.level;
   friendEditorFields.hidden = !isFriend;
   if (isFriend) {
     editorAffection.value = card._shipConfig.affection;
+    editorHealth.value = card._shipConfig.input_health ?? '';
+    editorHealth.removeAttribute('max');
+    editorHealth.disabled = true;
     updateFriendEditorFields(card._shipConfig);
   }
   editor.showModal();
+  if (isFriend && !card._shipConfig.pending) scheduleEditorHealthLimitRefresh();
 }
 
 function syncEditorShipSelection() {
   if (!currentEditing) return;
   if (currentEditing.dataset.side !== 'friend') return;
+  if (!editorShipLabels.has(editorName.value.trim())) {
+    healthLimitRequest += 1;
+    editorHealth.disabled = true;
+    editorHealth.removeAttribute('max');
+    return;
+  }
   updateFriendEditorFields();
+  scheduleEditorHealthLimitRefresh(true);
 }
 
 editorName.addEventListener('input', syncEditorShipSelection);
@@ -592,11 +692,21 @@ editorLevel.addEventListener('change', () => clampEditorInput(
   currentEditing?.dataset.side === 'friend' ? 110 : Infinity,
   currentEditing?.dataset.side === 'friend' ? 110 : 1,
 ));
-editorAffection.addEventListener('change', () => clampEditorInput(editorAffection, 0, 200, 200));
+editorAffection.addEventListener('change', () => {
+  clampEditorInput(editorAffection, 0, 200, 200);
+});
+editorHealth.addEventListener('change', () => {
+  const maximum = Number.parseInt(editorHealth.max, 10);
+  if (Number.isInteger(maximum) && maximum >= 1) clampEditorInput(editorHealth, 1, maximum, maximum);
+});
+editorSkill.addEventListener('change', () => scheduleEditorHealthLimitRefresh(true));
+equipmentEditors.forEach(input => input.addEventListener('input', () => scheduleEditorHealthLimitRefresh(true)));
 Object.entries(strategyEditors).forEach(([category, select]) => select.addEventListener('change', () => {
   if (select.value && Number(strategyLevelEditors[category].value) === 0) strategyLevelEditors[category].value = 3;
 }));
-Object.values(strategyLevelEditors).forEach(input => input.addEventListener('change', () => clampEditorInput(input, 0, 3, 0)));
+Object.values(strategyLevelEditors).forEach(input => input.addEventListener('change', () => {
+  clampEditorInput(input, 0, 3, 0);
+}));
 
 function saveCurrentShip() {
   if (!currentEditing) return;
@@ -612,7 +722,12 @@ function saveCurrentShip() {
     affection: isFriend ? clampEditorInput(editorAffection, 0, 200, 200) : 50,
     skill: isFriend ? Number(editorSkill.value) || 0 : 1,
   };
+  let maximum = null;
   if (isFriend) {
+    maximum = Number.parseInt(editorHealth.max, 10);
+    if (Number.isInteger(maximum) && maximum >= 1) {
+      config.input_health = clampEditorInput(editorHealth, 1, maximum, maximum);
+    }
     config.equipment = equipmentEditors.flatMap((input, index) => {
       const eid = selectedEquipmentId(input.value);
       return input.disabled || !eid ? [] : [{ loc: index + 1, eid }];
@@ -625,6 +740,11 @@ function saveCurrentShip() {
   const replacement = createShipCard(isFriend ? 'friend' : 'enemy', config);
   currentEditing.replaceWith(replacement);
   currentEditing = replacement;
+  if (isFriend && Number.isInteger(maximum) && maximum >= 1) {
+    updateFriendlyCardHealth(replacement, maximum);
+  } else if (isFriend) {
+    refreshFriendlyFleetHealths();
+  }
   updateAllSlots();
   return true;
 }

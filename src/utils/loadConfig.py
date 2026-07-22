@@ -209,6 +209,11 @@ def load_friend_ship(shipDict, dataset, timer, log_func=print):
     ship.set_status(status=status)
     del status
 
+    # WebUI 可为友方舰船保存初始耐久。实际有效范围会在
+    # Ship.init_health() 中根据技能、装备计算出的标准耐久再次截断。
+    if 'input_health' in shipDict and shipDict['input_health'] is not None:
+        ship.status['input_health'] = int(shipDict['input_health'])
+
     # 调用技能并写入
     skill_idx = int(shipDict['skill']) - 1
     sid = skillList[skill_idx] if skill_idx >= 0 else ''

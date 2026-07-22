@@ -102,7 +102,8 @@
     <form method="dialog">
       <div class="dialog-heading"><div class="panel-title"><h2>编辑舰船</h2></div><button value="cancel" aria-label="关闭">×</button></div>
       <div class="editor-grid">
-        <label class="editor-wide">舰船名称<span id="editor-ship-picker" class="searchable-picker"><input id="editor-name" autocomplete="off" aria-autocomplete="list"><button type="button" class="picker-toggle" aria-label="展开舰船列表">⌄</button><span class="picker-menu" role="listbox"></span></span></label>
+        <label id="editor-name-field">舰船名称<span id="editor-ship-picker" class="searchable-picker"><input id="editor-name" autocomplete="off" aria-autocomplete="list"><button type="button" class="picker-toggle" aria-label="展开舰船列表">⌄</button><span class="picker-menu" role="listbox"></span></span></label>
+        <label id="editor-health-field">初始耐久<input id="editor-health" type="number" min="1" step="1" value="1"></label>
         <label id="editor-level-field">等级<input id="editor-level" type="number" min="1" max="110" value="110"></label>
         <div id="friend-editor-fields" class="friend-editor-fields">
           <label>好感度<input id="editor-affection" type="number" min="0" max="200" value="200"></label>

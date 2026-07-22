@@ -306,6 +306,9 @@ body.dark .mode-switch span:last-of-type { color: white; }
 .friend-panel .ship-name strong { white-space: normal; overflow-wrap: anywhere; line-height: 1.25; }
 .ship-details { display: grid; min-width: 0; gap: 4px; }
 .ship-meta, .enemy-status { overflow: hidden; color: var(--muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.ship-health { color: inherit; }
+.ship-health.moderate-damage { color: var(--s); font-weight: 700; }
+.ship-health.heavy-damage { color: var(--ss); font-weight: 700; }
 .equipment-list, .tactics-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
 .equipment-list span, .tactics-list span { display: grid; min-width: 0; height: 18px; place-items: center; overflow: hidden; padding: 1px 3px; border: 1px solid var(--line); border-radius: 4px; background: color-mix(in srgb, var(--surface) 80%, transparent); color: var(--muted); font-size: 8px; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
 .tactics-list span:first-child { border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); color: var(--accent); }

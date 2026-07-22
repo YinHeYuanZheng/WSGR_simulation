@@ -43,9 +43,13 @@ class WebUIRequestHandler(SimpleHTTPRequestHandler):
         path = urlparse(self.path).path
         try:
             payload = self._read_json()
+            if path == "/api/ship/health-limit":
+                self._send_json(self.service.friend_health_limit(payload["ship"]))
+                return
             if path == "/api/simulation/start":
+                config = self.service.prepare_simulation_config(payload["config"])
                 state = self.service.simulations.start(
-                    payload["config"], payload.get("epoch", 5000), payload.get("battle_num", 1)
+                    config, payload.get("epoch", 5000), payload.get("battle_num", 1)
                 )
                 self._send_json(state, HTTPStatus.ACCEPTED)
                 return

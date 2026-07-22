@@ -22,10 +22,11 @@ import numpy as np
 import yaml
 
 from src import skillCode
-from src.utils.loadConfig import load_config, load_xml
+from src.utils.loadConfig import load_config, load_friend_ship, load_xml
 from src.utils.loadDataset import Dataset
 from src.utils.runUtil import set_supply
 from src.utils.battleUtil import CustomBattle
+from src.wsgr.ship import Fleet
 from src.wsgr.wsgrTimer import PHASE_LABELS, timer
 
 
@@ -627,6 +628,70 @@ class WebUIService:
                 "config": self.load_default_config(),
             }
         return copy.deepcopy(self._bootstrap)
+
+    def friend_health_limit(self, ship_config: dict[str, Any]) -> dict[str, int]:
+        """Calculate a friendly ship's current maximum durability in isolation.
+
+        Health-related effects are local to the ship, so a lightweight pair of
+        temporary fleets is sufficient here; no battle phases are started.
+        """
+        if not isinstance(ship_config, dict):
+            raise ValueError("舰船配置必须为对象")
+
+        required = ("cid", "skill")
+        missing = [key for key in required if key not in ship_config]
+        if missing:
+            raise ValueError(f"舰船配置缺少字段：{', '.join(missing)}")
+
+        preview_config = {
+            "cid": str(ship_config["cid"]),
+            # Only the ship, its selected skill and equipment affect the durability cap.
+            # Fixed neutral values keep this preview small and independent from unrelated editor fields.
+            "loc": 1,
+            "level": 110,
+            "affection": 200,
+            "skill": int(ship_config["skill"]),
+            "equipment": list(ship_config.get("equipment") or []),
+            "strategy": [],
+        }
+        preview_timer = timer()
+        friend = Fleet(preview_timer)
+        enemy = Fleet(preview_timer)
+        friend.set_form(4)
+        friend.set_side(1)
+        enemy.set_form(4)
+        enemy.set_side(0)
+
+        try:
+            ship = load_friend_ship(preview_config, self.dataset, preview_timer, log_func=lambda _: None)
+            ship.set_master(friend)
+            friend.set_ship([ship])
+            friend.set_side(1)
+            ship.init_skill(friend, enemy)
+            ship.init_health()
+        except (AttributeError, IndexError, KeyError, TypeError, ValueError) as exc:
+            raise ValueError(f"无法计算该舰船的耐久上限：{exc}") from exc
+
+        maximum = max(1, int(ship.status["standard_health"]))
+        return {"max_health": maximum}
+
+    def prepare_simulation_config(self, config: dict[str, Any]) -> dict[str, Any]:
+        """Drop redundant full-health overrides before a simulation starts."""
+        prepared = copy.deepcopy(config)
+        friend_fleet = prepared.get("friend_fleet")
+        if not isinstance(friend_fleet, dict):
+            return prepared
+
+        for ship in friend_fleet.get("ships", []):
+            if not isinstance(ship, dict) or ship.get("input_health") is None:
+                continue
+            maximum = self.friend_health_limit(ship)["max_health"]
+            input_health = max(1, int(ship["input_health"]))
+            if input_health >= maximum:
+                ship.pop("input_health", None)
+            else:
+                ship["input_health"] = input_health
+        return prepared
 
     def _friend_ship_metadata(self) -> list[dict[str, Any]]:
         ships: list[dict[str, Any]] = []

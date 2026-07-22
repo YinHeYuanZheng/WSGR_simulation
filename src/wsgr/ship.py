@@ -229,12 +229,23 @@ class Ship(Time):
     def init_health(self):
         """初始化血量"""
         # standard_health 血量战损状态计算标准
-        self.status['standard_health'] = self.status['total_health']
+        standard_health = self.status['total_health']
         for tmp_buff in self.common_buff:
             if tmp_buff.name == 'health':
-                self.status['standard_health'] += tmp_buff.value
-        self.status['standard_health'] += self.get_equip_status('health')
-        self.status['health'] = self.status['standard_health']
+                standard_health += tmp_buff.value
+        standard_health += self.get_equip_status('health')
+        self.status['standard_health'] = standard_health
+        if (input_health := self.status.get('input_health')) is not None:
+            input_health = max(min(standard_health, input_health), 1)
+            self.status['input_health'] = input_health  # 更新修正后初始血量
+            self.status['health'] = input_health
+            # 设定初始血量后要更新破损状态
+            if self.status['health'] < standard_health * 0.25:
+                self.damaged = 3
+            elif self.status['health'] < standard_health * 0.5:
+                self.damaged = 2
+        else:
+            self.status['health'] = standard_health
 
     def init_supply(self):
         """初始化补给"""
@@ -867,10 +878,11 @@ class Ship(Time):
         self.supply_ammo = 10 + strategy_ammo
 
         # 统计修理费用并恢复血量
-        got_damage = self.status['standard_health'] - self.status['health']
-        supply['repeat'] += int(got_damage > 0)
-        supply['oil'] += np.ceil(got_damage * self.status['repair_oil'])
-        supply['steel'] += np.ceil(got_damage * self.status['repair_steel'])
+        initial_health = self.status.get('input_health', self.status['standard_health'])
+        repair_damage = max(0, initial_health - self.status['health'])
+        supply['repeat'] += int(repair_damage > 0)
+        supply['oil'] += np.ceil(repair_damage * self.status['repair_oil'])
+        supply['steel'] += np.ceil(repair_damage * self.status['repair_steel'])
         self.status['health'] = self.status['standard_health']
         self.got_damage = 0
         self.damaged = 1
