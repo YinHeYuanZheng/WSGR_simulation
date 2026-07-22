@@ -43,7 +43,7 @@
       <div class="center-column">
         <article class="panel settings-panel">
           <div class="heading"><div class="panel-title"><h2>模拟设置</h2></div></div>
-          <div class="battle-type-row"><span>战斗类型</span><details id="battle-type-picker" class="battle-type-picker"><summary><span id="battle-type-value">常规战</span><b aria-hidden="true"></b></summary><div class="battle-type-menu"><button class="selected" data-value="NormalBattle">常规战</button><button data-value="DaytimeBattle">昼战</button><button data-value="NightBattle">夜战</button><button data-value="AirBattle">航空战</button><button data-value="OnlyAirBattle">仅航空战</button><button data-value="BattleUtil">自定义</button><button data-value="SpecialBattle">特殊战</button></div></details></div>
+          <div class="battle-type-row"><span>战斗类型</span><details id="battle-type-picker" class="battle-type-picker"><summary><span id="battle-type-value">常规战</span><b aria-hidden="true"></b></summary><div class="battle-type-menu"></div></details><details id="custom-phase-picker" class="custom-phase-picker" hidden><summary><span>伤害阶段</span><b aria-hidden="true"></b></summary><div id="custom-phase-menu" class="custom-phase-menu"></div></details></div>
           <div class="range-field"><label for="epoch-range">模拟次数</label><input id="epoch-range" type="range" min="1000" max="20000" step="1000" value="5000"><span class="epoch-input"><input id="epoch-value" class="range-value" type="number" min="1" max="1000000" step="1000" value="5000" aria-label="手动输入模拟次数，最小值 1"></span></div>
           <div class="range-field"><label for="rounds-range">战斗轮次</label><input id="rounds-range" type="range" min="1" max="5" step="1" value="1"><output id="rounds-value">1</output></div>
           <div class="buttons"><button id="simulation-button" class="run simulation-button"><span class="simulation-content"><span class="simulation-icon play-icon"><svg class="play-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l12-8z"/></svg></span><span>开始模拟</span></span><span class="stop-content" aria-hidden="true"><span class="simulation-icon stop-icon"><svg class="stop-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1"/></svg></span><span>停止模拟</span></span></button></div>
@@ -68,7 +68,7 @@
         </div>
 
         <article class="panel result-panel">
-        <button id="export-report" class="quiet export-report">导出战报</button>
+        <div class="result-toolbar"><p id="detail-note" class="detail-note" hidden>只输出第一轮模拟结果</p><button id="export-report" class="quiet export-report">导出战报</button></div>
 
         <section class="result-view-panel active" data-panel="win">
           <div class="result-summary"><div id="win-chart" class="chart win-chart"><div class="chart-center"><strong id="win-chart-value">—<small>%</small></strong><span>综合胜率</span></div></div><ul id="win-legend" class="legend"><li><i class="ss"></i><span>SS 完胜</span><b>—</b><em>—</em></li><li><i class="s"></i><span>S 胜利</span><b>—</b><em>—</em></li><li><i class="a"></i><span>A 小胜</span><b>—</b><em>—</em></li><li><i class="b"></i><span>B 战术胜利</span><b>—</b><em>—</em></li><li><i class="c"></i><span>C 战术失败</span><b>—</b><em>—</em></li><li><i class="d"></i><span>D 失败</span><b>—</b><em>—</em></li></ul></div>
@@ -90,7 +90,6 @@
         </section>
 
         <section class="result-view-panel detail-panel" data-panel="detail" hidden>
-          <p class="detail-note">只输出第一轮模拟结果</p>
           <pre id="battle-detail" class="detail-log">模拟完成后将在这里显示一场战斗的详细记录。</pre>
         </section>
         </article>

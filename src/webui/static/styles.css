@@ -94,7 +94,7 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .mode-thumb { position: absolute; z-index: 1; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); transition: transform .2s; }
 .mode-switch span:first-of-type { color: white; }
 
-main { max-width: 1900px; margin: auto; padding: 10px clamp(20px, 4vw, 64px) 0; }
+main { max-width: 1800px; margin: auto; padding: 10px clamp(20px, 4vw, 64px) 0; }
 .stats { display: grid; grid-template-columns: repeat(6, 1fr); height: 78px; margin-bottom: 10px; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
 .stats article { padding: 10px 16px; border-right: 1px solid var(--line); }
 .stats article:last-child { border: 0; }
@@ -320,7 +320,7 @@ body.dark .mode-switch span:last-of-type { color: white; }
 }
 .enemy-panel .heading-actions { position: absolute; right: 0; }
 
-.battle-type-row { display: grid; min-height: 31px; flex: 0 0 31px; grid-template-columns: 66px minmax(0, 1fr); align-items: center; gap: 8px; font-size: 13px; font-weight: 500; }
+.battle-type-row { display: grid; min-height: 31px; flex: 0 0 31px; grid-template-columns: 66px minmax(0, 1fr) auto; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; }
 .battle-type-picker { position: relative; width: 100%; }
 .battle-type-picker summary { display: flex; align-items: center; justify-content: space-between; height: 30px; padding: 0 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--base); color: var(--ink); cursor: pointer; list-style: none; }
 .battle-type-picker summary::-webkit-details-marker { display: none; }
@@ -328,6 +328,16 @@ body.dark .mode-switch span:last-of-type { color: white; }
 .battle-type-menu { position: absolute; z-index: 8; top: 34px; right: 0; display: grid; grid-template-columns: 1fr 1fr; width: 210px; padding: 6px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: 0 14px 36px #0002; }
 .battle-type-menu button { padding: 7px 8px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); text-align: left; font-size: 10px; }
 .battle-type-menu button:hover, .battle-type-menu button.selected { background: var(--accent-soft); color: var(--accent); }
+.custom-phase-picker { position: relative; }
+.custom-phase-picker summary { display: flex; align-items: center; justify-content: space-between; gap: 7px; height: 30px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--base); color: var(--muted); cursor: pointer; list-style: none; font-size: 10px; white-space: nowrap; }
+.custom-phase-picker summary::-webkit-details-marker { display: none; }
+.custom-phase-picker summary b { width: 0; height: 0; flex: 0 0 auto; border-right: 4px solid transparent; border-top: 5px solid var(--accent); border-left: 4px solid transparent; }
+.custom-phase-picker[open] summary { border-color: var(--accent); color: var(--accent); }
+.custom-phase-menu { position: absolute; z-index: 9; top: 34px; right: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 250px; padding: 7px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: 0 14px 36px #0002; }
+.custom-phase-menu label { display: flex; align-items: center; gap: 6px; min-width: 0; padding: 6px; border-radius: 6px; color: var(--muted); cursor: pointer; font-size: 10px; }
+.custom-phase-menu label:hover { background: var(--accent-soft); color: var(--accent); }
+.custom-phase-menu input { width: 13px; height: 13px; margin: 0; accent-color: var(--accent); }
+body.dark .custom-phase-menu { background: var(--surface); }
 .range-field { display: grid; min-height: 31px; flex: 0 0 31px; grid-template-columns: 66px minmax(70px, 1fr) 64px; align-items: center; gap: 8px; margin-top: 8px; }
 .range-field > label { color: var(--muted); font-size: 13px; font-weight: 500; }
 .range-field input[type="range"] { width: 100%; }
@@ -341,7 +351,8 @@ body.dark .mode-switch span:last-of-type { color: white; }
 .result-column { position: relative; display: grid; min-width: 0; height: 100%; overflow: visible; border: 0; background: transparent; grid-template-rows: 38px minmax(0, 1fr); }
 .result-column .result-panel { padding-top: 10px; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 16px 16px; background: linear-gradient(145deg, #fffdfa, var(--surface)); box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent) 78%, transparent), -5px 5px 18px color-mix(in srgb, var(--accent) 9%, transparent), 0 18px 45px #7b58450f; }
 body.dark .result-column .result-panel { background: linear-gradient(145deg, #1c252a, var(--surface)); }
-.result-panel .export-report { flex: 0 0 30px; align-self: flex-end; margin-bottom: 1px; }
+.result-toolbar { display: flex; min-height: 30px; flex: 0 0 30px; align-items: center; justify-content: space-between; gap: 8px; }
+.result-panel .export-report { flex: 0 0 30px; align-self: center; margin-left: auto; }
 
 .result-tabs { display: flex; z-index: 1; align-items: end; gap: 0; height: 38px; padding: 0; border: 0; background: transparent; }
 .result-tabs button { height: 29px; min-width: 0; flex: .72; margin-bottom: -1px; margin-left: -1px; padding: 0 5px; border: 1px solid var(--line); border-bottom: 0; border-radius: 8px 8px 0 0; background: var(--soft); color: var(--muted); font-size: 12px; transition: flex .2s, height .2s, color .2s, background .2s; }
@@ -373,7 +384,7 @@ body.dark .result-tabs button.active { background: linear-gradient(145deg, #1c25
 .damage-floor-note strong { color: var(--ink); font: 600 22px var(--serif); line-height: 1; }
 .ship-damage-summary { margin-top: 16px; padding-top: 24px; border-top: 1px solid var(--line); }
 .result-log, .detail-log { font-size: 11px; }
-.detail-note { flex: 0 0 auto; margin: 0 0 7px; color: var(--muted); font-size: 10px; }
+.detail-note { margin: 0; color: var(--muted); font-size: 11px; }
 .damage-note { margin-top: 8px; padding: 8px 10px; }
 .ship-damage-note { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
 .ship-damage-note span { display: grid; min-width: 0; gap: 2px; text-align: center; }

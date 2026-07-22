@@ -6,6 +6,21 @@
 import numpy as np
 
 
+PHASE_LABELS = {
+    "LongMissilePhase": "先发制人",
+    "SupportPhase": "支援攻击",
+    "AirPhase": "航空战",
+    "FirstMissilePhase": "导弹战",
+    "AntiSubPhase": "先制反潜",
+    "FirstTorpedoPhase": "先制雷击",
+    "FirstShellingPhase": "首轮炮击",
+    "SecondShellingPhase": "次轮炮击",
+    "SecondTorpedoPhase": "鱼雷战",
+    "SecondMissilePhase": "闭幕导弹",
+    "NightPhase": "夜战",
+}
+
+
 class timer:
     """战斗时点依赖"""
 
@@ -26,18 +41,18 @@ class timer:
             'chase': [],            # 追击
         }
         self.log = {
-            'miss': np.zeros((len(damagePhaseList),2)),
-            'hit': np.zeros((len(damagePhaseList),2)),
-            'hit_rate': np.zeros((len(damagePhaseList),2)),
+            'miss': np.zeros((len(PHASE_LABELS),2)),
+            'hit': np.zeros((len(PHASE_LABELS),2)),
+            'hit_rate': np.zeros((len(PHASE_LABELS),2)),
             'dcitem': 0,  # 使用损管数量
             'record': '',
             'aerial': [None, 0, 0],  # 制空结果(None表示没有航空战)、我方制空、敌方制空
             'recon':[0, 0, 0],       # 索敌率(0-100)、我方索敌、索敌要求
             'round':[None, 0, 0],    # 迂回率(None表示没有迂回)、我方航速、敌方航速
-            'create_damage': np.zeros((len(damagePhaseList), 12)),
-            'get_damage': np.zeros((len(damagePhaseList), 12)),
-            'defeat_num': np.zeros((len(damagePhaseList), 12)),
-            'damaged_state': np.zeros((len(damagePhaseList)+1, 12)),
+            'create_damage': np.zeros((len(PHASE_LABELS), 12)),
+            'get_damage': np.zeros((len(PHASE_LABELS), 12)),
+            'defeat_num': np.zeros((len(PHASE_LABELS), 12)),
+            'damaged_state': np.zeros((len(PHASE_LABELS)+1, 12)),
             'supply': {'oil': 0, 'ammo': 0, 'steel': 0, 'almn': 0, 'repeat': 0},
             # 'end_with': '',             # 退出时抵达位置
             # 'end_with_boss': False,     # 是否抵达boss点
@@ -71,6 +86,8 @@ class timer:
 
     def set_phase(self, phase):
         self.phase = phase
+        if type(phase).__name__ in PHASE_LABELS:
+            self.info(f"【{PHASE_LABELS[type(phase).__name__]}】\n")
 
     def set_atk(self, atk):
         self.atk = atk
@@ -128,17 +145,17 @@ class timer:
         self.air_con_flag = None    # 制空结果
         self.atk = None
         self.log.update({
-            'miss': np.zeros((len(damagePhaseList), 2)),
-            'hit': np.zeros((len(damagePhaseList), 2)),
-            'hit_rate': np.zeros((len(damagePhaseList), 2)),
+            'miss': np.zeros((len(PHASE_LABELS), 2)),
+            'hit': np.zeros((len(PHASE_LABELS), 2)),
+            'hit_rate': np.zeros((len(PHASE_LABELS), 2)),
             'result': '',
             'aerial': [None, 0, 0],
             'recon':[0, 0, 0],
             'round':[None, 0, 0],
-            'create_damage': np.zeros((len(damagePhaseList), 12)),
-            'get_damage': np.zeros((len(damagePhaseList), 12)),
-            'defeat_num': np.zeros((len(damagePhaseList), 12)),
-            'damaged_state': np.zeros((len(damagePhaseList)+1, 12)),
+            'create_damage': np.zeros((len(PHASE_LABELS), 12)),
+            'get_damage': np.zeros((len(PHASE_LABELS), 12)),
+            'defeat_num': np.zeros((len(PHASE_LABELS), 12)),
+            'damaged_state': np.zeros((len(PHASE_LABELS)+1, 12)),
         })
         for key in self.queue.keys():
             self.queue.update({key: []})
@@ -156,7 +173,7 @@ class timer:
         """伤害细节报告"""
         # 命中/闪避报告
         phase = type(self.phase).__name__
-        phaseId = damagePhaseList.index(phase)
+        phaseId = next((i for i, k in enumerate(PHASE_LABELS.keys()) if k == phase), None)  # 遍历查找phase序数
         if phase != 'SupportPhase':
             if isinstance(damage_value, str):
                 self.log['miss'][phaseId, self.atk.source.side] += 1
@@ -167,18 +184,18 @@ class timer:
         damage_info = str(damage_value)
         if not isinstance(damage_value, str):  # 如果造成伤害
             self.atk.source.create_damage(damage_value)  # 结算伤害记录
-            if self.atk.coef['crit_flag']:  # 检查暴击
+            if self.atk.coef.get('crit_flag', False):  # 检查暴击
                 damage_info += "(暴击)"
             if sink:  # 检查是否击沉
                 self.atk.source.defeat_enemy()
                 damage_info += "(击沉)"
 
-        self.log['record'] += f"{self.atk}: {damage_info}\n"
+        self.info(f"{self.atk}: {damage_info}\n")
 
     def phase_end_report(self, friend, enemy):
         """一个伤害阶段结束后统计战斗伤害信息"""
         phase = type(self.phase).__name__
-        phaseId = damagePhaseList.index(phase)
+        phaseId = next((i for i, k in enumerate(PHASE_LABELS.keys()) if k == phase), None)  # 遍历查找phase序数
 
         # 造成的伤害
         self.log['create_damage'][phaseId, :len(friend.ship)] = np.array(
@@ -225,16 +242,3 @@ class Time:
 
     def set_timer(self, new_timer: timer):
         self.timer = new_timer
-
-
-damagePhaseList = ['LongMissilePhase',
-                   'SupportPhase',
-                   'AirPhase',
-                   'FirstMissilePhase',
-                   'AntiSubPhase',
-                   'FirstTorpedoPhase',
-                   'FirstShellingPhase',
-                   'SecondShellingPhase',
-                   'SecondTorpedoPhase',
-                   'SecondMissilePhase',
-                   'NightPhase']

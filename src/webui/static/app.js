@@ -29,6 +29,8 @@ const strategyLevelEditors = {
 const editorSelectPickers = [editorSkill, ...Object.values(strategyEditors)].map(setupEditorSelectPicker);
 const battleTypePicker = document.querySelector('#battle-type-picker');
 const battleTypeValue = document.querySelector('#battle-type-value');
+const customPhasePicker = document.querySelector('#custom-phase-picker');
+const customPhaseMenu = document.querySelector('#custom-phase-menu');
 const epochRange = document.querySelector('#epoch-range');
 const epochValue = document.querySelector('#epoch-value');
 const roundsRange = document.querySelector('#rounds-range');
@@ -39,6 +41,7 @@ const configFileInput = document.querySelector('#config-file');
 const notice = document.querySelector('#notice');
 const clearWorkspaceButton = document.querySelector('#clear-workspace');
 const clearConfirmDialog = document.querySelector('#clear-confirm');
+const detailNote = document.querySelector('#detail-note');
 
 document.addEventListener('pointerdown', event => {
   if (!(event.target instanceof Node)) return;
@@ -49,6 +52,7 @@ document.addEventListener('pointerdown', event => {
     if (!picker.container.contains(event.target)) picker.close();
   });
   if (!battleTypePicker.contains(event.target)) battleTypePicker.open = false;
+  if (!customPhasePicker.contains(event.target)) customPhasePicker.open = false;
 });
 
 let metadata = null;
@@ -68,6 +72,7 @@ let latestSimulation = null;
 let simulationDisplayFrozen = false;
 let latestSummary = null;
 let damagePhaseFilter = null;
+let customPhaseIds = new Set();
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, character => ({
@@ -141,6 +146,8 @@ function resetResultDisplay() {
     panel.hidden = !active;
     panel.classList.toggle('active', active);
   });
+  detailNote.hidden = true;
+  exportReportButton.textContent = '导出战报';
 }
 
 async function clearWorkspace() {
@@ -684,6 +691,7 @@ function getFormation(side) {
 }
 
 function setupBattleTypes(selectedId = null) {
+  setupCustomPhasePicker();
   const menu = battleTypePicker.querySelector('.battle-type-menu');
   menu.replaceChildren(...metadata.battle_types.map(type => {
     const button = document.createElement('button');
@@ -700,10 +708,55 @@ function setupBattleTypes(selectedId = null) {
 }
 
 function setBattleType(id) {
-  const accepted = metadata.battle_types.find(type => type.id === id) || metadata.battle_types[0];
+  const normalizedId = id === 'BattleUtil' ? 'CustomBattle' : id;
+  const accepted = metadata.battle_types.find(type => type.id === normalizedId) || metadata.battle_types[0];
   battleTypePicker.dataset.value = accepted.id;
   battleTypeValue.textContent = accepted.name;
   battleTypePicker.querySelectorAll('.battle-type-menu button').forEach(button => button.classList.toggle('selected', button.dataset.value === accepted.id));
+  const custom = accepted.id === 'CustomBattle';
+  customPhasePicker.hidden = !custom;
+  if (!custom) customPhasePicker.open = false;
+}
+
+function setupCustomPhasePicker() {
+  const phases = metadata.custom_phases || [];
+  customPhaseMenu.replaceChildren(...phases.map(phase => {
+    const label = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.value = phase.id;
+    input.checked = true;
+    input.addEventListener('change', () => {
+      if (!input.checked && customPhaseIds.size === 1) {
+        input.checked = true;
+        showNotice('至少保留一个伤害阶段', true);
+        return;
+      }
+      if (input.checked) customPhaseIds.add(phase.id);
+      else customPhaseIds.delete(phase.id);
+    });
+    const text = document.createElement('span');
+    text.textContent = phase.name;
+    label.append(input, text);
+    return label;
+  }));
+  setCustomPhases(phases.map(phase => phase.id));
+}
+
+function setCustomPhases(phaseIds) {
+  const phases = metadata?.custom_phases || [];
+  const valid = new Set(phases.map(phase => phase.id));
+  const requested = Array.isArray(phaseIds) ? phaseIds.filter(phase => valid.has(phase)) : [];
+  customPhaseIds = new Set(requested.length ? requested : phases.map(phase => phase.id));
+  customPhaseMenu.querySelectorAll('input[type="checkbox"]').forEach(input => {
+    input.checked = customPhaseIds.has(input.value);
+  });
+}
+
+function selectedCustomPhases() {
+  return (metadata.custom_phases || [])
+    .map(phase => phase.id)
+    .filter(phase => customPhaseIds.has(phase));
 }
 
 function updateEpoch(value, manual = false) {
@@ -744,11 +797,13 @@ function buildBattleConfig() {
   const enemyFleetConfig = buildFleetConfig('enemy');
   if (!friendFleet.ships.length) throw new Error('我方舰队不能为空');
   if (!enemyFleetConfig.ships.length) throw new Error('敌方舰队不能为空');
-  return {
+  const config = {
     battle_type: battleTypePicker.dataset.value,
     friend_fleet: friendFleet,
     enemy_fleet: enemyFleetConfig,
   };
+  if (config.battle_type === 'CustomBattle') config.custom_phases = selectedCustomPhases();
+  return config;
 }
 
 function removePendingShips() {
@@ -768,7 +823,10 @@ function applyConfig(config, target = null) {
   if (!config?.friend_fleet || !config?.enemy_fleet) throw new Error('配置文件缺少舰队信息');
   if (!target || target === 'friend') renderFleet('friend', config.friend_fleet);
   if (!target || target === 'enemy') renderFleet('enemy', config.enemy_fleet);
-  if (!target) setBattleType(config.battle_type);
+  if (!target) {
+    setBattleType(config.battle_type);
+    setCustomPhases(config.custom_phases);
+  }
   setResultLog(target ? `已载入${target === 'friend' ? '我方' : '敌方'}舰队配置` : '已载入战斗配置，等待开始模拟');
 }
 
@@ -1184,25 +1242,60 @@ document.querySelector('#save-config').addEventListener('click', async () => {
   }
 });
 
-document.querySelector('#export-report').addEventListener('click', () => {
+function csvCell(value) {
+  return `"${String(value ?? '').replace(/"/g, '""')}"`;
+}
+
+function buildSummaryCsv(simulation) {
+  const summary = simulation.summary;
+  const resultFlags = ['SS', 'S', 'A', 'B', 'C', 'D'];
+  const resultCounts = resultFlags.map(flag => Number(summary.result_counts?.[flag]) || 0);
+  const totalResults = resultCounts.reduce((sum, value) => sum + value, 0);
+  const winRates = resultCounts.map(value => totalResults ? `${(value / totalResults * 100).toFixed(2)}%` : '0.00%');
+  const ships = Array.from({ length: 6 }, (_, index) => summary.ship_damage?.[index]?.name || '——');
+  const phaseHeaders = (summary.phase_damage || []).map(item => item.name);
+  const phaseValues = (summary.phase_damage || []).map(item => Number(item.value || 0).toFixed(2));
+  const midRates = Array.from({ length: 6 }, (_, index) => summary.friend_mid_damage_rates?.[index]?.rate);
+  const heavyRates = Array.from({ length: 6 }, (_, index) => summary.friend_heavy_damage_rates?.[index]?.rate);
+  const headers = [
+    '编号', '模拟次数',
+    ...ships.map((_, index) => `舰船${index + 1}名称`),
+    ...resultFlags.map(flag => `${flag}胜率`),
+    '平均伤害',
+    ...phaseHeaders.map(name => `${name}伤害`),
+    '燃油消耗', '弹药消耗', '钢材消耗', '铝材消耗', '平均桶耗',
+    ...ships.map((_, index) => `舰船${index + 1}中破率`),
+    ...ships.map((_, index) => `舰船${index + 1}大破率`),
+  ];
+  const values = [
+    1, simulation.completed || 0,
+    ...ships,
+    ...winRates,
+    Number(summary.average_damage || 0).toFixed(2),
+    ...phaseValues,
+    Number(summary.supply?.oil || 0).toFixed(1),
+    Number(summary.supply?.ammo || 0).toFixed(1),
+    Number(summary.supply?.steel || 0).toFixed(1),
+    Number(summary.supply?.almn || 0).toFixed(1),
+    Number(summary.average_bucket || 0).toFixed(2),
+    ...midRates.map(value => Number.isFinite(Number(value)) ? `${Number(value).toFixed(2)}%` : '——'),
+    ...heavyRates.map(value => Number.isFinite(Number(value)) ? `${Number(value).toFixed(2)}%` : '——'),
+  ];
+  return `\ufeff${headers.map(csvCell).join(',')}\n${values.map(csvCell).join(',')}\n`;
+}
+
+const exportReportButton = document.querySelector('#export-report');
+exportReportButton.addEventListener('click', () => {
   if (!latestSimulation?.summary) {
     showNotice('请先完成至少一次模拟', true);
     return;
   }
-  const summary = latestSimulation.summary;
-  const content = [
-    'WSGR 战斗模拟报告',
-    `实际模拟次数：${latestSimulation.completed}`,
-    `综合胜率：${summary.win_rate.toFixed(2)}%`,
-    `旗舰击沉率：${summary.flagship_sink_rate.toFixed(2)}%`,
-    `平均伤害：${summary.average_damage.toFixed(1)}`,
-    `平均桶耗：${summary.average_bucket.toFixed(2)}`,
-    `资源消耗：油 ${summary.supply.oil.toFixed(1)} / 弹 ${summary.supply.ammo.toFixed(1)} / 钢 ${summary.supply.steel.toFixed(1)} / 铝 ${summary.supply.almn.toFixed(1)}`,
-    '',
-    '【一场战斗详情】',
-    summary.battle_detail || '无',
-  ].join('\n');
-  downloadBlob(content, 'wsgr_battle_report.txt', 'text/plain;charset=utf-8');
+  const activeView = document.querySelector('.result-tabs button.active')?.dataset.view || 'win';
+  if (activeView === 'detail') {
+    downloadBlob(latestSimulation.summary.battle_detail || '无\n', 'wsgr_battle_detail.txt', 'text/plain;charset=utf-8');
+    return;
+  }
+  downloadBlob(buildSummaryCsv(latestSimulation), 'wsgr_battle_report.csv', 'text/csv;charset=utf-8');
 });
 
 const resultTabs = document.querySelectorAll('.result-tabs button');
@@ -1218,6 +1311,8 @@ resultTabs.forEach(tab => tab.addEventListener('click', () => {
     panel.hidden = !selected;
     panel.classList.toggle('active', selected);
   });
+  detailNote.hidden = tab.dataset.view !== 'detail';
+  exportReportButton.textContent = tab.dataset.view === 'detail' ? '导出详情' : '导出战报';
 }));
 
 const modeSwitch = document.querySelector('#mode-switch');

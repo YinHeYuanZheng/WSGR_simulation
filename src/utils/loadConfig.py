@@ -136,6 +136,8 @@ def load_config(battleConfig, mapDir, dataset, timer, log_func=print) -> BattleU
 
         enemyDict = battleConfig['enemy_fleet']
         enemy = load_fleet(enemyDict, dataset, timer, log_func=log_func)
+        if battle_type == 'CustomBattle':
+            return battle(timer, friend, enemy, battleConfig.get('custom_phases'))
         return battle(timer, friend, enemy)
     else:
         mapDict = battleConfig['map']

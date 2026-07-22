@@ -25,6 +25,7 @@ from src import skillCode
 from src.utils.loadConfig import load_config, load_xml
 from src.utils.loadDataset import Dataset
 from src.utils.runUtil import set_supply
+from src.utils.battleUtil import CustomBattle
 from src.wsgr.wsgrTimer import damagePhaseList, timer
 
 
@@ -49,8 +50,7 @@ BATTLE_TYPES = [
     {"id": "NightBattle", "name": "夜战"},
     {"id": "AirBattle", "name": "航空战"},
     {"id": "OnlyAirBattle", "name": "仅航空战"},
-    {"id": "BattleUtil", "name": "自定义"},
-    {"id": "SpecialBattle", "name": "特殊战"},
+    {"id": "CustomBattle", "name": "自定义"},
 ]
 
 STRATEGIES = {
@@ -587,6 +587,10 @@ class WebUIService:
             self._bootstrap = {
                 "formations": FORMATIONS,
                 "battle_types": BATTLE_TYPES,
+                "custom_phases": [
+                    {"id": phase, "name": PHASE_LABELS[phase]}
+                    for phase in CustomBattle.phase_names
+                ],
                 "friend_ships": self._friend_ship_metadata(),
                 "enemy_ships": self._enemy_ship_metadata(),
                 "equipment": [

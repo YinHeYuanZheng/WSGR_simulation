@@ -14,6 +14,7 @@ __all__ = ['BattleUtil',
            'NightBattle',
            'DaytimeBattle',
            'OnlyAirBattle',
+           'CustomBattle',
            'SpecialBattle']
 
 
@@ -32,7 +33,7 @@ class BattleUtil(Time):
         self.start_phase()
         self.run_phase(LongMissilePhase)
         self.run_phase(BuffPhase)
-        # self.run_phase(SupportPhase)
+        self.run_phase(SupportPhase)
         self.run_phase(AirPhase)
         self.run_phase(TLockPhase)
         self.run_phase(FirstMissilePhase)
@@ -315,6 +316,104 @@ class OnlyAirBattle(BattleUtil):
 
 
 # ## 以下为自定义战斗 ## #
+class CustomBattle(BattleUtil):
+    """按配置选择伤害阶段的战斗流程。"""
+
+    phase_types = (
+        ('LongMissilePhase', LongMissilePhase),
+        ('SupportPhase', SupportPhase),
+        ('AirPhase', AirPhase),
+        ('FirstMissilePhase', FirstMissilePhase),
+        ('AntiSubPhase', AntiSubPhase),
+        ('FirstTorpedoPhase', FirstTorpedoPhase),
+        ('FirstShellingPhase', FirstShellingPhase),
+        ('SecondShellingPhase', SecondShellingPhase),
+        ('SecondTorpedoPhase', SecondTorpedoPhase),
+        ('SecondMissilePhase', SecondMissilePhase),
+        ('NightPhase', NightPhase),
+    )
+    phase_names = tuple(name for name, _ in phase_types)
+    _post_air_phase_names = frozenset(phase_names[3:])
+
+    def __init__(self, timer, friend, enemy, selected_phases=None):
+        super().__init__(timer, friend, enemy)
+        if selected_phases is None:
+            selected_phases = self.phase_names
+        if not isinstance(selected_phases, (list, tuple, set)):
+            raise ValueError('自定义战斗的伤害阶段必须为列表')
+
+        selected = set(selected_phases)
+        unknown = selected.difference(self.phase_names)
+        if unknown:
+            raise ValueError(f"存在未定义的伤害阶段：{', '.join(sorted(unknown))}")
+        if not selected:
+            raise ValueError('自定义战斗至少需要选择一个伤害阶段')
+        self.selected_phases = tuple(name for name in self.phase_names if name in selected)
+
+    def start(self):
+        self.battle_init()
+        self.start_phase()
+        if self.timer.round_flag:
+            self.end_phase()
+            return
+
+        selected = set(self.selected_phases)
+        if 'LongMissilePhase' in selected:
+            self.run_phase(LongMissilePhase)
+
+        # BuffPhase 和 TLockPhase 不是伤害阶段，但分别是后续攻击的技能、
+        # 阵型前置结算，因此由流程自动执行而不出现在 WebUI 的勾选菜单中。
+        self.run_phase(BuffPhase)
+        if 'SupportPhase' in selected:
+            self.run_phase(SupportPhase)
+        if 'AirPhase' in selected:
+            self.run_phase(AirPhase)
+        post_air_selected = selected.intersection(self._post_air_phase_names)
+        if post_air_selected and 'AirPhase' not in selected:
+            self._prepare_air_control()
+        if post_air_selected:
+            self.run_phase(TLockPhase)
+
+        for name, phase_type in self.phase_types[3:]:
+            if name in selected:
+                self.run_phase(phase_type)
+        self.end_phase()
+
+    def _prepare_air_control(self):
+        """只计算制空状态，不执行航空攻击；无航空战时按均势初始化。"""
+        from src.wsgr.formulas import AirStrikeAtk
+
+        air_phase = AirPhase(self.timer, self.friend, self.enemy)
+        self.timer.set_phase(air_phase)
+        atk_friend = self.friend.get_act_member_inphase()
+        atk_enemy = self.enemy.get_act_member_inphase()
+        def_friend = self.friend.get_atk_target(atk_type=AirStrikeAtk)
+        def_enemy = self.enemy.get_atk_target(atk_type=AirStrikeAtk)
+        if not ((len(atk_friend) and len(def_enemy)) or
+                (len(atk_enemy) and len(def_friend))):
+            self.timer.air_con_flag = 3
+            return
+
+        atk_plane_friend = air_phase.get_atk_plane(atk_friend)
+        atk_plane_enemy = air_phase.get_atk_plane(atk_enemy)
+        if not atk_plane_friend and not atk_plane_enemy:
+            self.timer.air_con_flag = 3
+            return
+
+        aerial_friend = self.friend.get_fleet_aerial()
+        aerial_enemy = self.enemy.get_fleet_aerial()
+        air_con_flag = air_phase.compare_aerial(aerial_friend, aerial_enemy)
+        if aerial_friend == 0 and aerial_enemy == 0:
+            if atk_plane_friend and not atk_plane_enemy:
+                air_con_flag = 1
+            elif atk_plane_friend and atk_plane_enemy:
+                air_con_flag = 3
+            elif not atk_plane_friend and atk_plane_enemy:
+                air_con_flag = 5
+        self.timer.report_log('aerial', [air_con_flag, aerial_friend, aerial_enemy])
+        self.timer.set_air_con(air_con_flag)
+
+
 class SpecialBattle(BattleUtil):
     """自定义战斗流程"""
     def start(self, air_strike_num:int=4):
