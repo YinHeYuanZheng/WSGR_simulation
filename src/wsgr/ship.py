@@ -791,7 +791,7 @@ class Ship(Time):
                 self.status['health'] < standard_health * 0.5:
             self.damaged = 2
 
-        return damage, sink
+        return sink
 
     def create_damage(self, damage):
         """造成伤害记录"""

@@ -5,7 +5,7 @@
 import copy
 import numpy as np
 import threading
-from src.wsgr.wsgrTimer import damagePhaseList
+from src.wsgr.wsgrTimer import PHASE_LABELS
 from src.wsgr.ship import Ship
 
 
@@ -70,8 +70,8 @@ def run_hit_rate(battle, epoch, phase:str=None,
         tmp_battle.start()
         log = tmp_battle.report()
 
-        if (phase is not None) and (phase in damagePhaseList):
-            phaseId = damagePhaseList.index(phase)
+        if (phase is not None) and (phase in PHASE_LABELS.keys()):
+            phaseId = next((i for i, k in enumerate(PHASE_LABELS.keys()) if k == phase), None)  # 遍历查找phase序数
             hit_rate += log['hit_rate'][phaseId, 1]
         else:
             hit_rate += log['hit_rate'][:, 1].mean()
@@ -93,8 +93,8 @@ def run_avg_damage(battle, epoch, phase:str=None,
         tmp_battle.start()
         log = tmp_battle.report()
 
-        if (phase is not None) and (phase in damagePhaseList):
-            phaseId = damagePhaseList.index(phase)
+        if (phase is not None) and (phase in PHASE_LABELS.keys()):
+            phaseId = next((i for i, k in enumerate(PHASE_LABELS.keys()) if k == phase), None)  # 遍历查找phase序数
             avg_damage_phase += log['create_damage'][phaseId, :6].sum()
             phase_info = f'{phase}平均伤害: {avg_damage_phase / (i + 1):.3f} '
         else:

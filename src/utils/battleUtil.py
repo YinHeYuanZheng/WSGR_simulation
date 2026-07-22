@@ -3,7 +3,7 @@
 # env:py38
 
 import numpy as np
-from src.wsgr.wsgrTimer import Time, damagePhaseList
+from src.wsgr.wsgrTimer import Time, PHASE_LABELS
 from src.wsgr.phase import *
 
 __all__ = ['BattleUtil',
@@ -103,7 +103,7 @@ class BattleUtil(Time):
         """
         self.timer.set_phase(phase_class(self.timer, self.friend, self.enemy))
         self.timer.phase_start()
-        if phase_class.__name__ in damagePhaseList:
+        if phase_class.__name__ in PHASE_LABELS.keys():
             self.timer.phase_end_report(self.friend, self.enemy)
 
     def supply_cost(self):

@@ -63,11 +63,16 @@ class ATK(Time):
         self.random_range = [0.89, 1.22]  # 浮动系数上下限
         self.pierce_base = 0.6  # 穿甲基础值
 
-    def __repr__(self):
-        source_name = self.source.status['name']
-        target_name = self.target.status['name'] \
+    def __repr__(self, atk_info=None):
+        source_name = (f"[{'我方' if self.source.side == 1 else '敌方'}"
+                       f"{self.source.loc}号位]"
+                       f"{self.source.status['name']}")
+        target_name = (f"[{'我方' if self.target.side == 1 else '敌方'}"
+                       f"{self.target.loc}号位]"
+                       f"{self.target.status['name']}") \
             if self.target is not None else '未确定'
-        atk_info = self.atk_name if hasattr(self, 'atk_name') else type(self).__name__
+        if atk_info is None:
+            atk_info = self.atk_name if hasattr(self, 'atk_name') else type(self).__name__
         return f"{source_name} -> {target_name} ({atk_info})"
 
     def start(self):
@@ -91,7 +96,7 @@ class ATK(Time):
 
         damage_flag = True
         damage = self.final_damage(damage)
-        damage, sink = self.target.get_damage(damage)
+        sink = self.target.get_damage(damage)
         return self.end_atk(damage_flag, damage, sink)
 
     def target_init(self):
@@ -486,7 +491,7 @@ class SupportAtk(ATK):
         self.timer.set_atk(self)
         damage = self.formula()
         damage_flag = bool(damage)
-        damage, sink = self.target.get_damage(damage)
+        sink = self.target.get_damage(damage)
         return self.end_atk(damage_flag, damage, sink)
 
     def formula(self):
@@ -583,7 +588,7 @@ class AirStrikeAtk(AirAtk):
 
         damage_flag = True
         damage = self.final_damage(damage)
-        damage, sink = self.target.get_damage(damage)
+        sink = self.target.get_damage(damage)
         return self.end_atk(damage_flag, damage, sink)
 
     def process_coef(self):
@@ -758,12 +763,9 @@ class AirStrikeAtk(AirAtk):
 
 
 class AirBombAtk(AirStrikeAtk):
-    def __repr__(self):
-        source_name = self.source.status['name']
-        target_name = self.target.status['name'] \
-            if self.target is not None else '未确定'
+    def __repr__(self, atk_info=None):
         atk_info = f"航空轰炸机-{self.equip.status['name']}"
-        return f"{source_name} -> {target_name} ({atk_info})"
+        return super().__repr__(atk_info)
 
     def process_coef(self):
         # 技能系数
@@ -797,12 +799,9 @@ class AirBombAtk(AirStrikeAtk):
 
 
 class AirDiveAtk(AirStrikeAtk):
-    def __repr__(self):
-        source_name = self.source.status['name']
-        target_name = self.target.status['name'] \
-            if self.target is not None else '未确定'
+    def __repr__(self, atk_info=None):
         atk_info = f"航空鱼雷机-{self.equip.status['name']}"
-        return f"{source_name} -> {target_name} ({atk_info})"
+        return super().__repr__(atk_info)
 
     def process_coef(self):
         # 技能系数
@@ -853,11 +852,7 @@ class MissileAtk(ATK):
         })  # 阵型系数
         self.pierce_base = 0  # 穿甲基础值
 
-    def __repr__(self):
-        source_name = self.source.status['name']
-        target_name = self.target.status['name'] \
-            if self.target is not None else '未确定'
-
+    def __repr__(self, atk_info=None):
         from src.wsgr.phase import \
             FirstMissilePhase, SecondMissilePhase, LongMissilePhase
         if isinstance(self.timer.phase, FirstMissilePhase):
@@ -868,7 +863,7 @@ class MissileAtk(ATK):
             atk_info = f"远程打击-{self.equip.status['name']}"
         else:
             atk_info = '导弹攻击'
-        return f"{source_name} -> {target_name} ({atk_info})"
+        return super().__repr__(atk_info)
 
     def crit_verify(self):
         """暴击检定"""
@@ -1155,11 +1150,7 @@ class NormalAtk(ATK):
             'miss': [.9, 1.2, .9, .8, 1.3],
         })  # 阵型系数
 
-    def __repr__(self):
-        source_name = self.source.status['name']
-        target_name = self.target.status['name'] \
-            if self.target is not None else '未确定'
-
+    def __repr__(self, atk_info=None):
         from src.wsgr.phase import FirstShellingPhase, SecondShellingPhase
         if self.get_coef('hit_back'):
             atk_info = '反击'
@@ -1169,7 +1160,7 @@ class NormalAtk(ATK):
             atk_info = '次轮炮击'
         else:
             atk_info = '普通炮击'
-        return f"{source_name} -> {target_name} ({atk_info})"
+        return super().__repr__(atk_info)
 
     @property
     def hit_shipsize_coef(self):
@@ -1411,12 +1402,9 @@ class NightAtk(ATK):
         })  # 阵型系数
         self.dir_coef = [1, 1, 1, 1]  # 航向系数，按照优同反劣顺序
 
-    def __repr__(self):
-        source_name = self.source.status['name']
-        target_name = self.target.status['name'] \
-            if self.target is not None else '未确定'
+    def __repr__(self, atk_info=None):
         atk_info = self.atk_name if hasattr(self, 'atk_name') else type(self).__name__
-        return f"{source_name} -> {target_name} ({atk_info})"
+        return super().__repr__(atk_info)
 
     @ property
     def hit_shipsize_coef(self):
@@ -1518,12 +1506,9 @@ class NightMissileAtk(NightAtk, MissileAtk):
         self.random_range = [1.2, 1.5]  # 浮动系数上下限
         self.pierce_base = 1  # 穿甲基础值
 
-    def __repr__(self):
-        source_name = self.source.status['name']
-        target_name = self.target.status['name'] \
-            if self.target is not None else '未确定'
+    def __repr__(self, atk_info=None):
         atk_info = f"夜战导弹-{self.equip.status['name']}"
-        return f"{source_name} -> {target_name} ({atk_info})"
+        return super().__repr__(atk_info)
 
 
 class NightAirAtk(NightAtk, AirNormalAtk):
