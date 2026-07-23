@@ -214,7 +214,11 @@ class SimulationManager:
         else:
             process = context.Process(
                 target=_run_spawned_simulation,
-                args=(str(DATA_FILE), copy.deepcopy(battle_config), epoch, battle_num, state_queue),
+                # Windows uses ``spawn`` and would otherwise reopen and parse
+                # database.xlsx for every click on “开始模拟”.  Dataset only
+                # contains compact pandas frames, so passing the already-loaded
+                # instance is substantially cheaper than another Excel parse.
+                args=(self.dataset, copy.deepcopy(battle_config), epoch, battle_num, state_queue),
                 daemon=True,
                 name="wsgr-webui-simulation",
             )
@@ -583,13 +587,13 @@ def _run_forked_simulation(
 
 
 def _run_spawned_simulation(
-    data_file: str,
+    dataset: Dataset,
     battle_config: dict[str, Any],
     epoch: int,
     battle_num: int,
     state_queue: mp.Queue,
 ) -> None:
-    manager = SimulationManager(Dataset(data_file))
+    manager = SimulationManager(dataset)
     manager._state_sink = state_queue
     manager._run(battle_config, epoch, battle_num)
 
