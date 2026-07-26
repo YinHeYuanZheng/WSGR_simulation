@@ -3,6 +3,7 @@
 # env:py38
 
 import os
+import re
 import xml.dom.minidom
 import yaml
 
@@ -13,6 +14,42 @@ from src.utils.parseEquipSkill import load_equip_config
 import src.wsgr.ship as rship
 import src.wsgr.equipment as requip
 from src import skillCode
+
+
+# A map id is also part of the standalone map filename.  Keep ordinary names
+# (including Chinese and spaces) intact, while rejecting path traversal and
+# characters that cannot be used in a filename on Windows.
+INVALID_MAP_ID_PATTERN = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+
+
+def map_yaml_path(mapid: str, mapDir: str) -> str:
+    """Return the canonical standalone YAML path for a map id."""
+    normalized = str(mapid).strip()
+    if normalized in {'.', '..'} or INVALID_MAP_ID_PATTERN.search(normalized) \
+            or normalized.endswith(('.', ' ')):
+        raise ValueError(f'Invalid mapid: {mapid!r}')
+    return os.path.join(mapDir, f'{normalized}.yaml')
+
+
+def load_map_yaml(mapid: str, mapDir: str) -> dict:
+    """Load a standalone map document containing nodes, routes and fleets."""
+    map_file = map_yaml_path(mapid, mapDir)
+    if not os.path.exists(map_file):
+        raise FileNotFoundError(f"Map file '{map_file}' not found!")
+    with open(map_file, 'r', encoding='utf-8') as file:
+        map_config = yaml.safe_load(file)
+    if not isinstance(map_config, dict):
+        raise ValueError(f"Map file '{map_file}' must contain an object")
+    file_mapid = str(map_config.get('mapid', '')).strip()
+    if file_mapid != str(mapid).strip():
+        raise ValueError(
+            f"Map file '{map_file}' declares mapid {file_mapid!r}, "
+            f"expected {str(mapid).strip()!r}"
+        )
+    if not isinstance(map_config.get('nodes'), list) or \
+            not isinstance(map_config.get('routes'), list):
+        raise ValueError(f"Map file '{map_file}' must contain nodes and routes")
+    return map_config
 
 
 def load_xml(infile: str, mapDir: str) -> dict:
@@ -87,7 +124,8 @@ def load_xml(infile: str, mapDir: str) -> dict:
         map_root = root.getElementsByTagName('Map')[0]
         mapid = map_root.getAttribute('mapid')
         battleConfig['map'] = {'mapid': mapid,
-                               'entrance': int(map_root.getAttribute('entrance'))}
+                               'entrance': int(map_root.getAttribute('entrance')),
+                               '_format': 'xml'}
 
     return battleConfig
 
@@ -116,10 +154,13 @@ def load_yaml(infile: str, mapDir: str) -> dict:
         except:
             raise ValueError(f'Config type {battle_type}, but no enemy fleet detected')
     else:
-        mapid = battleConfig['map']['mapid']
-        map_xml = os.path.join(mapDir, 'mapid' + mapid + '.xml')
-        if not os.path.exists(map_xml):
-            raise FileNotFoundError(f"Map file '{map_xml}' not found!")
+        map_config = battleConfig.get('map')
+        if not isinstance(map_config, dict):
+            raise ValueError('Map config is not defined!')
+        mapid = str(map_config.get('mapid', '')).strip()
+        if not mapid:
+            raise ValueError('Map config must define mapid!')
+        load_map_yaml(mapid, mapDir)
 
     return battleConfig
 
@@ -141,7 +182,12 @@ def load_config(battleConfig, mapDir, dataset, timer, log_func=print) -> BattleU
         return battle(timer, friend, enemy)
     else:
         mapDict = battleConfig['map']
-        battle_map = load_map(mapDict, mapDir, dataset, timer, friend)
+        battle_map = load_map(
+            mapDict, mapDir, dataset, timer, friend,
+            map_document=battleConfig.get('_map_document'),
+            enemy_ship_loader=load_enemy_ship,
+            log_func=log_func,
+        )
         return battle_map
 
 
@@ -160,10 +206,32 @@ def load_fleet(fleetDict, dataset, timer, log_func=print):
     return fleet
 
 
-def load_map(mapDict, mapDir, dataset, timer, friend):
-    mapid = mapDict['mapid']
-    entrance_id = int(mapDict['entrance'])
+def load_map(
+        mapDict, mapDir, dataset, timer, friend, map_document=None,
+        enemy_ship_loader=None, log_func=print,
+):
+    mapid = str(mapDict['mapid']).strip()
+    map_yaml = map_yaml_path(mapid, mapDir)
+    if map_document is not None:
+        if not isinstance(map_document, dict):
+            raise ValueError('Temporary map document must be an object')
+        document_mapid = str(map_document.get('mapid', '')).strip()
+        if document_mapid != mapid:
+            raise ValueError(
+                f'Temporary mapid {document_mapid!r} does not match config mapid {mapid!r}'
+            )
+        return MapUtil(
+            timer, map_document, dataset, friend,
+            enemy_ship_loader=enemy_ship_loader, log_func=log_func,
+        )
 
+    if mapDict.get('_format') != 'xml' and os.path.exists(map_yaml):
+        return MapUtil(
+            timer, load_map_yaml(mapid, mapDir), dataset, friend,
+            enemy_ship_loader=enemy_ship_loader, log_func=log_func,
+        )
+
+    entrance_id = int(mapDict.get('entrance', 0))
     map_xml = os.path.join(mapDir, 'mapid'+mapid+'.xml')
     map_dom = xml.dom.minidom.parse(map_xml)
     root = map_dom.documentElement
@@ -262,12 +330,11 @@ def load_enemy_ship(shipDict, dataset, timer, log_func=print):
 
     # 写入节点属性
     ship.set_loc(int(shipDict['loc']))
-    # ship.set_level(int(shipDict['level']))
-    ship.set_affection(int(shipDict['affection']))
+    ship.set_affection(int(shipDict.get('affection', 50)))
 
     # 写入非属性变量
-    level = status.pop('level')
-    ship.set_level(level)
+    dataset_level = status.pop('level')
+    ship.set_level(int(shipDict.get('level', dataset_level)))
     if status['capacity'] != 0:
         load = status.pop('load')
         ship.set_load(load)
@@ -282,7 +349,7 @@ def load_enemy_ship(shipDict, dataset, timer, log_func=print):
     # skill_num = int(shipDict['skill']) - 1
     skill_num = 0  # 默认只有一个技能
     sid = skill_list[skill_num]
-    if sid != '' and int(shipDict['skill']) != 0:  # skill=0可用于去除敌舰技能
+    if sid != '' and int(shipDict.get('skill', 1)) != 0:  # skill=0可用于去除敌舰技能
         sid = 'sid' + sid
         skill = getattr(skillCode, sid).skill  # 根据技能设置获取技能列表，未实例化
         ship.add_skill(skill)

@@ -37,6 +37,9 @@ class WebUIRequestHandler(SimpleHTTPRequestHandler):
         if path == "/api/simulation/status":
             self._send_json(self.service.simulations.snapshot())
             return
+        if path == "/api/map-simulation/status":
+            self._send_json(self.service.map_simulations.snapshot())
+            return
         super().do_GET()
 
     def do_POST(self) -> None:  # noqa: N802 - inherited HTTP method name
@@ -45,6 +48,18 @@ class WebUIRequestHandler(SimpleHTTPRequestHandler):
             payload = self._read_json()
             if path == "/api/ship/health-limit":
                 self._send_json(self.service.friend_health_limit(payload["ship"]))
+                return
+            if path == "/api/map/fleet-summary":
+                self._send_json(self.service.map_enemy_fleet_summary(payload["fleet"]))
+                return
+            if path == "/api/map/exists":
+                self._send_json(self.service.map_exists(payload["mapid"]))
+                return
+            if path == "/api/map/load":
+                self._send_json(self.service.load_map_document(payload["mapid"]))
+                return
+            if path == "/api/map/save":
+                self._send_json(self.service.save_map_document(payload["map"]))
                 return
             if path == "/api/simulation/start":
                 config = self.service.prepare_simulation_config(payload["config"])
@@ -58,6 +73,23 @@ class WebUIRequestHandler(SimpleHTTPRequestHandler):
                 return
             if path == "/api/simulation/reset":
                 self._send_json(self.service.simulations.reset())
+                return
+            if path == "/api/map-simulation/start":
+                config = self.service.prepare_simulation_config(payload["config"])
+                map_document = payload.get("map")
+                if not isinstance(map_document, dict):
+                    raise ValueError("缺少当前地图内容")
+                config["_map_document"] = map_document
+                state = self.service.map_simulations.start(
+                    config, payload.get("epoch", 5000), 1
+                )
+                self._send_json(state, HTTPStatus.ACCEPTED)
+                return
+            if path == "/api/map-simulation/stop":
+                self._send_json(self.service.map_simulations.stop())
+                return
+            if path == "/api/map-simulation/reset":
+                self._send_json(self.service.map_simulations.reset())
                 return
             if path == "/api/config/import":
                 config = self.service.load_uploaded_config(payload["filename"], payload["content"])

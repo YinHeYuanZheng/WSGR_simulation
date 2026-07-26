@@ -196,7 +196,7 @@ class BattleUtil(Time):
                 f"[敌方{index}号位]{ship.status['name']}：{current_health}/{max_health}"
             )
 
-        self.timer.info("\n".join(health_lines) + "\n")
+        self.timer.info("\n".join(health_lines) + "\n\n")
 
     def report(self):
         # 消耗
@@ -234,8 +234,8 @@ class NormalBattle(BattleUtil):
             return
         self.run_phase(LongMissilePhase)
         self.run_phase(BuffPhase)
-        # if (self.timer.point is not None) and (self.timer.point.level == 5):
-        #     self.run_phase(SupportPhase)
+        if self.timer.point is not None and self.timer.point.support:
+            self.run_phase(SupportPhase)
         self.run_phase(AirPhase)
         self.run_phase(TLockPhase)
         self.run_phase(FirstMissilePhase)
@@ -262,6 +262,8 @@ class AirBattle(BattleUtil):
             return
         self.run_phase(LongMissilePhase)
         self.run_phase(BuffPhase)
+        if self.timer.point is not None and self.timer.point.support:
+            self.run_phase(SupportPhase)
         self.run_phase(AirPhase)
         self.run_phase(TLockPhase)
         if (self.timer.point is None) or (self.timer.point.level == 5):
@@ -286,6 +288,8 @@ class NightBattle(BattleUtil):
             return
         self.run_phase(LongMissilePhase)
         self.run_phase(BuffPhase)
+        if self.timer.point is not None and self.timer.point.support:
+            self.run_phase(SupportPhase)
         self.run_phase(TLockPhase)
         self.run_phase(NightPhase)
         self.end_phase()

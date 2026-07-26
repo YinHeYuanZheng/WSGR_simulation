@@ -22,11 +22,15 @@ import numpy as np
 import yaml
 
 from src import skillCode
-from src.utils.loadConfig import load_config, load_friend_ship, load_xml
+from src.utils.loadConfig import (
+    load_config, load_fleet, load_friend_ship, load_map_yaml, map_yaml_path,
+    load_xml,
+)
 from src.utils.loadDataset import Dataset
 from src.utils.runUtil import set_supply
 from src.utils.battleUtil import CustomBattle
-from src.wsgr.ship import Fleet
+from src.wsgr.ship import Fleet, SHIP_LABELS
+from src.wsgr.phase import AirPhase
 from src.wsgr.wsgrTimer import PHASE_LABELS, timer
 
 
@@ -126,6 +130,7 @@ class SimulationManager:
 
     def __init__(self, dataset: Dataset):
         self.dataset = dataset
+        self._simulation_kind = "battle"
         self._lock = threading.Lock()
         self._stop_event = threading.Event()
         self._process: mp.Process | None = None
@@ -212,8 +217,13 @@ class SimulationManager:
                 name="wsgr-webui-simulation",
             )
         else:
+            spawned_target = (
+                _run_spawned_map_simulation
+                if self._simulation_kind == "map"
+                else _run_spawned_simulation
+            )
             process = context.Process(
-                target=_run_spawned_simulation,
+                target=spawned_target,
                 # Windows uses ``spawn`` and would otherwise reopen and parse
                 # database.xlsx for every click on “开始模拟”.  Dataset only
                 # contains compact pandas frames, so passing the already-loaded
@@ -337,7 +347,9 @@ class SimulationManager:
             friend_heavy_damage_hits = np.zeros(6, dtype=float)
             enemy_sink_hits = np.zeros(6, dtype=float)
             enemy_remaining_health_totals = np.zeros(6, dtype=float)
-            supply_totals = {key: 0.0 for key in ("oil", "ammo", "steel", "almn", "repeat")}
+            supply_totals = {
+                key: 0.0 for key in ("oil", "ammo", "steel", "almn", "repeat", "dcitem")
+            }
             flagship_sink_count = 0
             damage_total = 0.0
             damage_samples: list[float] = []
@@ -382,7 +394,8 @@ class SimulationManager:
                 flagship_sink_count += int(len(enemy_state) > 0 and enemy_state[0] == 4)
 
                 for key in supply_totals:
-                    supply_totals[key] += float(report.get("supply", {}).get(key, 0))
+                    value = report.get("dcitem", 0) if key == "dcitem" else report.get("supply", {}).get(key, 0)
+                    supply_totals[key] += float(value)
                 if not battle_detail:
                     battle_detail = report.get("record", "")
                     battle_detail_info = self._detail_battle_info(current_battle, report)
@@ -575,6 +588,192 @@ class SimulationManager:
         }
 
 
+class MapSimulationManager(SimulationManager):
+    """Run standalone-map simulations independently from single-battle jobs."""
+
+    def __init__(self, dataset: Dataset):
+        super().__init__(dataset)
+        self._simulation_kind = "map"
+
+    def _run(self, battle_config: dict[str, Any], epoch: int, battle_num: int) -> None:
+        try:
+            np.random.seed(None)
+            skill_messages: list[str] = []
+            battle_timer = timer()
+            battle = load_config(
+                battle_config, str(MAP_DIR), self.dataset, battle_timer,
+                log_func=skill_messages.append,
+            )
+            map_config = battle.map_config
+            if not isinstance(map_config, dict):
+                raise ValueError("地图模拟需要独立 YAML 地图")
+            node_order = [str(node["name"]) for node in map_config["nodes"]]
+            friend_ship_names = [ship.status["name"] for ship in battle.friend.ship]
+            node_statistics = {
+                name: {
+                    "battles": 0,
+                    "result_counts": {flag: 0 for flag in RESULT_FLAGS},
+                    "mid_damage": 0,
+                    "heavy_damage": 0,
+                    "mid_damage_by_ship": np.zeros(len(friend_ship_names), dtype=float),
+                    "heavy_damage_by_ship": np.zeros(len(friend_ship_names), dtype=float),
+                }
+                for name in node_order
+            }
+            supply_totals = {key: 0.0 for key in ("oil", "ammo", "steel", "almn", "repeat")}
+            cleared = 0
+            boss_battles = 0
+            boss_flagship_sinks = 0
+            completed = 0
+            first_record = ""
+            publish_every = max(1, epoch // 100)
+            log_prefix = "\n".join([
+                "【技能读取】",
+                *(skill_messages or ["未配置可读取的技能"]),
+                "",
+                "【地图运行】",
+                f"海图：{map_config.get('name', '未命名海图')}",
+                "",
+            ])
+
+            for index in range(epoch):
+                current_map = copy.deepcopy(battle)
+                current_map.start()
+                report = current_map.report()
+                completed = index + 1
+                self._completed = completed
+
+                reached_boss = bool(report.get("end_with_boss"))
+                if reached_boss:
+                    cleared += int(any(
+                        item.get("boss_flagship_sunk", False)
+                        for item in report.get("map_battles", [])
+                        if item.get("boss", False)
+                    ))
+
+                for battle_result in report.get("map_battles", []):
+                    name = str(battle_result.get("name", ""))
+                    statistics = node_statistics.get(name)
+                    if statistics is None:
+                        continue
+                    statistics["battles"] += 1
+                    result = str(battle_result.get("result", "D"))
+                    statistics["result_counts"][result if result in RESULT_FLAGS else "D"] += 1
+                    damaged_state = np.asarray(battle_result.get("friend_damaged_state", []))
+                    statistics["mid_damage"] += int(np.any(damaged_state >= 2))
+                    statistics["heavy_damage"] += int(np.any(damaged_state >= 3))
+                    ship_count = min(len(damaged_state), len(friend_ship_names))
+                    statistics["mid_damage_by_ship"][:ship_count] += damaged_state[:ship_count] >= 2
+                    statistics["heavy_damage_by_ship"][:ship_count] += damaged_state[:ship_count] >= 3
+                    if battle_result.get("boss", False):
+                        boss_battles += 1
+                        boss_flagship_sinks += int(battle_result.get("boss_flagship_sunk", False))
+
+                for key in supply_totals:
+                    supply_totals[key] += float(report.get("supply", {}).get(key, 0))
+                if not first_record:
+                    first_record = str(report.get("record", ""))
+
+                if completed == 1 or completed % publish_every == 0 or completed == epoch:
+                    summary = self._build_map_summary(
+                        completed, cleared, boss_battles, boss_flagship_sinks,
+                        node_statistics, friend_ship_names, supply_totals, first_record,
+                    )
+                    self._publish_map("running", completed, epoch, summary, log_prefix)
+
+            summary = self._build_map_summary(
+                completed, cleared, boss_battles, boss_flagship_sinks,
+                node_statistics, friend_ship_names, supply_totals, first_record,
+            )
+            self._publish_map("complete", completed, epoch, summary, log_prefix)
+        except Exception as exc:
+            with self._lock:
+                self._state.update({
+                    "state": "error",
+                    "message": str(exc),
+                    "log": f"地图模拟失败：{exc}",
+                })
+            self._send_state_to_parent()
+
+    @staticmethod
+    def _build_map_summary(
+        completed: int,
+        cleared: int,
+        boss_battles: int,
+        boss_flagship_sinks: int,
+        node_statistics: dict[str, dict[str, Any]],
+        friend_ship_names: list[str],
+        supply_totals: dict[str, float],
+        first_record: str,
+    ) -> dict[str, Any]:
+        divisor = max(completed, 1)
+        return {
+            "clear_rate": cleared / divisor * 100,
+            "boss_flagship_sink_rate": boss_flagship_sinks / max(boss_battles, 1) * 100,
+            "simulation_count": completed,
+            "resource_total": (
+                supply_totals["oil"] + supply_totals["ammo"]
+                + supply_totals["steel"] + 3 * supply_totals["almn"]
+            ) / divisor,
+            "supply": {
+                key: value / divisor
+                for key, value in supply_totals.items()
+            },
+            "friend_ship_names": friend_ship_names.copy(),
+            "node_statistics": [
+                {
+                    "name": name,
+                    "battles": values["battles"],
+                    "result_rates": {
+                        flag: values["result_counts"][flag] / max(values["battles"], 1) * 100
+                        for flag in RESULT_FLAGS
+                    },
+                    "mid_damage_rate": values["mid_damage"] / max(values["battles"], 1) * 100,
+                    "heavy_damage_rate": values["heavy_damage"] / max(values["battles"], 1) * 100,
+                    "mid_damage_ship_rates": [
+                        float(rate / max(values["battles"], 1) * 100)
+                        for rate in values["mid_damage_by_ship"]
+                    ],
+                    "heavy_damage_ship_rates": [
+                        float(rate / max(values["battles"], 1) * 100)
+                        for rate in values["heavy_damage_by_ship"]
+                    ],
+                }
+                for name, values in node_statistics.items()
+            ],
+            "battle_detail": first_record,
+        }
+
+    def _publish_map(
+        self,
+        state: str,
+        completed: int,
+        target: int,
+        summary: dict[str, Any],
+        log_prefix: str,
+    ) -> None:
+        progress = completed / max(target, 1) * 100
+        log = log_prefix + (
+            f"已完成 {completed:,} / {target:,} 次模拟（{progress:.1f}%）\n"
+            f"通关率：{summary['clear_rate']:.2f}%"
+            f"  Boss 击沉：{summary['boss_flagship_sink_rate']:.2f}%"
+            f"  资源消耗：{summary['resource_total']:.1f}"
+        )
+        with self._lock:
+            self._state.update({
+                "state": state,
+                "progress": progress,
+                "completed": completed,
+                "live_completed": completed,
+                "live_progress": progress,
+                "target": target,
+                "message": "正在模拟" if state == "running" else "模拟完成",
+                "log": log,
+                "summary": summary,
+            })
+        self._send_state_to_parent()
+
+
 def _run_forked_simulation(
     manager: SimulationManager,
     battle_config: dict[str, Any],
@@ -598,16 +797,30 @@ def _run_spawned_simulation(
     manager._run(battle_config, epoch, battle_num)
 
 
+def _run_spawned_map_simulation(
+    dataset: Dataset,
+    battle_config: dict[str, Any],
+    epoch: int,
+    battle_num: int,
+    state_queue: mp.Queue,
+) -> None:
+    manager = MapSimulationManager(dataset)
+    manager._state_sink = state_queue
+    manager._run(battle_config, epoch, battle_num)
+
+
 class WebUIService:
     def __init__(self):
         self.dataset = Dataset(str(DATA_FILE))
         self.simulations = SimulationManager(self.dataset)
+        self.map_simulations = MapSimulationManager(self.dataset)
         self._bootstrap: dict[str, Any] | None = None
 
     def bootstrap(self) -> dict[str, Any]:
         if self._bootstrap is None:
             self._bootstrap = {
                 "formations": FORMATIONS,
+                "ship_labels": copy.deepcopy(SHIP_LABELS),
                 "battle_types": BATTLE_TYPES,
                 "custom_phases": [
                     {"id": phase, "name": PHASE_LABELS[phase]}
@@ -678,6 +891,53 @@ class WebUIService:
 
         maximum = max(1, int(ship.status["standard_health"]))
         return {"max_health": maximum}
+
+    def map_enemy_fleet_summary(self, fleet_config: dict[str, Any]) -> dict[str, float]:
+        """Calculate enemy recon and aerial control without running a battle."""
+        if not isinstance(fleet_config, dict):
+            raise ValueError("敌方舰队配置无效")
+        preview_config = copy.deepcopy(fleet_config)
+        preview_config["side"] = 0
+        preview_config["form"] = int(
+            preview_config.get("formation", preview_config.get("form", 1))
+        )
+        if not isinstance(preview_config.get("ships"), list) or not preview_config["ships"]:
+            return {"recon": 0.0, "aerial": 0.0}
+
+        preview_timer = timer()
+        fleet = load_fleet(
+            preview_config, self.dataset, preview_timer, log_func=lambda _: None
+        )
+        recon = sum(ship.get_final_status("recon") for ship in fleet.ship)
+        preview_timer.set_phase(AirPhase(preview_timer, Fleet(preview_timer), fleet))
+        aerial = fleet.get_fleet_aerial()
+        return {"recon": float(recon), "aerial": float(aerial)}
+
+    @staticmethod
+    def map_exists(mapid: str) -> dict[str, Any]:
+        """Check whether the standalone map referenced by a configuration exists."""
+        path = Path(map_yaml_path(mapid, str(MAP_DIR)))
+        return {"mapid": str(mapid).strip(), "exists": path.is_file()}
+
+    @staticmethod
+    def load_map_document(mapid: str) -> dict[str, Any]:
+        """Return a standalone map document for the editor without starting a run."""
+        return {"map": load_map_yaml(mapid, str(MAP_DIR))}
+
+    @staticmethod
+    def save_map_document(map_document: dict[str, Any]) -> dict[str, Any]:
+        """Persist the editor's complete standalone map document in depend/map."""
+        if not isinstance(map_document, dict):
+            raise ValueError("地图内容必须为对象")
+        mapid = str(map_document.get("mapid", "")).strip()
+        if not mapid:
+            raise ValueError("地图名称不能为空")
+        if not isinstance(map_document.get("nodes"), list) or not isinstance(map_document.get("routes"), list):
+            raise ValueError("地图必须包含 nodes 和 routes")
+        path = Path(map_yaml_path(mapid, str(MAP_DIR)))
+        with path.open("w", encoding="utf-8") as file:
+            yaml.safe_dump(map_document, file, allow_unicode=True, sort_keys=False)
+        return {"mapid": mapid, "filename": path.name}
 
     def prepare_simulation_config(self, config: dict[str, Any]) -> dict[str, Any]:
         """Drop redundant full-health overrides before a simulation starts."""

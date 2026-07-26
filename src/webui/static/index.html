@@ -4,19 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WSGR · 战斗模拟</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=map-ui-27">
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="#top"><b aria-hidden="true"><img src="assets/anchor-solid.png" alt=""></b><span>WSGR<small>SIMULATION</small></span></a>
-    <nav aria-label="主功能"><button class="active">战斗模拟</button><button>配置档案</button><button>历史战报</button></nav>
+    <nav aria-label="主功能"><button class="active" data-page="battle">战斗模拟</button><button data-page="map">地图模拟</button><button data-page="history">历史战报</button></nav>
     <div class="top-actions">
-      <button id="load-config" class="plain">载入配置</button><button id="save-config" class="plain">保存</button><button id="clear-workspace" class="plain">清空</button>
+      <button id="load-config" class="plain">加载配置</button><button id="save-config" class="plain">保存配置</button><button id="clear-workspace" class="plain" data-page-action="battle">清空</button><button id="reset-map" class="plain" data-page-action="map" hidden>清空</button>
       <button id="mode-switch" class="mode-switch" aria-label="切换深色模式" aria-pressed="false"><i class="mode-thumb"></i><span>☼</span><span>☾</span></button>
     </div>
   </header>
 
-  <main id="top">
+  <main id="top" data-page-panel="battle">
     <section class="stats" aria-label="模拟概览">
       <article><span>综合胜率</span><strong id="win-rate-stat">—<em>%</em></strong></article>
       <article><span>旗舰击沉</span><strong id="flagship-stat">—<em>%</em></strong></article>
@@ -27,18 +27,22 @@
     </section>
 
     <section class="workspace">
+      <div id="battle-friend-mount" class="friend-panel-mount">
       <article class="panel fleet-panel friend-panel">
         <div class="heading">
           <div class="panel-title"><h2>我方舰队</h2></div>
           <div class="heading-actions">
             <div class="formation compact"><span>阵型</span><div id="friend-formation"><button>单纵</button><button>复纵</button><button>轮形</button><button class="selected">梯形</button><button>单横</button></div></div>
             <button class="quiet fleet-load" data-side="friend">载入舰队</button>
+            <button id="toggle-map-friend" class="quiet map-friend-toggle" type="button" aria-label="收起我方舰队" aria-expanded="true" hidden><svg class="map-toggle-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 4v16M14 9l-3 3 3 3"></path></svg></button>
           </div>
         </div>
         <p class="drag-tip"><span aria-hidden="true">☰</span>拖动调整出击顺序</p>
         <ol id="friendly-fleet" class="ship-list"></ol>
+        <div class="map-empty-friendly" aria-live="polite"><span aria-hidden="true">◎</span><h3>尚未配置我方舰队</h3><p>展开后添加出击舰船。</p></div>
         <button class="add-row" id="add-friendly">＋ 添加我方舰船</button>
       </article>
+      </div>
 
       <div class="center-column">
         <article class="panel settings-panel">
@@ -98,6 +102,97 @@
     </section>
   </main>
 
+  <main id="map-page" class="map-page" data-page-panel="map" hidden>
+    <section class="map-page-head">
+      <div>
+        <p class="map-eyebrow">地图模式</p>
+        <div class="map-title-row"><input id="map-name" value="未命名海图" aria-label="海图名称"></div>
+      </div>
+      <div class="map-page-controls">
+        <div class="range-field map-simulation-settings"><label for="map-epoch-range">模拟次数</label><input id="map-epoch-range" type="range" min="1000" max="20000" step="1000" value="5000"><span class="epoch-input"><input id="map-epoch-value" class="range-value" type="number" min="1" max="1000000" step="1000" value="5000" aria-label="地图模拟次数"></span></div>
+        <button id="run-map" class="run simulation-button map-run"><span class="simulation-content"><span class="simulation-icon play-icon"><svg class="play-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l12-8z"/></svg></span><span>开始模拟</span></span></button>
+      </div>
+    </section>
+
+    <section class="map-workspace">
+      <div id="map-friend-mount" class="friend-panel-mount"></div>
+      <section class="map-content-column">
+      <div class="result-tabs map-view-tabs" role="tablist" aria-label="地图模拟视图"><button class="active" data-map-view="editor">地图编辑</button><button data-map-view="result">模拟结果</button></div>
+      <section id="map-editor-layout" class="map-editor-shell">
+        <aside class="map-tool-rail" aria-label="画布工具">
+          <button id="add-node" type="button" data-tooltip="添加点位" aria-label="添加点位"><span>＋</span></button>
+          <button id="connect-nodes" type="button" data-tooltip="连接点位" aria-label="连接点位"><span>↗</span></button>
+          <button id="undo-map-edit" type="button" data-tooltip="撤销添加或删除" aria-label="撤销" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 7.2 4.8 11.6 9.2 16"></path><path d="M5.3 11.6h9.1a5.1 5.1 0 0 1 0 10.2h-1.1"></path></svg></button>
+          <button id="import-map" type="button" data-tooltip="加载地图" aria-label="加载地图"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11"></path><path d="m7.8 9.8 4.2 4.2 4.2-4.2"></path><path d="M5 18.5h14"></path></svg></button>
+          <button id="export-map" type="button" data-tooltip="保存地图" aria-label="保存地图"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14V3"></path><path d="m7.8 7.2 4.2-4.2 4.2 4.2"></path><path d="M5 18.5h14"></path></svg></button>
+        </aside>
+
+        <section class="map-canvas-panel" aria-label="地图画布">
+          <div class="map-canvas-toolbar">
+            <div class="map-mode-copy"><strong id="mode-title">选择与拖动</strong><span id="mode-hint">拖动点位调整布局；点击点位或路线进行编辑</span></div>
+            <div class="map-canvas-legend" aria-label="节点类型图例"><span><i class="no-battle-dot"></i>无战斗</span><span><i class="battle-dot"></i>战斗</span></div>
+          </div>
+          <div id="canvas-viewport" class="map-canvas-viewport">
+            <div id="canvas-world" class="map-canvas-world">
+              <svg id="route-layer" class="map-route-layer" viewBox="0 0 1000 680" preserveAspectRatio="none" aria-label="路线连接"></svg>
+              <div id="route-label-layer" class="map-route-label-layer"></div>
+              <div id="node-layer" class="map-node-layer"></div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="map-inspector">
+          <div id="empty-inspector" class="map-empty-inspector"><span aria-hidden="true">◎</span><h2>选择一个点位或路线</h2><p>属性、带路条件和敌方舰队会在这里编辑。</p></div>
+
+          <section id="node-inspector" hidden>
+            <div class="map-inspector-title"><div><h2>点位设置</h2></div><button id="delete-node" class="map-icon-danger" type="button" aria-label="删除点位">删除</button></div>
+            <div class="map-form-grid">
+              <label>点位名称<input id="node-name" maxlength="12"></label>
+              <label>点位类型<select id="node-kind"><option value="entrance" hidden>入口（固定）</option><option value="no_battle">无战斗</option><option value="normal">常规战</option><option value="air">航空战</option><option value="night">夜战</option><option value="elite">精英</option><option value="boss">Boss</option></select></label>
+              <label>节点等级<select id="node-level"><option value="auto">自动</option><option value="0">入口</option><option value="1">出门点</option><option value="2">道中点</option><option value="3">门神点</option><option value="4">非 Boss 终点</option><option value="5">Boss</option></select></label>
+              <label class="map-compact-switch"><span>允许迂回</span><input id="node-roundabout" type="checkbox"></label>
+              <label class="map-compact-switch"><span>支援攻击</span><input id="node-support" type="checkbox"></label>
+            </div>
+            <div class="map-section-heading map-section-title"><div><h2>敌方舰队</h2></div><button id="add-fleet" class="map-small-action" type="button">＋ 添加舰队</button></div>
+            <p class="map-section-note">每个点位最多 3 个编队；进入点位时随机抽取一个。</p>
+            <div id="fleet-list" class="map-fleet-list"></div>
+          </section>
+
+          <section id="route-inspector" hidden>
+            <div class="map-inspector-title"><div><h2>路线设置</h2></div><button id="delete-route" class="map-icon-danger" type="button">删除</button></div>
+            <div class="map-form-grid"><label>起点<select id="route-from"></select></label><label>终点<select id="route-to"></select></label><label>随机权重<input id="route-weight" type="number" min="1" max="3" step="1"></label><label>多条件关系<select id="route-relation"><option value="all">全部满足（AND）</option><option value="any">任一满足（OR）</option></select></label></div>
+            <div class="map-section-heading map-section-title"><div><h2>带路条件</h2></div><button id="add-condition" class="map-small-action" type="button">＋ 添加条件</button></div>
+            <p class="map-section-note">先依次检查有条件的路线；路线权重用于分配比例。</p>
+            <div id="condition-list" class="map-condition-list"></div>
+          </section>
+        </aside>
+      </section>
+
+      <section id="map-result-screen" class="map-result-screen" hidden>
+        <article class="panel map-result-panel"><div class="panel-title"><h2>地图模拟结果</h2></div><div class="map-result-stats"><article><span>通关率</span><strong id="map-clear-rate">—<em>%</em></strong></article><article><span>Boss 击沉</span><strong id="map-boss-sink-rate">—<em>%</em></strong></article><article><span>资源消耗</span><strong id="map-resource-total">—</strong></article><article><span>模拟次数</span><strong id="map-simulation-count">—</strong></article></div><div id="map-result-breakdown" class="map-result-breakdown" hidden><section class="map-statistics-section"><h3>点位战果统计</h3><div id="map-node-results"></div><h3 class="map-resource-heading">资源消耗统计</h3><div id="map-resource-results"></div></section><section class="map-battle-detail-section"><h3>战斗详情</h3><pre id="map-battle-detail" class="map-battle-detail"></pre></section></div><div id="map-result-placeholder" class="map-result-placeholder"><span>◌</span><h2>等待地图模拟</h2><p>完成模拟后将在这里展示各点战果、中大破统计与一场完整战斗详情。</p><button class="quiet" data-map-view="editor">返回地图编辑</button></div></article>
+      </section>
+      </section>
+    </section>
+  </main>
+
+  <main id="history-page" class="history-page" data-page-panel="history" hidden>
+    <article class="panel history-placeholder"><div class="panel-title"><h2>历史战报</h2></div><div><span>◌</span><h2>暂无战报</h2><p>后续可在这里统一查看单点与地图模拟记录。</p></div></article>
+  </main>
+
+  <template id="map-fleet-template">
+    <article class="map-fleet-card map-fleet-summary-card"><button class="fleet-summary-open" type="button"><span class="fleet-index">舰队 1</span><strong class="fleet-name-display">敌方编队 1</strong><small class="fleet-summary">单纵 | 未配置舰船</small><small class="fleet-stats">索敌 — | 制空 —</small></button><div class="map-fleet-summary-actions"><button class="copy-fleet" type="button">复制</button><button class="remove-fleet" type="button">删除</button></div></article>
+  </template>
+
+  <template id="map-condition-template">
+    <article class="map-condition-card"><div class="condition-top"><select class="condition-type" aria-label="条件类型"><option value="num">舰船数量</option><option value="leader">旗舰舰种</option><option value="status">舰队属性</option></select><button class="remove-condition" type="button" aria-label="删除条件">×</button></div><div class="condition-fields"></div></article>
+  </template>
+
+  <dialog id="map-confirm-dialog" class="confirm-dialog"><form method="dialog"><h2>清空地图？</h2><p>这会移除当前地图中的所有点位、路线与敌方舰队，并恢复为单个入口节点。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="map-confirm-action" value="default" class="danger">确认清空</button></div></form></dialog>
+  <dialog id="map-save-confirm" class="confirm-dialog"><form method="dialog"><h2>地图尚未保存</h2><p id="map-save-confirm-message"></p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button value="save" class="run">保存地图并继续</button></div></form></dialog>
+  <dialog id="map-fleet-editor" class="map-fleet-editor"><form method="dialog"><div class="dialog-heading"><div class="panel-title"><h2 id="map-fleet-editor-title">敌方舰队</h2></div><button value="cancel" aria-label="关闭">×</button></div><article class="panel fleet-panel enemy-panel map-fleet-editor-panel"><div class="heading"><label class="map-fleet-name-field">编队名称<input id="map-fleet-name" maxlength="16"></label><div class="heading-actions"><div class="formation compact"><span>阵型</span><div id="map-enemy-formation"><button type="button">单纵</button><button type="button">复纵</button><button type="button">轮形</button><button type="button" class="selected">梯形</button><button type="button">单横</button></div></div></div></div><ol id="map-enemy-list" class="ship-list enemy-list"></ol><button type="button" class="add-row" id="map-add-enemy">＋ 添加敌方舰船</button></article><div class="dialog-actions map-fleet-dialog-actions"><button id="map-delete-fleet" type="button" class="danger">删除舰队</button><span></span><button value="default" class="run">完成</button></div></form></dialog>
+  <input id="map-yaml-file" type="file" accept=".yaml,.yml,text/yaml,application/yaml" hidden>
+  <div id="map-notice" class="notice" role="status" aria-live="polite" hidden></div>
+
   <dialog id="ship-editor" class="ship-editor">
     <form method="dialog">
       <div class="dialog-heading"><div class="panel-title"><h2>编辑舰船</h2></div><button value="cancel" aria-label="关闭">×</button></div>
@@ -120,15 +215,11 @@
       <div class="dialog-actions"><button id="delete-editor-ship" value="delete" class="danger">删除舰船</button><span></span><button value="cancel" class="quiet">取消</button><button id="save-ship" value="default" class="run">保存修改</button></div>
     </form>
   </dialog>
-  <dialog id="clear-confirm" class="confirm-dialog">
-    <form method="dialog">
-      <h2>清空页面？</h2>
-      <p>这会移除双方舰队配置，并重置模拟设置与所有统计结果。</p>
-      <div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="confirm-clear" type="button" class="danger">确认清空</button></div>
-    </form>
-  </dialog>
+  <dialog id="clear-confirm" class="confirm-dialog"><form method="dialog"><h2>清空页面？</h2><p>这会移除双方舰队配置，并重置模拟设置与所有统计结果。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="confirm-clear" type="button" class="danger">确认清空</button></div></form></dialog>
   <input id="config-file" type="file" accept=".yaml,.yml,.xml" hidden>
   <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
-  <script src="app.js"></script>
+  <script src="map-yaml.js"></script>
+  <script src="map-editor.js?v=map-ui-27"></script>
+  <script src="app.js?v=map-ui-15"></script>
 </body>
 </html>

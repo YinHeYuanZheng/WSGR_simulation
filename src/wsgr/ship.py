@@ -9,6 +9,43 @@ from src.wsgr.wsgrTimer import Time
 from src.wsgr.equipment import *
 
 
+SHIP_LABELS = {
+    "Ship": "舰船",
+    "LargeShip": "大型船",
+    "MiddleShip": "中型船",
+    "SmallShip": "小型船",
+    "MainShip": "主力舰",
+    "CoverShip": "护卫舰",
+    "CV": "航母",
+    "CVL": "轻母",
+    "AV": "装母",
+    "BB": "战列",
+    "BBV": "航战",
+    "BC": "战巡",
+    "CA": "重巡",
+    "CAV": "航巡",
+    "CLT": "雷巡",
+    "CL": "轻巡",
+    "BM": "重炮",
+    "DD": "驱逐",
+    "SSG": "导潜",
+    "SS": "潜艇",
+    "SC": "炮潜",
+    "AP": "补给",
+    "ASDG": "导驱",
+    "AADG": "防驱",
+    "KP": "导巡",
+    "CG": "防巡",
+    "BG": "大巡",
+    "BBG": "导战",
+    "Elite": "旗舰",
+    "Fortness": "要塞",
+    "Airfield": "机场",
+    "Port": "港口",
+    "Tuning": "调谐",
+}
+
+
 class Ship(Time):
     """舰船总类"""
 
@@ -749,6 +786,7 @@ class Ship(Time):
                               f"{self.timer.atk.target.status['name']}")
 
         standard_health = self.status['standard_health']
+        start_damaged_status = self.damaged  # 记录初始受伤状态
 
         # 敌方没有伤害保护，大破进击没有伤害保护
         if self.side == 0 or \
@@ -802,7 +840,14 @@ class Ship(Time):
                 self.status['health'] < standard_health * 0.5:
             self.damaged = 2
 
-        return sink
+        damage_flag = ['未定义', '正常', '中破', '大破', '撤退']
+        extra_info = ""
+        if start_damaged_status != self.damaged:
+            extra_info = f"({self.status['name']}状态变为{damage_flag[self.damaged]})"
+        if sink:
+            extra_info = f"({self.status['name']}被击沉)"
+
+        return damage, sink, extra_info
 
     def create_damage(self, damage):
         """造成伤害记录"""

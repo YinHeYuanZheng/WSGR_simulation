@@ -1,4 +1,4 @@
-battle_type: NormalBattle
+battle_type: Map
 friend_fleet:
   side: 1
   form: 5
@@ -92,37 +92,5 @@ friend_fleet:
     - loc: 3
       eid: '10705'
     strategy: []
-enemy_fleet:
-  side: 0
-  form: 4
-  ships:
-  - loc: 1
-    cid: '01106'
-    level: 120
-    affection: 50
-    skill: 1
-  - loc: 2
-    cid: '01061'
-    level: 120
-    affection: 50
-    skill: 1
-  - loc: 3
-    cid: '01061'
-    level: 120
-    affection: 50
-    skill: 1
-  - loc: 4
-    cid: '00211'
-    level: 90
-    affection: 50
-    skill: 1
-  - loc: 5
-    cid: '00211'
-    level: 90
-    affection: 50
-    skill: 1
-  - loc: 6
-    cid: '00060'
-    level: 80
-    affection: 50
-    skill: 1
+map:
+  mapid: 2-1

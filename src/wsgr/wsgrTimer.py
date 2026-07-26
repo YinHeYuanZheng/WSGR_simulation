@@ -63,7 +63,7 @@ class timer:
 
     def set_point(self, point):
         self.point = point
-        self.info(f"-> {point}: {point.type.__name__}"
+        self.info(f"【舰队前进】-> {point}: {point.type.__name__}"
                   f"{'/迂回' if self.point.roundabout else ''}\n")
 
     def set_recon(self, recon_flag):
@@ -168,9 +168,9 @@ class timer:
 
     def report_result(self, result):
         self.log['result'] = result
-        self.info(f"\n【战斗结果】\n战果等级: {result}\n")
+        self.info(f"【战斗结果】\n战果等级: {result}\n")
 
-    def report_damage(self, damage_value, sink):
+    def report_damage(self, damage_value, sink, extra_info):
         """伤害细节报告"""
         # 命中/闪避报告
         phase = type(self.phase).__name__
@@ -189,9 +189,8 @@ class timer:
                 damage_info += "(暴击)"
             if sink:  # 检查是否击沉
                 self.atk.source.defeat_enemy()
-                damage_info += "(击沉)"
 
-        self.info(f"{self.atk}: {damage_info}\n")
+        self.info(f"{self.atk}: {damage_info}{extra_info}\n")
 
     def phase_end_report(self, friend, enemy):
         """一个伤害阶段结束后统计战斗伤害信息"""

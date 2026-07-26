@@ -2,6 +2,12 @@ const friendlyFleet = document.querySelector('#friendly-fleet');
 const enemyFleet = document.querySelector('#enemy-list');
 const addFriendly = document.querySelector('#add-friendly');
 const addEnemy = document.querySelector('#add-enemy');
+const mapFleetEditorDialog = document.querySelector('#map-fleet-editor');
+const mapFleetEditorName = document.querySelector('#map-fleet-name');
+const mapEnemyFleet = document.querySelector('#map-enemy-list');
+const mapAddEnemy = document.querySelector('#map-add-enemy');
+const mapEnemyFormation = document.querySelector('#map-enemy-formation');
+const mapDeleteFleet = document.querySelector('#map-delete-fleet');
 const resultLogs = [...document.querySelectorAll('.shared-result-log')];
 const editor = document.querySelector('#ship-editor');
 const editorName = document.querySelector('#editor-name');
@@ -44,6 +50,8 @@ const configFileInput = document.querySelector('#config-file');
 const notice = document.querySelector('#notice');
 const clearWorkspaceButton = document.querySelector('#clear-workspace');
 const clearConfirmDialog = document.querySelector('#clear-confirm');
+const mapSaveConfirmDialog = document.querySelector('#map-save-confirm');
+const mapSaveConfirmMessage = document.querySelector('#map-save-confirm-message');
 const detailNote = document.querySelector('#detail-note');
 
 document.addEventListener('pointerdown', event => {
@@ -78,6 +86,8 @@ let damagePhaseFilter = null;
 let customPhaseIds = new Set();
 let healthLimitTimer = null;
 let healthLimitRequest = 0;
+let mapFleetEditorContext = null;
+let mapFleetEditorSuspended = false;
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, character => ({
@@ -145,7 +155,7 @@ function resetResultDisplay() {
   document.querySelector('#detail-direction-value').textContent = '—';
   document.querySelector('#detail-air-con-value').textContent = '—';
   setResultLog('等待开始模拟');
-  document.querySelectorAll('.result-tabs button').forEach(tab => {
+  document.querySelectorAll('.result-column .result-tabs button').forEach(tab => {
     const active = tab.dataset.view === 'win';
     tab.classList.toggle('active', active);
     tab.setAttribute('aria-selected', String(active));
@@ -256,7 +266,9 @@ function setupSearchablePicker(container, input) {
   input.addEventListener('focus', open);
   input.addEventListener('input', open);
   input.addEventListener('keyup', open);
-  input.addEventListener('change', open);
+  // Do not reopen on change: clicking “保存修改” first blurs this input,
+  // which fires change before the button click. Reopening here would place
+  // the menu over the save button and swallow that same confirmation click.
   input.addEventListener('keydown', event => {
     if (event.key !== 'Enter') return;
     // Searching an equipment/ship list must not bubble into the editor's
@@ -411,6 +423,40 @@ function updateSlots(list, addButton) {
 function updateAllSlots() {
   updateSlots(friendlyFleet, addFriendly);
   updateSlots(enemyFleet, addEnemy);
+  if (mapFleetEditorDialog?.open) updateSlots(mapEnemyFleet, mapAddEnemy);
+}
+
+function notifyMapFleetEditor() {
+  if (!mapFleetEditorContext) return;
+  const ships = [...mapEnemyFleet.querySelectorAll('.ship-card')]
+    .filter(card => !card._shipConfig.pending && card._shipConfig.cid)
+    .map((card, index) => {
+      const ship = enemyShipMap.get(normaliseCid(card._shipConfig.cid));
+      return {
+        loc: index + 1,
+        cid: normaliseCid(card._shipConfig.cid),
+        name: ship?.name || '',
+        level: Number(card._shipConfig.level) || Number(ship?.level) || 1,
+        affection: Number.isFinite(Number(card._shipConfig.affection))
+          ? Number(card._shipConfig.affection) : 50,
+        skill: Number.isFinite(Number(card._shipConfig.skill))
+          ? Number(card._shipConfig.skill) : 1,
+      };
+    });
+  mapFleetEditorContext.onChange?.({
+    name: mapFleetEditorName.value,
+    formation: Number(mapEnemyFormation.querySelector('.selected')?.dataset.form) || 4,
+    ships,
+  });
+}
+
+function updateFleetSlots(list) {
+  if (list === friendlyFleet) updateSlots(list, addFriendly);
+  else if (list === enemyFleet) updateSlots(list, addEnemy);
+  else if (list === mapEnemyFleet) {
+    updateSlots(list, mapAddEnemy);
+    notifyMapFleetEditor();
+  }
 }
 
 window.addEventListener('resize', updateAllSlots);
@@ -507,7 +553,7 @@ function createShipCard(side, sourceConfig = null) {
     });
     const equipped = new Map(config.equipment.map(item => [Number(item.loc), equipmentMap.get(item.eid)?.name || item.eid]));
     const equipmentLabels = [1, 2, 3, 4].map(index => equipped.get(index) || '——');
-    card.innerHTML = `<button type="button" class="slot"></button><div class="ship-name"><strong>${escapeHtml(ship.name)}</strong></div><div class="ship-details"><div class="ship-meta">${escapeHtml(ship.type)} · ${escapeHtml(ship.country)} · Lv.${config.level} · 好感 ${config.affection} · <span class="ship-health">耐久 —/—</span></div><div class="tactics-list"><span>${escapeHtml(skill?.name || '无技能')}</span>${tacticLabels.map(label => `<span>${escapeHtml(label)}</span>`).join('')}</div><div class="equipment-list">${equipmentLabels.map(label => `<span>${escapeHtml(label)}</span>`).join('')}</div></div><div class="ship-actions"><button class="edit-ship" aria-label="编辑${escapeHtml(ship.name)}">⋮</button><button class="drag-handle" aria-label="拖动${escapeHtml(ship.name)}">☰</button></div>`;
+    card.innerHTML = `<button type="button" class="slot"></button><div class="ship-name"><strong>${escapeHtml(ship.name)}</strong></div><div class="ship-details"><div class="ship-meta">${escapeHtml(ship.type)} · ${escapeHtml(ship.country)} · <span class="ship-level">Lv.${config.level} · </span>好感 ${config.affection}<span class="ship-health-separator"> · </span><span class="ship-health">耐久 —/—</span></div><div class="tactics-list"><span>${escapeHtml(skill?.name || '无技能')}</span>${tacticLabels.map(label => `<span>${escapeHtml(label)}</span>`).join('')}</div><div class="equipment-list">${equipmentLabels.map(label => `<span>${escapeHtml(label)}</span>`).join('')}</div></div><div class="ship-actions"><button class="edit-ship" aria-label="编辑${escapeHtml(ship.name)}">⋮</button><button class="drag-handle" aria-label="拖动${escapeHtml(ship.name)}">☰</button></div>`;
   } else {
     card.innerHTML = `<button type="button" class="slot"></button><div class="ship-name"><strong>${escapeHtml(ship.name)}</strong></div><div class="ship-details"><div class="ship-meta">${escapeHtml(ship.type)}·Lv.${config.level}·cid ${escapeHtml(ship.cid)}</div><div class="enemy-status">耐久 ${ship.health} · 装甲 ${ship.armor} · 对空 ${ship.antiair}</div></div><div class="ship-actions"><button class="edit-ship" aria-label="编辑${escapeHtml(ship.name)}">⋮</button><button class="drag-handle" aria-label="拖动${escapeHtml(ship.name)}">☰</button></div>`;
   }
@@ -516,6 +562,10 @@ function createShipCard(side, sourceConfig = null) {
 }
 
 function wireShipCard(card) {
+  const editCard = () => {
+    if (card.parentElement === mapEnemyFleet) openMapFleetShipEditor(card);
+    else openEditor(card);
+  };
   card.addEventListener('dragstart', () => {
     draggedCard = card;
     card.classList.add('dragging');
@@ -540,16 +590,17 @@ function wireShipCard(card) {
     if (!draggedCard || draggedCard === card || draggedCard.parentElement !== card.parentElement) return;
     const cards = [...card.parentElement.querySelectorAll('.ship-card')];
     card.parentElement.insertBefore(draggedCard, cards.indexOf(draggedCard) < cards.indexOf(card) ? card.nextSibling : card);
-    updateAllSlots();
+    updateFleetSlots(card.parentElement);
   });
   card.querySelector('.edit-ship').addEventListener('click', event => {
     event.stopPropagation();
-    openEditor(card);
+    editCard();
   });
   card.querySelector('.slot').addEventListener('click', event => {
     event.stopPropagation();
+    const list = card.parentElement;
     card.remove();
-    updateAllSlots();
+    updateFleetSlots(list);
   });
   card.querySelector('.slot').addEventListener('mouseenter', event => {
     event.currentTarget.textContent = '×';
@@ -558,8 +609,18 @@ function wireShipCard(card) {
     event.currentTarget.textContent = event.currentTarget.dataset.number || '';
   });
   card.addEventListener('click', event => {
-    if (!event.target.closest('button')) openEditor(card);
+    if (card.dataset.side === 'friend' && mapPagePanel?.classList.contains('friend-collapsed')) {
+      setMapFriendCollapsed(false);
+      return;
+    }
+    if (!event.target.closest('button')) editCard();
   });
+}
+
+function openMapFleetShipEditor(card) {
+  mapFleetEditorSuspended = true;
+  mapFleetEditorDialog.close('ship-editor');
+  openEditor(card);
 }
 
 function renderFleet(side, fleetConfig) {
@@ -658,6 +719,7 @@ function openEditor(card) {
   editorNameField.classList.toggle('editor-wide', !isFriend);
   editorHealthField.hidden = !isFriend;
   editorLevelField.hidden = !isFriend;
+  editorLevel.disabled = isFriend;
   if (isFriend) editorLevel.value = card._shipConfig.level;
   friendEditorFields.hidden = !isFriend;
   if (isFriend) {
@@ -745,7 +807,7 @@ function saveCurrentShip() {
   } else if (isFriend) {
     refreshFriendlyFleetHealths();
   }
-  updateAllSlots();
+  updateFleetSlots(replacement.parentElement);
   return true;
 }
 
@@ -759,7 +821,7 @@ document.querySelector('#delete-editor-ship').addEventListener('click', () => {
   if (!currentEditing) return;
   const list = currentEditing.parentElement;
   currentEditing.remove();
-  updateSlots(list, list === friendlyFleet ? addFriendly : addEnemy);
+  updateFleetSlots(list);
   currentEditing = null;
 });
 
@@ -773,6 +835,13 @@ addEnemy.addEventListener('click', () => {
   if (!metadata || enemyFleet.children.length >= 6) return;
   enemyFleet.append(createShipCard('enemy'));
   updateAllSlots();
+});
+
+mapAddEnemy.addEventListener('click', () => {
+  if (!metadata || mapEnemyFleet.children.length >= 6) return;
+  const card = createShipCard('enemy');
+  mapEnemyFleet.append(card);
+  updateFleetSlots(mapEnemyFleet);
 });
 
 editor.addEventListener('keydown', event => {
@@ -799,10 +868,50 @@ function setupFormations() {
       button.textContent = metadata.formations[index].name;
       button.addEventListener('click', () => {
         container.querySelectorAll('button').forEach(item => item.classList.toggle('selected', item === button));
+        if (container === mapEnemyFormation) notifyMapFleetEditor();
       });
     });
   });
 }
+
+window.WSGRMapFleetEditor = {
+  open(config, callbacks = {}) {
+    if (!metadata) return false;
+    mapFleetEditorContext = callbacks;
+    mapFleetEditorName.value = String(config?.name || '敌方编队');
+    mapEnemyFormation.querySelectorAll('button').forEach(button => {
+      button.classList.toggle('selected', Number(button.dataset.form) === (Number(config?.formation) || 4));
+    });
+    mapEnemyFleet.replaceChildren(...(config?.ships || []).slice(0, 6).map(ship => createShipCard('enemy', ship)));
+    mapFleetEditorDialog.showModal();
+    updateSlots(mapEnemyFleet, mapAddEnemy);
+    return true;
+  },
+};
+
+mapFleetEditorName.addEventListener('input', notifyMapFleetEditor);
+mapDeleteFleet.addEventListener('click', () => {
+  mapFleetEditorContext?.onDelete?.();
+  mapFleetEditorContext = null;
+  mapFleetEditorDialog.close('deleted');
+});
+mapFleetEditorDialog.addEventListener('close', () => {
+  if (mapFleetEditorSuspended) return;
+  notifyMapFleetEditor();
+  mapFleetEditorContext = null;
+  mapEnemyFleet.replaceChildren();
+});
+
+editor.addEventListener('close', () => {
+  if (!mapFleetEditorSuspended || !mapFleetEditorContext) return;
+  mapFleetEditorSuspended = false;
+  mapFleetEditorDialog.showModal();
+  // The map fleet dialog is hidden while the shared ship editor is open.
+  // Recalculate the absolute add-row position only after it is visible;
+  // otherwise getBoundingClientRect() returns the hidden-list geometry and
+  // sends the button back to the top of the dialog after saving a ship.
+  updateFleetSlots(mapEnemyFleet);
+});
 
 function setFormation(side, form) {
   const container = document.querySelector(side === 'friend' ? '#friend-formation' : '#enemy-formation');
@@ -943,10 +1052,34 @@ function removePendingShips() {
   return removed;
 }
 
+window.WSGRMapConfig = {
+  getFriendFleet() {
+    const config = buildFleetConfig('friend');
+    config.ships = config.ships.filter(ship => ship.cid);
+    return config;
+  },
+  setFriendFleet(config) {
+    if (!config || !Array.isArray(config.ships)) throw new Error('地图配置缺少我方舰队');
+    renderFleet('friend', config);
+  },
+  getEnemyShipType(cid) {
+    return enemyShipMap.get(normaliseCid(cid))?.type || '';
+  },
+};
+
 function applyConfig(config, target = null) {
-  if (!config?.friend_fleet || !config?.enemy_fleet) throw new Error('配置文件缺少舰队信息');
-  if (!target || target === 'friend') renderFleet('friend', config.friend_fleet);
-  if (!target || target === 'enemy') renderFleet('enemy', config.enemy_fleet);
+  if (!config || typeof config !== 'object') throw new Error('配置文件无效');
+  if (target === 'friend') {
+    if (!config.friend_fleet) throw new Error('配置文件缺少我方舰队');
+    renderFleet('friend', config.friend_fleet);
+  } else if (target === 'enemy') {
+    if (!config.enemy_fleet) throw new Error('配置文件缺少敌方舰队');
+    renderFleet('enemy', config.enemy_fleet);
+  } else {
+    if (!config.friend_fleet || !config.enemy_fleet) throw new Error('配置文件缺少舰队信息');
+    renderFleet('friend', config.friend_fleet);
+    renderFleet('enemy', config.enemy_fleet);
+  }
   if (!target) {
     setBattleType(config.battle_type);
     setCustomPhases(config.custom_phases);
@@ -1344,8 +1477,22 @@ configFileInput.addEventListener('change', async () => {
       method: 'POST',
       body: JSON.stringify({ filename: file.name, content: await file.text() }),
     });
-    applyConfig(payload.config, loadTarget);
-    showNotice(loadTarget ? '舰队配置已载入' : '战斗配置已载入');
+    const config = payload.config;
+    if (!loadTarget && config?.battle_type === 'Map') {
+      const mapid = String(config.map?.mapid || '').trim();
+      if (!config.friend_fleet || !mapid) throw new Error('地图配置缺少我方舰队或 mapid');
+      const mapPayload = await api('/api/map/load', {
+        method: 'POST', body: JSON.stringify({ mapid }),
+      });
+      if (!window.WSGRMapConfig || !window.WSGRMapEditor) throw new Error('地图编辑器尚未就绪');
+      window.WSGRMapConfig.setFriendFleet(config.friend_fleet);
+      window.WSGRMapEditor.loadDocument(mapPayload.map);
+      showPrimaryPage('map');
+      showNotice('地图配置、我方舰队与对应海图已载入');
+    } else {
+      applyConfig(config, loadTarget);
+      showNotice(loadTarget ? '舰队配置已载入' : '战斗配置已载入');
+    }
   } catch (error) {
     showNotice(error.message, true);
   }
@@ -1359,16 +1506,53 @@ function downloadBlob(content, filename, type) {
   setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 }
 
+async function exportConfig(config) {
+  const response = await fetch('/api/config/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ config }),
+  });
+  if (!response.ok) throw new Error((await response.json()).error || '保存失败');
+  downloadBlob(await response.text(), 'wsgr_config.yaml', 'application/yaml;charset=utf-8');
+}
+
+function confirmMapSave(mapid) {
+  return new Promise(resolve => {
+    mapSaveConfirmMessage.textContent = `项目地图目录中没有“${mapid}.yaml”。是否先保存当前地图，再生成配置文件？`;
+    mapSaveConfirmDialog.addEventListener('close', () => {
+      resolve(mapSaveConfirmDialog.returnValue === 'save');
+    }, { once: true });
+    mapSaveConfirmDialog.showModal();
+  });
+}
+
+async function saveMapConfig() {
+  if (!window.WSGRMapConfig || !window.WSGRMapEditor) throw new Error('地图编辑器尚未就绪');
+  const map = window.WSGRMapEditor.getDocument();
+  const mapid = String(map?.mapid || '').trim();
+  if (!mapid) throw new Error('地图名称不能为空');
+  const existing = await api('/api/map/exists', {
+    method: 'POST', body: JSON.stringify({ mapid }),
+  });
+  if (!existing.exists) {
+    const shouldSave = await confirmMapSave(mapid);
+    if (!shouldSave) return false;
+    await api('/api/map/save', { method: 'POST', body: JSON.stringify({ map }) });
+  }
+  await exportConfig({
+    battle_type: 'Map',
+    friend_fleet: window.WSGRMapConfig.getFriendFleet(),
+    map: { mapid },
+  });
+  return true;
+}
+
 document.querySelector('#save-config').addEventListener('click', async () => {
   try {
-    const response = await fetch('/api/config/export', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ config: buildBattleConfig() }),
-    });
-    if (!response.ok) throw new Error((await response.json()).error || '保存失败');
-    downloadBlob(await response.text(), 'wsgr_config.yaml', 'application/yaml;charset=utf-8');
-    showNotice('配置文件已生成');
+    const saved = mapPagePanel && !mapPagePanel.hidden
+      ? await saveMapConfig()
+      : (await exportConfig(buildBattleConfig()), true);
+    if (saved) showNotice('配置文件已生成');
   } catch (error) {
     showNotice(error.message, true);
   }
@@ -1430,22 +1614,23 @@ exportReportButton.addEventListener('click', () => {
   downloadBlob(buildSummaryCsv(latestSimulation), 'wsgr_battle_report.csv', 'text/csv;charset=utf-8');
 });
 
-const resultTabs = document.querySelectorAll('.result-tabs button');
+const resultTabs = document.querySelectorAll('.result-column .result-tabs button');
 const resultPanels = document.querySelectorAll('.result-view-panel');
-resultTabs.forEach(tab => tab.addEventListener('click', () => {
+function switchBattleResultView(view = 'win') {
   resultTabs.forEach(item => {
-    const selected = item === tab;
+    const selected = item.dataset.view === view;
     item.classList.toggle('active', selected);
     item.setAttribute('aria-selected', String(selected));
   });
   resultPanels.forEach(panel => {
-    const selected = panel.dataset.panel === tab.dataset.view;
+    const selected = panel.dataset.panel === view;
     panel.hidden = !selected;
     panel.classList.toggle('active', selected);
   });
-  detailNote.hidden = tab.dataset.view !== 'detail';
-  exportReportButton.textContent = tab.dataset.view === 'detail' ? '导出详情' : '导出战报';
-}));
+  detailNote.hidden = view !== 'detail';
+  exportReportButton.textContent = view === 'detail' ? '导出详情' : '导出战报';
+}
+resultTabs.forEach(tab => tab.addEventListener('click', () => switchBattleResultView(tab.dataset.view)));
 
 const modeSwitch = document.querySelector('#mode-switch');
 modeSwitch.addEventListener('click', () => {
@@ -1453,14 +1638,83 @@ modeSwitch.addEventListener('click', () => {
   modeSwitch.setAttribute('aria-pressed', String(dark));
 });
 
-document.querySelectorAll('.topbar nav button').forEach(button => button.addEventListener('click', () => {
-  document.querySelectorAll('.topbar nav button').forEach(item => item.classList.toggle('active', item === button));
-  document.title = `WSGR · ${button.textContent.trim()}`;
-}));
+const primaryPageButtons = document.querySelectorAll('.topbar nav button[data-page]');
+const primaryPagePanels = document.querySelectorAll('[data-page-panel]');
+const primaryPageActions = document.querySelectorAll('[data-page-action]');
+const friendPanel = document.querySelector('.friend-panel');
+const battleFriendMount = document.querySelector('#battle-friend-mount');
+const mapFriendMount = document.querySelector('#map-friend-mount');
+const mapPagePanel = document.querySelector('#map-page');
+const mapWorkspace = document.querySelector('.map-workspace');
+const mapFriendToggle = document.querySelector('#toggle-map-friend');
+const mapCanvasViewport = document.querySelector('#canvas-viewport');
+const mapEditorLayout = document.querySelector('#map-editor-layout');
+let mapFriendCollapsed = false;
+
+function syncMapWorkspaceWidths() {
+  if (!mapWorkspace || mapWorkspace.clientWidth === 0) return;
+  const workspaceGap = 14;
+  const canvasToolbarHeight = 50;
+  const mapTabsHeight = 38;
+  const canvasHeight = Math.max(280, mapWorkspace.clientHeight - canvasToolbarHeight - mapTabsHeight);
+  const mapCanvasWidth = Math.max(280, Math.round(canvasHeight * 1000 / 680));
+  const expandedFriendWidth = Math.max(250, mapWorkspace.clientWidth - workspaceGap - 50 - mapCanvasWidth);
+  mapWorkspace.style.setProperty('--map-friend-width', `${expandedFriendWidth}px`);
+  mapWorkspace.style.setProperty('--map-collapsed-friend-width', `${expandedFriendWidth * .4}px`);
+  mapWorkspace.style.setProperty('--map-canvas-width', `${mapCanvasWidth}px`);
+}
+
+function setMapFriendCollapsed(collapsed) {
+  mapFriendCollapsed = Boolean(collapsed);
+  mapPagePanel.classList.toggle('friend-collapsed', mapFriendCollapsed);
+  const action = mapFriendCollapsed ? '展开' : '收起';
+  mapFriendToggle.innerHTML = '<svg class="map-toggle-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 4v16"></path></svg>';
+  mapFriendToggle.setAttribute('aria-label', `${action}我方舰队`);
+  mapFriendToggle.dataset.tooltip = `${action}我方舰队`;
+  mapFriendToggle.setAttribute('aria-expanded', String(!mapFriendCollapsed));
+  requestAnimationFrame(syncMapWorkspaceWidths);
+}
+
+function showPrimaryPage(page) {
+  if (!['battle', 'map', 'history'].includes(page)) return;
+  primaryPageButtons.forEach(button => button.classList.toggle('active', button.dataset.page === page));
+  primaryPagePanels.forEach(panel => { panel.hidden = panel.dataset.pagePanel !== page; });
+  primaryPageActions.forEach(button => { button.hidden = button.dataset.pageAction !== page; });
+  if (page === 'battle') battleFriendMount.append(friendPanel);
+  if (page === 'map') mapFriendMount.append(friendPanel);
+  mapFriendToggle.hidden = page !== 'map';
+  const titles = { battle: '战斗模拟', map: '地图模拟', history: '历史战报' };
+  document.title = `WSGR · ${titles[page]}`;
+  if (page === 'map') requestAnimationFrame(() => {
+    syncMapWorkspaceWidths();
+    window.dispatchEvent(new CustomEvent('wsgr:map-visible'));
+  });
+}
+
+primaryPageButtons.forEach(button => button.addEventListener('click', () => showPrimaryPage(button.dataset.page)));
+mapFriendToggle.addEventListener('click', event => {
+  event.stopPropagation();
+  setMapFriendCollapsed(!mapFriendCollapsed);
+});
+friendPanel.addEventListener('click', event => {
+  if (mapPagePanel.hidden || !mapPagePanel.classList.contains('friend-collapsed')) return;
+  if (event.target.closest('.heading')) return;
+  setMapFriendCollapsed(false);
+});
+mapCanvasViewport.addEventListener('click', () => {
+  if (mapPagePanel.hidden || mapEditorLayout?.hidden || mapPagePanel.classList.contains('friend-collapsed')) return;
+  setMapFriendCollapsed(true);
+}, true);
+window.addEventListener('resize', syncMapWorkspaceWidths);
+setMapFriendCollapsed(true);
+showPrimaryPage('battle');
 
 async function initialise() {
   try {
     metadata = await api('/api/bootstrap');
+    window.dispatchEvent(new CustomEvent('wsgr:bootstrap', {
+      detail: { ship_labels: metadata.ship_labels },
+    }));
     friendShipMap = new Map(metadata.friend_ships.map(ship => [ship.cid, ship]));
     enemyShipMap = new Map(metadata.enemy_ships.map(ship => [ship.cid, ship]));
     equipmentMap = new Map(metadata.equipment.map(item => [item.eid, item]));

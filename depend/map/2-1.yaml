@@ -1,0 +1,598 @@
+mapid: 2-1
+name: 2-1
+nodes:
+- name: 入口
+  kind: entrance
+  level: 0
+  level_auto: true
+  position:
+    x: 273.41442953020135
+    y: 148.68094544491524
+  battle:
+    type: Entrance
+    roundabout: false
+    support: false
+  enemy_fleets: []
+- name: A
+  kind: normal
+  level: 1
+  level_auto: true
+  position:
+    x: 415.5870686812129
+    y: 161.7973104586215
+  battle:
+    type: NormalBattle
+    roundabout: false
+    support: false
+  enemy_fleets:
+  - name: 敌方编队 1
+    formation: 2
+    ships:
+    - loc: 1
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+  - name: 敌方编队 2
+    formation: 1
+    ships:
+    - loc: 1
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+  - name: 敌方编队 3
+    formation: 2
+    ships:
+    - loc: 1
+      cid: '00065'
+      name: 战巡Κ级Ⅰ型
+      level: 15
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+- name: B
+  kind: no_battle
+  level: 1
+  level_auto: true
+  position:
+    x: 334.3127398221525
+    y: 279.2921742584746
+  battle:
+    type: MidPoint
+    roundabout: false
+    support: false
+  enemy_fleets: []
+- name: C
+  kind: normal
+  level: 2
+  level_auto: true
+  position:
+    x: 548.4453202483319
+    y: 218.37371574000247
+  battle:
+    type: NormalBattle
+    roundabout: false
+    support: false
+  enemy_fleets:
+  - name: 敌方编队 1
+    formation: 2
+    ships:
+    - loc: 1
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+  - name: 敌方编队 2
+    formation: 1
+    ships:
+    - loc: 1
+      cid: '00065'
+      name: 战巡Κ级Ⅰ型
+      level: 15
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00065'
+      name: 战巡Κ级Ⅰ型
+      level: 15
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+  - name: 敌方编队 3
+    formation: 3
+    ships:
+    - loc: 1
+      cid: '00031'
+      name: 轻母Ξ级Ⅰ型
+      level: 4
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00031'
+      name: 轻母Ξ级Ⅰ型
+      level: 4
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+- name: D
+  kind: no_battle
+  level: 3
+  level_auto: true
+  position:
+    x: 399.700293624161
+    y: 405.0928893008475
+  battle:
+    type: MidPoint
+    roundabout: false
+    support: false
+  enemy_fleets: []
+- name: E
+  kind: normal
+  level: 3
+  level_auto: true
+  position:
+    x: 613.2616565000529
+    y: 334.973927772378
+  battle:
+    type: NormalBattle
+    roundabout: false
+    support: false
+  enemy_fleets:
+  - name: 敌方编队 1
+    formation: 1
+    ships:
+    - loc: 1
+      cid: '00043'
+      name: 战列Λ级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00035'
+      name: 重巡Ι级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+  - name: 敌方编队 2
+    formation: 2
+    ships:
+    - loc: 1
+      cid: '00065'
+      name: 战巡Κ级Ⅰ型
+      level: 15
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00065'
+      name: 战巡Κ级Ⅰ型
+      level: 15
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: '00035'
+      name: 重巡Ι级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+  - name: 敌方编队 3
+    formation: 3
+    ships:
+    - loc: 1
+      cid: '00016'
+      name: 航母Ο级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00016'
+      name: 航母Ο级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: '00065'
+      name: 战巡Κ级Ⅰ型
+      level: 15
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+- name: F
+  kind: boss
+  level: 5
+  level_auto: true
+  position:
+    x: 556.8454278523491
+    y: 456.0177436440678
+  battle:
+    type: NormalBattle
+    roundabout: false
+    support: false
+  enemy_fleets:
+  - name: 敌方编队 1
+    formation: 3
+    ships:
+    - loc: 1
+      cid: '00032'
+      name: 轻母Ξ级Ⅱ型
+      level: 23
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00032'
+      name: 轻母Ξ级Ⅱ型
+      level: 23
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: '00035'
+      name: 重巡Ι级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+  - name: 敌方编队 2
+    formation: 1
+    ships:
+    - loc: 1
+      cid: '00043'
+      name: 战列Λ级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00035'
+      name: 重巡Ι级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00028
+      name: 轻巡Ε级Ⅱ型
+      level: 16
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00002'
+      name: 驱逐Α级Ⅱ型
+      level: 17
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+  - name: 敌方编队 3
+    formation: 2
+    ships:
+    - loc: 1
+      cid: '00065'
+      name: 战巡Κ级Ⅰ型
+      level: 15
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00065'
+      name: 战巡Κ级Ⅰ型
+      level: 15
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: '00035'
+      name: 重巡Ι级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00020'
+      name: 轻巡Η级Ⅰ型
+      level: 1
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00005'
+      name: 驱逐Δ级Ⅰ型
+      level: 3
+      affection: 50
+      skill: 1
+routes:
+- from: 入口
+  to: A
+  weight: 2
+  relation: all
+  conditions: []
+- from: A
+  to: C
+  weight: 1
+  relation: all
+  conditions: []
+- from: C
+  to: E
+  weight: 1
+  relation: all
+  conditions: []
+- from: E
+  to: F
+  weight: 1
+  relation: all
+  conditions: []
+- from: 入口
+  to: B
+  weight: 2
+  relation: all
+  conditions: []
+- from: B
+  to: D
+  weight: 1
+  relation: all
+  conditions:
+  - type: num
+    name: Ship
+    fun: le
+    value: 4
+- from: B
+  to: C
+  weight: 1
+  relation: all
+  conditions:
+  - type: num
+    name: Ship
+    fun: ge
+    value: 5
+- from: D
+  to: F
+  weight: 1
+  relation: all
+  conditions: []

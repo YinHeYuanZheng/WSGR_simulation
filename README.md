@@ -83,6 +83,61 @@ enemy_fleet:
       level: 1
 ```
 
+地图模拟配置仍使用同一套顶层结构，但将 `enemy_fleet` 替换为地图引用。模拟配置只保存
+`mapid`，完整示例见 `config/config_map_sample.yaml`：
+
+```yaml
+battle_type: Map
+friend_fleet:
+  side: 1
+  form: 4
+  ships: []
+map:
+  mapid: '示例海图'
+```
+
+对应地图独立保存在 `depend/map/示例海图.yaml`。`mapid` 直接使用海图名称，不限数字，
+可使用任意安全的文件名（例如 `夏活-困难 E5`）；配置和地图文件中的值必须完全一致。地图文件不再通过点位 `pid`
+查询 Excel 地图数据库，而是直接包含点位、路线和各点的敌方舰队：
+
+```yaml
+mapid: '00001'
+name: 示例海图
+nodes:
+  - name: A
+    kind: entrance
+    level: 0
+    level_auto: true
+    position: {x: 180, y: 340}
+    battle:
+      type: Entrance
+      roundabout: false
+      support: false
+    enemy_fleets: []
+  - name: B
+    kind: no_battle
+    level: 4
+    level_auto: true
+    position: {x: 780, y: 340}
+    battle:
+      type: MidPoint
+      roundabout: false
+      support: false
+    enemy_fleets: []
+  routes:
+    - from: A
+      to: B
+      weight: 1
+      relation: all
+      conditions: []
+```
+
+点位通过唯一的 `name` 被路线引用，不需要点位 `id` 或 Excel 中的 `pid`。地图点位的
+`battle.type` 仅使用 `Entrance`、`MidPoint`、`NormalBattle`、
+`AirBattle` 和 `NightBattle`。精英点与 Boss 点均保存为 `NormalBattle`，其视觉类型
+仍由 `kind` 区分。WebUI 导入、导出的是独立地图 YAML；启动模拟时则使用当前我方舰队、
+地图 `mapid` 与画布中的地图内容。
+
 舰船 ID（`cid`）、装备 ID（`eid`）、战术 ID（`stid`）均来自 `depend/ship/database.xlsx`。
 
 **队形对照：**
