@@ -29,6 +29,7 @@ class timer:
 
         self.recon_flag = None      # 索敌
         self.round_flag = None      # 迂回
+        self.map_retreat = False    # 地图策略要求撤退
         self.direction_flag = None  # 航向, 优同反劣分别为1-4
         self.air_con_flag = None    # 制空结果, 从空确到空丧分别为1-5
         self.phase = None           # 阶段
@@ -64,7 +65,7 @@ class timer:
     def set_point(self, point):
         self.point = point
         self.info(f"【舰队前进】-> {point}: {point.type.__name__}"
-                  f"{'/迂回' if self.point.roundabout else ''}\n")
+                  f"{'/迂回' if self.point.can_roundabout else ''}\n")
 
     def set_recon(self, recon_flag):
         self.recon_flag = recon_flag
@@ -142,6 +143,7 @@ class timer:
         self.recon_flag = None      # 索敌
         self.direction_flag = None  # 航向
         self.round_flag = None      # 迂回
+        self.map_retreat = False    # 地图策略要求撤退
         self.air_con_flag = None    # 制空结果
         self.atk = None
         self.log.update({

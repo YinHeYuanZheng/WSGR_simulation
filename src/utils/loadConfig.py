@@ -235,9 +235,19 @@ def load_config(battleConfig, mapDir, dataset, timer, log_func=print) -> BattleU
         return battle(timer, friend, enemy)
     else:
         mapDict = battleConfig['map']
+        user_rules = battleConfig.get('user_rules')
+        direct_rule_fields = {'selected_nodes', 'node_defaults', 'node_args'}
+        direct_rules = {
+            key: battleConfig[key] for key in direct_rule_fields if key in battleConfig
+        }
+        if user_rules is not None and direct_rules:
+            raise ValueError('Map user rules must be nested under user_rules or use top-level fields, not both')
+        if user_rules is None and direct_rules:
+            user_rules = direct_rules
         battle_map = load_map(
             mapDict, mapDir, dataset, timer, friend,
             map_document=battleConfig.get('_map_document'),
+            user_rules=user_rules,
             log_func=log_func,
         )
         return battle_map
@@ -259,7 +269,7 @@ def load_fleet(fleetDict, dataset, timer, log_func=print):
 
 
 def load_map(
-        mapDict, mapDir, dataset, timer, friend, map_document=None,
+        mapDict, mapDir, dataset, timer, friend, map_document=None, user_rules=None,
         log_func=print,
 ):
     mapid = str(mapDict['mapid']).strip()
@@ -273,12 +283,14 @@ def load_map(
             )
         return MapUtil(
             timer, map_document, dataset, friend,
+            user_rules=user_rules,
             log_func=log_func,
         )
 
     if mapDict.get('_format') != 'xml':
         return MapUtil(
             timer, load_map_yaml(mapid, mapDir), dataset, friend,
+            user_rules=user_rules,
             log_func=log_func,
         )
 
@@ -290,6 +302,7 @@ def load_map(
 
     return MapUtil(
         timer, load_map_xml(entrance, dataset, mapid), dataset, friend,
+        user_rules=user_rules,
         log_func=log_func,
     )
 

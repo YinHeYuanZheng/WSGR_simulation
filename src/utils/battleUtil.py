@@ -96,6 +96,22 @@ class BattleUtil(Time):
         }
         self.run_phase(PreparePhase)
 
+    def should_abort_after_prepare(self):
+        """地图策略在索敌或迂回后要求撤退时中止本场战斗。"""
+        return self.timer.map_retreat
+
+    def should_run_night(self):
+        """非地图战斗沿用既有夜战流程；地图战斗由节点策略决定。"""
+        if self.timer.point is None:
+            return True
+        return self.timer.point.user_rules.should_run_night(self.timer.point, self.enemy)
+
+    def should_run_long_missile(self):
+        """非地图战斗始终保留远程打击；地图战斗由节点策略决定。"""
+        if self.timer.point is None:
+            return True
+        return self.timer.point.user_rules.should_run_long_missile(self.timer.point)
+
     def run_phase(self, phase_class):
         """
         运行指定阶段
@@ -229,10 +245,13 @@ class NormalBattle(BattleUtil):
         """进行战斗流程"""
         self.battle_init()
         self.start_phase()
+        if self.should_abort_after_prepare():
+            return
         if self.timer.round_flag:
             self.end_phase()
             return
-        self.run_phase(LongMissilePhase)
+        if self.should_run_long_missile():
+            self.run_phase(LongMissilePhase)
         self.run_phase(BuffPhase)
         if self.timer.point is not None and self.timer.point.support:
             self.run_phase(SupportPhase)
@@ -245,7 +264,7 @@ class NormalBattle(BattleUtil):
         self.run_phase(SecondShellingPhase)
         self.run_phase(SecondTorpedoPhase)
         self.run_phase(SecondMissilePhase)
-        if (self.timer.point is None) or (self.timer.point.level == 5):
+        if self.should_run_night():
             self.run_phase(NightPhase)
         self.end_phase()
 
@@ -257,16 +276,19 @@ class AirBattle(BattleUtil):
         """进行战斗流程"""
         self.battle_init()
         self.start_phase()
+        if self.should_abort_after_prepare():
+            return
         if self.timer.round_flag:
             self.end_phase()
             return
-        self.run_phase(LongMissilePhase)
+        if self.should_run_long_missile():
+            self.run_phase(LongMissilePhase)
         self.run_phase(BuffPhase)
         if self.timer.point is not None and self.timer.point.support:
             self.run_phase(SupportPhase)
         self.run_phase(AirPhase)
         self.run_phase(TLockPhase)
-        if (self.timer.point is None) or (self.timer.point.level == 5):
+        if self.should_run_night():
             self.run_phase(NightPhase)
         self.end_phase()
 
@@ -283,10 +305,13 @@ class NightBattle(BattleUtil):
         """进行战斗流程"""
         self.battle_init()
         self.start_phase()
+        if self.should_abort_after_prepare():
+            return
         if self.timer.round_flag:
             self.end_phase()
             return
-        self.run_phase(LongMissilePhase)
+        if self.should_run_long_missile():
+            self.run_phase(LongMissilePhase)
         self.run_phase(BuffPhase)
         if self.timer.point is not None and self.timer.point.support:
             self.run_phase(SupportPhase)
@@ -325,6 +350,7 @@ class DaytimeBattle(BattleUtil):
         self.run_phase(SecondTorpedoPhase)
         self.run_phase(SecondMissilePhase)
         self.end_phase()
+
 
 class OnlyAirBattle(BattleUtil):
     """仅航空战"""

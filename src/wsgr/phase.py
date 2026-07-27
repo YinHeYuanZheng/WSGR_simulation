@@ -55,13 +55,25 @@ class PreparePhase(AllPhase):
         # 索敌(注意！不受技能索敌影响！)
         self.compare_recon()
 
+        point = self.timer.point
+        if point is not None and hasattr(point, 'user_rules'):
+            point.user_rules.apply_recon_decision(point, self.friend, self.enemy, self.timer)
+            if self.timer.map_retreat:
+                return
+
         # 迂回(注意！不受技能航速影响！)
-        if self.timer.point is not None and \
-                self.timer.point.roundabout and \
-                self.timer.recon_flag:  # 索敌成功才可迂回
-            for tmp_ship in self.friend.ship:  # 迂回扣除10%油
-                tmp_ship.supply_oil = max(0, tmp_ship.supply_oil - 1)
-            self.check_roundabout()
+        if point is not None and self.timer.recon_flag:  # 索敌成功才可迂回
+            round_rate = self.get_roundabout_rate()
+            if point.user_rules.should_attempt_round(point, round_rate):
+                for tmp_ship in self.friend.ship:  # 迂回扣除10%油
+                    tmp_ship.supply_oil = max(0, tmp_ship.supply_oil - 1)
+
+                self.check_roundabout(round_rate)
+
+                if not self.timer.round_flag and \
+                        point.user_rules.should_retreat_if_round_failure(point):
+                    self.timer.map_retreat = True
+                    self.timer.info('【策略】迂回失败，撤退\n')
 
         # 结算影响队友航速、索敌的技能，结算让巴尔
         self.timer.run_prepare_skill(self.friend, self.enemy)
@@ -73,7 +85,7 @@ class PreparePhase(AllPhase):
         # 航向
         self.compare_speed()
 
-    def check_roundabout(self):
+    def get_roundabout_rate(self):
         # 舰队航速差
         friend_fleet_speed = np.round(self.friend.status['speed'], 2)
         enemy_fleet_speed = self.enemy.status['speed']
@@ -88,7 +100,14 @@ class PreparePhase(AllPhase):
             for tmp_buff in tmp_ship.common_buff:
                 if tmp_buff.name == 'roundabout':
                     rd_rate += tmp_buff.value
-        rd_rate = min(1, rd_rate)  # 最大为100%
+        return min(1, rd_rate)  # 最大为100%
+
+    def check_roundabout(self, rd_rate=None):
+        # 舰队航速差
+        friend_fleet_speed = np.round(self.friend.status['speed'], 2)
+        enemy_fleet_speed = self.enemy.status['speed']
+        if rd_rate is None:
+            rd_rate = self.get_roundabout_rate()
         self.timer.report_log('round',
                               [np.floor(rd_rate * 100),
                                friend_fleet_speed,

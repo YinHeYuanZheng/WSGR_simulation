@@ -1487,6 +1487,7 @@ configFileInput.addEventListener('change', async () => {
       if (!window.WSGRMapConfig || !window.WSGRMapEditor) throw new Error('地图编辑器尚未就绪');
       window.WSGRMapConfig.setFriendFleet(config.friend_fleet);
       window.WSGRMapEditor.loadDocument(mapPayload.map);
+      window.WSGRMapEditor.loadUserRules(config.user_rules);
       showPrimaryPage('map');
       showNotice('地图配置、我方舰队与对应海图已载入');
     } else {
@@ -1543,6 +1544,7 @@ async function saveMapConfig() {
     battle_type: 'Map',
     friend_fleet: window.WSGRMapConfig.getFriendFleet(),
     map: { mapid },
+    user_rules: window.WSGRMapEditor.getUserRules(),
   });
   return true;
 }

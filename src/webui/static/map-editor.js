@@ -36,6 +36,18 @@
   const NUMBER_OPERATORS = [
     ['lt', '<'], ['le', '≤'], ['eq', '='], ['ge', '≥'], ['gt', '>'],
   ];
+  const USER_RULE_DEFAULTS = {
+    formation: 2,
+    formation_if_recon_fails: false,
+    long_missile: false,
+    night: false,
+    round: true,
+    rules: [],
+    retreat_if_recon_fails: false,
+    retreat_if_round_fails: true,
+    proceed: true,
+    proceed_stop: [2, 2, 2, 2, 2, 2],
+  };
 
   function shipTypeOptions() {
     return shipTypes;
@@ -62,6 +74,23 @@
     mapResultScreen: document.querySelector('#map-result-screen'),
     mapViewButtons: document.querySelectorAll('[data-map-view]'),
     undoButton: document.querySelector('#undo-map-edit'),
+    strategyDialog: document.querySelector('#map-strategy-dialog'),
+    strategyForm: document.querySelector('#map-strategy-form'),
+    strategyAllNodes: document.querySelector('#strategy-all-nodes'),
+    strategyNodePicker: document.querySelector('#strategy-node-picker'),
+    strategyScope: document.querySelector('#strategy-scope'),
+    strategyFormation: document.querySelector('#strategy-formation'),
+    strategyFormationRecon: document.querySelector('#strategy-formation-recon'),
+    strategyLongMissile: document.querySelector('#strategy-long-missile'),
+    strategyNight: document.querySelector('#strategy-night'),
+    strategyRound: document.querySelector('#strategy-round'),
+    strategyRoundThresholdField: document.querySelector('#strategy-round-threshold-field'),
+    strategyRoundThreshold: document.querySelector('#strategy-round-threshold'),
+    strategyRetreatRecon: document.querySelector('#strategy-retreat-recon'),
+    strategyRetreatRound: document.querySelector('#strategy-retreat-round'),
+    strategyProceed: document.querySelector('#strategy-proceed'),
+    strategyProceedStop: document.querySelector('#strategy-proceed-stop'),
+    strategyRules: document.querySelector('#strategy-rules'),
   };
 
   let mapDocument = createDefaultDocument();
@@ -72,6 +101,9 @@
   let toastTimer = 0;
   let suppressNodeClick = false;
   let activeMapView = 'editor';
+  let mapUserRules = createDefaultUserRules();
+  let activeStrategyScope = '__default__';
+  const strategyDrafts = new Map();
   const undoStack = [];
   const MAX_UNDO_STEPS = 50;
   const fleetStatsCache = new Map();
@@ -130,6 +162,81 @@
 
   function cloneMapData(value) {
     return JSON.parse(JSON.stringify(value));
+  }
+
+  function createDefaultUserRules() {
+    return {
+      selected_nodes: 'all',
+      node_defaults: cloneMapData(USER_RULE_DEFAULTS),
+      node_args: {},
+    };
+  }
+
+  function strategyNodeNames() {
+    return currentMap().nodes
+      .filter(node => node.id !== currentMap().entrance)
+      .map(node => node.name);
+  }
+
+  function normalizeMapUserRules() {
+    const names = new Set(currentMap().nodes.map(node => node.name));
+    const combatNames = new Set(strategyNodeNames());
+    if (Array.isArray(mapUserRules.selected_nodes)) {
+      mapUserRules.selected_nodes = [...new Set(mapUserRules.selected_nodes)]
+        .filter(name => combatNames.has(name));
+    }
+    mapUserRules.node_args = Object.fromEntries(
+      Object.entries(mapUserRules.node_args || {}).filter(([name]) => names.has(name)),
+    );
+  }
+
+  function loadMapUserRules(value) {
+    const defaults = createDefaultUserRules();
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      mapUserRules = defaults;
+      return;
+    }
+    mapUserRules = {
+      selected_nodes: value.selected_nodes === 'all' || Array.isArray(value.selected_nodes)
+        ? cloneMapData(value.selected_nodes) : defaults.selected_nodes,
+      node_defaults: { ...defaults.node_defaults, ...(value.node_defaults || {}) },
+      node_args: value.node_args && typeof value.node_args === 'object' && !Array.isArray(value.node_args)
+        ? cloneMapData(value.node_args) : {},
+    };
+    normalizeMapUserRules();
+  }
+
+  function strategySourceSettingsFor(scope) {
+    if (scope === '__default__') return cloneMapData(mapUserRules.node_defaults);
+    const defaults = strategyDrafts.get('__default__') || mapUserRules.node_defaults;
+    return { ...cloneMapData(defaults), ...cloneMapData(mapUserRules.node_args[scope] || {}) };
+  }
+
+  function strategySettingsFor(scope) {
+    if (scope === '__default__') {
+      return cloneMapData(strategyDrafts.get(scope) || strategySourceSettingsFor(scope));
+    }
+    return {
+      ...strategySourceSettingsFor(scope),
+      ...cloneMapData(strategyDrafts.get(scope) || {}),
+    };
+  }
+
+  function formatStrategyRules(rules) {
+    return (rules || []).map(([condition, action]) => `${condition} => ${action}`).join('\n');
+  }
+
+  function parseStrategyRules(value) {
+    return value.split('\n').map(line => line.trim()).filter(Boolean).map((line, index) => {
+      const separator = line.indexOf('=>');
+      if (separator < 1) throw new Error(`第 ${index + 1} 条规则需使用 => 分隔条件和操作`);
+      const condition = line.slice(0, separator).trim();
+      const action = line.slice(separator + 2).trim();
+      if (!condition || !/^(retreat|round|[1-5])$/.test(action)) {
+        throw new Error(`第 ${index + 1} 条规则的操作必须是 retreat、round 或 1–5`);
+      }
+      return [condition, action];
+    });
   }
 
   function updateUndoButton() {
@@ -248,13 +355,13 @@
   }
 
   function closeMapSelectPickers(except = null) {
-    dom.mapEditorLayout.querySelectorAll('.map-select-picker.open').forEach(picker => {
+    document.querySelectorAll('.map-select-picker.open').forEach(picker => {
       if (picker !== except) picker.classList.remove('open');
     });
   }
 
-  function enhanceMapSelects() {
-    dom.mapEditorLayout.querySelectorAll('select').forEach(select => {
+  function enhanceMapSelects(root = dom.mapEditorLayout) {
+    root.querySelectorAll('select').forEach(select => {
       if (select._mapPickerRefresh) {
         select._mapPickerRefresh();
         return;
@@ -938,6 +1045,7 @@
 
   function applyMapDocument(document) {
     mapDocument = normalizeDocument(document);
+    mapUserRules = createDefaultUserRules();
     clearUndoHistory();
     selection = { type: 'node', id: currentMap().entrance };
     exitConnectMode();
@@ -960,29 +1068,32 @@
     }
   }
 
-  function importYamlFile(file) {
+  async function importYamlFile(file) {
     if (!file) return;
-    const reader = new FileReader();
-    reader.addEventListener('load', () => {
-      try {
-        const parsed = MapYaml.parse(reader.result);
-        applyMapDocument(parsed);
-        showToast(`已导入 ${currentMap().nodes.length} 个点位和 ${currentMap().routes.length} 条路线`);
-      } catch (error) {
-        showToast(`导入失败：${error.message}`, true);
-      }
-    });
-    reader.addEventListener('error', () => showToast('无法读取 YAML 文件', true));
-    reader.readAsText(file, 'utf-8');
+    try {
+      const response = await fetch('/api/map/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: await file.text() }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || '地图 YAML 解析失败');
+      applyMapDocument(payload.map);
+      showToast(`已导入 ${currentMap().nodes.length} 个点位和 ${currentMap().routes.length} 条路线`);
+    } catch (error) {
+      showToast(`导入失败：${error.message}`, true);
+    }
   }
 
   function buildMapConfig(document = mapDocument) {
     const friendFleet = window.WSGRMapConfig?.getFriendFleet();
     if (!friendFleet || !friendFleet.ships.length) throw new Error('我方舰队不能为空');
+    normalizeMapUserRules();
     return {
       battle_type: 'Map',
       friend_fleet: friendFleet,
       map: { mapid: String(document.map.mapid || '').trim() },
+      user_rules: cloneMapData(mapUserRules),
     };
   }
 
@@ -1144,6 +1255,170 @@
     return Math.min(maximum, Math.max(minimum, value));
   }
 
+  function renderStrategyProceedStops(values) {
+    dom.strategyProceedStop.replaceChildren(...values.map((value, index) => {
+      const label = document.createElement('label');
+      label.textContent = `${index + 1}号位`;
+      const select = document.createElement('select');
+      select.dataset.strategyProceedStop = String(index);
+      select.append(
+        new Option('中破回港', '1'),
+        new Option('大破回港', '2'),
+        new Option('忽略', '-1'),
+      );
+      select.value = String(value);
+      label.append(select);
+      return label;
+    }));
+  }
+
+  function renderStrategyNodePicker() {
+    const selected = new Set(Array.isArray(mapUserRules.selected_nodes)
+      ? mapUserRules.selected_nodes : []);
+    const allNodes = mapUserRules.selected_nodes === 'all';
+    dom.strategyNodePicker.replaceChildren(...strategyNodeNames().map(name => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = name;
+      button.classList.toggle('selected', selected.has(name));
+      button.addEventListener('click', () => {
+        if (selected.has(name)) selected.delete(name);
+        else selected.add(name);
+        mapUserRules.selected_nodes = [...selected];
+        renderStrategyNodePicker();
+      });
+      return button;
+    }));
+    dom.strategyNodePicker.setAttribute('aria-disabled', String(allNodes));
+  }
+
+  function renderStrategyScopes(selectedScope = dom.strategyScope.value || '__default__') {
+    const scopes = strategyNodeNames();
+    dom.strategyScope.replaceChildren(
+      new Option('所有点位的默认策略', '__default__'),
+      ...scopes.map(name => new Option(`${name} 点覆盖策略`, name)),
+    );
+    dom.strategyScope.value = scopes.includes(selectedScope) || selectedScope === '__default__'
+      ? selectedScope : '__default__';
+  }
+
+  function updateStrategyRoundField() {
+    const thresholdActive = dom.strategyRound.value === 'threshold';
+    dom.strategyRoundThresholdField.hidden = !thresholdActive;
+    dom.strategyRound.closest('.strategy-dropdown-grid')?.classList.toggle(
+      'threshold-active',
+      thresholdActive,
+    );
+  }
+
+  function writeStrategyForm(scope = dom.strategyScope.value) {
+    activeStrategyScope = scope;
+    const settings = strategySettingsFor(scope);
+    dom.strategyFormation.value = String(settings.formation);
+    dom.strategyFormationRecon.value = String(settings.formation_if_recon_fails);
+    dom.strategyLongMissile.checked = Boolean(settings.long_missile);
+    dom.strategyNight.value = String(settings.night);
+    if (typeof settings.round === 'number') {
+      dom.strategyRound.value = 'threshold';
+      dom.strategyRoundThreshold.value = String(settings.round);
+    } else {
+      dom.strategyRound.value = String(settings.round);
+    }
+    updateStrategyRoundField();
+    dom.strategyRetreatRecon.checked = Boolean(settings.retreat_if_recon_fails);
+    dom.strategyRetreatRound.checked = Boolean(settings.retreat_if_round_fails);
+    dom.strategyProceed.checked = Boolean(settings.proceed);
+    renderStrategyProceedStops(settings.proceed_stop);
+    dom.strategyRules.value = formatStrategyRules(settings.rules);
+    if (dom.strategyDialog.open) enhanceMapSelects(dom.strategyDialog);
+  }
+
+  function saveStrategyDraft() {
+    const settings = readStrategyForm();
+    if (activeStrategyScope === '__default__') {
+      if (isSameStrategyValue(settings, mapUserRules.node_defaults)) {
+        strategyDrafts.delete(activeStrategyScope);
+      } else {
+        strategyDrafts.set(activeStrategyScope, settings);
+      }
+      return;
+    }
+    const defaults = strategyDrafts.get('__default__') || mapUserRules.node_defaults;
+    const overrides = Object.fromEntries(Object.entries(settings).filter(
+      ([key, value]) => !isSameStrategyValue(value, defaults[key]),
+    ));
+    if (isSameStrategyValue(overrides, mapUserRules.node_args[activeStrategyScope] || {})) {
+      strategyDrafts.delete(activeStrategyScope);
+    } else {
+      strategyDrafts.set(activeStrategyScope, overrides);
+    }
+  }
+
+  function readStrategyForm() {
+    const round = dom.strategyRound.value === 'threshold'
+      ? clamp(Math.round(Number(dom.strategyRoundThreshold.value) || 0), 0, 100)
+      : dom.strategyRound.value === 'true';
+    const proceedStop = [...dom.strategyProceedStop.querySelectorAll('select')]
+      .map(select => Number(select.value));
+    return {
+      formation: Number(dom.strategyFormation.value),
+      formation_if_recon_fails: dom.strategyFormationRecon.value === 'false'
+        ? false : Number(dom.strategyFormationRecon.value),
+      long_missile: dom.strategyLongMissile.checked,
+      night: dom.strategyNight.value === 'flag_alive'
+        ? 'flag_alive' : dom.strategyNight.value === 'true',
+      round,
+      rules: parseStrategyRules(dom.strategyRules.value),
+      retreat_if_recon_fails: dom.strategyRetreatRecon.checked,
+      retreat_if_round_fails: dom.strategyRetreatRound.checked,
+      proceed: dom.strategyProceed.checked,
+      proceed_stop: proceedStop,
+    };
+  }
+
+  function isSameStrategyValue(left, right) {
+    return JSON.stringify(left) === JSON.stringify(right);
+  }
+
+  function openStrategyDialog() {
+    normalizeMapUserRules();
+    strategyDrafts.clear();
+    activeStrategyScope = '__default__';
+    dom.strategyAllNodes.checked = mapUserRules.selected_nodes === 'all';
+    renderStrategyNodePicker();
+    renderStrategyScopes(activeStrategyScope);
+    writeStrategyForm(activeStrategyScope);
+    enhanceMapSelects(dom.strategyDialog);
+    dom.strategyDialog.showModal();
+  }
+
+  function saveStrategyDialog(event) {
+    event.preventDefault();
+    try {
+      saveStrategyDraft();
+      const defaultSettings = strategyDrafts.get('__default__');
+      if (defaultSettings) mapUserRules.node_defaults = defaultSettings;
+      [...strategyDrafts.entries()].filter(([scope]) => scope !== '__default__').forEach(([scope, overrides]) => {
+        if (Object.keys(overrides).length) mapUserRules.node_args[scope] = overrides;
+        else delete mapUserRules.node_args[scope];
+      });
+      if (dom.strategyAllNodes.checked) {
+        mapUserRules.selected_nodes = 'all';
+      } else if (!Array.isArray(mapUserRules.selected_nodes) || !mapUserRules.selected_nodes.length) {
+        throw new Error('请至少选择一个要打的节点，或启用“全部点位”');
+      }
+      dom.strategyDialog.close();
+      showToast('地图决策策略已应用');
+    } catch (error) {
+      showToast(error.message, true);
+    }
+  }
+
+  function cancelStrategyDialog() {
+    dom.strategyDialog.close('cancel');
+    showToast('已取消地图决策设置，未应用修改');
+  }
+
   function bindStaticEvents() {
     document.addEventListener('click', event => {
       if (!event.target.closest('.map-select-picker')) closeMapSelectPickers();
@@ -1158,6 +1433,30 @@
       currentMap().name = dom.mapName.value;
       currentMap().mapid = dom.mapName.value;
     });
+    document.querySelector('#open-map-strategy').addEventListener('click', openStrategyDialog);
+    document.querySelector('#close-map-strategy').addEventListener('click', cancelStrategyDialog);
+    document.querySelector('#cancel-map-strategy').addEventListener('click', cancelStrategyDialog);
+    dom.strategyDialog.addEventListener('cancel', event => {
+      event.preventDefault();
+      cancelStrategyDialog();
+    });
+    dom.strategyAllNodes.addEventListener('change', () => {
+      if (dom.strategyAllNodes.checked) mapUserRules.selected_nodes = 'all';
+      else mapUserRules.selected_nodes = strategyNodeNames();
+      renderStrategyNodePicker();
+    });
+    dom.strategyScope.addEventListener('change', () => {
+      try {
+        saveStrategyDraft();
+        writeStrategyForm(dom.strategyScope.value);
+      } catch (error) {
+        dom.strategyScope.value = activeStrategyScope;
+        dom.strategyScope._mapPickerRefresh?.();
+        showToast(error.message, true);
+      }
+    });
+    dom.strategyRound.addEventListener('change', updateStrategyRoundField);
+    dom.strategyForm.addEventListener('submit', saveStrategyDialog);
     const mapEpochRange = document.querySelector('#map-epoch-range');
     const mapEpochValue = document.querySelector('#map-epoch-value');
     const mapRunButton = document.querySelector('#run-map');
@@ -1409,6 +1708,7 @@
     const clearMapWorkspace = async () => {
       await resetMapSimulation();
       mapDocument = createDefaultDocument();
+      mapUserRules = createDefaultUserRules();
       clearUndoHistory();
       selection = { type: 'node', id: currentMap().entrance };
       exitConnectMode();
@@ -1520,7 +1820,7 @@
 
     document.querySelector('#import-map').addEventListener('click', () => dom.yamlFile.click());
     dom.yamlFile.addEventListener('change', () => {
-      importYamlFile(dom.yamlFile.files[0]);
+      void importYamlFile(dom.yamlFile.files[0]);
       dom.yamlFile.value = '';
     });
     document.querySelector('#export-map').addEventListener('click', saveMapDocument);
@@ -1586,6 +1886,13 @@
     },
     loadDocument(document) {
       applyMapDocument(document);
+    },
+    getUserRules() {
+      normalizeMapUserRules();
+      return cloneMapData(mapUserRules);
+    },
+    loadUserRules(userRules) {
+      loadMapUserRules(userRules);
     },
   };
 

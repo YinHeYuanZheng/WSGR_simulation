@@ -94,3 +94,29 @@ friend_fleet:
     strategy: []
 map:
   mapid: 2-1
+user_rules:
+  selected_nodes:
+  - B
+  - F
+  - D
+  node_defaults:
+    formation: 2
+    formation_if_recon_fails: false
+    long_missile: false
+    night: false
+    round: true
+    rules: []
+    retreat_if_recon_fails: false
+    retreat_if_round_fails: true
+    proceed: true
+    proceed_stop:
+    - 2
+    - 2
+    - 2
+    - 2
+    - 2
+    - 2
+  node_args:
+    F:
+      formation: 4
+      night: flag_alive

@@ -58,6 +58,9 @@ class WebUIRequestHandler(SimpleHTTPRequestHandler):
             if path == "/api/map/load":
                 self._send_json(self.service.load_map_document(payload["mapid"]))
                 return
+            if path == "/api/map/import":
+                self._send_json(self.service.load_uploaded_map_document(payload["content"]))
+                return
             if path == "/api/map/save":
                 self._send_json(self.service.save_map_document(payload["map"]))
                 return

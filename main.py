@@ -34,7 +34,7 @@ def main(infile, epoch, battle_num, fun, **kwargs):
     #     ship.status['total_health'] = 450
     #     ship.status['antiair'] = 100
     #     ship.status['recon'] = 100
-    # battle.friend.ship[1].status['health'] = 29
+    battle.friend.ship[0].status['input_health'] = 29
     set_supply(battle, battle_num)
     prebattle_info(battle)
     fun(battle, epoch, **kwargs)
@@ -51,11 +51,12 @@ if __name__ == '__main__':
     battle_num = 1  # 战斗轮次
     supportFlag = False  # todo 是否使用支援攻击
     fun = run_victory
-    configFile = os.path.join(configDir, r'event\cv_simulation\config_37.yaml')
+    configFile = os.path.join(configDir, r'config_map_test.yaml')
+    # configFile = os.path.join(configDir, r'event/config_1_2.xml')
     # configFile = os.path.join(configDir, r'config.xml')
     main(configFile, epoch, battle_num, fun)
 
-    # for num in [14, 15]:
-    #     configFile = os.path.join(configDir, rf'event\c_team\config_{num}.xml')
-    #     main(configFile, epoc, battle_num, fun)
+    # for num in ['01', '02']:
+    #     configFile = os.path.join(configDir, rf'config_map_{num}.xml')
+    #     main(configFile, epoch, battle_num, fun)
     #     print('\n')

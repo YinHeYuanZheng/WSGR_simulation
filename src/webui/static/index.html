@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WSGR · 战斗模拟</title>
-  <link rel="stylesheet" href="styles.css?v=map-ui-27">
+  <link rel="stylesheet" href="styles.css?v=map-ui-29">
 </head>
 <body>
   <header class="topbar">
@@ -109,8 +109,12 @@
         <div class="map-title-row"><input id="map-name" value="未命名海图" aria-label="海图名称"></div>
       </div>
       <div class="map-page-controls">
-        <div class="range-field map-simulation-settings"><label for="map-epoch-range">模拟次数</label><input id="map-epoch-range" type="range" min="1000" max="20000" step="1000" value="5000"><span class="epoch-input"><input id="map-epoch-value" class="range-value" type="number" min="1" max="1000000" step="1000" value="5000" aria-label="地图模拟次数"></span></div>
-        <button id="run-map" class="run simulation-button map-run"><span class="simulation-content"><span class="simulation-icon play-icon"><svg class="play-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l12-8z"/></svg></span><span>开始模拟</span></span></button>
+        <article class="map-simulation-settings" aria-label="模拟设置">
+          <h2>模拟设置</h2>
+          <button id="open-map-strategy" class="quiet" type="button">策略设置</button>
+          <div class="range-field map-epoch-setting"><label for="map-epoch-range">模拟次数</label><input id="map-epoch-range" type="range" min="1000" max="20000" step="1000" value="5000"><span class="epoch-input"><input id="map-epoch-value" class="range-value" type="number" min="1" max="1000000" step="1000" value="5000" aria-label="地图模拟次数"></span></div>
+          <button id="run-map" class="run simulation-button map-run"><span class="simulation-content"><span class="simulation-icon play-icon"><svg class="play-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l12-8z"/></svg></span><span>开始模拟</span></span></button>
+        </article>
       </div>
     </section>
 
@@ -189,6 +193,42 @@
 
   <dialog id="map-confirm-dialog" class="confirm-dialog"><form method="dialog"><h2>清空地图？</h2><p>这会移除当前地图中的所有点位、路线与敌方舰队，并恢复为单个入口节点。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="map-confirm-action" value="default" class="danger">确认清空</button></div></form></dialog>
   <dialog id="map-save-confirm" class="confirm-dialog"><form method="dialog"><h2>地图尚未保存</h2><p id="map-save-confirm-message"></p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button value="save" class="run">保存地图并继续</button></div></form></dialog>
+  <dialog id="map-strategy-dialog" class="map-strategy-dialog">
+    <form id="map-strategy-form" method="dialog">
+      <div class="dialog-heading"><div class="panel-title"><h2>地图决策设置</h2></div><button id="close-map-strategy" type="button" aria-label="关闭">×</button></div>
+      <p class="map-strategy-note">策略仅用于当前地图模拟。</p>
+      <section class="map-strategy-section">
+        <div class="map-strategy-section-heading"><h3>打点范围</h3><label class="map-compact-switch"><span>全部点位</span><input id="strategy-all-nodes" type="checkbox" checked></label></div>
+        <div id="strategy-node-picker" class="strategy-node-picker" aria-label="选择要打的节点"></div>
+      </section>
+      <section class="map-strategy-section">
+        <div class="map-strategy-section-heading"><h3>策略范围</h3><label>编辑对象<select id="strategy-scope"><option value="__default__">所有点位的默认策略</option></select></label></div>
+        <div class="map-strategy-grid strategy-dropdown-grid">
+          <label>阵型<select id="strategy-formation"><option value="1">单纵</option><option value="2">复纵</option><option value="3">轮形</option><option value="4">梯形</option><option value="5">单横</option></select></label>
+          <label>索敌失败阵型<select id="strategy-formation-recon"><option value="false">不改变</option><option value="1">单纵</option><option value="2">复纵</option><option value="3">轮形</option><option value="4">梯形</option><option value="5">单横</option></select></label>
+          <label>夜战<select id="strategy-night"><option value="false">不夜战</option><option value="true">进行夜战</option><option value="flag_alive">敌旗舰存活时夜战</option></select></label>
+          <label class="strategy-round-choice">迂回方式<select id="strategy-round"><option value="true">始终尝试</option><option value="false">不尝试</option><option value="threshold">成功率>=</option></select></label>
+          <label id="strategy-round-threshold-field" class="strategy-round-threshold" hidden>迂回率阈值<input id="strategy-round-threshold" type="number" min="0" max="100" step="1" value="50"></label>
+        </div>
+        <div class="map-strategy-grid strategy-switch-grid">
+          <label class="map-compact-switch"><span>远程打击</span><input id="strategy-long-missile" type="checkbox"></label>
+          <label class="map-compact-switch"><span>索敌失败撤退</span><input id="strategy-retreat-recon" type="checkbox"></label>
+          <label class="map-compact-switch"><span>迂回失败撤退</span><input id="strategy-retreat-round" type="checkbox" checked></label>
+          <label class="map-compact-switch"><span>战后继续前进</span><input id="strategy-proceed" type="checkbox" checked></label>
+        </div>
+      </section>
+      <section class="map-strategy-section">
+        <div class="map-strategy-section-heading"><h3>破损回港</h3></div>
+        <div id="strategy-proceed-stop" class="strategy-proceed-stop"></div>
+      </section>
+      <section class="map-strategy-section">
+        <div class="map-strategy-section-heading"><h3>条件规则</h3></div>
+        <textarea id="strategy-rules" rows="4" placeholder="每行一条，例：&#10;(SS >= 2) => 5&#10;(BB >= 3) and (DD < 2) => retreat"></textarea>
+        <p class="map-strategy-note">操作可填写 <code>retreat</code>、<code>round</code> 或阵型数字 1–5；从上到下执行第一条命中规则。</p>
+      </section>
+      <div class="dialog-actions"><button id="cancel-map-strategy" type="button" class="quiet">取消</button><button id="save-map-strategy" type="submit" value="default" class="run">应用策略</button></div>
+    </form>
+  </dialog>
   <dialog id="map-fleet-editor" class="map-fleet-editor"><form method="dialog"><div class="dialog-heading"><div class="panel-title"><h2 id="map-fleet-editor-title">敌方舰队</h2></div><button value="cancel" aria-label="关闭">×</button></div><article class="panel fleet-panel enemy-panel map-fleet-editor-panel"><div class="heading"><label class="map-fleet-name-field">编队名称<input id="map-fleet-name" maxlength="16"></label><div class="heading-actions"><div class="formation compact"><span>阵型</span><div id="map-enemy-formation"><button type="button">单纵</button><button type="button">复纵</button><button type="button">轮形</button><button type="button" class="selected">梯形</button><button type="button">单横</button></div></div></div></div><ol id="map-enemy-list" class="ship-list enemy-list"></ol><button type="button" class="add-row" id="map-add-enemy">＋ 添加敌方舰船</button></article><div class="dialog-actions map-fleet-dialog-actions"><button id="map-delete-fleet" type="button" class="danger">删除舰队</button><span></span><button value="default" class="run">完成</button></div></form></dialog>
   <input id="map-yaml-file" type="file" accept=".yaml,.yml,text/yaml,application/yaml" hidden>
   <div id="map-notice" class="notice" role="status" aria-live="polite" hidden></div>
@@ -218,8 +258,7 @@
   <dialog id="clear-confirm" class="confirm-dialog"><form method="dialog"><h2>清空页面？</h2><p>这会移除双方舰队配置，并重置模拟设置与所有统计结果。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="confirm-clear" type="button" class="danger">确认清空</button></div></form></dialog>
   <input id="config-file" type="file" accept=".yaml,.yml,.xml" hidden>
   <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
-  <script src="map-yaml.js"></script>
-  <script src="map-editor.js?v=map-ui-27"></script>
-  <script src="app.js?v=map-ui-15"></script>
+  <script src="map-editor.js?v=map-ui-30"></script>
+  <script src="app.js?v=map-ui-16"></script>
 </body>
 </html>

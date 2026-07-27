@@ -96,6 +96,44 @@ map:
   mapid: '示例海图'
 ```
 
+### 地图用户策略
+
+地图出征 YAML 可在顶层加入以下策略字段。未填写这些字段时，模拟器保留旧行为：道中复纵、Boss
+梯形、仅 Boss 夜战，并在旗舰大破时回港。填写 `selected_nodes` 后启用用户策略；也可以将相同内容
+嵌套在 `user_rules:` 下。
+
+```yaml
+# 白名单；到达未列出的点立刻 SL。all 表示所有点。
+selected_nodes: all
+
+node_defaults:
+  formation: 2                    # 1-5：单纵、复纵、轮形、梯形、单横
+  formation_if_recon_fails: false # 可选；索敌失败时改用的阵型
+  long_missile: false             # 是否执行远程打击 LongMissilePhase
+  night: false                    # true、false，或 flag_alive（敌方旗舰存活时夜战）
+  round: true                     # true/false，或 0-100 的迂回率阈值
+  rules:                          # 可选；索敌成功后按顺序匹配第一条
+    - ["(SS >= 2)", "5"]         # 条件命中后选单横
+    - ["(BB >= 3) and (DD < 2)", "retreat"]
+    - ["(CV >= 1)", "round"]
+  retreat_if_recon_fails: false
+  retreat_if_round_fails: true
+  proceed: true
+  proceed_stop: [2, 2, 2, 2, 2, 2]
+
+node_args:
+  A:
+    # 仅覆盖 A 点指定字段，其余沿用 node_defaults。
+    rules:
+      - ["(SS != 5)", "retreat"]
+```
+
+规则条件只检查当前敌方舰队的舰种数量。舰种名称为 `ship.py` 中的 `Ship` 或其子类，例如
+`SS`、`DD`、`CL`、`BB`、`CV`；比较符支持 `>=`、`<=`、`>`、`<`、`==`、`!=`。`and` 的优先级
+高于 `or`。规则操作可以是 `retreat`、`round` 或阵型数字 `1` 至 `5`。旧写法 `enemy_rules`
+也可作为 `rules` 的别名。数值型 `round` 仅在计算出的迂回成功率严格高于该阈值时尝试迂回。
+`proceed_stop` 的六项依次对应 1-6 号位：`1` 为中破及以上回港，`2` 为大破及以上回港，`-1` 为忽略该位置。
+
 对应地图独立保存在 `depend/map/示例海图.yaml`。`mapid` 直接使用海图名称，不限数字，
 可使用任意安全的文件名（例如 `夏活-困难 E5`）；配置和地图文件中的值必须完全一致。地图文件不再通过点位 `pid`
 查询 Excel 地图数据库，而是直接包含点位、路线和各点的敌方舰队：

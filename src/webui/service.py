@@ -925,8 +925,8 @@ class WebUIService:
         return {"map": load_map_yaml(mapid, str(MAP_DIR))}
 
     @staticmethod
-    def save_map_document(map_document: dict[str, Any]) -> dict[str, Any]:
-        """Persist the editor's complete standalone map document in depend/map."""
+    def validate_map_document(map_document: dict[str, Any]) -> str:
+        """Validate the minimum standalone map document shape and return its id."""
         if not isinstance(map_document, dict):
             raise ValueError("地图内容必须为对象")
         mapid = str(map_document.get("mapid", "")).strip()
@@ -934,6 +934,19 @@ class WebUIService:
             raise ValueError("地图名称不能为空")
         if not isinstance(map_document.get("nodes"), list) or not isinstance(map_document.get("routes"), list):
             raise ValueError("地图必须包含 nodes 和 routes")
+        return mapid
+
+    @classmethod
+    def load_uploaded_map_document(cls, content: str) -> dict[str, Any]:
+        """Parse a map upload through the same YAML loader as configuration uploads."""
+        map_document = cls.load_uploaded_config("map.yaml", content)
+        cls.validate_map_document(map_document)
+        return {"map": map_document}
+
+    @classmethod
+    def save_map_document(cls, map_document: dict[str, Any]) -> dict[str, Any]:
+        """Persist the editor's complete standalone map document in depend/map."""
+        mapid = cls.validate_map_document(map_document)
         path = Path(map_yaml_path(mapid, str(MAP_DIR)))
         with path.open("w", encoding="utf-8") as file:
             yaml.safe_dump(map_document, file, allow_unicode=True, sort_keys=False)
