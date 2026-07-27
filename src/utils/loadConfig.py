@@ -52,6 +52,59 @@ def load_map_yaml(mapid: str, mapDir: str) -> dict:
     return map_config
 
 
+def load_map_xml(entrance, dataset, mapid: str) -> dict:
+    """Convert one legacy XML entrance and point database data to map YAML shape."""
+    nodes = []
+    routes = []
+    for xml_node in entrance.getElementsByTagName('point'):
+        name = xml_node.getAttribute('name')
+        status = dataset.get_point_status(xml_node.getAttribute('pid'))
+        battle_type = status['type']
+        enemy_fleets = []
+        for enemy_ids in status['enemy']:
+            if enemy_ids[0] == '':
+                continue
+            ships = [
+                {'loc': index, 'cid': str(cid)}
+                for index, cid in enumerate(enemy_ids[1:], start=1)
+                if cid != ''
+            ]
+            enemy_fleets.append({
+                'formation': int(enemy_ids[0]),
+                'ships': ships,
+            })
+
+        nodes.append({
+            'name': name,
+            'level': int(xml_node.getAttribute('level')),
+            'battle': {
+                'type': battle_type,
+                'roundabout': status['roundabout'],
+                'support': False,
+            },
+            'enemy_fleets': enemy_fleets,
+        })
+        for xml_route in xml_node.getElementsByTagName('suc'):
+            conditions = [
+                {
+                    'type': request.getAttribute('type'),
+                    'name': request.getAttribute('name'),
+                    'fun': request.getAttribute('fun'),
+                    'value': request.getAttribute('value'),
+                }
+                for request in xml_route.getElementsByTagName('request')
+            ]
+            routes.append({
+                'from': name,
+                'to': xml_route.getAttribute('name'),
+                'weight': float(xml_route.getAttribute('weight')),
+                'relation': xml_route.getAttribute('relation') or 'and',
+                'conditions': conditions,
+            })
+
+    return {'mapid': str(mapid), 'nodes': nodes, 'routes': routes}
+
+
 def load_xml(infile: str, mapDir: str) -> dict:
     """xml to dict"""
     dom = xml.dom.minidom.parse(infile)
@@ -185,7 +238,6 @@ def load_config(battleConfig, mapDir, dataset, timer, log_func=print) -> BattleU
         battle_map = load_map(
             mapDict, mapDir, dataset, timer, friend,
             map_document=battleConfig.get('_map_document'),
-            enemy_ship_loader=load_enemy_ship,
             log_func=log_func,
         )
         return battle_map
@@ -208,10 +260,9 @@ def load_fleet(fleetDict, dataset, timer, log_func=print):
 
 def load_map(
         mapDict, mapDir, dataset, timer, friend, map_document=None,
-        enemy_ship_loader=None, log_func=print,
+        log_func=print,
 ):
     mapid = str(mapDict['mapid']).strip()
-    map_yaml = map_yaml_path(mapid, mapDir)
     if map_document is not None:
         if not isinstance(map_document, dict):
             raise ValueError('Temporary map document must be an object')
@@ -222,13 +273,13 @@ def load_map(
             )
         return MapUtil(
             timer, map_document, dataset, friend,
-            enemy_ship_loader=enemy_ship_loader, log_func=log_func,
+            log_func=log_func,
         )
 
-    if mapDict.get('_format') != 'xml' and os.path.exists(map_yaml):
+    if mapDict.get('_format') != 'xml':
         return MapUtil(
             timer, load_map_yaml(mapid, mapDir), dataset, friend,
-            enemy_ship_loader=enemy_ship_loader, log_func=log_func,
+            log_func=log_func,
         )
 
     entrance_id = int(mapDict.get('entrance', 0))
@@ -237,7 +288,10 @@ def load_map(
     root = map_dom.documentElement
     entrance = root.getElementsByTagName('entrance')[entrance_id]
 
-    return MapUtil(timer, entrance, dataset, friend)
+    return MapUtil(
+        timer, load_map_xml(entrance, dataset, mapid), dataset, friend,
+        log_func=log_func,
+    )
 
 
 def load_ship(shipDict, dataset, timer, log_func=print):
@@ -346,9 +400,7 @@ def load_enemy_ship(shipDict, dataset, timer, log_func=print):
     del status
 
     # 调用技能并写入
-    # skill_num = int(shipDict['skill']) - 1
-    skill_num = 0  # 默认只有一个技能
-    sid = skill_list[skill_num]
+    sid = skill_list[0]  # 默认只有一个技能
     if sid != '' and int(shipDict.get('skill', 1)) != 0:  # skill=0可用于去除敌舰技能
         sid = 'sid' + sid
         skill = getattr(skillCode, sid).skill  # 根据技能设置获取技能列表，未实例化

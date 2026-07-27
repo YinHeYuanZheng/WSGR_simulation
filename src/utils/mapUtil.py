@@ -15,59 +15,19 @@ from src import skillCode
 class MapUtil(Time):
     """地图调用基类"""
 
-    def __init__(self, timer, entrance, dataset, friend,
-                 enemy_ship_loader=None, log_func=print):
+    def __init__(self, timer, map_config, dataset, friend, log_func=print):
         super().__init__(timer)
         self.friend = friend
         self.point = {}
-        self.map_config = entrance if isinstance(entrance, dict) else None
-        self.enemy_ship_loader = enemy_ship_loader
+        self.map_config = map_config
         self.log_func = log_func
         self.entrance_name = 'entrance'
-        self.init_map(entrance, dataset)
+        self.init_map(map_config, dataset)
 
-    def init_map(self, entrance, dataset):
-        """根据xml结构和数据库，构建海图"""
-        if isinstance(entrance, dict):
-            self.init_map_config(entrance, dataset)
-            return
-
-        points = entrance.getElementsByTagName('point')
-        for node in points:
-            # 读取节点属性
-            name = node.getAttribute('name')
-            pid = node.getAttribute('pid')
-            status = dataset.get_point_status(pid)
-            level = int(node.getAttribute('level'))
-            p = Point(name, level)
-
-            # 写入节点属性
-            battle_type = status.pop('type')
-            p.set_type(getattr(battleUtil, battle_type))
-            roundabout = status.pop('roundabout')
-            p.set_roundabout(roundabout)
-
-            # 生成深海舰队
-            enemy_list = []
-            enemy_status = status.pop('enemy')
-            for enemy_ids in enemy_status:
-                if enemy_ids[0] != '':
-                    fleet = self.load_fleet(enemy_ids, dataset, self.timer)
-                    enemy_list.append(fleet)
-            p.set_enemy(enemy_list)
-
-            # 生成后继节点及带路
-            suc = self.load_suc(node)  # 带路包含在节点属性内
-            if (p.level in [0, 1, 2, 3]) and (len(suc) == 0):
-                raise ValueError(f'Point {name} should have successor(s)!')
-            p.set_suc(suc)
-
-            if level == 0:
-                self.entrance_name = name
-            self.point[name] = p
-
-    def init_map_config(self, map_config, dataset):
-        """Build a complete map directly from an embedded YAML map."""
+    def init_map(self, map_config, dataset):
+        """根据传入的字典结构和数据库，构建海图"""
+        if not isinstance(map_config, dict):
+            raise TypeError('Map configuration must be an object')
         nodes = map_config.get('nodes')
         routes = map_config.get('routes')
         if not isinstance(nodes, list) or not nodes:
@@ -100,7 +60,7 @@ class MapUtil(Time):
 
             enemy_list = []
             for fleet_config in node.get('enemy_fleets') or []:
-                enemy_list.append(self.load_config_fleet(fleet_config, dataset, self.timer))
+                enemy_list.append(self.load_fleet(fleet_config, dataset, self.timer))
             if battle_type in {'Entrance', 'MidPoint'} and enemy_list:
                 raise ValueError(f'Non-combat point {name} cannot contain enemy fleets')
             if battle_type not in {'Entrance', 'MidPoint'} and not enemy_list:
@@ -152,8 +112,8 @@ class MapUtil(Time):
             if not point.suc and point.level not in [4, 5]:
                 raise ValueError(f'Terminal point {name} must have level 4 or 5')
 
-    def load_config_fleet(self, fleet_config, dataset, timer):
-        """Load one embedded enemy fleet without the point database."""
+    def load_fleet(self, fleet_config, dataset, timer):
+        """Load one enemy fleet from the normalized map document."""
         if not isinstance(fleet_config, dict):
             raise ValueError('Enemy fleet must be an object')
         fleet = rship.Fleet(timer)
@@ -171,14 +131,7 @@ class MapUtil(Time):
                 'affection': int(ship_config.get('affection', 50)),
                 'skill': int(ship_config.get('skill', 1)),
             }
-            if self.enemy_ship_loader is None:
-                ship = self.load_enemy_ship(
-                    normalized_ship['cid'], normalized_ship['loc'], dataset, timer,
-                )
-            else:
-                ship = self.enemy_ship_loader(
-                    normalized_ship, dataset, timer, log_func=self.log_func,
-                )
+            ship = self.load_enemy_ship(normalized_ship, dataset, timer)
             ship.set_master(fleet)
             shiplist.append(ship)
         if not shiplist:
@@ -189,109 +142,9 @@ class MapUtil(Time):
         fleet.set_side(0)
         return fleet
 
-    def load_fleet(self, enemy_ids, dataset, timer):
-        """读取敌方舰队"""
-        fleet = rship.Fleet(timer)
-        fleet.set_form(int(enemy_ids[0]))
-
-        shiplist = []
-        for i in range(len(enemy_ids) - 1):
-            cid = enemy_ids[i + 1]
-            if cid != '':
-                ship = self.load_enemy_ship(cid, len(shiplist) + 1, dataset, timer)
-                ship.set_master(fleet)
-                shiplist.append(ship)
-
-        assert len(shiplist) != 0
-        fleet.set_ship(shiplist)
-        fleet.set_side(0)
-        return fleet
-
-    def load_enemy_ship(self, cid, loc, dataset, timer):
-        # 读取舰船属性
-        status = dataset.get_enemy_ship_status(cid)
-
-        # 舰船对象实例化
-        ship_type = status.pop('type')
-        ship = getattr(rship, ship_type)(timer)  # 根据船型获取类，并实例化
-        ship.set_cid(cid)
-
-        # 写入固有属性
-        ship.set_loc(int(loc))
-        # ship.set_level(50)
-        ship.set_affection(50)
-
-        # 写入非属性变量
-        level = status.pop('level')
-        ship.set_level(level)
-        if status['capacity'] != 0:
-            load = status.pop('load')
-            ship.set_load(load)
-        eid_list = status.pop('equip')
-        skill_list = status.pop('skill')
-
-        # 写入舰船属性
-        ship.set_status(status=status)
-        del status
-
-        # 调用技能并写入
-        skill_num = 0  # 默认只有一个技能
-        sid = skill_list[skill_num]
-        if sid != '':
-            sid = 'sid' + sid
-            skill = getattr(skillCode, sid).skill  # 根据技能设置获取技能列表，未实例化
-            ship.add_skill(skill)
-            del skill
-
-            # 获取技能名称并输出
-            try:
-                skill_name = getattr(skillCode, sid).name
-                print(f"{ship.status['name']} {skill_name}")
-            except:
-                print(f"{ship.status['name']} 未获取到技能名称")
-
-        # 读取装备属性并写入
-        for i, eid in enumerate(eid_list):
-            if eid != '':
-                estatus = dataset.get_equip_status(eid)
-                equip_type = estatus.pop('type')
-                equip = getattr(requip, equip_type)(timer, ship, i + 1)  # 根据装备类型获取类，并实例化
-
-                # 读取装备特效配置
-                skill_config = estatus.pop('skill_config')
-                if skill_config != '':
-                    equip.add_skill(load_equip_config(skill_config, eid))
-
-                # 写入装备属性
-                equip.set_status(status=estatus)
-                ship.set_equipment(equip)
-
-        return ship
-
-    def load_suc(self, node):
-        suc_list = node.getElementsByTagName('suc')
-        suc = {}
-        for suc_node in suc_list:
-            name = suc_node.getAttribute('name')
-            weight = float(suc_node.getAttribute('weight'))
-            relation = suc_node.getAttribute('relation')
-            request = self.load_request(suc_node)
-            suc[name] = Successor(weight, request, relation)
-        return suc
-
-    def load_request(self, node):
-        req_list = node.getElementsByTagName('request')
-        request = []
-        for req_node in req_list:
-            request.append(
-                LeadRequest(
-                    request_type=req_node.getAttribute('type'),
-                    name=req_node.getAttribute('name'),
-                    fun=req_node.getAttribute('fun'),
-                    value=req_node.getAttribute('value'),
-                )
-            )
-        return request
+    def load_enemy_ship(self, ship_config, dataset, timer):
+        from src.utils.loadConfig import load_enemy_ship
+        return load_enemy_ship(ship_config, dataset, timer, log_func=self.log_func)
 
     def start(self):
         name = self.entrance_name
