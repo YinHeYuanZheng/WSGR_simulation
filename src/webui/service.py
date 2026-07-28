@@ -224,6 +224,10 @@ class SimulationManager:
             )
             process = context.Process(
                 target=spawned_target,
+                # Windows uses ``spawn`` and would otherwise reopen and parse
+                # database.xlsx for every click on “开始模拟”.  Dataset only
+                # contains compact pandas frames, so passing the already-loaded
+                # instance is substantially cheaper than another Excel parse.
                 args=(self.dataset, copy.deepcopy(battle_config), epoch, battle_num, state_queue),
                 daemon=True,
                 name="wsgr-webui-simulation",
@@ -301,19 +305,6 @@ class SimulationManager:
         except Exception:
             pass
 
-    def _publish_setup_stop(self) -> None:
-        with self._lock:
-            self._state.update({
-                "state": "stopped",
-                "message": "模拟已停止",
-                "log": "模拟已停止",
-                "completed": 0,
-                "live_completed": 0,
-                "progress": 0,
-                "live_progress": 0,
-            })
-        self._send_state_to_parent()
-
     def _run(self, battle_config: dict[str, Any], epoch: int, battle_num: int) -> None:
         try:
             # On POSIX the WebUI starts simulations with ``fork``.  Without
@@ -328,7 +319,12 @@ class SimulationManager:
                 log_func=skill_messages.append,
             )
             if self._stop_event.is_set():
-                self._publish_setup_stop()
+                with self._lock:
+                    self._state.update({
+                        "state": "stopped",
+                        "message": "模拟已停止",
+                        "log": "模拟已停止",
+                    })
                 return
             set_supply(battle, battle_num)
             prebattle_info = self._prebattle_info(battle)
@@ -608,9 +604,6 @@ class MapSimulationManager(SimulationManager):
                 battle_config, str(MAP_DIR), self.dataset, battle_timer,
                 log_func=skill_messages.append,
             )
-            if self._stop_event.is_set():
-                self._publish_setup_stop()
-                return
             map_config = battle.map_config
             if not isinstance(map_config, dict):
                 raise ValueError("地图模拟需要独立 YAML 地图")
@@ -644,8 +637,6 @@ class MapSimulationManager(SimulationManager):
             ])
 
             for index in range(epoch):
-                if self._stop_event.is_set():
-                    break
                 current_map = copy.deepcopy(battle)
                 current_map.start()
                 report = current_map.report()
@@ -683,12 +674,6 @@ class MapSimulationManager(SimulationManager):
                 if not first_record:
                     first_record = str(report.get("record", ""))
 
-                if self._stop_event.is_set():
-                    break
-                time.sleep(0)
-                if self._stop_event.is_set():
-                    break
-
                 if completed == 1 or completed % publish_every == 0 or completed == epoch:
                     summary = self._build_map_summary(
                         completed, cleared, boss_battles, boss_flagship_sinks,
@@ -700,8 +685,7 @@ class MapSimulationManager(SimulationManager):
                 completed, cleared, boss_battles, boss_flagship_sinks,
                 node_statistics, friend_ship_names, supply_totals, first_record,
             )
-            final_state = "stopped" if self._stop_event.is_set() and completed < epoch else "complete"
-            self._publish_map(final_state, completed, epoch, summary, log_prefix)
+            self._publish_map("complete", completed, epoch, summary, log_prefix)
         except Exception as exc:
             with self._lock:
                 self._state.update({
@@ -783,11 +767,7 @@ class MapSimulationManager(SimulationManager):
                 "live_completed": completed,
                 "live_progress": progress,
                 "target": target,
-                "message": {
-                    "running": "正在模拟",
-                    "complete": "模拟完成",
-                    "stopped": "模拟已停止",
-                }[state],
+                "message": "正在模拟" if state == "running" else "模拟完成",
                 "log": log,
                 "summary": summary,
             })

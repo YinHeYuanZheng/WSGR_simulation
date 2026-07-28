@@ -1400,17 +1400,29 @@ async function startSimulation() {
   try {
     simulationDisplayFrozen = false;
     removePendingShips();
+    const epoch = Number(epochValue.value) || 1;
+    simulationState = 'running';
+    simulationButton.classList.add('running');
+    simulationButton.classList.remove('stopping');
+    simulationButton.style.setProperty('--run-progress', '0%');
+    setSimulationButtonContent('loading', `正在模拟… 0 / ${formatNumber(epoch)}`);
+    setResultLog(`正在模拟 0 / ${formatNumber(epoch)}`);
+    updateSimulationCountStat(0);
     const status = await api('/api/simulation/start', {
       method: 'POST',
       body: JSON.stringify({
         config: buildBattleConfig(),
-        epoch: Number(epochValue.value) || 1,
+        epoch,
         battle_num: Number(roundsValue.value) || 1,
       }),
     });
     renderSimulationStatus(status);
     pollTimer = setTimeout(pollSimulation, 20);
   } catch (error) {
+    simulationState = 'error';
+    simulationButton.classList.remove('running', 'stopping');
+    simulationButton.style.removeProperty('--run-progress');
+    setSimulationButtonContent('retry', '再次模拟', true);
     showNotice(error.message, true);
   }
 }
