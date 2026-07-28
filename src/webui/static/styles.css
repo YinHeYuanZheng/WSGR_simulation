@@ -517,8 +517,8 @@ body.dark .result-tabs button.active { background: linear-gradient(145deg, #1c25
 .map-tool-rail { display: flex; align-items: center; flex-direction: column; gap: 7px; padding: 12px 6px; border-right: 1px solid var(--line); background: var(--surface); }
 .map-tool-rail button { position: relative; display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--muted); }
 .map-tool-rail button:hover, .map-tool-rail button.active { border-color: var(--line); background: var(--accent-soft); color: var(--accent); }
-.map-tool-rail button span { font: 500 21px var(--mono); }
 .map-tool-rail button svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.9; }
+.map-tool-rail button .connect-line { stroke-dasharray: 2.4 2.4; }
 .map-tool-rail button:disabled { cursor: not-allowed; color: var(--line); opacity: .65; }
 .map-tool-rail button:disabled:hover { border-color: transparent; background: transparent; color: var(--line); }
 .map-tool-rail button[data-tooltip]::after { position: absolute; z-index: 40; top: 7px; left: 42px; width: max-content; padding: 5px 7px; border-radius: 6px; background: var(--ink); color: var(--base); content: attr(data-tooltip); font-size: 10px; opacity: 0; pointer-events: none; transform: translateX(-4px); transition: .15s; }

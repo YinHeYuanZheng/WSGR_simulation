@@ -1668,7 +1668,11 @@
         },
       ));
       const body = document.createElement('tbody');
-      entries.filter(entry => Number(entry.battles || 0) > 0).forEach(entry => {
+      // 非战斗点没有胜率场次，但允许迂回的点位仍会产生独立的迂回率，
+      // 因而也应保留在汇总表中。
+      entries.filter(entry => (
+        Number(entry.battles || 0) > 0 || entry.roundabout_rate != null
+      )).forEach(entry => {
         const battles = Number(entry.battles || 0);
         const rate = value => `${Number(value || 0).toFixed(2)}%`;
         const optionalRate = value => value == null ? '—' : rate(value);
