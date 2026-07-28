@@ -136,6 +136,11 @@ class SimulationManager:
         self._process: mp.Process | None = None
         self._collector_thread: threading.Thread | None = None
         self._state_sink: mp.Queue | None = None
+        self._worker_commands: mp.Queue | None = None
+        self._worker_states: mp.Queue | None = None
+        self._worker_stop_event: Any | None = None
+        self._persistent_worker = False
+        self._worker_busy = False
         self._active_job_id = 0
         self._completed = 0
         self._target = 0
@@ -169,12 +174,17 @@ class SimulationManager:
         """Discard the current job and forget its result snapshot."""
         with self._lock:
             process = self._process
-            running = process is not None and process.is_alive()
+            running = self._worker_busy if self._persistent_worker else (
+                process is not None and process.is_alive()
+            )
         if running:
             self.stop()
+            if self._persistent_worker:
+                return self.snapshot()
         with self._lock:
             self._active_job_id += 1
-            self._process = None
+            if not self._persistent_worker:
+                self._process = None
             self._completed = 0
             self._target = 0
             self._stop_requested_completed = None
@@ -185,7 +195,10 @@ class SimulationManager:
         epoch = max(1, min(int(epoch), 1_000_000))
         battle_num = max(1, min(int(battle_num), 5))
         with self._lock:
-            if self._process is not None and self._process.is_alive():
+            running = self._worker_busy if self._persistent_worker else (
+                self._process is not None and self._process.is_alive()
+            )
+            if running:
                 raise SimulationBusyError("已有模拟正在运行")
             self._stop_event = threading.Event()
             self._completed = 0
@@ -208,30 +221,19 @@ class SimulationManager:
             state = copy.deepcopy(self._state)
 
         context = self._process_context()
+        if context.get_start_method() == "spawn":
+            self._start_persistent_worker(
+                context, copy.deepcopy(battle_config), epoch, battle_num,
+            )
+            return state
+
         state_queue = context.Queue()
-        if context.get_start_method() == "fork":
-            process = context.Process(
-                target=_run_forked_simulation,
-                args=(self, copy.deepcopy(battle_config), epoch, battle_num, state_queue),
-                daemon=True,
-                name="wsgr-webui-simulation",
-            )
-        else:
-            spawned_target = (
-                _run_spawned_map_simulation
-                if self._simulation_kind == "map"
-                else _run_spawned_simulation
-            )
-            process = context.Process(
-                target=spawned_target,
-                # Windows uses ``spawn`` and would otherwise reopen and parse
-                # database.xlsx for every click on “开始模拟”.  Dataset only
-                # contains compact pandas frames, so passing the already-loaded
-                # instance is substantially cheaper than another Excel parse.
-                args=(self.dataset, copy.deepcopy(battle_config), epoch, battle_num, state_queue),
-                daemon=True,
-                name="wsgr-webui-simulation",
-            )
+        process = context.Process(
+            target=_run_forked_simulation,
+            args=(self, copy.deepcopy(battle_config), epoch, battle_num, state_queue),
+            daemon=True,
+            name="wsgr-webui-simulation",
+        )
         process.start()
         with self._lock:
             self._process = process
@@ -244,10 +246,106 @@ class SimulationManager:
         self._collector_thread.start()
         return state
 
+    def _start_persistent_worker(
+        self,
+        context: mp.context.BaseContext,
+        battle_config: dict[str, Any],
+        epoch: int,
+        battle_num: int,
+    ) -> None:
+        with self._lock:
+            process = self._process
+            worker_ready = (
+                self._persistent_worker
+                and process is not None
+                and process.is_alive()
+                and self._worker_commands is not None
+                and self._worker_stop_event is not None
+            )
+            if not worker_ready:
+                self._worker_commands = context.Queue()
+                self._worker_states = context.Queue()
+                self._worker_stop_event = context.Event()
+                process = context.Process(
+                    target=_run_persistent_simulation_worker,
+                    args=(
+                        self.dataset,
+                        self._simulation_kind,
+                        self._worker_commands,
+                        self._worker_states,
+                        self._worker_stop_event,
+                    ),
+                    daemon=True,
+                    name=f"wsgr-webui-{self._simulation_kind}-worker",
+                )
+                process.start()
+                self._process = process
+                self._persistent_worker = True
+                self._collector_thread = threading.Thread(
+                    target=self._collect_persistent_worker_updates,
+                    args=(self._worker_states, process),
+                    daemon=True,
+                    name=f"wsgr-webui-{self._simulation_kind}-collector",
+                )
+                self._collector_thread.start()
+            self._worker_stop_event.clear()
+            self._worker_busy = True
+            self._worker_commands.put({
+                "action": "start",
+                "battle_config": battle_config,
+                "epoch": epoch,
+                "battle_num": battle_num,
+            })
+
+    def _collect_persistent_worker_updates(
+        self,
+        state_queue: mp.Queue,
+        process: mp.Process,
+    ) -> None:
+        while process.is_alive() or not state_queue.empty():
+            try:
+                state = state_queue.get(timeout=0.05)
+            except Empty:
+                continue
+            with self._lock:
+                if process is not self._process:
+                    return
+                self._state = state
+                self._completed = state.get("live_completed", state.get("completed", 0))
+                if state.get("state") in ("complete", "stopped", "error"):
+                    self._worker_busy = False
+        with self._lock:
+            if process is not self._process:
+                return
+            if self._worker_busy:
+                self._worker_busy = False
+                self._state.update({
+                    "state": "error",
+                    "message": "模拟工作进程意外退出",
+                    "log": "模拟工作进程意外退出",
+                })
+
     def stop(self) -> dict[str, Any]:
         with self._lock:
             process = self._process
             requested_completed = self._completed
+            if self._persistent_worker:
+                if not self._worker_busy:
+                    return copy.deepcopy(self._state)
+                self._worker_stop_event.set()
+                self._stop_requested_completed = requested_completed
+                self._state["state"] = "stopping"
+                self._state["message"] = "正在停止模拟"
+                self._state["live_completed"] = requested_completed
+                self._state["live_progress"] = requested_completed / max(self._target, 1) * 100
+                self._state["stop_requested_completed"] = requested_completed
+                threading.Thread(
+                    target=self._force_stop_persistent_job,
+                    args=(process,),
+                    daemon=True,
+                    name="wsgr-webui-persistent-stop-watchdog",
+                ).start()
+                return copy.deepcopy(self._state)
             # The terminated child no longer owns the active job.  This lets a
             # new simulation start immediately instead of waiting for process
             # reaping to finish.
@@ -271,6 +369,31 @@ class SimulationManager:
                 name="wsgr-webui-process-reaper",
             ).start()
         return state
+
+    def _force_stop_persistent_job(self, process: mp.Process | None) -> None:
+        """Keep the stop control responsive if a worker misses its stop checks."""
+        if process is None:
+            return
+        deadline = time.monotonic() + 2.0
+        while time.monotonic() < deadline:
+            with self._lock:
+                if process is not self._process or not self._worker_busy:
+                    return
+            time.sleep(0.05)
+        if not process.is_alive():
+            return
+        process.terminate()
+        process.join(timeout=0.2)
+        with self._lock:
+            if process is not self._process:
+                return
+            self._persistent_worker = False
+            self._worker_busy = False
+            self._state.update({
+                "state": "stopped",
+                "message": "模拟已停止",
+                "log": "模拟停止超时，已强制结束工作进程",
+            })
 
     @staticmethod
     def _reap_stopped_process(process: mp.Process) -> None:
@@ -305,6 +428,19 @@ class SimulationManager:
         except Exception:
             pass
 
+    def _publish_setup_stop(self) -> None:
+        with self._lock:
+            self._state.update({
+                "state": "stopped",
+                "message": "模拟已停止",
+                "log": "模拟已停止",
+                "completed": 0,
+                "live_completed": 0,
+                "progress": 0,
+                "live_progress": 0,
+            })
+        self._send_state_to_parent()
+
     def _run(self, battle_config: dict[str, Any], epoch: int, battle_num: int) -> None:
         try:
             # On POSIX the WebUI starts simulations with ``fork``.  Without
@@ -319,12 +455,7 @@ class SimulationManager:
                 log_func=skill_messages.append,
             )
             if self._stop_event.is_set():
-                with self._lock:
-                    self._state.update({
-                        "state": "stopped",
-                        "message": "模拟已停止",
-                        "log": "模拟已停止",
-                    })
+                self._publish_setup_stop()
                 return
             set_supply(battle, battle_num)
             prebattle_info = self._prebattle_info(battle)
@@ -604,6 +735,9 @@ class MapSimulationManager(SimulationManager):
                 battle_config, str(MAP_DIR), self.dataset, battle_timer,
                 log_func=skill_messages.append,
             )
+            if self._stop_event.is_set():
+                self._publish_setup_stop()
+                return
             map_config = battle.map_config
             if not isinstance(map_config, dict):
                 raise ValueError("地图模拟需要独立 YAML 地图")
@@ -637,6 +771,8 @@ class MapSimulationManager(SimulationManager):
             ])
 
             for index in range(epoch):
+                if self._stop_event.is_set():
+                    break
                 current_map = copy.deepcopy(battle)
                 current_map.start()
                 report = current_map.report()
@@ -674,6 +810,12 @@ class MapSimulationManager(SimulationManager):
                 if not first_record:
                     first_record = str(report.get("record", ""))
 
+                if self._stop_event.is_set():
+                    break
+                time.sleep(0)
+                if self._stop_event.is_set():
+                    break
+
                 if completed == 1 or completed % publish_every == 0 or completed == epoch:
                     summary = self._build_map_summary(
                         completed, cleared, boss_battles, boss_flagship_sinks,
@@ -685,7 +827,8 @@ class MapSimulationManager(SimulationManager):
                 completed, cleared, boss_battles, boss_flagship_sinks,
                 node_statistics, friend_ship_names, supply_totals, first_record,
             )
-            self._publish_map("complete", completed, epoch, summary, log_prefix)
+            final_state = "stopped" if self._stop_event.is_set() and completed < epoch else "complete"
+            self._publish_map(final_state, completed, epoch, summary, log_prefix)
         except Exception as exc:
             with self._lock:
                 self._state.update({
@@ -767,7 +910,11 @@ class MapSimulationManager(SimulationManager):
                 "live_completed": completed,
                 "live_progress": progress,
                 "target": target,
-                "message": "正在模拟" if state == "running" else "模拟完成",
+                "message": {
+                    "running": "正在模拟",
+                    "complete": "模拟完成",
+                    "stopped": "模拟已停止",
+                }[state],
                 "log": log,
                 "summary": summary,
             })
@@ -783,6 +930,31 @@ def _run_forked_simulation(
 ) -> None:
     manager._state_sink = state_queue
     manager._run(battle_config, epoch, battle_num)
+
+
+def _run_persistent_simulation_worker(
+    dataset: Dataset,
+    simulation_kind: str,
+    command_queue: mp.Queue,
+    state_queue: mp.Queue,
+    stop_event: Any,
+) -> None:
+    """Serve sequential Windows jobs without paying the spawn cost per run."""
+    manager_type = MapSimulationManager if simulation_kind == "map" else SimulationManager
+    while True:
+        command = command_queue.get()
+        if command.get("action") == "shutdown":
+            return
+        if command.get("action") != "start":
+            continue
+        manager = manager_type(dataset)
+        manager._state_sink = state_queue
+        manager._stop_event = stop_event
+        manager._run(
+            command["battle_config"],
+            command["epoch"],
+            command["battle_num"],
+        )
 
 
 def _run_spawned_simulation(
