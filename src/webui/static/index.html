@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WSGR · 战斗模拟</title>
-  <link rel="stylesheet" href="styles.css?v=map-ui-29">
+  <link rel="stylesheet" href="styles.css?v=map-ui-52">
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="#top"><b aria-hidden="true"><img src="assets/anchor-solid.png" alt=""></b><span>WSGR<small>SIMULATION</small></span></a>
     <nav aria-label="主功能"><button class="active" data-page="battle">战斗模拟</button><button data-page="map">地图模拟</button><button data-page="history">历史战报</button></nav>
     <div class="top-actions">
-      <button id="load-config" class="plain">加载配置</button><button id="save-config" class="plain">保存配置</button><button id="clear-workspace" class="plain" data-page-action="battle">清空</button><button id="reset-map" class="plain" data-page-action="map" hidden>清空</button>
+      <button id="load-config" class="plain">加载配置</button><button id="save-config" class="plain">保存配置</button><button id="clear-workspace" class="plain" data-page-action="battle">清空</button><button id="reset-map" class="plain" data-page-action="map" hidden>清空</button><button id="environment-settings-button" class="plain">设定</button>
       <button id="mode-switch" class="mode-switch" aria-label="切换深色模式" aria-pressed="false"><i class="mode-thumb"></i><span>☼</span><span>☾</span></button>
     </div>
   </header>
@@ -105,7 +105,7 @@
   <main id="map-page" class="map-page" data-page-panel="map" hidden>
     <section class="map-page-head">
       <div>
-        <p class="map-eyebrow">地图模式</p>
+        <p class="map-eyebrow">地图名称</p>
         <div class="map-title-row"><input id="map-name" value="未命名海图" aria-label="海图名称"></div>
       </div>
       <div class="map-page-controls">
@@ -152,10 +152,10 @@
             <div class="map-inspector-title"><div><h2>点位设置</h2></div><button id="delete-node" class="map-icon-danger" type="button" aria-label="删除点位">删除</button></div>
             <div class="map-form-grid">
               <label>点位名称<input id="node-name" maxlength="12"></label>
-              <label>点位类型<select id="node-kind"><option value="entrance" hidden>入口（固定）</option><option value="no_battle">无战斗</option><option value="normal">常规战</option><option value="air">航空战</option><option value="night">夜战</option><option value="elite">精英</option><option value="boss">Boss</option></select></label>
+              <label>点位类型<select id="node-kind"><option value="entrance" hidden>入口（固定）</option><option value="no_battle">无战斗</option><option value="resource_gain">增加资源</option><option value="resource_loss">扣除资源</option><option value="normal">常规战</option><option value="air">航空战</option><option value="night">夜战</option><option value="elite">精英</option><option value="boss">Boss</option></select></label>
               <label>节点等级<select id="node-level"><option value="auto">自动</option><option value="0">入口</option><option value="1">出门点</option><option value="2">道中点</option><option value="3">门神点</option><option value="4">非 Boss 终点</option><option value="5">Boss</option></select></label>
-              <label class="map-compact-switch"><span>允许迂回</span><input id="node-roundabout" type="checkbox"></label>
-              <label class="map-compact-switch"><span>支援攻击</span><input id="node-support" type="checkbox"></label>
+              <label class="map-compact-switch"><span id="node-roundabout-label">允许迂回</span><input id="node-roundabout" type="checkbox"><select id="node-resource-type" hidden><option value="oil">燃油</option><option value="ammo">弹药</option><option value="steel">钢材</option><option value="almn">铝材</option></select></label>
+              <label class="map-compact-switch"><span id="node-support-label">支援攻击</span><input id="node-support" type="checkbox"><input id="node-resource-amount" type="number" min="0" step="1" inputmode="numeric" hidden></label>
             </div>
             <div class="map-section-heading map-section-title"><div><h2>敌方舰队</h2></div><button id="add-fleet" class="map-small-action" type="button">＋ 添加舰队</button></div>
             <p class="map-section-note">每个点位最多 3 个编队；进入点位时随机抽取一个。</p>
@@ -173,7 +173,7 @@
       </section>
 
       <section id="map-result-screen" class="map-result-screen" hidden>
-        <article class="panel map-result-panel"><div class="panel-title"><h2>地图模拟结果</h2></div><div class="map-result-stats"><article><span>通关率</span><strong id="map-clear-rate">—<em>%</em></strong></article><article><span>Boss 击沉</span><strong id="map-boss-sink-rate">—<em>%</em></strong></article><article><span>资源消耗</span><strong id="map-resource-total">—</strong></article><article><span>模拟次数</span><strong id="map-simulation-count">—</strong></article></div><div id="map-result-breakdown" class="map-result-breakdown" hidden><section class="map-statistics-section"><h3>点位战果统计</h3><div id="map-node-results"></div><h3 class="map-resource-heading">资源消耗统计</h3><div id="map-resource-results"></div></section><section class="map-battle-detail-section"><h3>战斗详情</h3><pre id="map-battle-detail" class="map-battle-detail"></pre></section></div><div id="map-result-placeholder" class="map-result-placeholder"><span>◌</span><h2>等待地图模拟</h2><p>完成模拟后将在这里展示各点战果、中大破统计与一场完整战斗详情。</p><button class="quiet" data-map-view="editor">返回地图编辑</button></div></article>
+        <article class="panel map-result-panel"><div class="panel-title map-result-title"><h2>地图模拟结果</h2><button id="export-map-report" class="quiet export-report" type="button">导出战报</button></div><div class="map-result-stats"><article><span>通关率</span><strong id="map-clear-rate">—<em>%</em></strong></article><article><span>Boss 击沉</span><strong id="map-boss-sink-rate">—<em>%</em></strong></article><article><span>资源消耗</span><strong id="map-resource-total">—</strong></article><article><span>模拟次数</span><strong id="map-simulation-count">—</strong></article></div><div id="map-result-breakdown" class="map-result-breakdown" hidden><section class="map-statistics-section"><h3>点位战果统计</h3><div id="map-node-results"></div><h3 class="map-resource-heading">资源消耗统计</h3><div id="map-resource-results"></div></section><section class="map-battle-detail-section"><h3>战斗详情</h3><pre id="map-battle-detail" class="map-battle-detail"></pre></section></div><div id="map-result-placeholder" class="map-result-placeholder"><span>◌</span><h2>等待地图模拟</h2><p>完成模拟后将在这里展示各点战果、中大破统计与一场完整战斗详情。</p><button class="quiet" data-map-view="editor">返回地图编辑</button></div></article>
       </section>
       </section>
     </section>
@@ -255,10 +255,48 @@
       <div class="dialog-actions"><button id="delete-editor-ship" value="delete" class="danger">删除舰船</button><span></span><button value="cancel" class="quiet">取消</button><button id="save-ship" value="default" class="run">保存修改</button></div>
     </form>
   </dialog>
+  <dialog id="environment-settings-dialog" class="ship-editor environment-dialog">
+    <form method="dialog">
+      <div class="dialog-heading"><div class="panel-title"><h2>全局增益设定</h2></div><button type="button" data-close-environment-settings aria-label="关闭">×</button></div>
+      <div class="environment-settings-content">
+        <section class="environment-section engineering-section">
+          <div><h3>工程局</h3><p>开启后，工程局工作表中标记为 valid 的增益生效。</p></div>
+          <button id="environment-engineering-toggle" class="environment-toggle" type="button" aria-pressed="true"><i></i><span>已开启</span></button>
+        </section>
+        <section class="environment-section">
+          <div class="environment-section-heading"><h3>摆件</h3></div>
+          <div class="environment-three-grid">
+            <label>摆件 1<select class="environment-collection"></select></label>
+            <label>摆件 2<select class="environment-collection"></select></label>
+            <label>摆件 3<select class="environment-collection"></select></label>
+          </div>
+        </section>
+        <section class="environment-section environment-two-grid">
+          <div>
+            <div class="environment-section-heading"><h3>菜谱</h3></div>
+            <label>菜谱增益<select id="environment-dish"></select></label>
+          </div>
+          <div>
+            <div class="environment-section-heading"><h3>赛车</h3></div>
+            <div class="environment-car-grid">
+              <label>赛车增益<select id="environment-car"></select></label>
+              <label>国籍<span class="required-mark" aria-hidden="true">*</span><input id="environment-car-country" autocomplete="off" placeholder="例如 U"></label>
+            </div>
+          </div>
+        </section>
+        <section class="environment-section">
+          <div class="environment-section-heading"><h3>额外加成</h3><button id="add-environment-extra" class="quiet" type="button">＋ 添加加成</button></div>
+          <div id="environment-extra-list" class="environment-extra-list"></div>
+          <p id="environment-extra-empty" class="environment-empty">尚未添加额外加成</p>
+        </section>
+      </div>
+      <div class="dialog-actions environment-actions"><span></span><button type="button" data-close-environment-settings class="quiet">取消</button><button id="save-environment-settings" type="button" class="run">保存设定</button></div>
+    </form>
+  </dialog>
   <dialog id="clear-confirm" class="confirm-dialog"><form method="dialog"><h2>清空页面？</h2><p>这会移除双方舰队配置，并重置模拟设置与所有统计结果。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="confirm-clear" type="button" class="danger">确认清空</button></div></form></dialog>
   <input id="config-file" type="file" accept=".yaml,.yml,.xml" hidden>
   <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
-  <script src="map-editor.js?v=map-ui-31"></script>
-  <script src="app.js?v=map-ui-17"></script>
+  <script src="map-editor.js?v=map-ui-37"></script>
+  <script src="app.js?v=map-ui-22"></script>
 </body>
 </html>

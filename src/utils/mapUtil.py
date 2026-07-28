@@ -13,6 +13,15 @@ import src.wsgr.equipment as requip
 from src import skillCode
 
 
+RESOURCE_LABELS = {
+    'oil': '燃油',
+    'ammo': '弹药',
+    'steel': '钢材',
+    'almn': '铝材',
+}
+RESOURCE_KINDS = {'resource_gain': -1, 'resource_loss': 1}
+
+
 class UserRules:
     """地图出征时由用户 YAML 配置的决策规则。"""
 
@@ -300,20 +309,37 @@ class MapUtil(Time):
             battle_config = node.get('battle') or {}
             battle_type = str(battle_config.get('type', 'NormalBattle'))
             if battle_type not in {
-                    'Entrance', 'MidPoint', 'NormalBattle', 'AirBattle', 'NightBattle'}:
+                    'Entrance', 'MidPoint', 'ResourcePoint', 'NormalBattle', 'AirBattle', 'NightBattle'}:
                 raise ValueError(f'Unsupported map battle type: {battle_type}')
+
+            kind = str(node.get('kind', ''))
+            is_resource_point = battle_type == 'ResourcePoint'
+            if is_resource_point != (kind in RESOURCE_KINDS):
+                raise ValueError(
+                    f'Point {name} must use kind resource_gain/resource_loss with ResourcePoint'
+                )
 
             point = Point(name, level)
             point.set_type(getattr(battleUtil, battle_type))
             point.set_roundabout(bool(battle_config.get('roundabout', False)))
             point.set_support(bool(battle_config.get('support', False)))
+            if is_resource_point:
+                resource_key = str(battle_config.get('resource', '')).strip()
+                if resource_key not in RESOURCE_LABELS:
+                    raise ValueError(f'Point {name} has an unsupported resource type')
+                amount = battle_config.get('amount')
+                if isinstance(amount, bool) or not isinstance(amount, int) or amount < 0:
+                    raise ValueError(f'Point {name} resource amount must be a non-negative integer')
+                point.set_resource_change(
+                    resource_key, RESOURCE_KINDS[kind] * amount, RESOURCE_LABELS[resource_key],
+                )
 
             enemy_list = []
             for fleet_config in node.get('enemy_fleets') or []:
                 enemy_list.append(self.load_fleet(fleet_config, dataset, self.timer))
-            if battle_type in {'Entrance', 'MidPoint'} and enemy_list:
+            if battle_type in {'Entrance', 'MidPoint', 'ResourcePoint'} and enemy_list:
                 raise ValueError(f'Non-combat point {name} cannot contain enemy fleets')
-            if battle_type not in {'Entrance', 'MidPoint'} and not enemy_list:
+            if battle_type not in {'Entrance', 'MidPoint', 'ResourcePoint'} and not enemy_list:
                 raise ValueError(f'Combat point {name} must contain at least one enemy fleet')
             point.set_enemy(enemy_list)
             point.set_suc({})
@@ -400,6 +426,7 @@ class MapUtil(Time):
         name = self.entrance_name
         path = []
         self.timer.report_log('map_battles', [])
+        self.timer.report_log('map_node_events', [])
         while name is not None:
             point = self.point[name]
             path.append(name)
@@ -435,6 +462,9 @@ class Point:
         self.can_roundabout = False
         self.round_request = None
         self.support = False
+        self.resource_key = None
+        self.resource_delta = 0
+        self.resource_label = ''
         self.enemy_list = []
         self.suc = {}
 
@@ -461,6 +491,11 @@ class Point:
 
     def set_support(self, support):
         self.support = bool(support)
+
+    def set_resource_change(self, resource_key, resource_delta, resource_label):
+        self.resource_key = resource_key
+        self.resource_delta = int(resource_delta)
+        self.resource_label = resource_label
 
     def set_enemy(self, enemy_list):
         self.enemy_list = enemy_list
@@ -489,7 +524,13 @@ class Point:
             enemy = Fleet(timer)
             self.battle = self.type(timer, friend, enemy)
         self.battle.start()
-        if self.type not in {battleUtil.Entrance, battleUtil.MidPoint} and \
+        if self.type not in {battleUtil.Entrance, battleUtil.MidPoint, battleUtil.ResourcePoint}:
+            timer.log['map_node_events'].append({
+                'name': self.name,
+                'recon_rate': timer.log['recon'][0],
+                'roundabout_rate': timer.log['round'][0] if self.can_roundabout else None,
+            })
+        if self.type not in {battleUtil.Entrance, battleUtil.MidPoint, battleUtil.ResourcePoint} and \
                 not timer.map_retreat and not timer.round_flag:
             final_state = np.asarray(timer.log['damaged_state'])[-1]
             friend_state = final_state[:len(friend.ship)].astype(int).tolist()

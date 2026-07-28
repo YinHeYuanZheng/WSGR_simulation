@@ -29,6 +29,14 @@ from src.utils.loadConfig import (
 from src.utils.loadDataset import Dataset
 from src.utils.runUtil import set_supply
 from src.utils.battleUtil import CustomBattle
+from src.utils.envBuffUtil import (
+    data_file as environment_data_file,
+    environment_options,
+    load_user_settings,
+    reload_env_buffs,
+    save_user_settings,
+    user_settings_file,
+)
 from src.wsgr.ship import Fleet, SHIP_LABELS
 from src.wsgr.phase import AirPhase
 from src.wsgr.wsgrTimer import PHASE_LABELS, timer
@@ -617,6 +625,10 @@ class MapSimulationManager(SimulationManager):
                     "heavy_damage": 0,
                     "mid_damage_by_ship": np.zeros(len(friend_ship_names), dtype=float),
                     "heavy_damage_by_ship": np.zeros(len(friend_ship_names), dtype=float),
+                    "recon_rate_total": 0.0,
+                    "recon_rate_count": 0,
+                    "roundabout_rate_total": 0.0,
+                    "roundabout_rate_count": 0,
                 }
                 for name in node_order
             }
@@ -651,6 +663,19 @@ class MapSimulationManager(SimulationManager):
                         if item.get("boss", False)
                     ))
 
+                for node_event in report.get("map_node_events", []):
+                    statistics = node_statistics.get(str(node_event.get("name", "")))
+                    if statistics is None:
+                        continue
+                    recon_rate = node_event.get("recon_rate")
+                    if recon_rate is not None:
+                        statistics["recon_rate_total"] += float(recon_rate)
+                        statistics["recon_rate_count"] += 1
+                    roundabout_rate = node_event.get("roundabout_rate")
+                    if roundabout_rate is not None:
+                        statistics["roundabout_rate_total"] += float(roundabout_rate)
+                        statistics["roundabout_rate_count"] += 1
+
                 for battle_result in report.get("map_battles", []):
                     name = str(battle_result.get("name", ""))
                     statistics = node_statistics.get(name)
@@ -660,11 +685,12 @@ class MapSimulationManager(SimulationManager):
                     result = str(battle_result.get("result", "D"))
                     statistics["result_counts"][result if result in RESULT_FLAGS else "D"] += 1
                     damaged_state = np.asarray(battle_result.get("friend_damaged_state", []))
-                    statistics["mid_damage"] += int(np.any(damaged_state >= 2))
-                    statistics["heavy_damage"] += int(np.any(damaged_state >= 3))
                     ship_count = min(len(damaged_state), len(friend_ship_names))
-                    statistics["mid_damage_by_ship"][:ship_count] += damaged_state[:ship_count] >= 2
-                    statistics["heavy_damage_by_ship"][:ship_count] += damaged_state[:ship_count] >= 3
+                    friend_damage = damaged_state[:ship_count]
+                    statistics["mid_damage"] += int(np.count_nonzero(friend_damage >= 2))
+                    statistics["heavy_damage"] += int(np.count_nonzero(friend_damage >= 3))
+                    statistics["mid_damage_by_ship"][:ship_count] += friend_damage >= 2
+                    statistics["heavy_damage_by_ship"][:ship_count] += friend_damage >= 3
                     if battle_result.get("boss", False):
                         boss_battles += 1
                         boss_flagship_sinks += int(battle_result.get("boss_flagship_sunk", False))
@@ -730,6 +756,14 @@ class MapSimulationManager(SimulationManager):
                     },
                     "mid_damage_rate": values["mid_damage"] / max(values["battles"], 1) * 100,
                     "heavy_damage_rate": values["heavy_damage"] / max(values["battles"], 1) * 100,
+                    "recon_rate": (
+                        values["recon_rate_total"] / values["recon_rate_count"]
+                        if values["recon_rate_count"] else None
+                    ),
+                    "roundabout_rate": (
+                        values["roundabout_rate_total"] / values["roundabout_rate_count"]
+                        if values["roundabout_rate_count"] else None
+                    ),
                     "mid_damage_ship_rates": [
                         float(rate / max(values["battles"], 1) * 100)
                         for rate in values["mid_damage_by_ship"]
@@ -815,6 +849,7 @@ class WebUIService:
         self.simulations = SimulationManager(self.dataset)
         self.map_simulations = MapSimulationManager(self.dataset)
         self._bootstrap: dict[str, Any] | None = None
+        self._environment_options: dict[str, list[dict[str, str]]] | None = None
 
     def bootstrap(self) -> dict[str, Any]:
         if self._bootstrap is None:
@@ -845,6 +880,24 @@ class WebUIService:
                 "config": self.load_default_config(),
             }
         return copy.deepcopy(self._bootstrap)
+
+    def environment_settings(self) -> dict[str, Any]:
+        if self._environment_options is None:
+            self._environment_options = environment_options(environment_data_file)
+        return {
+            "settings": load_user_settings(user_settings_file, environment_data_file),
+            "options": copy.deepcopy(self._environment_options),
+        }
+
+    def update_environment_settings(self, settings: dict[str, Any]) -> dict[str, Any]:
+        saved = save_user_settings(
+            settings, user_settings_file, environment_data_file,
+        )
+        reload_env_buffs()
+        return {
+            "settings": saved,
+            "path": str(Path(user_settings_file).relative_to(PROJECT_ROOT)),
+        }
 
     def friend_health_limit(self, ship_config: dict[str, Any]) -> dict[str, int]:
         """Calculate a friendly ship's current maximum durability in isolation.

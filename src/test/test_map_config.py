@@ -48,6 +48,8 @@ class MapBattleConfigTest(unittest.TestCase):
         self.assertEqual(report["map_path"][0], "入口")
         self.assertEqual(report["map_path"][-1], "F")
         self.assertGreaterEqual(report["map_battle_count"], 2)
+        self.assertTrue(report["map_node_events"])
+        self.assertIn("recon_rate", report["map_node_events"][0])
         self.assertTrue(report["end_with_boss"])
 
     def test_top_level_user_rules_stop_at_an_unselected_node(self):
@@ -72,6 +74,55 @@ class MapBattleConfigTest(unittest.TestCase):
         self.assertEqual(len(report["map_path"]), 2)
         self.assertEqual(report["end_with"], report["map_path"][-1])
         self.assertEqual(report["map_battle_count"], 0)
+
+    def test_resource_points_adjust_map_supply_without_creating_battles(self):
+        map_document = {
+            "mapid": "resource-point-test",
+            "nodes": [
+                {
+                    "name": "入口", "kind": "entrance", "level": 0,
+                    "battle": {"type": "Entrance", "roundabout": False, "support": False},
+                    "enemy_fleets": [],
+                },
+                {
+                    "name": "补给", "kind": "resource_gain", "level": 1,
+                    "battle": {
+                        "type": "ResourcePoint", "resource": "oil", "amount": 120,
+                        "roundabout": False, "support": False,
+                    },
+                    "enemy_fleets": [],
+                },
+                {
+                    "name": "损耗", "kind": "resource_loss", "level": 4,
+                    "battle": {
+                        "type": "ResourcePoint", "resource": "oil", "amount": 35,
+                        "roundabout": False, "support": False,
+                    },
+                    "enemy_fleets": [],
+                },
+            ],
+            "routes": [
+                {"from": "入口", "to": "补给", "weight": 1, "relation": "all", "conditions": []},
+                {"from": "补给", "to": "损耗", "weight": 1, "relation": "all", "conditions": []},
+            ],
+        }
+        config = {
+            "battle_type": "Map",
+            "friend_fleet": copy.deepcopy(self.config["friend_fleet"]),
+            "map": {"mapid": "resource-point-test"},
+            "_map_document": map_document,
+        }
+        battle_map = load_config(
+            config, str(PROJECT_ROOT / "depend" / "map"), self.dataset,
+            timer(), log_func=lambda _: None,
+        )
+
+        battle_map.start()
+        report = battle_map.report()
+
+        self.assertEqual(report["map_path"], ["入口", "补给", "损耗"])
+        self.assertEqual(report["map_battle_count"], 0)
+        self.assertEqual(report["supply"]["oil"], -85)
 
 
 class MapUserRulesTest(unittest.TestCase):

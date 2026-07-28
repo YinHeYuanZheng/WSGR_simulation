@@ -12,6 +12,7 @@ __all__ = ['BattleUtil',
            'NormalBattle',
            'AirBattle',
            'NightBattle',
+           'ResourcePoint',
            'DaytimeBattle',
            'OnlyAirBattle',
            'CustomBattle',
@@ -327,6 +328,25 @@ class MidPoint(BattleUtil):
     """无战斗点"""
     def start(self):
         pass
+
+    def enemy_init(self):
+        pass
+
+
+class ResourcePoint(BattleUtil):
+    """地图资源点(增加/扣除)
+    以资源消耗统计的正负值记录资源变化, 增加资源为负数, 表示消耗的减少"""
+    def start(self):
+        point = self.timer.point
+        if point is None or point.resource_key is None:
+            raise ValueError('ResourcePoint requires resource settings')
+        supply = self.timer.log['supply']
+        supply[point.resource_key] += point.resource_delta
+        self.timer.report_log('supply', supply)
+        action = '获得' if point.resource_delta < 0 else '失去'
+        self.timer.info(
+            f'【资源点】{action}{point.resource_label}{abs(point.resource_delta)}\n'
+        )
 
     def enemy_init(self):
         pass

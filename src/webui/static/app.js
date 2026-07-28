@@ -50,6 +50,23 @@ const configFileInput = document.querySelector('#config-file');
 const notice = document.querySelector('#notice');
 const clearWorkspaceButton = document.querySelector('#clear-workspace');
 const clearConfirmDialog = document.querySelector('#clear-confirm');
+const environmentSettingsButton = document.querySelector('#environment-settings-button');
+const environmentSettingsDialog = document.querySelector('#environment-settings-dialog');
+const environmentEngineeringToggle = document.querySelector('#environment-engineering-toggle');
+const environmentCollectionSelects = [...document.querySelectorAll('.environment-collection')];
+const environmentDish = document.querySelector('#environment-dish');
+const environmentCar = document.querySelector('#environment-car');
+const environmentCarCountry = document.querySelector('#environment-car-country');
+const environmentExtraList = document.querySelector('#environment-extra-list');
+const environmentExtraEmpty = document.querySelector('#environment-extra-empty');
+const addEnvironmentExtraButton = document.querySelector('#add-environment-extra');
+const saveEnvironmentSettingsButton = document.querySelector('#save-environment-settings');
+const environmentSelectPickers = [
+  ...environmentCollectionSelects,
+  environmentDish,
+  environmentCar,
+].map(setupEditorSelectPicker);
+const environmentFixedPickerCount = environmentSelectPickers.length;
 const mapSaveConfirmDialog = document.querySelector('#map-save-confirm');
 const mapSaveConfirmMessage = document.querySelector('#map-save-confirm-message');
 const detailNote = document.querySelector('#detail-note');
@@ -59,7 +76,7 @@ document.addEventListener('pointerdown', event => {
   [editorShipPicker, ...equipmentPickers].forEach(picker => {
     if (!picker.container.contains(event.target)) picker.close();
   });
-  editorSelectPickers.forEach(picker => {
+  [...editorSelectPickers, ...environmentSelectPickers].forEach(picker => {
     if (!picker.container.contains(event.target)) picker.close();
   });
   if (!battleTypePicker.contains(event.target)) battleTypePicker.open = false;
@@ -88,6 +105,7 @@ let healthLimitTimer = null;
 let healthLimitRequest = 0;
 let mapFleetEditorContext = null;
 let mapFleetEditorSuspended = false;
+let environmentOptionData = null;
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, character => ({
@@ -111,6 +129,117 @@ function showNotice(message, error = false) {
   notice.hidden = false;
   clearTimeout(showNotice.timer);
   showNotice.timer = setTimeout(() => { notice.hidden = true; }, 3200);
+}
+
+function fillEnvironmentSelect(select, options, selected = '', emptyLabel = '不启用') {
+  const empty = document.createElement('option');
+  empty.value = '';
+  empty.textContent = emptyLabel;
+  select.replaceChildren(empty, ...(options || []).map(option => {
+    const item = document.createElement('option');
+    item.value = option.id;
+    item.textContent = option.label;
+    return item;
+  }));
+  select.value = selected || '';
+  select._editorSelectPicker?.sync();
+}
+
+function setEngineeringEnabled(enabled) {
+  environmentEngineeringToggle.setAttribute('aria-pressed', String(Boolean(enabled)));
+  environmentEngineeringToggle.querySelector('span').textContent = enabled ? '已开启' : '已关闭';
+}
+
+function syncEnvironmentCarCountry() {
+  const enabled = Boolean(environmentCar.value);
+  environmentCarCountry.disabled = !enabled;
+  environmentCarCountry.required = enabled;
+  environmentCarCountry.setAttribute('aria-required', String(enabled));
+  if (!enabled) environmentCarCountry.value = '';
+}
+
+function updateEnvironmentExtraState() {
+  const rows = [...environmentExtraList.querySelectorAll('.environment-extra-row')];
+  rows.forEach((row, index) => {
+    row.querySelector('.environment-extra-index').textContent = index + 1;
+  });
+  environmentExtraEmpty.hidden = rows.length > 0;
+  addEnvironmentExtraButton.disabled = !environmentOptionData
+    || rows.length >= environmentOptionData.extras.length;
+}
+
+function addEnvironmentExtra(selected = '') {
+  if (!environmentOptionData) return;
+  const row = document.createElement('div');
+  row.className = 'environment-extra-row';
+  const index = document.createElement('span');
+  index.className = 'environment-extra-index';
+  const select = document.createElement('select');
+  select.setAttribute('aria-label', '额外加成');
+  fillEnvironmentSelect(select, environmentOptionData.extras, selected, '请选择额外加成');
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.className = 'environment-extra-remove';
+  remove.setAttribute('aria-label', '删除额外加成');
+  remove.textContent = '×';
+  remove.addEventListener('click', () => {
+    row.remove();
+    updateEnvironmentExtraState();
+  });
+  row.append(index, select, remove);
+  environmentExtraList.append(row);
+  environmentSelectPickers.push(setupEditorSelectPicker(select));
+  updateEnvironmentExtraState();
+}
+
+function renderEnvironmentSettings(payload) {
+  environmentOptionData = payload.options;
+  const settings = payload.settings;
+  setEngineeringEnabled(settings.engineering);
+  environmentCollectionSelects.forEach((select, index) => {
+    fillEnvironmentSelect(
+      select, environmentOptionData.collections,
+      settings.collections?.[index] || '', '不使用摆件',
+    );
+  });
+  fillEnvironmentSelect(
+    environmentDish, environmentOptionData.dish,
+    settings.dish || '', '不使用菜谱',
+  );
+  fillEnvironmentSelect(
+    environmentCar, environmentOptionData.car,
+    settings.car?.name || '', '不使用赛车',
+  );
+  environmentCarCountry.value = settings.car?.country || '';
+  syncEnvironmentCarCountry();
+  environmentSelectPickers.splice(environmentFixedPickerCount);
+  environmentExtraList.replaceChildren();
+  (settings.extras || []).forEach(addEnvironmentExtra);
+  updateEnvironmentExtraState();
+}
+
+function selectedUniqueValues(selects, label) {
+  const values = selects.map(select => select.value).filter(Boolean);
+  if (new Set(values).size !== values.length) throw new Error(`${label}不能重复选择`);
+  return values;
+}
+
+function collectEnvironmentSettings() {
+  const carName = environmentCar.value || null;
+  const country = environmentCarCountry.value.trim();
+  if (carName && !country) throw new Error('选择赛车增益后必须填写国籍');
+  return {
+    engineering: environmentEngineeringToggle.getAttribute('aria-pressed') === 'true',
+    collections: selectedUniqueValues(environmentCollectionSelects, '摆件'),
+    dish: environmentDish.value || null,
+    car: {
+      name: carName,
+      country: carName ? country : '',
+    },
+    extras: selectedUniqueValues(
+      [...environmentExtraList.querySelectorAll('select')], '额外加成',
+    ),
+  };
 }
 
 function setResultLog(content) {
@@ -238,6 +367,13 @@ function shipEditorLabel(ship, isFriend) {
   return isFriend ? ship.name : `${ship.name} · cid ${ship.cid}`;
 }
 
+function createPickerMenuScroll(menu) {
+  const scroll = document.createElement('span');
+  scroll.className = 'picker-menu-scroll';
+  menu.append(scroll);
+  return scroll;
+}
+
 function setupSearchablePicker(container, input) {
   const picker = {
     container,
@@ -246,6 +382,7 @@ function setupSearchablePicker(container, input) {
     toggle: container.querySelector('.picker-toggle'),
     choices: [],
   };
+  picker.items = createPickerMenuScroll(picker.menu);
   const open = () => {
     renderPickerChoices(picker);
     container.classList.add('open');
@@ -306,6 +443,7 @@ function setupEditorSelectPicker(select) {
   const menu = document.createElement('span');
   menu.className = 'picker-menu';
   menu.setAttribute('role', 'listbox');
+  const items = createPickerMenuScroll(menu);
   toggle.append(value);
   select.before(container);
   container.append(select, toggle, menu);
@@ -313,7 +451,7 @@ function setupEditorSelectPicker(select) {
   const close = () => container.classList.remove('open');
   const render = () => {
     value.textContent = select.selectedOptions[0]?.textContent || '';
-    menu.replaceChildren(...[...select.options].map(option => {
+    items.replaceChildren(...[...select.options].map(option => {
       const item = document.createElement('button');
       item.type = 'button';
       item.dataset.value = option.value;
@@ -349,7 +487,7 @@ function renderPickerChoices(picker) {
     ? picker.choices.filter(value => value.toLocaleLowerCase('zh-CN').includes(query))
     : picker.choices;
   const choices = matched.length ? matched : picker.choices;
-  picker.menu.replaceChildren(...choices.map(value => {
+  picker.items.replaceChildren(...choices.map(value => {
     const option = document.createElement('button');
     option.type = 'button';
     option.dataset.value = value;
@@ -1471,6 +1609,43 @@ document.querySelector('#load-config').addEventListener('click', () => {
   configFileInput.click();
 });
 clearWorkspaceButton.addEventListener('click', () => clearConfirmDialog.showModal());
+environmentEngineeringToggle.addEventListener('click', () => {
+  setEngineeringEnabled(
+    environmentEngineeringToggle.getAttribute('aria-pressed') !== 'true',
+  );
+});
+environmentCar.addEventListener('change', syncEnvironmentCarCountry);
+addEnvironmentExtraButton.addEventListener('click', () => addEnvironmentExtra());
+document.querySelectorAll('[data-close-environment-settings]').forEach(button => {
+  button.addEventListener('click', () => environmentSettingsDialog.close('cancel'));
+});
+environmentSettingsButton.addEventListener('click', async () => {
+  environmentSettingsButton.disabled = true;
+  try {
+    renderEnvironmentSettings(await api('/api/environment/settings'));
+    environmentSettingsDialog.showModal();
+  } catch (error) {
+    showNotice(error.message, true);
+  } finally {
+    environmentSettingsButton.disabled = false;
+  }
+});
+saveEnvironmentSettingsButton.addEventListener('click', async () => {
+  if (!environmentCarCountry.reportValidity()) return;
+  saveEnvironmentSettingsButton.disabled = true;
+  try {
+    const payload = await api('/api/environment/settings', {
+      method: 'POST',
+      body: JSON.stringify({ settings: collectEnvironmentSettings() }),
+    });
+    environmentSettingsDialog.close('saved');
+    showNotice(`全局增益已保存至 ${payload.path}`);
+  } catch (error) {
+    showNotice(error.message, true);
+  } finally {
+    saveEnvironmentSettingsButton.disabled = false;
+  }
+});
 document.querySelector('#confirm-clear').addEventListener('click', () => {
   clearConfirmDialog.close('confirmed');
   void clearWorkspace();

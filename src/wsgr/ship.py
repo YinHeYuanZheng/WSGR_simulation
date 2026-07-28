@@ -12,7 +12,7 @@ from src.wsgr.equipment import *
 SHIP_LABELS = {
     "Ship": "舰船",
     "LargeShip": "大型船",
-    "MiddleShip": "中型船",
+    "MidShip": "中型船",
     "SmallShip": "小型船",
     "MainShip": "主力舰",
     "CoverShip": "护卫舰",
@@ -1119,8 +1119,9 @@ class CV(Aircraft, LargeShip, MainShip):
                 (x.damaged < 2) and (x.check_atk_plane_load()) and (x.get_range() >= 3),
         })
 
-        from src.wsgr.formulas import AirNormalAtk
+        from src.wsgr.formulas import AirNormalAtk, NightAirAtk
         self.normal_atk = AirNormalAtk  # 炮击战航空攻击
+        self.night_atk = NightAirAtk  # 夜战航空攻击
 
     def get_act_indicator(self):
         # 跳过阶段，优先级最高
@@ -1161,9 +1162,10 @@ class CVL(Aircraft, AntiSubShip, MidShip, CoverShip):
                 (x.damaged < 2) and (x.check_atk_plane_load()) and (x.get_range() >= 3),
         })
 
-        from src.wsgr.formulas import AirNormalAtk, AirAntiSubAtk
+        from src.wsgr.formulas import AirNormalAtk, AirAntiSubAtk, NightAirAtk
         self.normal_atk = AirNormalAtk  # 炮击战航空攻击
         self.anti_sub_atk = AirAntiSubAtk  # 反潜攻击
+        self.night_atk = NightAirAtk  # 夜战航空攻击
 
     def get_act_indicator(self):
         from src.wsgr.phase import AntiSubPhase
@@ -1205,8 +1207,9 @@ class AV(Aircraft, LargeShip, MainShip):
                 (x.damaged < 3) and (x.check_atk_plane_load()) and (x.get_range() >= 3),
         })
 
-        from src.wsgr.formulas import AirNormalAtk
+        from src.wsgr.formulas import AirNormalAtk, NightAirAtk
         self.normal_atk = AirNormalAtk  # 炮击战航空攻击
+        self.night_atk = NightAirAtk  # 夜战航空攻击
 
     def get_act_indicator(self):
         # 跳过阶段，优先级最高

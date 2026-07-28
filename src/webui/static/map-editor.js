@@ -13,17 +13,20 @@
     4: '非 Boss 终点',
     5: 'Boss',
   };
-  const NODE_KINDS = ['no_battle', 'normal', 'air', 'night', 'elite', 'boss'];
+  const NODE_KINDS = ['no_battle', 'resource_gain', 'resource_loss', 'normal', 'air', 'night', 'elite', 'boss'];
   const KIND_BATTLE_TYPES = {
     entrance: 'Entrance',
     no_battle: 'MidPoint',
+    resource_gain: 'ResourcePoint',
+    resource_loss: 'ResourcePoint',
     normal: 'NormalBattle',
     air: 'AirBattle',
     night: 'NightBattle',
     elite: 'NormalBattle',
     boss: 'NormalBattle',
   };
-  const NON_COMBAT_BATTLE_TYPES = new Set(['Entrance', 'MidPoint']);
+  const NON_COMBAT_BATTLE_TYPES = new Set(['Entrance', 'MidPoint', 'ResourcePoint']);
+  const RESOURCE_TYPES = new Set(['oil', 'ammo', 'steel', 'almn']);
   let shipTypes = [
     ['BB', '战列舰'], ['BC', '战列巡洋舰'], ['CV', '航空母舰'], ['CVL', '轻型航母'],
     ['CA', '重巡洋舰'], ['CL', '轻巡洋舰'], ['DD', '驱逐舰'], ['SS', '潜艇'],
@@ -299,6 +302,10 @@
     return !NON_COMBAT_BATTLE_TYPES.has(node.battle.type);
   }
 
+  function isResourceNode(node) {
+    return node.kind === 'resource_gain' || node.kind === 'resource_loss';
+  }
+
   function canRoundabout(node) {
     return isCombatNode(node) && node.kind !== 'boss';
   }
@@ -379,12 +386,16 @@
       const menu = document.createElement('span');
       menu.className = 'map-select-menu';
       menu.setAttribute('role', 'listbox');
+      const items = document.createElement('span');
+      items.className = 'map-select-menu-scroll';
+      menu.append(items);
       const refresh = () => {
+        picker.hidden = select.hidden;
         const option = select.options[select.selectedIndex];
         value.textContent = option?.textContent || '';
         toggle.disabled = select.disabled;
         picker.classList.toggle('disabled', select.disabled);
-        menu.replaceChildren(...[...select.options].filter(optionItem => !optionItem.hidden).map(optionItem => {
+        items.replaceChildren(...[...select.options].filter(optionItem => !optionItem.hidden).map(optionItem => {
           const item = document.createElement('button');
           item.type = 'button';
           item.className = 'map-select-option';
@@ -667,6 +678,19 @@
     const supportInput = document.querySelector('#node-support');
     supportInput.checked = Boolean(node.battle.support);
     supportInput.disabled = !isCombatNode(node);
+    const resourceNode = isResourceNode(node);
+    document.querySelector('#node-roundabout-label').textContent = resourceNode ? '资源种类' : '允许迂回';
+    document.querySelector('#node-support-label').textContent = resourceNode ? '资源数量' : '支援攻击';
+    const resourceType = document.querySelector('#node-resource-type');
+    resourceType.value = RESOURCE_TYPES.has(node.battle.resource) ? node.battle.resource : 'oil';
+    resourceType.hidden = !resourceNode;
+    roundaboutInput.hidden = resourceNode;
+    const resourceAmount = document.querySelector('#node-resource-amount');
+    resourceAmount.value = String(Math.max(0, Math.trunc(Number(node.battle.amount) || 0)));
+    resourceAmount.hidden = !resourceNode;
+    supportInput.hidden = resourceNode;
+    resourceType.closest('.map-compact-switch').classList.toggle('map-resource-field', resourceNode);
+    resourceAmount.closest('.map-compact-switch').classList.toggle('map-resource-field', resourceNode);
     document.querySelector('#delete-node').disabled = node.id === currentMap().entrance;
     document.querySelector('#add-fleet').disabled = node.enemy_fleets.length >= 3 || !isCombatNode(node);
     renderFleets(node);
@@ -1114,13 +1138,19 @@
       if (fleets.length > 3) throw new Error(`点位 ${name} 的敌方舰队超过 3 个`);
       const kind = String(rawNode.kind || '');
       if (kind !== 'entrance' && !NODE_KINDS.includes(kind)) {
-        throw new Error('点位类型必须是 entrance、no_battle、normal、air、night、elite 或 boss');
+        throw new Error('点位类型必须是 entrance、no_battle、resource_gain、resource_loss、normal、air、night、elite 或 boss');
       }
       if (kind === 'entrance') {
         if (entrance) throw new Error('地图只能包含一个入口点');
         entrance = id;
       }
       const battleType = battleTypeForKind(kind);
+      const resourceNode = kind === 'resource_gain' || kind === 'resource_loss';
+      const resource = String(rawNode.battle?.resource ?? 'oil');
+      if (resourceNode && !RESOURCE_TYPES.has(resource)) {
+        throw new Error(`点位 ${name} 的资源种类无效`);
+      }
+      const resourceAmount = Math.max(0, Math.trunc(Number(rawNode.battle?.amount) || 0));
       return {
         id,
         name,
@@ -1135,6 +1165,8 @@
           type: battleType,
           roundabout: !NON_COMBAT_BATTLE_TYPES.has(battleType) && kind !== 'boss' && Boolean(rawNode.battle?.roundabout),
           support: !NON_COMBAT_BATTLE_TYPES.has(battleType) && Boolean(rawNode.battle?.support),
+          resource: resourceNode ? resource : undefined,
+          amount: resourceNode ? resourceAmount : undefined,
         },
         enemy_fleets: (NON_COMBAT_BATTLE_TYPES.has(battleType) ? [] : fleets).map((rawFleet, fleetIndex) => {
           const ships = Array.isArray(rawFleet?.ships) ? rawFleet.ships : [];
@@ -1227,6 +1259,10 @@
           type: battleTypeForKind(node.kind),
           roundabout: canRoundabout(node) && Boolean(node.battle.roundabout),
           support: isCombatNode(node) && Boolean(node.battle.support),
+          ...(isResourceNode(node) ? {
+            resource: RESOURCE_TYPES.has(node.battle.resource) ? node.battle.resource : 'oil',
+            amount: Math.max(0, Math.trunc(Number(node.battle.amount) || 0)),
+          } : {}),
         },
         enemy_fleets: node.enemy_fleets.map(fleet => ({
           name: fleet.name,
@@ -1486,6 +1522,69 @@
       if (!response.ok) throw new Error(payload.error || `请求失败（${response.status}）`);
       return payload;
     };
+    const csvCell = value => `"${String(value ?? '').replaceAll('"', '""')}"`;
+    const downloadMapReport = summary => {
+      const resultFlags = ['SS', 'S', 'A', 'B', 'C', 'D'];
+      const friendShipNames = Array.from(
+        { length: 6 },
+        (_, index) => summary.friend_ship_names?.[index] || `舰船${index + 1}`,
+      );
+      const resourceEntries = [
+        ['燃油', 'oil', 1], ['弹药', 'ammo', 1], ['钢材', 'steel', 1],
+        ['铝材', 'almn', 1], ['桶耗', 'repeat', 2], ['损管', 'dcitem', 2],
+      ];
+      const rate = value => `${Number(value || 0).toFixed(2)}%`;
+      const optionalRate = value => value == null ? '—' : rate(value);
+      const rows = [
+        ['地图名称', currentMap().name || '未命名海图'],
+        ['模拟次数', Number(summary.simulation_count || 0)],
+        ['通关率', rate(summary.clear_rate)],
+        ['Boss旗舰击沉率', rate(summary.boss_flagship_sink_rate)],
+        ['资源消耗', Number(summary.resource_total || 0).toFixed(1)],
+        [],
+        ['资源消耗统计'],
+        resourceEntries.map(([label]) => label),
+        resourceEntries.map(([, key, digits]) => Number(summary.supply?.[key] || 0).toFixed(digits)),
+        [],
+        ['点位战果统计'],
+        [
+          '点位', '场次', '索敌率', '迂回率', ...resultFlags, '全体中破率', '全体大破率',
+          ...friendShipNames.flatMap(name => [`${name}中破率`, `${name}大破率`]),
+        ],
+        ...(summary.node_statistics || [])
+          .filter(entry => Number(entry.battles || 0) > 0)
+          .map(entry => [
+            entry.name,
+            Number(entry.battles || 0),
+            optionalRate(entry.recon_rate),
+            optionalRate(entry.roundabout_rate),
+            ...resultFlags.map(flag => rate(entry.result_rates?.[flag])),
+            rate(entry.mid_damage_rate),
+            rate(entry.heavy_damage_rate),
+            ...friendShipNames.flatMap((_, index) => {
+              const hasShip = Boolean(summary.friend_ship_names?.[index]);
+              return [
+                hasShip ? rate(entry.mid_damage_ship_rates?.[index]) : '—',
+                hasShip ? rate(entry.heavy_damage_ship_rates?.[index]) : '—',
+              ];
+            }),
+          ]),
+      ];
+      const content = `\ufeff${rows.map(row => row.map(csvCell).join(',')).join('\n')}\n`;
+      const filename = `${String(currentMap().name || 'wsgr_map').replace(/[\\/:*?"<>|]/g, '_')}_战报.csv`;
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8' }));
+      link.download = filename;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    };
+    document.querySelector('#export-map-report').addEventListener('click', () => {
+      if (!latestMapSummary) {
+        showToast('请先完成至少一次地图模拟', true);
+        return;
+      }
+      downloadMapReport(latestMapSummary);
+    });
     const createMapDamagePicker = (friendShipNames, selectedValue, onChange) => {
       const picker = document.createElement('span');
       picker.className = 'editor-select-picker map-damage-picker';
@@ -1502,9 +1601,12 @@
       const menu = document.createElement('span');
       menu.className = 'picker-menu';
       menu.setAttribute('role', 'listbox');
+      const items = document.createElement('span');
+      items.className = 'picker-menu-scroll';
+      menu.append(items);
       const refresh = () => {
         value.textContent = select.selectedOptions[0]?.textContent || '';
-        menu.replaceChildren(...[...select.options].map(option => {
+        items.replaceChildren(...[...select.options].map(option => {
           const item = document.createElement('button');
           item.type = 'button';
           item.dataset.value = option.value;
@@ -1552,7 +1654,7 @@
       if (mapDamageFilter !== 'all' && (!Number.isInteger(filterIndex) || !friendShipNames[filterIndex])) {
         mapDamageFilter = 'all';
       }
-      header.innerHTML = `<tr><th rowspan="2">点位</th><th rowspan="2">场次</th>${flags.map(flag => `<th rowspan="2">${flag}</th>`).join('')}<th colspan="2" class="map-damage-filter-cell"><label>受损筛选 <span class="map-damage-picker-slot"></span></label></th></tr><tr><th>中破</th><th>大破</th></tr>`;
+      header.innerHTML = `<tr><th rowspan="2">点位</th><th rowspan="2">场次</th><th rowspan="2">索敌率</th><th rowspan="2">迂回率</th>${flags.map(flag => `<th rowspan="2">${flag}</th>`).join('')}<th colspan="2" class="map-damage-filter-cell"><label>受损筛选 <span class="map-damage-picker-slot"></span></label></th></tr><tr><th>中破</th><th>大破</th></tr>`;
       header.querySelector('.map-damage-picker-slot').append(createMapDamagePicker(
         friendShipNames,
         mapDamageFilter,
@@ -1569,12 +1671,13 @@
       entries.filter(entry => Number(entry.battles || 0) > 0).forEach(entry => {
         const battles = Number(entry.battles || 0);
         const rate = value => `${Number(value || 0).toFixed(2)}%`;
+        const optionalRate = value => value == null ? '—' : rate(value);
         const midDamageRate = mapDamageFilter === 'all'
           ? entry.mid_damage_rate : entry.mid_damage_ship_rates?.[Number(mapDamageFilter)];
         const heavyDamageRate = mapDamageFilter === 'all'
           ? entry.heavy_damage_rate : entry.heavy_damage_ship_rates?.[Number(mapDamageFilter)];
         const row = document.createElement('tr');
-        row.innerHTML = `<th>${escapeHtml(entry.name)}</th><td>${battles}</td>${flags.map(flag => `<td>${rate(entry.result_rates?.[flag])}</td>`).join('')}<td>${rate(midDamageRate)}</td><td>${rate(heavyDamageRate)}</td>`;
+        row.innerHTML = `<th>${escapeHtml(entry.name)}</th><td>${battles}</td><td>${optionalRate(entry.recon_rate)}</td><td>${optionalRate(entry.roundabout_rate)}</td>${flags.map(flag => `<td>${rate(entry.result_rates?.[flag])}</td>`).join('')}<td>${rate(midDamageRate)}</td><td>${rate(heavyDamageRate)}</td>`;
         body.append(row);
       });
       table.append(header, body);
@@ -1792,6 +1895,13 @@
         node.battle.roundabout = false;
         node.battle.support = false;
       }
+      if (isResourceNode(node)) {
+        node.battle.resource = RESOURCE_TYPES.has(node.battle.resource) ? node.battle.resource : 'oil';
+        node.battle.amount = Math.max(0, Math.trunc(Number(node.battle.amount) || 0));
+      } else {
+        delete node.battle.resource;
+        delete node.battle.amount;
+      }
       if (node.kind === 'boss') node.battle.roundabout = false;
       render();
     });
@@ -1805,6 +1915,18 @@
     document.querySelector('#node-support').addEventListener('change', event => {
       const node = getNode(selection.id);
       if (node && isCombatNode(node)) node.battle.support = event.target.checked;
+    });
+    document.querySelector('#node-resource-type').addEventListener('change', event => {
+      const node = getNode(selection.id);
+      if (node && isResourceNode(node) && RESOURCE_TYPES.has(event.target.value)) {
+        node.battle.resource = event.target.value;
+      }
+    });
+    document.querySelector('#node-resource-amount').addEventListener('input', event => {
+      const node = getNode(selection.id);
+      if (node && isResourceNode(node)) {
+        node.battle.amount = Math.max(0, Math.trunc(Number(event.target.value) || 0));
+      }
     });
     document.querySelector('#delete-node').addEventListener('click', deleteSelectedNode);
     document.querySelector('#add-fleet').addEventListener('click', addFleet);

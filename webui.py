@@ -40,6 +40,14 @@ class WebUIRequestHandler(SimpleHTTPRequestHandler):
         if path == "/api/map-simulation/status":
             self._send_json(self.service.map_simulations.snapshot())
             return
+        if path == "/api/environment/settings":
+            try:
+                self._send_json(self.service.environment_settings())
+            except (TypeError, ValueError) as exc:
+                self._send_json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
+            except Exception as exc:
+                self._send_json({"error": str(exc)}, HTTPStatus.INTERNAL_SERVER_ERROR)
+            return
         super().do_GET()
 
     def do_POST(self) -> None:  # noqa: N802 - inherited HTTP method name
@@ -51,6 +59,11 @@ class WebUIRequestHandler(SimpleHTTPRequestHandler):
                 return
             if path == "/api/map/fleet-summary":
                 self._send_json(self.service.map_enemy_fleet_summary(payload["fleet"]))
+                return
+            if path == "/api/environment/settings":
+                self._send_json(
+                    self.service.update_environment_settings(payload["settings"])
+                )
                 return
             if path == "/api/map/exists":
                 self._send_json(self.service.map_exists(payload["mapid"]))

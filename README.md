@@ -162,12 +162,12 @@ nodes:
       roundabout: false
       support: false
     enemy_fleets: []
-  routes:
-    - from: A
-      to: B
-      weight: 1
-      relation: all
-      conditions: []
+routes:
+  - from: A
+    to: B
+    weight: 1
+    relation: all
+    conditions: []
 ```
 
 点位通过唯一的 `name` 被路线引用，不需要点位 `id` 或 Excel 中的 `pid`。地图点位的
@@ -207,6 +207,26 @@ nodes:
 | `AirBattle` | 航空战（含炮击、夜战） |
 | `OnlyAirBattle` | 纯航空战        |
 | `SpecialBattle` | 特殊战斗        |
+
+## 环境增益目标
+
+`depend/environment/environment.xlsx` 的“舰种”列既支持原有舰种名称，
+也支持用 `Cid(...)` 将环境增益限定到指定的我方舰船：
+
+```text
+BB
+BB,CV
+Cid(533)
+Cid(["030","552"])
+Cid(10552)
+```
+
+- 普通舰种名称仍按原逻辑筛选，逗号分隔表示多个舰种。
+- 三位 Cid 自动展开为未改造 `10xxx` 和改造 `11xxx`。
+- 五位 Cid 直接使用；同一个表达式中不能混用三位和五位编号。
+- “国籍”和 `Cid(...)` 同时填写时，两项条件必须同时满足。
+- 与装备包装器不同，环境表只填写目标表达式，不需要包裹增益内容；
+  环境增益始终只作用于我方舰队。
 
 ## 装备特效配置
 
