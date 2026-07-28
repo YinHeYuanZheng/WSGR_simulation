@@ -1670,18 +1670,29 @@
     };
     const startMapSimulation = async () => {
       mapSimulationDisplayFrozen = false;
-      const validated = normalizeDocument(serializeDocument(mapDocument));
-      const state = await mapApi('/api/map-simulation/start', {
-        method: 'POST',
-        body: JSON.stringify({
-          config: buildMapConfig(validated),
-          map: serializeDocument(validated),
-          epoch: Math.max(1, Number(mapEpochValue.value) || 1),
-        }),
-      });
       switchMapView('result');
-      renderMapSimulationState(state);
-      mapSimulationPollTimer = window.setTimeout(pollMapSimulation, 30);
+      const epoch = Math.max(1, Number(mapEpochValue.value) || 1);
+      renderMapSimulationState({
+        state: 'running',
+        live_completed: 0,
+        live_progress: 0,
+        target: epoch,
+      });
+      try {
+        const validated = normalizeDocument(serializeDocument(mapDocument));
+        const state = await mapApi('/api/map-simulation/start', {
+          method: 'POST',
+          body: JSON.stringify({
+            config: buildMapConfig(validated),
+            map: serializeDocument(validated),
+            epoch,
+          }),
+        });
+        renderMapSimulationState(state);
+        mapSimulationPollTimer = window.setTimeout(pollMapSimulation, 30);
+      } catch (error) {
+        renderMapSimulationState({ state: 'error', message: error.message });
+      }
     };
     const freezeMapSimulationDisplay = () => {
       if (mapSimulationDisplayFrozen || mapSimulationState !== 'running') return;
