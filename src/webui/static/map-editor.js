@@ -94,6 +94,13 @@
     strategyProceed: document.querySelector('#strategy-proceed'),
     strategyProceedStop: document.querySelector('#strategy-proceed-stop'),
     strategyRules: document.querySelector('#strategy-rules'),
+    mapEffectDialog: document.querySelector('#map-effect-dialog'),
+    mapEffectPointName: document.querySelector('#map-effect-point-name'),
+    mapEffectList: document.querySelector('#map-effect-list'),
+    mapEffectEmpty: document.querySelector('#map-effect-empty'),
+    mapEffectCatalog: document.querySelector('#map-effect-catalog'),
+    mapEffectCatalogList: document.querySelector('#map-effect-catalog-list'),
+    mapEffectCatalogToggle: document.querySelector('#show-map-effect-catalog'),
   };
 
   let mapDocument = createDefaultDocument();
@@ -110,6 +117,9 @@
   const undoStack = [];
   const MAX_UNDO_STEPS = 50;
   const fleetStatsCache = new Map();
+  let mapEffectOptions = null;
+  let mapEffectNodeId = null;
+  let mapEffectCatalogOpen = false;
 
   function uid(prefix) {
     idCounter += 1;
@@ -132,6 +142,7 @@
           position: { x: 80, y: 318 },
           battle: { type: 'Entrance', roundabout: false, support: false },
           enemy_fleets: [],
+          map_effects: [],
         }],
         routes: [],
       },
@@ -144,6 +155,7 @@
       position: { x, y },
       battle: { type: battleTypeForKind(kind), roundabout, support },
       enemy_fleets: fleets,
+      map_effects: [],
     };
   }
 
@@ -363,7 +375,7 @@
 
   function closeMapSelectPickers(except = null) {
     document.querySelectorAll('.map-select-picker.open').forEach(picker => {
-      if (picker !== except) picker.classList.remove('open');
+      if (picker !== except) picker._mapPickerClose?.();
     });
   }
 
@@ -389,6 +401,33 @@
       const items = document.createElement('span');
       items.className = 'map-select-menu-scroll';
       menu.append(items);
+      let menuPortaled = false;
+      const restoreMenu = () => {
+        if (!menuPortaled) return;
+        menu.classList.remove('map-select-menu-portal');
+        menu.removeAttribute('style');
+        picker.append(menu);
+        menuPortaled = false;
+      };
+      const close = () => {
+        picker.classList.remove('open');
+        restoreMenu();
+      };
+      const portalMenu = () => {
+        const dialog = picker.closest('.map-effect-dialog');
+        if (!dialog) return;
+        const pickerBox = picker.getBoundingClientRect();
+        const dialogBox = dialog.getBoundingClientRect();
+        dialog.append(menu);
+        menu.classList.add('map-select-menu-portal');
+        Object.assign(menu.style, {
+          top: `${pickerBox.bottom - dialogBox.top + 2}px`,
+          right: 'auto',
+          left: `${pickerBox.left - dialogBox.left}px`,
+          width: `${pickerBox.width}px`,
+        });
+        menuPortaled = true;
+      };
       const refresh = () => {
         picker.hidden = select.hidden;
         const option = select.options[select.selectedIndex];
@@ -408,7 +447,7 @@
             select.value = optionItem.value;
             refresh();
             select.dispatchEvent(new Event('change', { bubbles: true }));
-            picker.classList.remove('open');
+            close();
           });
           return item;
         }));
@@ -417,14 +456,21 @@
       select.dataset.mapPicker = 'true';
       select.parentNode.insertBefore(picker, select);
       picker.append(select, toggle, menu);
+      picker._mapPickerClose = close;
       toggle.addEventListener('click', event => {
         event.preventDefault();
         event.stopPropagation();
         if (select.disabled) return;
-        const opening = !picker.classList.contains('open');
+        if (picker.classList.contains('open')) {
+          close();
+          return;
+        }
         closeMapSelectPickers(picker);
-        picker.classList.toggle('open', opening);
+        refresh();
+        picker.classList.add('open');
+        portalMenu();
       });
+      picker.closest('.map-effect-settings-content')?.addEventListener('scroll', close);
       refresh();
     });
   }
@@ -453,8 +499,10 @@
       const marker = nodeMarker(node);
       button.innerHTML = `
         <span class="node-hit" aria-hidden="true"></span>
-        <span class="point-marker ${marker.className}" aria-hidden="true"></span>
-        ${node.battle.roundabout ? '<span class="roundabout-mark" aria-hidden="true"></span>' : ''}
+        <span class="node-visual" aria-hidden="true">
+          <span class="point-marker ${marker.className}"></span>
+          ${node.battle.roundabout ? '<span class="roundabout-mark"></span>' : ''}
+        </span>
         <span class="node-name">${escapeHtml(node.name)}</span>
         <span class="node-meta">${LEVEL_NAMES[node.level] || '点位'}</span>
       `;
@@ -692,8 +740,127 @@
     resourceType.closest('.map-compact-switch').classList.toggle('map-resource-field', resourceNode);
     resourceAmount.closest('.map-compact-switch').classList.toggle('map-resource-field', resourceNode);
     document.querySelector('#delete-node').disabled = node.id === currentMap().entrance;
+    document.querySelector('#edit-node-effects').disabled = false;
     document.querySelector('#add-fleet').disabled = node.enemy_fleets.length >= 3 || !isCombatNode(node);
     renderFleets(node);
+  }
+
+  function updateMapEffectState() {
+    const rows = [...dom.mapEffectList.querySelectorAll('.map-effect-row')];
+    rows.forEach((row, index) => {
+      row.querySelector('.environment-extra-index').textContent = index + 1;
+    });
+    if (!rows.length && dom.mapEffectEmpty.parentElement !== dom.mapEffectList) {
+      dom.mapEffectList.append(dom.mapEffectEmpty);
+    } else if (rows.length && dom.mapEffectEmpty.parentElement === dom.mapEffectList) {
+      dom.mapEffectList.after(dom.mapEffectEmpty);
+    }
+    dom.mapEffectEmpty.hidden = rows.length > 0;
+    document.querySelector('#add-map-effect').disabled = !mapEffectOptions?.length;
+  }
+
+  function renderMapEffectCatalog() {
+    dom.mapEffectCatalogList.replaceChildren();
+    (mapEffectOptions || []).forEach(effect => {
+      const item = document.createElement('li');
+      item.className = 'map-effect-catalog-item';
+      const name = document.createElement('strong');
+      name.textContent = effect.name;
+      const description = document.createElement('p');
+      description.textContent = effect.effect || '未提供效果说明';
+      item.append(name, description);
+      dom.mapEffectCatalogList.append(item);
+    });
+    if (!mapEffectOptions?.length) {
+      const item = document.createElement('li');
+      item.className = 'map-effect-catalog-empty';
+      item.textContent = '暂无可用地图效果';
+      dom.mapEffectCatalogList.append(item);
+    }
+    dom.mapEffectCatalog.hidden = !mapEffectCatalogOpen;
+    dom.mapEffectCatalogToggle.setAttribute('aria-expanded', String(mapEffectCatalogOpen));
+  }
+
+  function toggleMapEffectCatalog() {
+    mapEffectCatalogOpen = !mapEffectCatalogOpen;
+    closeMapSelectPickers();
+    renderMapEffectCatalog();
+  }
+
+  function addMapEffect(selected = '') {
+    if (!mapEffectOptions?.length) return;
+    const row = document.createElement('div');
+    row.className = 'environment-extra-row map-effect-row';
+    const index = document.createElement('span');
+    index.className = 'environment-extra-index';
+    const select = document.createElement('select');
+    select.className = 'map-effect-select';
+    select.setAttribute('aria-label', '地图效果');
+    select.append(new Option('请选择地图效果', ''));
+    mapEffectOptions.forEach(effect => {
+      select.append(new Option(effect.name, effect.id));
+    });
+    if (selected && !mapEffectOptions.some(effect => effect.id === selected)) {
+      select.append(new Option(`不可用效果：${selected}`, selected));
+    }
+    select.value = selected;
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'environment-extra-remove';
+    remove.setAttribute('aria-label', '删除地图效果');
+    remove.textContent = '×';
+    remove.addEventListener('click', () => {
+      row.remove();
+      updateMapEffectState();
+    });
+    row.append(index, select, remove);
+    dom.mapEffectList.append(row);
+    enhanceMapSelects(dom.mapEffectDialog);
+    updateMapEffectState();
+  }
+
+  async function openMapEffectsDialog() {
+    const node = selection.type === 'node' ? getNode(selection.id) : null;
+    if (!node) return;
+    const button = document.querySelector('#edit-node-effects');
+    button.disabled = true;
+    try {
+      const response = await fetch('/api/map/effects');
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || '无法读取地图效果');
+      mapEffectOptions = Array.isArray(payload.effects) ? payload.effects : [];
+      mapEffectNodeId = node.id;
+      mapEffectCatalogOpen = false;
+      dom.mapEffectPointName.textContent = `点位 ${node.name}`;
+      dom.mapEffectList.replaceChildren();
+      (node.map_effects || []).forEach(addMapEffect);
+      updateMapEffectState();
+      renderMapEffectCatalog();
+      dom.mapEffectDialog.showModal();
+    } catch (error) {
+      showToast(error.message, true);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  function saveMapEffects() {
+    const node = getNode(mapEffectNodeId);
+    if (!node) {
+      dom.mapEffectDialog.close('cancel');
+      return;
+    }
+    const effectIds = [...dom.mapEffectList.querySelectorAll('.map-effect-select')]
+      .map(select => select.value.trim())
+      .filter(Boolean);
+    if (new Set(effectIds).size !== effectIds.length) {
+      showToast('同一节点不能重复添加地图效果', true);
+      return;
+    }
+    node.map_effects = effectIds;
+    closeMapSelectPickers();
+    dom.mapEffectDialog.close('saved');
+    showToast(`已保存 ${node.name} 的地图效果`);
   }
 
   function renderFleets(node) {
@@ -754,7 +921,7 @@
 
   function renderFleetStats(element, fleet) {
     const ships = fleet.ships.filter(ship => String(ship.cid || '').trim());
-    element.textContent = '索敌 — | 制空 —';
+    element.textContent = '索敌 — | 制空 — | 航速 —';
     if (!ships.length) return;
 
     const requestFleet = {
@@ -782,9 +949,10 @@
       if (!element.isConnected) return;
       const recon = Number(summary.recon || 0).toFixed(0);
       const aerial = Number(summary.aerial || 0).toFixed(2);
-      element.textContent = '索敌 ' + recon + ' | 制空 ' + aerial;
+      const speed = Number(summary.speed || 0).toFixed(2);
+      element.textContent = '索敌 ' + recon + ' | 制空 ' + aerial + ' | 航速 ' + speed;
     }).catch(() => {
-      if (element.isConnected) element.textContent = '索敌 — | 制空 —';
+      if (element.isConnected) element.textContent = '索敌 — | 制空 — | 航速 —';
     });
   }
 
@@ -1125,6 +1293,10 @@
     if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('YAML 顶层必须是对象');
     if (!Array.isArray(input.nodes) || !input.nodes.length) throw new Error('nodes 必须至少包含一个点位');
     if (!Array.isArray(input.routes)) throw new Error('routes 必须是数组');
+    const rawBuffs = input.buffs == null ? {} : input.buffs;
+    if (typeof rawBuffs !== 'object' || Array.isArray(rawBuffs)) {
+      throw new Error('buffs 必须是以点位名称为键的对象');
+    }
     const names = new Set();
     let entrance = '';
     const nodes = input.nodes.map((rawNode, index) => {
@@ -1151,6 +1323,14 @@
         throw new Error(`点位 ${name} 的资源种类无效`);
       }
       const resourceAmount = Math.max(0, Math.trunc(Number(rawNode.battle?.amount) || 0));
+      const rawEffects = rawBuffs[name] == null ? [] : rawBuffs[name];
+      const mapEffects = typeof rawEffects === 'string' ? [rawEffects] : rawEffects;
+      if (!Array.isArray(mapEffects) || !mapEffects.every(value => typeof value === 'string' && value.trim())) {
+        throw new Error(`点位 ${name} 的 buffs 必须是效果标识列表`);
+      }
+      if (new Set(mapEffects).size !== mapEffects.length) {
+        throw new Error(`点位 ${name} 的 buffs 不能重复`);
+      }
       return {
         id,
         name,
@@ -1185,9 +1365,12 @@
             })),
           };
         }),
+        map_effects: mapEffects.map(value => value.trim()),
       };
     });
     if (!entrance) throw new Error('地图必须包含一个 kind 为 entrance 的入口点');
+    const unknownBuffNodes = Object.keys(rawBuffs).filter(name => !names.has(name));
+    if (unknownBuffNodes.length) throw new Error(`buffs 引用了不存在的点位：${unknownBuffNodes.join('、')}`);
     const nodeIdByName = new Map(nodes.map(node => [node.name, node.id]));
     const routes = input.routes.map((rawRoute, index) => {
       const id = `route-${index + 1}`;
@@ -1246,6 +1429,9 @@
   function serializeDocument(document) {
     const map = document.map;
     const nodeNameById = new Map(map.nodes.map(node => [node.id, node.name]));
+    const buffs = Object.fromEntries(map.nodes
+      .filter(node => Array.isArray(node.map_effects) && node.map_effects.length)
+      .map(node => [node.name, [...node.map_effects]]));
     return {
       mapid: String(map.name || '未命名海图').trim(),
       name: String(map.name || '未命名海图'),
@@ -1284,6 +1470,7 @@
         relation: route.relation,
         conditions: route.conditions.map(condition => ({ ...condition })),
       })),
+      ...(Object.keys(buffs).length ? { buffs } : {}),
     };
   }
 
@@ -1552,20 +1739,20 @@
           ...friendShipNames.flatMap(name => [`${name}中破率`, `${name}大破率`]),
         ],
         ...(summary.node_statistics || [])
-          .filter(entry => Number(entry.battles || 0) > 0)
+          .filter(entry => Number(entry.visits || 0) > 0)
           .map(entry => [
             entry.name,
-            Number(entry.battles || 0),
+            Number(entry.visits || 0),
             optionalRate(entry.recon_rate),
             optionalRate(entry.roundabout_rate),
-            ...resultFlags.map(flag => rate(entry.result_rates?.[flag])),
-            rate(entry.mid_damage_rate),
-            rate(entry.heavy_damage_rate),
+            ...resultFlags.map(flag => optionalRate(entry.result_rates?.[flag])),
+            optionalRate(entry.mid_damage_rate),
+            optionalRate(entry.heavy_damage_rate),
             ...friendShipNames.flatMap((_, index) => {
               const hasShip = Boolean(summary.friend_ship_names?.[index]);
               return [
-                hasShip ? rate(entry.mid_damage_ship_rates?.[index]) : '—',
-                hasShip ? rate(entry.heavy_damage_ship_rates?.[index]) : '—',
+                hasShip ? optionalRate(entry.mid_damage_ship_rates?.[index]) : '—',
+                hasShip ? optionalRate(entry.heavy_damage_ship_rates?.[index]) : '—',
               ];
             }),
           ]),
@@ -1668,12 +1855,10 @@
         },
       ));
       const body = document.createElement('tbody');
-      // 非战斗点没有胜率场次，但允许迂回的点位仍会产生独立的迂回率，
-      // 因而也应保留在汇总表中。
-      entries.filter(entry => (
-        Number(entry.battles || 0) > 0 || entry.roundabout_rate != null
-      )).forEach(entry => {
-        const battles = Number(entry.battles || 0);
+      // 场次表示实际到达并完成点位准备流程的次数；成功迂回不会产生
+      // 战斗结果，但仍应计入场次与迂回率。
+      entries.filter(entry => Number(entry.visits || 0) > 0).forEach(entry => {
+        const visits = Number(entry.visits || 0);
         const rate = value => `${Number(value || 0).toFixed(2)}%`;
         const optionalRate = value => value == null ? '—' : rate(value);
         const midDamageRate = mapDamageFilter === 'all'
@@ -1681,7 +1866,7 @@
         const heavyDamageRate = mapDamageFilter === 'all'
           ? entry.heavy_damage_rate : entry.heavy_damage_ship_rates?.[Number(mapDamageFilter)];
         const row = document.createElement('tr');
-        row.innerHTML = `<th>${escapeHtml(entry.name)}</th><td>${battles}</td><td>${optionalRate(entry.recon_rate)}</td><td>${optionalRate(entry.roundabout_rate)}</td>${flags.map(flag => `<td>${rate(entry.result_rates?.[flag])}</td>`).join('')}<td>${rate(midDamageRate)}</td><td>${rate(heavyDamageRate)}</td>`;
+        row.innerHTML = `<th>${escapeHtml(entry.name)}</th><td>${visits}</td><td>${optionalRate(entry.recon_rate)}</td><td>${optionalRate(entry.roundabout_rate)}</td>${flags.map(flag => `<td>${optionalRate(entry.result_rates?.[flag])}</td>`).join('')}<td>${optionalRate(midDamageRate)}</td><td>${optionalRate(heavyDamageRate)}</td>`;
         body.append(row);
       });
       table.append(header, body);
@@ -1933,7 +2118,17 @@
       }
     });
     document.querySelector('#delete-node').addEventListener('click', deleteSelectedNode);
+    document.querySelector('#edit-node-effects').addEventListener('click', () => { void openMapEffectsDialog(); });
+    dom.mapEffectCatalogToggle.addEventListener('click', toggleMapEffectCatalog);
     document.querySelector('#add-fleet').addEventListener('click', addFleet);
+    document.querySelector('#add-map-effect').addEventListener('click', () => addMapEffect());
+    document.querySelector('#save-map-effects').addEventListener('click', saveMapEffects);
+    document.querySelectorAll('[data-close-map-effects]').forEach(button => {
+      button.addEventListener('click', () => {
+        closeMapSelectPickers();
+        dom.mapEffectDialog.close('cancel');
+      });
+    });
 
     document.querySelector('#route-from').addEventListener('change', event => changeRouteEndpoint('from', event.target.value));
     document.querySelector('#route-to').addEventListener('change', event => changeRouteEndpoint('to', event.target.value));

@@ -23,8 +23,7 @@ import yaml
 
 from src import skillCode
 from src.utils.loadConfig import (
-    load_config, load_fleet, load_friend_ship, load_map_yaml, map_yaml_path,
-    load_xml,
+    load_config, load_friend_ship, load_map_yaml, map_yaml_path, load_xml,
 )
 from src.utils.loadDataset import Dataset
 from src.utils.runUtil import set_supply
@@ -37,8 +36,8 @@ from src.utils.envBuffUtil import (
     save_user_settings,
     user_settings_file,
 )
+from src.skillCode.MapEnv import map_effect_options
 from src.wsgr.ship import Fleet, SHIP_LABELS
-from src.wsgr.phase import AirPhase
 from src.wsgr.wsgrTimer import PHASE_LABELS, timer
 
 
@@ -94,19 +93,109 @@ STRATEGIES = {
 }
 
 RESULT_FLAGS = ("SS", "S", "A", "B", "C", "D")
-PHASE_LABELS = {
-    "LongMissilePhase": "先发制人",
-    "SupportPhase": "支援攻击",
-    "AirPhase": "航空战",
-    "FirstMissilePhase": "导弹战",
-    "AntiSubPhase": "先制反潜",
-    "FirstTorpedoPhase": "先制雷击",
-    "FirstShellingPhase": "首轮炮击",
-    "SecondShellingPhase": "次轮炮击",
-    "SecondTorpedoPhase": "鱼雷战",
-    "SecondMissilePhase": "闭幕导弹",
-    "NightPhase": "夜战",
+
+_SPEED_MAIN_SHIP_TYPES = frozenset({
+    "CV", "CVL", "AV", "BB", "BC", "BBV", "BBV0", "ASDG", "AADG", "KP",
+    "CG", "BBG", "BG", "Elite", "Fortness", "Airfield", "Port",
+})
+_SPEED_COVER_SHIP_TYPES = frozenset({
+    "CAV", "CA", "CL", "CLT", "CLT0", "DD", "BM", "AP", "Tuning",
+})
+_SPEED_SUBMARINE_TYPES = frozenset({"SS", "SC", "SSG"})
+_AIRCRAFT_FLIGHT_PARAMS = {
+    "CV": 5,
+    "CVL": 5,
+    "AV": 5,
+    "BBV": 10,
+    "BBV0": 10,
+    "CAV": 5,
+    "Elite": 10,
+    "Fortness": 10,
+    "Airfield": 10,
+    "Tuning": 10,
 }
+_AERIAL_EQUIPMENT_TYPES = frozenset({"Fighter", "Bomber", "DiveBomber"})
+
+
+def calculate_map_enemy_fleet_summary(
+    dataset: Dataset,
+    fleet_config: dict[str, Any],
+) -> dict[str, float]:
+    """Calculate editor preview values directly from enemy database records."""
+    ship_configs = fleet_config.get("ships")
+    if not isinstance(ship_configs, list) or not ship_configs:
+        return {"recon": 0.0, "aerial": 0.0, "speed": 0.0}
+
+    ships = []
+    for ship_config in ship_configs:
+        cid = str(ship_config.get("cid", "")).strip()
+        if not cid:
+            continue
+        status = dataset.get_enemy_ship_status(cid)
+        equipment = [
+            dataset.get_equip_status(eid) if eid else None
+            for eid in status.get("equip", [])
+        ]
+        ships.append((status, equipment))
+
+    if not ships:
+        return {"recon": 0.0, "aerial": 0.0, "speed": 0.0}
+
+    recon = sum(
+        float(status.get("recon", 0))
+        + sum(float(item.get("recon", 0)) for item in equipment if item)
+        for status, equipment in ships
+    )
+
+    surface_ships = [
+        (status, equipment)
+        for status, equipment in ships
+        if status["type"] not in _SPEED_SUBMARINE_TYPES
+    ]
+    if surface_ships:
+        main_speeds = [
+            float(status["speed"])
+            for status, _ in surface_ships
+            if status["type"] in _SPEED_MAIN_SHIP_TYPES
+        ]
+        cover_speeds = [
+            float(status["speed"])
+            for status, _ in surface_ships
+            if status["type"] in _SPEED_COVER_SHIP_TYPES
+        ]
+        if main_speeds and cover_speeds:
+            speed = min(np.floor(np.mean(main_speeds)), np.floor(np.mean(cover_speeds)))
+        elif main_speeds:
+            speed = np.mean(main_speeds)
+        elif cover_speeds:
+            speed = np.mean(cover_speeds)
+        else:
+            raise ValueError("敌方舰队不存在可计算航速的水面舰种")
+    else:
+        speed = np.floor(np.mean([float(status["speed"]) for status, _ in ships]))
+
+    aerial = 0.0
+    for status, equipment in ships:
+        flight_param = _AIRCRAFT_FLIGHT_PARAMS.get(status["type"])
+        if flight_param is None:
+            continue
+        fire = float(status.get("fire", 0)) + sum(
+            float(item.get("fire", 0)) for item in equipment if item
+        )
+        flight_limit = np.floor(max(fire, 0) / flight_param) + 3
+        loads = status.get("load", [])
+        for index, item in enumerate(equipment):
+            if (
+                not item
+                or item["type"] not in _AERIAL_EQUIPMENT_TYPES
+                or index >= len(loads)
+                or loads[index] <= 0
+            ):
+                continue
+            actual_flight = min(float(loads[index]), flight_limit)
+            aerial += np.log(2 * (actual_flight + 1)) * float(item.get("antiair", 0))
+
+    return {"recon": float(recon), "aerial": float(aerial), "speed": float(speed)}
 
 
 def _skill_options(skill_ids: list[str]) -> list[dict[str, Any]]:
@@ -619,6 +708,7 @@ class MapSimulationManager(SimulationManager):
             friend_ship_names = [ship.status["name"] for ship in battle.friend.ship]
             node_statistics = {
                 name: {
+                    "visits": 0,
                     "battles": 0,
                     "result_counts": {flag: 0 for flag in RESULT_FLAGS},
                     "mid_damage": 0,
@@ -667,6 +757,7 @@ class MapSimulationManager(SimulationManager):
                     statistics = node_statistics.get(str(node_event.get("name", "")))
                     if statistics is None:
                         continue
+                    statistics["visits"] += 1
                     recon_rate = node_event.get("recon_rate")
                     if recon_rate is not None:
                         statistics["recon_rate_total"] += float(recon_rate)
@@ -749,13 +840,23 @@ class MapSimulationManager(SimulationManager):
             "node_statistics": [
                 {
                     "name": name,
+                    "visits": values["visits"],
                     "battles": values["battles"],
                     "result_rates": {
-                        flag: values["result_counts"][flag] / max(values["battles"], 1) * 100
+                        flag: (
+                            values["result_counts"][flag] / values["battles"] * 100
+                            if values["battles"] else None
+                        )
                         for flag in RESULT_FLAGS
                     },
-                    "mid_damage_rate": values["mid_damage"] / max(values["battles"], 1) * 100,
-                    "heavy_damage_rate": values["heavy_damage"] / max(values["battles"], 1) * 100,
+                    "mid_damage_rate": (
+                        values["mid_damage"] / values["battles"] * 100
+                        if values["battles"] else None
+                    ),
+                    "heavy_damage_rate": (
+                        values["heavy_damage"] / values["battles"] * 100
+                        if values["battles"] else None
+                    ),
                     "recon_rate": (
                         values["recon_rate_total"] / values["recon_rate_count"]
                         if values["recon_rate_count"] else None
@@ -765,11 +866,13 @@ class MapSimulationManager(SimulationManager):
                         if values["roundabout_rate_count"] else None
                     ),
                     "mid_damage_ship_rates": [
-                        float(rate / max(values["battles"], 1) * 100)
+                        float(rate / values["battles"] * 100)
+                        if values["battles"] else None
                         for rate in values["mid_damage_by_ship"]
                     ],
                     "heavy_damage_ship_rates": [
-                        float(rate / max(values["battles"], 1) * 100)
+                        float(rate / values["battles"] * 100)
+                        if values["battles"] else None
                         for rate in values["heavy_damage_by_ship"]
                     ],
                 }
@@ -889,6 +992,10 @@ class WebUIService:
             "options": copy.deepcopy(self._environment_options),
         }
 
+    @staticmethod
+    def map_effects() -> dict[str, list[dict[str, str]]]:
+        return {"effects": map_effect_options()}
+
     def update_environment_settings(self, settings: dict[str, Any]) -> dict[str, Any]:
         saved = save_user_settings(
             settings, user_settings_file, environment_data_file,
@@ -946,25 +1053,10 @@ class WebUIService:
         return {"max_health": maximum}
 
     def map_enemy_fleet_summary(self, fleet_config: dict[str, Any]) -> dict[str, float]:
-        """Calculate enemy recon and aerial control without running a battle."""
+        """Calculate enemy recon, aerial control, and fleet speed."""
         if not isinstance(fleet_config, dict):
             raise ValueError("敌方舰队配置无效")
-        preview_config = copy.deepcopy(fleet_config)
-        preview_config["side"] = 0
-        preview_config["form"] = int(
-            preview_config.get("formation", preview_config.get("form", 1))
-        )
-        if not isinstance(preview_config.get("ships"), list) or not preview_config["ships"]:
-            return {"recon": 0.0, "aerial": 0.0}
-
-        preview_timer = timer()
-        fleet = load_fleet(
-            preview_config, self.dataset, preview_timer, log_func=lambda _: None
-        )
-        recon = sum(ship.get_final_status("recon") for ship in fleet.ship)
-        preview_timer.set_phase(AirPhase(preview_timer, Fleet(preview_timer), fleet))
-        aerial = fleet.get_fleet_aerial()
-        return {"recon": float(recon), "aerial": float(aerial)}
+        return calculate_map_enemy_fleet_summary(self.dataset, fleet_config)
 
     @staticmethod
     def map_exists(mapid: str) -> dict[str, Any]:

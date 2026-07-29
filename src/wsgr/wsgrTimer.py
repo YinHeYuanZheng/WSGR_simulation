@@ -35,6 +35,7 @@ class timer:
         self.phase = None           # 阶段
         self.atk = None
         self.env_skill = []         # 环境效果
+        self.map_env_effect_ids = set()  # Current-map effects must persist across point battle reinitialization.
         self.end_skill = []         # 结束阶段技能
         self.queue = {              # 有时点依赖的技能
             'magnet': [],           # 嘲讽

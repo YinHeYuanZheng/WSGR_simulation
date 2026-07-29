@@ -215,6 +215,26 @@ class Target:
     #     pass
 
 
+class AllTarget(Target):
+    """针对双方全体(可指定筛选类型)"""
+
+    def __init__(self, side=None, target: Target = None):
+        super().__init__(side)
+        self.target = target
+
+    def get_target(self, friend, enemy):
+        if self.target is not None:
+            target_1 = self.target.get_target(friend, enemy)
+            target_0 = self.target.get_target(enemy, friend)
+            return target_1 + target_0
+        else:
+            if isinstance(friend, Fleet):
+                friend = friend.ship
+            if isinstance(enemy, Fleet):
+                enemy = enemy.ship
+            return friend + enemy
+
+
 class CombinedTarget(Target):
     """多个Target类组合筛选"""
 

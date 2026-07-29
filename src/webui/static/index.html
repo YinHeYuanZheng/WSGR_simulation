@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WSGR · 战斗模拟</title>
-  <link rel="stylesheet" href="styles.css?v=map-ui-52">
+  <link rel="stylesheet" href="styles.css?v=map-ui-65">
 </head>
 <body>
   <header class="topbar">
@@ -149,7 +149,7 @@
           <div id="empty-inspector" class="map-empty-inspector"><span aria-hidden="true">◎</span><h2>选择一个点位或路线</h2><p>属性、带路条件和敌方舰队会在这里编辑。</p></div>
 
           <section id="node-inspector" hidden>
-            <div class="map-inspector-title"><div><h2>点位设置</h2></div><button id="delete-node" class="map-icon-danger" type="button" aria-label="删除点位">删除</button></div>
+            <div class="map-inspector-title"><div><h2>点位设置</h2></div><div class="map-inspector-actions"><button id="edit-node-effects" class="map-small-action" type="button">地图效果</button><button id="delete-node" class="map-icon-danger" type="button" aria-label="删除点位">删除</button></div></div>
             <div class="map-form-grid">
               <label>点位名称<input id="node-name" maxlength="12"></label>
               <label>点位类型<select id="node-kind"><option value="entrance" hidden>入口（固定）</option><option value="no_battle">无战斗</option><option value="resource_gain">增加资源</option><option value="resource_loss">扣除资源</option><option value="normal">常规战</option><option value="air">航空战</option><option value="night">夜战</option><option value="elite">精英</option><option value="boss">Boss</option></select></label>
@@ -260,8 +260,8 @@
       <div class="dialog-heading"><div class="panel-title"><h2>全局增益设定</h2></div><button type="button" data-close-environment-settings aria-label="关闭">×</button></div>
       <div class="environment-settings-content">
         <section class="environment-section engineering-section">
-          <div><h3>工程局</h3><p>开启后，工程局工作表中标记为 valid 的增益生效。</p></div>
-          <button id="environment-engineering-toggle" class="environment-toggle" type="button" aria-pressed="true"><i></i><span>已开启</span></button>
+          <div><h3>工程局</h3><p>开启后，工程局工作表中标记为"生效"的增益生效。</p></div>
+          <button id="environment-engineering-toggle" class="environment-toggle" type="button" aria-pressed="true"><span class="environment-toggle-track" aria-hidden="true"><span class="environment-toggle-thumb"></span></span><span class="environment-toggle-label">已开启</span></button>
         </section>
         <section class="environment-section">
           <div class="environment-section-heading"><h3>摆件</h3></div>
@@ -293,10 +293,24 @@
       <div class="dialog-actions environment-actions"><span></span><button type="button" data-close-environment-settings class="quiet">取消</button><button id="save-environment-settings" type="button" class="run">保存设定</button></div>
     </form>
   </dialog>
+  <dialog id="map-effect-dialog" class="ship-editor map-effect-dialog">
+    <form method="dialog">
+      <div class="dialog-heading"><div class="panel-title"><h2>地图效果</h2><p id="map-effect-point-name" class="map-effect-subtitle"></p></div><button type="button" data-close-map-effects aria-label="关闭">×</button></div>
+      <div class="map-effect-settings-content">
+        <section class="environment-section map-effect-section">
+          <div class="environment-section-heading"><h3>进入此点后生效</h3><div class="map-effect-actions"><button id="show-map-effect-catalog" class="quiet" type="button" aria-expanded="false">效果列表</button><button id="add-map-effect" class="quiet" type="button">＋ 添加效果</button></div></div>
+          <div id="map-effect-catalog" class="map-effect-catalog" hidden><div class="map-effect-catalog-head"><span>名称</span><span>效果</span></div><ul id="map-effect-catalog-list" class="map-effect-catalog-list"></ul></div>
+          <div id="map-effect-list" class="environment-extra-list"></div>
+          <p id="map-effect-empty" class="environment-empty">尚未配置地图效果</p>
+        </section>
+      </div>
+      <div class="dialog-actions environment-actions"><span></span><button type="button" data-close-map-effects class="quiet">取消</button><button id="save-map-effects" type="button" class="run">保存设定</button></div>
+    </form>
+  </dialog>
   <dialog id="clear-confirm" class="confirm-dialog"><form method="dialog"><h2>清空页面？</h2><p>这会移除双方舰队配置，并重置模拟设置与所有统计结果。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="confirm-clear" type="button" class="danger">确认清空</button></div></form></dialog>
   <input id="config-file" type="file" accept=".yaml,.yml,.xml" hidden>
   <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
-  <script src="map-editor.js?v=map-ui-37"></script>
-  <script src="app.js?v=map-ui-22"></script>
+  <script src="map-editor.js?v=map-ui-43"></script>
+  <script src="app.js?v=map-ui-23"></script>
 </body>
 </html>

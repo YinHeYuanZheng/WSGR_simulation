@@ -130,12 +130,15 @@ class BattleUtil(Time):
             tmp_ship.supply_ammo = max(0, tmp_ship.supply_ammo - 2)
 
     def end_phase(self):
+        # 成功迂回后不会发生战斗，因此也不应进行结束技能、补给、战果或受损结算。
+        if self.timer.round_flag:
+            return
+
         # 结束阶段技能
         self.timer.run_end_skill(self.friend, self.enemy)
 
         # 资源消耗
-        if not self.timer.round_flag:
-            self.supply_cost()
+        self.supply_cost()
 
         # 受伤记录
         end_health = {
@@ -249,7 +252,6 @@ class NormalBattle(BattleUtil):
         if self.should_abort_after_prepare():
             return
         if self.timer.round_flag:
-            self.end_phase()
             return
         if self.should_run_long_missile():
             self.run_phase(LongMissilePhase)
@@ -280,7 +282,6 @@ class AirBattle(BattleUtil):
         if self.should_abort_after_prepare():
             return
         if self.timer.round_flag:
-            self.end_phase()
             return
         if self.should_run_long_missile():
             self.run_phase(LongMissilePhase)
@@ -309,7 +310,6 @@ class NightBattle(BattleUtil):
         if self.should_abort_after_prepare():
             return
         if self.timer.round_flag:
-            self.end_phase()
             return
         if self.should_run_long_missile():
             self.run_phase(LongMissilePhase)
@@ -421,9 +421,6 @@ class CustomBattle(BattleUtil):
     def start(self):
         self.battle_init()
         self.start_phase()
-        if self.timer.round_flag:
-            self.end_phase()
-            return
 
         selected = set(self.selected_phases)
         if 'LongMissilePhase' in selected:

@@ -48,6 +48,14 @@ class WebUIRequestHandler(SimpleHTTPRequestHandler):
             except Exception as exc:
                 self._send_json({"error": str(exc)}, HTTPStatus.INTERNAL_SERVER_ERROR)
             return
+        if path == "/api/map/effects":
+            try:
+                self._send_json(self.service.map_effects())
+            except (TypeError, ValueError) as exc:
+                self._send_json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
+            except Exception as exc:
+                self._send_json({"error": str(exc)}, HTTPStatus.INTERNAL_SERVER_ERROR)
+            return
         super().do_GET()
 
     def do_POST(self) -> None:  # noqa: N802 - inherited HTTP method name

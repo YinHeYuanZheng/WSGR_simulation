@@ -77,7 +77,7 @@ document.addEventListener('pointerdown', event => {
     if (!picker.container.contains(event.target)) picker.close();
   });
   [...editorSelectPickers, ...environmentSelectPickers].forEach(picker => {
-    if (!picker.container.contains(event.target)) picker.close();
+    if (!picker.containsTarget(event.target)) picker.close();
   });
   if (!battleTypePicker.contains(event.target)) battleTypePicker.open = false;
   if (!customPhasePicker.contains(event.target)) customPhasePicker.open = false;
@@ -147,7 +147,7 @@ function fillEnvironmentSelect(select, options, selected = '', emptyLabel = '不
 
 function setEngineeringEnabled(enabled) {
   environmentEngineeringToggle.setAttribute('aria-pressed', String(Boolean(enabled)));
-  environmentEngineeringToggle.querySelector('span').textContent = enabled ? '已开启' : '已关闭';
+  environmentEngineeringToggle.querySelector('.environment-toggle-label').textContent = enabled ? '已开启' : '已关闭';
 }
 
 function syncEnvironmentCarCountry() {
@@ -163,9 +163,13 @@ function updateEnvironmentExtraState() {
   rows.forEach((row, index) => {
     row.querySelector('.environment-extra-index').textContent = index + 1;
   });
+  if (!rows.length && environmentExtraEmpty.parentElement !== environmentExtraList) {
+    environmentExtraList.append(environmentExtraEmpty);
+  } else if (rows.length && environmentExtraEmpty.parentElement === environmentExtraList) {
+    environmentExtraList.after(environmentExtraEmpty);
+  }
   environmentExtraEmpty.hidden = rows.length > 0;
-  addEnvironmentExtraButton.disabled = !environmentOptionData
-    || rows.length >= environmentOptionData.extras.length;
+  addEnvironmentExtraButton.disabled = !environmentOptionData;
 }
 
 function addEnvironmentExtra(selected = '') {
@@ -218,9 +222,9 @@ function renderEnvironmentSettings(payload) {
   updateEnvironmentExtraState();
 }
 
-function selectedUniqueValues(selects, label) {
+function selectedUniqueValues(selects, label, unique = true) {
   const values = selects.map(select => select.value).filter(Boolean);
-  if (new Set(values).size !== values.length) throw new Error(`${label}不能重复选择`);
+  if (unique && new Set(values).size !== values.length) throw new Error(`${label}不能重复选择`);
   return values;
 }
 
@@ -237,7 +241,7 @@ function collectEnvironmentSettings() {
       country: carName ? country : '',
     },
     extras: selectedUniqueValues(
-      [...environmentExtraList.querySelectorAll('select')], '额外加成',
+      [...environmentExtraList.querySelectorAll('select')], '', false,
     ),
   };
 }
@@ -448,7 +452,32 @@ function setupEditorSelectPicker(select) {
   select.before(container);
   container.append(select, toggle, menu);
 
-  const close = () => container.classList.remove('open');
+  let menuPortaled = false;
+  const restoreMenu = () => {
+    if (!menuPortaled) return;
+    menu.classList.remove('picker-menu-portal');
+    menu.removeAttribute('style');
+    container.append(menu);
+    menuPortaled = false;
+  };
+  const close = () => {
+    container.classList.remove('open');
+    restoreMenu();
+  };
+  const portalMenu = () => {
+    const dialog = container.closest('.environment-dialog');
+    if (!dialog) return;
+    const containerBox = container.getBoundingClientRect();
+    const dialogBox = dialog.getBoundingClientRect();
+    dialog.append(menu);
+    menu.classList.add('picker-menu-portal');
+    Object.assign(menu.style, {
+      top: `${containerBox.bottom - dialogBox.top + 2}px`,
+      left: `${containerBox.left - dialogBox.left}px`,
+      width: `${containerBox.width}px`,
+    });
+    menuPortaled = true;
+  };
   const render = () => {
     value.textContent = select.selectedOptions[0]?.textContent || '';
     items.replaceChildren(...[...select.options].map(option => {
@@ -463,10 +492,21 @@ function setupEditorSelectPicker(select) {
     }));
   };
   const sync = () => render();
-  select._editorSelectPicker = { container, sync, close };
+  select._editorSelectPicker = {
+    container,
+    menu,
+    sync,
+    close,
+    containsTarget: target => container.contains(target) || menu.contains(target),
+  };
   toggle.addEventListener('click', () => {
+    if (container.classList.contains('open')) {
+      close();
+      return;
+    }
     render();
-    container.classList.toggle('open');
+    container.classList.add('open');
+    portalMenu();
   });
   menu.addEventListener('mousedown', event => event.preventDefault());
   menu.addEventListener('click', event => {
@@ -477,6 +517,7 @@ function setupEditorSelectPicker(select) {
     close();
   });
   select.addEventListener('change', sync);
+  container.closest('.environment-settings-content')?.addEventListener('scroll', close);
   sync();
   return select._editorSelectPicker;
 }
@@ -548,14 +589,16 @@ function updateSlots(list, addButton) {
     slot.setAttribute('aria-label', `删除第 ${index + 1} 艘舰船`);
     card._shipConfig.loc = index + 1;
   });
+  addButton.hidden = cards.length >= 6;
   const panel = list.closest('.fleet-panel');
-  if (panel) {
+  if (panel && !addButton.hidden && addButton.getClientRects().length) {
     const panelRect = panel.getBoundingClientRect();
     const listRect = list.getBoundingClientRect();
-    const slotHeight = listRect.height / 6;
-    addButton.style.top = `${listRect.top - panelRect.top + cards.length * slotHeight}px`;
+    if (panelRect.width > 0 && panelRect.height > 0 && listRect.height > 0) {
+      const slotHeight = listRect.height / 6;
+      addButton.style.top = `${listRect.top - panelRect.top + cards.length * slotHeight}px`;
+    }
   }
-  addButton.hidden = cards.length >= 6;
 }
 
 function updateAllSlots() {
@@ -747,7 +790,10 @@ function wireShipCard(card) {
     event.currentTarget.textContent = event.currentTarget.dataset.number || '';
   });
   card.addEventListener('click', event => {
-    if (card.dataset.side === 'friend' && mapPagePanel?.classList.contains('friend-collapsed')) {
+    if (card.dataset.side === 'friend'
+        && mapPagePanel
+        && !mapPagePanel.hidden
+        && mapPagePanel.classList.contains('friend-collapsed')) {
       setMapFriendCollapsed(false);
       return;
     }
@@ -1843,7 +1889,7 @@ let mapFriendCollapsed = false;
 function syncMapWorkspaceWidths() {
   if (!mapWorkspace || mapWorkspace.clientWidth === 0) return;
   const workspaceGap = 14;
-  const canvasToolbarHeight = 50;
+  const canvasToolbarHeight = 45;
   const mapTabsHeight = 38;
   const canvasHeight = Math.max(280, mapWorkspace.clientHeight - canvasToolbarHeight - mapTabsHeight);
   const mapCanvasWidth = Math.max(280, Math.round(canvasHeight * 1000 / 680));
@@ -1861,7 +1907,10 @@ function setMapFriendCollapsed(collapsed) {
   mapFriendToggle.setAttribute('aria-label', `${action}我方舰队`);
   mapFriendToggle.dataset.tooltip = `${action}我方舰队`;
   mapFriendToggle.setAttribute('aria-expanded', String(!mapFriendCollapsed));
-  requestAnimationFrame(syncMapWorkspaceWidths);
+  requestAnimationFrame(() => {
+    syncMapWorkspaceWidths();
+    updateAllSlots();
+  });
 }
 
 function showPrimaryPage(page) {
@@ -1874,9 +1923,12 @@ function showPrimaryPage(page) {
   mapFriendToggle.hidden = page !== 'map';
   const titles = { battle: '战斗模拟', map: '地图模拟', history: '历史战报' };
   document.title = `WSGR · ${titles[page]}`;
-  if (page === 'map') requestAnimationFrame(() => {
-    syncMapWorkspaceWidths();
-    window.dispatchEvent(new CustomEvent('wsgr:map-visible'));
+  if (page !== 'history') requestAnimationFrame(() => {
+    updateAllSlots();
+    if (page === 'map') {
+      syncMapWorkspaceWidths();
+      window.dispatchEvent(new CustomEvent('wsgr:map-visible'));
+    }
   });
 }
 

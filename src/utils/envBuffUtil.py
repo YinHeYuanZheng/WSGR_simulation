@@ -104,14 +104,17 @@ def environment_options(file_path):
     }
 
 
-def _normalise_selected_ids(value, allowed, label, maximum=None):
+def _normalise_selected_ids(
+        value, allowed, label, maximum=None, allow_duplicates=False,
+):
     if value is None:
         values = []
     elif isinstance(value, list):
         values = [str(item).strip() for item in value if str(item).strip()]
     else:
         raise ValueError(f'{label}必须为列表')
-    values = list(dict.fromkeys(values))
+    if not allow_duplicates:
+        values = list(dict.fromkeys(values))
     if maximum is not None and len(values) > maximum:
         raise ValueError(f'{label}最多选择{maximum}项')
     unknown = [item for item in values if item not in allowed]
@@ -161,6 +164,7 @@ def normalise_user_settings(settings, file_path):
     )
     result['extras'] = _normalise_selected_ids(
         settings.get('extras'), allowed['extras'], '额外加成',
+        allow_duplicates=True,
     )
 
     dish = settings.get('dish')
@@ -201,46 +205,6 @@ def save_user_settings(settings, settings_path, file_path):
         yaml.safe_dump(settings, file, allow_unicode=True, sort_keys=False)
     os.replace(temporary_path, settings_path)
     return settings
-
-
-class AllTarget(Target):
-    """针对双方全体(可指定筛选类型)"""
-
-    def __init__(self, side=None, target: Target = None):
-        super().__init__(side)
-        self.target = target
-
-    def get_target(self, friend, enemy):
-        if self.target is not None:
-            target_1 = self.target.get_target(friend, enemy)
-            target_0 = self.target.get_target(enemy, friend)
-            return target_1 + target_0
-        else:
-            if isinstance(friend, Fleet):
-                friend = friend.ship
-            if isinstance(enemy, Fleet):
-                enemy = enemy.ship
-            return friend + enemy
-
-
-class Normal_map9_lock_buff(PrepSkill):
-    """9图解封锁buff"""
-    def __init__(self, timer):
-        class LeaderSurviveBuff(FinalDamageBuff):
-            def is_active(self, *args, **kwargs):
-                leader = self.master.master.ship[0]
-                return leader.damaged <= 3
-
-        super().__init__(timer, master=None)
-        self.target = LocTarget(side=0, loc=[2,3,4,5,6])
-        self.buff = [
-            LeaderSurviveBuff(
-                timer=timer,
-                name='final_damage_debuff',
-                phase=AllPhase,
-                value=-0.1
-            )
-        ]
 
 
 def _parse_environment_cids(value, environment_name='环境增益'):
@@ -433,7 +397,6 @@ def load_env_buffs(file_path, settings_path=None):
 
         selected = {
             'collections': set(settings['collections']),
-            'extras': set(settings['extras']),
             'dish': {settings['dish']} if settings['dish'] else set(),
             'car': {settings['car']['name']} if settings['car']['name'] else set(),
         }
@@ -445,6 +408,14 @@ def load_env_buffs(file_path, settings_path=None):
                 if category == 'car':
                     config['country'] = settings['car']['country']
                 selected_configs.append(config)
+
+        extras_by_name = {
+            str(config.get('name')): config
+            for config in sheets['extras']
+            if config.get('name')
+        }
+        for name in settings['extras']:
+            selected_configs.append(copy.deepcopy(extras_by_name[name]))
 
     env_skills = []
     for i, config in enumerate(selected_configs):

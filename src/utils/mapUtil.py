@@ -8,6 +8,7 @@ import numpy as np
 from src.wsgr.wsgrTimer import Time
 from src.utils import battleUtil
 from src.utils.parseEquipSkill import load_equip_config
+from src.skillCode.MapEnv import load_map_effect
 import src.wsgr.ship as rship
 import src.wsgr.equipment as requip
 from src import skillCode
@@ -357,6 +358,34 @@ class MapUtil(Time):
         if len(entrance_nodes) != 1:
             raise ValueError('Map must contain exactly one entrance point')
 
+        raw_buffs = map_config.get('buffs', {})
+        if raw_buffs is None:
+            raw_buffs = {}
+        if not isinstance(raw_buffs, dict):
+            raise ValueError('Map buffs must be an object keyed by node name')
+        unknown_buff_nodes = set(raw_buffs) - set(self.point)
+        if unknown_buff_nodes:
+            raise ValueError(f'Unknown map buff node(s): {sorted(unknown_buff_nodes)}')
+        for point_name, effect_ids in raw_buffs.items():
+            if isinstance(effect_ids, str):
+                effect_ids = [effect_ids]
+            if not isinstance(effect_ids, list) or not all(
+                    isinstance(effect_id, str) and effect_id.strip()
+                    for effect_id in effect_ids):
+                raise ValueError(f'Map buffs for point {point_name} must be a list of effect ids')
+            if len(set(effect_ids)) != len(effect_ids):
+                raise ValueError(f'Map buffs for point {point_name} contain duplicates')
+            for effect_id in effect_ids:
+                try:
+                    effect_name, skill_classes = load_map_effect(effect_id)
+                except ValueError as exc:
+                    raise ValueError(
+                        f'Map buff {effect_id!r} at point {point_name} is invalid: {exc}'
+                    ) from exc
+                self.point[point_name].add_map_effect(
+                    effect_id.strip(), effect_name, skill_classes,
+                )
+
         for route in routes:
             if not isinstance(route, dict):
                 raise ValueError('Each map route must be an object')
@@ -467,6 +496,7 @@ class Point:
         self.resource_label = ''
         self.enemy_list = []
         self.suc = {}
+        self.map_effects = []
 
         self.battle = None
 
@@ -503,10 +533,23 @@ class Point:
     def set_suc(self, suc_dic):
         self.suc = suc_dic
 
+    def add_map_effect(self, effect_id, effect_name, skill_classes):
+        self.map_effects.append((effect_id, effect_name, skill_classes))
+
+    def apply_map_effects(self, timer):
+        """添加地图效果(该节点及后续节点生效)"""
+        for effect_id, effect_name, skill_classes in self.map_effects:
+            if effect_id in timer.map_env_effect_ids:
+                continue
+            timer.env_skill.extend(skill_class(timer) for skill_class in skill_classes)
+            timer.map_env_effect_ids.add(effect_id)
+            timer.info(f'【地图效果】{effect_name}\n')
+
     def start(self, timer, friend):
         """创建战斗类并移动到下个点"""
         timer.set_point(self)
         timer.map_retreat = False
+        self.apply_map_effects(timer)  # 添加地图效果(该节点及后续节点生效)
         self.round_request = self.user_rules.settings_for(self)['round']
         if not self.user_rules.is_selected(self):
             timer.map_retreat = True

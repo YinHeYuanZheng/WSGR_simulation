@@ -2,7 +2,9 @@ import copy
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import MagicMock
 
+import numpy as np
 import yaml
 
 from src.utils import battleUtil
@@ -10,6 +12,11 @@ from src.utils.battleUtil import BattleUtil
 from src.utils.loadConfig import load_config, load_yaml
 from src.utils.loadDataset import Dataset
 from src.utils.mapUtil import DefaultUserRules, Point, UserRules
+from src.skillCode.MapEnv import load_map_effect, map_effect_options
+from src.webui.service import (
+    MapSimulationManager,
+    calculate_map_enemy_fleet_summary,
+)
 import src.wsgr.ship as rship
 from src.wsgr.wsgrTimer import timer as BattleTimer
 from src.wsgr.wsgrTimer import timer
@@ -208,6 +215,182 @@ class MapUserRulesTest(unittest.TestCase):
         battle = BattleUtil(BattleTimer(), None, None)
 
         self.assertTrue(battle.should_run_long_missile())
+
+
+class MapEffectTest(unittest.TestCase):
+    def test_map_effect_registry_exposes_module_name_and_label(self):
+        self.assertIn(
+            {
+                "id": "map090102",
+                "name": "9图封锁战况(削弱后)",
+                "effect": "敌方舰队旗舰存活时，为所有非旗舰单位提供10%减伤",
+            },
+            map_effect_options(),
+        )
+
+    def test_point_effect_is_added_once_and_persists_on_timer(self):
+        point = Point('A', 2)
+        point.add_map_effect(
+            'map090102', '9图封锁战况(削弱后)',
+            load_map_effect('map090102')[1],
+        )
+        battle_timer = BattleTimer()
+
+        point.apply_map_effects(battle_timer)
+        point.apply_map_effects(battle_timer)
+
+        self.assertEqual(len(battle_timer.env_skill), 1)
+        self.assertEqual(battle_timer.map_env_effect_ids, {'map090102'})
+        self.assertIn('【地图效果】9图封锁战况(削弱后)', battle_timer.log['record'])
+
+    def test_unknown_map_effect_node_is_rejected(self):
+        map_document = {
+            "mapid": "invalid-buffs",
+            "nodes": [
+                {"name": "入口", "kind": "entrance", "level": 0,
+                 "battle": {"type": "Entrance"}, "enemy_fleets": []},
+            ],
+            "routes": [],
+            "buffs": {"不存在": ["map090102"]},
+        }
+        with self.assertRaisesRegex(ValueError, 'Unknown map buff node'):
+            from src.utils.mapUtil import MapUtil
+            MapUtil(BattleTimer(), map_document, None, SimpleNamespace(ship=[]), log_func=lambda _: None)
+
+    def test_map_effect_yaml_binds_the_effect_to_its_node(self):
+        map_document = {
+            "mapid": "map-effects",
+            "nodes": [
+                {"name": "入口", "kind": "entrance", "level": 0,
+                 "battle": {"type": "Entrance"}, "enemy_fleets": []},
+                {"name": "终点", "kind": "no_battle", "level": 4,
+                 "battle": {"type": "MidPoint"}, "enemy_fleets": []},
+            ],
+            "routes": [{"from": "入口", "to": "终点", "weight": 1}],
+            "buffs": {"终点": "map090102"},
+        }
+        from src.utils.mapUtil import MapUtil
+        battle_map = MapUtil(
+            BattleTimer(), map_document, None, SimpleNamespace(ship=[]),
+            log_func=lambda _: None,
+        )
+
+        self.assertEqual(battle_map.point['终点'].map_effects[0][0], 'map090102')
+
+
+class MapResultStatisticsTest(unittest.TestCase):
+    @staticmethod
+    def _statistics(visits, battles):
+        return {
+            "visits": visits,
+            "battles": battles,
+            "result_counts": {
+                "SS": battles, "S": 0, "A": 0, "B": 0, "C": 0, "D": 0,
+            },
+            "mid_damage": battles,
+            "heavy_damage": 0,
+            "mid_damage_by_ship": np.array([battles], dtype=float),
+            "heavy_damage_by_ship": np.array([0], dtype=float),
+            "recon_rate_total": 80.0 * visits,
+            "recon_rate_count": visits,
+            "roundabout_rate_total": 60.0 * visits,
+            "roundabout_rate_count": visits,
+        }
+
+    def test_visits_and_battles_use_separate_denominators(self):
+        summary = MapSimulationManager._build_map_summary(
+            completed=10,
+            cleared=0,
+            boss_battles=0,
+            boss_flagship_sinks=0,
+            node_statistics={"A": self._statistics(visits=5, battles=2)},
+            friend_ship_names=["测试舰"],
+            supply_totals={
+                "oil": 0, "ammo": 0, "steel": 0, "almn": 0, "repeat": 0,
+            },
+            first_record="",
+        )
+        statistics = summary["node_statistics"][0]
+
+        self.assertEqual(statistics["visits"], 5)
+        self.assertEqual(statistics["battles"], 2)
+        self.assertEqual(statistics["roundabout_rate"], 60.0)
+        self.assertEqual(statistics["result_rates"]["SS"], 100.0)
+        self.assertEqual(statistics["mid_damage_rate"], 100.0)
+
+    def test_battle_statistics_are_empty_when_every_visit_roundabouts(self):
+        summary = MapSimulationManager._build_map_summary(
+            completed=10,
+            cleared=0,
+            boss_battles=0,
+            boss_flagship_sinks=0,
+            node_statistics={"A": self._statistics(visits=5, battles=0)},
+            friend_ship_names=["测试舰"],
+            supply_totals={
+                "oil": 0, "ammo": 0, "steel": 0, "almn": 0, "repeat": 0,
+            },
+            first_record="",
+        )
+        statistics = summary["node_statistics"][0]
+
+        self.assertEqual(statistics["visits"], 5)
+        self.assertEqual(statistics["roundabout_rate"], 60.0)
+        self.assertIsNone(statistics["result_rates"]["SS"])
+        self.assertIsNone(statistics["mid_damage_rate"])
+        self.assertEqual(statistics["mid_damage_ship_rates"], [None])
+
+
+class RoundaboutEndPhaseTest(unittest.TestCase):
+    def test_successful_roundabout_skips_every_end_phase_settlement(self):
+        battle = BattleUtil.__new__(BattleUtil)
+        battle.timer = SimpleNamespace(
+            round_flag=True,
+            run_end_skill=MagicMock(),
+        )
+        battle.supply_cost = MagicMock()
+
+        BattleUtil.end_phase(battle)
+
+        battle.timer.run_end_skill.assert_not_called()
+        battle.supply_cost.assert_not_called()
+
+
+class MapEnemyFleetSummaryTest(unittest.TestCase):
+    def test_summary_uses_direct_database_formulas(self):
+        class PreviewDataset:
+            ships = {
+                "cv": {
+                    "type": "CVL", "speed": 25, "recon": 40, "fire": 20,
+                    "load": [10], "equip": ["fighter"],
+                },
+                "cl": {
+                    "type": "CL", "speed": 35, "recon": 10, "fire": 0,
+                    "equip": ["radar"],
+                },
+            }
+            equipment = {
+                "fighter": {
+                    "type": "Fighter", "recon": 2, "fire": 0, "antiair": 5,
+                },
+                "radar": {
+                    "type": "Radar", "recon": 3, "fire": 0,
+                },
+            }
+
+            def get_enemy_ship_status(self, cid):
+                return copy.deepcopy(self.ships[cid])
+
+            def get_equip_status(self, eid):
+                return copy.deepcopy(self.equipment[eid])
+
+        summary = calculate_map_enemy_fleet_summary(
+            PreviewDataset(),
+            {"ships": [{"cid": "cv"}, {"cid": "cl"}]},
+        )
+
+        self.assertEqual(summary["recon"], 55.0)
+        self.assertEqual(summary["speed"], 25.0)
+        self.assertAlmostEqual(summary["aerial"], np.log(16) * 5)
 
 
 if __name__ == "__main__":

@@ -162,6 +162,10 @@ nodes:
       roundabout: false
       support: false
     enemy_fleets: []
+buffs:
+  # 键为点位 name；抵达该点后添加效果，并持续至本次地图出征结束。
+  A:
+    - map060002
 routes:
   - from: A
     to: B
@@ -175,6 +179,13 @@ routes:
 `AirBattle` 和 `NightBattle`。精英点与 Boss 点均保存为 `NormalBattle`，其视觉类型
 仍由 `kind` 区分。WebUI 导入、导出的是独立地图 YAML；启动模拟时则使用当前我方舰队、
 地图 `mapid` 与画布中的地图内容。
+
+`buffs` 是可选字段，用于为指定点位配置地图效果。键必须是已定义点位的 `name`；值可写为
+单个效果编号，或由多个效果编号组成的列表。效果编号对应
+`src/skillCode/MapEnv/` 下的 Python 文件名（不含 `.py`），例如 `map060002` 对应
+`map060002.py`；编号区分大小写，格式为 `map` 后接字母、数字或下划线。每个效果文件必须提供
+`name`、`effect` 和非空的 `skill` 列表。效果在舰队抵达所配置点位时加入，并在本次地图出征的
+后续节点持续生效；同一效果在同一次出征中只会添加一次。
 
 舰船 ID（`cid`）、装备 ID（`eid`）、战术 ID（`stid`）均来自 `depend/ship/database.xlsx`。
 
