@@ -2161,7 +2161,7 @@ let activePrimaryPage = 'battle';
 function syncMapWorkspaceWidths() {
   if (!mapWorkspace || mapWorkspace.clientWidth === 0) return;
   const workspaceGap = 14;
-  const canvasToolbarHeight = 45;
+  const canvasToolbarHeight = 50;
   const mapTabsHeight = 38;
   const canvasHeight = Math.max(280, mapWorkspace.clientHeight - canvasToolbarHeight - mapTabsHeight);
   const mapCanvasWidth = Math.max(280, Math.round(canvasHeight * 1000 / 680));

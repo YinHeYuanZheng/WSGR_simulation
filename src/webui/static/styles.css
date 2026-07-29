@@ -555,7 +555,7 @@ body.dark .result-tabs button.active { background: linear-gradient(145deg, #1c25
 .map-tool-rail button:disabled:hover { border-color: transparent; background: transparent; color: var(--line); }
 .map-tool-rail button[data-tooltip]::after { position: absolute; z-index: 40; top: 7px; left: 42px; width: max-content; padding: 5px 7px; border-radius: 6px; background: var(--ink); color: var(--base); content: attr(data-tooltip); font-size: 10px; opacity: 0; pointer-events: none; transform: translateX(-4px); transition: .15s; }
 .map-tool-rail button[data-tooltip]:hover::after { opacity: 1; transform: none; }
-.map-canvas-panel { position: relative; display: grid; min-width: 0; grid-template-rows: 45px minmax(0, 1fr); overflow: hidden; background: var(--base); }
+.map-canvas-panel { position: relative; display: grid; min-width: 0; grid-template-rows: 50px minmax(0, 1fr); overflow: hidden; background: var(--base); }
 .map-canvas-toolbar { position: relative; z-index: 4; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 14px; border-bottom: 1px solid var(--line); background: var(--surface); }
 .map-mode-copy { display: flex; min-width: 0; align-items: baseline; gap: 9px; }
 .map-mode-copy strong { flex: 0 0 auto; font-size: 14px; }
@@ -953,7 +953,7 @@ body.dark .map-content-column .map-editor-shell { background: linear-gradient(14
 .map-fleet-summary-actions button,
 .map-fleet-name-field,
 .map-strategy-section-heading small,
-.strategy-proceed-stop label { font-size: 10.5px; }
+.strategy-proceed-stop label { font-size: 10px; }
 .map-strategy-section textarea { width: 100%; resize: vertical; min-height: 82px; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--base); color: var(--ink); font: 11px/1.55 var(--mono); }
 .map-strategy-dialog .dialog-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .map-strategy-dialog .dialog-actions button { width: 100%; min-width: 0; }
