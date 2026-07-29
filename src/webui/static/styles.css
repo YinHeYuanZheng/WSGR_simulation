@@ -252,6 +252,7 @@ main { max-width: 1800px; margin: auto; padding: 10px clamp(20px, 4vw, 64px) 0; 
 .ship-editor select, .ship-editor input { display: block; width: 100%; height: 34px; margin-top: 5px; padding: 0 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--base); color: var(--ink); }
 .ship-editor select, .searchable-picker input { padding-right: 30px; appearance: none; background-color: var(--base); background-image: linear-gradient(45deg, transparent 50%, var(--accent) 50%), linear-gradient(135deg, var(--accent) 50%, transparent 50%); background-position: calc(100% - 14px) 13px, calc(100% - 10px) 13px; background-repeat: no-repeat; background-size: 4px 4px, 4px 4px; }
 .searchable-picker { position: relative; display: block; margin-top: 5px; }
+.searchable-select-picker > select { position: absolute; width: 1px; height: 1px; margin: 0; padding: 0; border: 0; opacity: 0; pointer-events: none; }
 .searchable-picker.disabled .picker-menu { display: none !important; }
 .searchable-picker.disabled input, .searchable-picker.disabled .picker-toggle { opacity: 1; cursor: not-allowed; }
 .searchable-picker.disabled input { border-color: var(--disabled-line); background-color: var(--disabled-bg); background-image: linear-gradient(45deg, transparent 50%, var(--disabled-ink) 50%), linear-gradient(135deg, var(--disabled-ink) 50%, transparent 50%); color: var(--disabled-ink); }
@@ -299,6 +300,7 @@ main { max-width: 1800px; margin: auto; padding: 10px clamp(20px, 4vw, 64px) 0; 
 .environment-extra-row { display: grid; grid-template-columns: 26px minmax(0, 1fr) 34px; align-items: center; gap: 7px; }
 .environment-extra-row select { margin: 0; }
 .environment-extra-row .editor-select-picker { margin-top: 0; }
+.environment-extra-row .searchable-picker { margin-top: 0; }
 .environment-extra-index { display: grid; width: 24px; height: 24px; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--muted); font: 10px var(--mono); }
 .environment-extra-remove { width: 34px; height: 34px; padding: 0; border: 1px solid var(--line); border-radius: 7px; background: transparent; color: var(--muted); font-size: 17px; line-height: 1; }
 .environment-extra-remove:hover { border-color: var(--ss); color: var(--ss); }
@@ -329,6 +331,7 @@ main { max-width: 1800px; margin: auto; padding: 10px clamp(20px, 4vw, 64px) 0; 
 .map-effect-dialog .environment-section-heading .quiet { height: 30px; font-size: 12px; }
 .map-effect-dialog .environment-extra-index { font: 12px var(--mono); }
 .map-effect-dialog .environment-empty { font-size: 12px; }
+.map-effect-dialog .map-effect-search-picker input { font-size: 12px; }
 .map-effect-dialog .map-select-toggle { height: 34px; border-radius: 7px; font-size: 12px; }
 .map-effect-dialog .map-select-option { font-size: 12px; }
 .map-effect-dialog > .map-select-menu-portal { position: absolute; z-index: 110; display: block; }

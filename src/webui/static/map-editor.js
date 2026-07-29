@@ -379,6 +379,150 @@
     });
   }
 
+  function closeMapEffectSearchPickers(except = null) {
+    document.querySelectorAll('.map-effect-search-picker.open').forEach(picker => {
+      if (picker !== except) picker._mapEffectSearchPicker?.close();
+    });
+  }
+
+  function setupMapEffectSearchPicker(select) {
+    if (select._mapEffectSearchPicker) {
+      select._mapEffectSearchPicker.sync();
+      return select._mapEffectSearchPicker;
+    }
+    const picker = document.createElement('span');
+    picker.className = 'searchable-picker searchable-select-picker map-effect-search-picker';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.autocomplete = 'off';
+    input.setAttribute('aria-autocomplete', 'list');
+    input.setAttribute('aria-label', '地图效果');
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'picker-toggle';
+    toggle.setAttribute('aria-label', '展开地图效果列表');
+    toggle.textContent = '⌄';
+    const menu = document.createElement('span');
+    menu.className = 'picker-menu';
+    menu.setAttribute('role', 'listbox');
+    const items = document.createElement('span');
+    items.className = 'picker-menu-scroll';
+    menu.append(items);
+    select.before(picker);
+    picker.append(select, input, toggle, menu);
+
+    let menuPortaled = false;
+    const selectedText = () => select.selectedOptions[0]?.textContent || '';
+    const restoreMenu = () => {
+      if (!menuPortaled) return;
+      menu.classList.remove('picker-menu-portal');
+      menu.removeAttribute('style');
+      picker.append(menu);
+      menuPortaled = false;
+    };
+    const close = () => {
+      picker.classList.remove('open');
+      input.setAttribute('aria-expanded', 'false');
+      input.value = selectedText();
+      restoreMenu();
+    };
+    const portalMenu = () => {
+      const dialog = picker.closest('.map-effect-dialog');
+      if (!dialog) return;
+      const pickerBox = picker.getBoundingClientRect();
+      const dialogBox = dialog.getBoundingClientRect();
+      dialog.append(menu);
+      menu.classList.add('picker-menu-portal');
+      Object.assign(menu.style, {
+        top: `${pickerBox.bottom - dialogBox.top + 2}px`,
+        left: `${pickerBox.left - dialogBox.left}px`,
+        width: `${pickerBox.width}px`,
+      });
+      menuPortaled = true;
+    };
+    const render = () => {
+      const selectedLabel = selectedText();
+      const query = input.value.trim().toLocaleLowerCase('zh-CN');
+      const allOptions = [...select.options];
+      const matched = !query || query === selectedLabel.toLocaleLowerCase('zh-CN')
+        ? allOptions
+        : allOptions.filter(option => option.textContent.toLocaleLowerCase('zh-CN').includes(query));
+      const choices = matched.length ? matched : allOptions;
+      items.replaceChildren(...choices.map(option => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.dataset.value = option.value;
+        item.textContent = option.textContent;
+        item.classList.toggle('selected', option.selected);
+        item.setAttribute('role', 'option');
+        item.setAttribute('aria-selected', String(option.selected));
+        return item;
+      }));
+    };
+    const open = () => {
+      if (select.disabled) return;
+      closeMapSelectPickers();
+      closeMapEffectSearchPickers(picker);
+      render();
+      picker.classList.add('open');
+      input.setAttribute('aria-expanded', 'true');
+      portalMenu();
+    };
+    const sync = () => {
+      input.value = selectedText();
+      input.disabled = select.disabled;
+      toggle.disabled = select.disabled;
+      picker.classList.toggle('disabled', select.disabled);
+      if (select.disabled) close();
+      else render();
+    };
+    select._mapEffectSearchPicker = {
+      close,
+      sync,
+      containsTarget: target => picker.contains(target) || menu.contains(target),
+    };
+    picker._mapEffectSearchPicker = select._mapEffectSearchPicker;
+    input.addEventListener('focus', open);
+    input.addEventListener('input', open);
+    input.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        close();
+      } else if (event.key === 'Enter') {
+        event.preventDefault();
+        event.stopPropagation();
+        open();
+      }
+    });
+    toggle.addEventListener('mousedown', event => event.preventDefault());
+    toggle.addEventListener('click', () => {
+      if (picker.classList.contains('open')) close();
+      else {
+        input.focus();
+        open();
+      }
+    });
+    menu.addEventListener('mousedown', event => event.preventDefault());
+    menu.addEventListener('click', event => {
+      const option = event.target.closest('button[data-value]');
+      if (!option) return;
+      select.value = option.dataset.value;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      close();
+    });
+    select.addEventListener('change', sync);
+    picker.closest('.map-effect-settings-content')?.addEventListener('scroll', close);
+    sync();
+    return select._mapEffectSearchPicker;
+  }
+
+  document.addEventListener('pointerdown', event => {
+    if (!(event.target instanceof Node)) return;
+    document.querySelectorAll('.map-effect-search-picker.open').forEach(picker => {
+      if (!picker._mapEffectSearchPicker?.containsTarget(event.target)) picker._mapEffectSearchPicker.close();
+    });
+  });
+
   function enhanceMapSelects(root = dom.mapEditorLayout) {
     root.querySelectorAll('select').forEach(select => {
       if (select._mapPickerRefresh) {
@@ -815,7 +959,7 @@
     });
     row.append(index, select, remove);
     dom.mapEffectList.append(row);
-    enhanceMapSelects(dom.mapEffectDialog);
+    setupMapEffectSearchPicker(select);
     updateMapEffectState();
   }
 
@@ -859,6 +1003,7 @@
     }
     node.map_effects = effectIds;
     closeMapSelectPickers();
+    closeMapEffectSearchPickers();
     dom.mapEffectDialog.close('saved');
     showToast(`已保存 ${node.name} 的地图效果`);
   }
@@ -2156,6 +2301,7 @@
     document.querySelectorAll('[data-close-map-effects]').forEach(button => {
       button.addEventListener('click', () => {
         closeMapSelectPickers();
+        closeMapEffectSearchPickers();
         dom.mapEffectDialog.close('cancel');
       });
     });

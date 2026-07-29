@@ -65,7 +65,7 @@ const environmentSelectPickers = [
   ...environmentCollectionSelects,
   environmentDish,
   environmentCar,
-].map(setupEditorSelectPicker);
+].map(setupSearchableSelectPicker);
 const environmentFixedPickerCount = environmentSelectPickers.length;
 const mapSaveConfirmDialog = document.querySelector('#map-save-confirm');
 const mapSaveConfirmMessage = document.querySelector('#map-save-confirm-message');
@@ -154,7 +154,7 @@ function fillEnvironmentSelect(select, options, selected = '', emptyLabel = '不
     return item;
   }));
   select.value = selected || '';
-  select._editorSelectPicker?.sync();
+  select._searchableSelectPicker?.sync();
 }
 
 function setEngineeringEnabled(enabled) {
@@ -204,7 +204,7 @@ function addEnvironmentExtra(selected = '') {
   });
   row.append(index, select, remove);
   environmentExtraList.append(row);
-  environmentSelectPickers.push(setupEditorSelectPicker(select));
+  environmentSelectPickers.push(setupSearchableSelectPicker(select));
   updateEnvironmentExtraState();
 }
 
@@ -622,6 +622,128 @@ function setupSearchablePicker(container, input) {
     close();
   });
   return picker;
+}
+
+function setupSearchableSelectPicker(select) {
+  const container = document.createElement('span');
+  container.className = 'searchable-picker searchable-select-picker';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.autocomplete = 'off';
+  input.setAttribute('aria-autocomplete', 'list');
+  input.setAttribute('aria-label', select.getAttribute('aria-label') || '选择项目');
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'picker-toggle';
+  toggle.setAttribute('aria-label', `展开${select.getAttribute('aria-label') || '选项'}列表`);
+  toggle.textContent = '⌄';
+  const menu = document.createElement('span');
+  menu.className = 'picker-menu';
+  menu.setAttribute('role', 'listbox');
+  const items = createPickerMenuScroll(menu);
+  select.before(container);
+  container.append(select, input, toggle, menu);
+
+  let menuPortaled = false;
+  const selectedText = () => select.selectedOptions[0]?.textContent || '';
+  const restoreMenu = () => {
+    if (!menuPortaled) return;
+    menu.classList.remove('picker-menu-portal');
+    menu.removeAttribute('style');
+    container.append(menu);
+    menuPortaled = false;
+  };
+  const close = () => {
+    container.classList.remove('open');
+    input.setAttribute('aria-expanded', 'false');
+    input.value = selectedText();
+    restoreMenu();
+  };
+  const portalMenu = () => {
+    const dialog = container.closest('.environment-dialog');
+    if (!dialog) return;
+    const containerBox = container.getBoundingClientRect();
+    const dialogBox = dialog.getBoundingClientRect();
+    dialog.append(menu);
+    menu.classList.add('picker-menu-portal');
+    Object.assign(menu.style, {
+      top: `${containerBox.bottom - dialogBox.top + 2}px`,
+      left: `${containerBox.left - dialogBox.left}px`,
+      width: `${containerBox.width}px`,
+    });
+    menuPortaled = true;
+  };
+  const render = () => {
+    const selectedLabel = selectedText();
+    const query = input.value.trim().toLocaleLowerCase('zh-CN');
+    const allOptions = [...select.options];
+    const matched = !query || query === selectedLabel.toLocaleLowerCase('zh-CN')
+      ? allOptions
+      : allOptions.filter(option => option.textContent.toLocaleLowerCase('zh-CN').includes(query));
+    const choices = matched.length ? matched : allOptions;
+    items.replaceChildren(...choices.map(option => {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.dataset.value = option.value;
+      item.textContent = option.textContent;
+      item.classList.toggle('selected', option.selected);
+      item.setAttribute('role', 'option');
+      item.setAttribute('aria-selected', String(option.selected));
+      return item;
+    }));
+  };
+  const open = () => {
+    if (select.disabled) return;
+    render();
+    container.classList.add('open');
+    input.setAttribute('aria-expanded', 'true');
+    portalMenu();
+  };
+  const sync = () => {
+    input.value = selectedText();
+    input.disabled = select.disabled;
+    toggle.disabled = select.disabled;
+    container.classList.toggle('disabled', select.disabled);
+    if (select.disabled) close();
+    else render();
+  };
+  select._searchableSelectPicker = {
+    sync,
+    close,
+    containsTarget: target => container.contains(target) || menu.contains(target),
+  };
+  input.addEventListener('focus', open);
+  input.addEventListener('input', open);
+  input.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      close();
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      event.stopPropagation();
+      open();
+    }
+  });
+  toggle.addEventListener('mousedown', event => event.preventDefault());
+  toggle.addEventListener('click', () => {
+    if (container.classList.contains('open')) close();
+    else {
+      input.focus();
+      open();
+    }
+  });
+  menu.addEventListener('mousedown', event => event.preventDefault());
+  menu.addEventListener('click', event => {
+    const option = event.target.closest('button[data-value]');
+    if (!option) return;
+    select.value = option.dataset.value;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    close();
+  });
+  select.addEventListener('change', sync);
+  container.closest('.environment-settings-content')?.addEventListener('scroll', close);
+  sync();
+  return select._searchableSelectPicker;
 }
 
 function setupEditorSelectPicker(select) {
