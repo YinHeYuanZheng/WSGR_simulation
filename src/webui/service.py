@@ -705,6 +705,11 @@ class MapSimulationManager(SimulationManager):
             if not isinstance(map_config, dict):
                 raise ValueError("地图模拟需要独立 YAML 地图")
             node_order = [str(node["name"]) for node in map_config["nodes"]]
+            boss_node_names = [
+                str(node["name"])
+                for node in map_config["nodes"]
+                if str(node.get("kind", "")) == "boss" or int(node.get("level", 0)) == 5
+            ]
             friend_ship_names = [ship.status["name"] for ship in battle.friend.ship]
             node_statistics = {
                 name: {
@@ -722,7 +727,17 @@ class MapSimulationManager(SimulationManager):
                 }
                 for name in node_order
             }
-            supply_totals = {key: 0.0 for key in ("oil", "ammo", "steel", "almn", "repeat")}
+            supply_keys = ("oil", "ammo", "steel", "almn", "repeat", "dcitem")
+            supply_totals = {key: 0.0 for key in supply_keys}
+            boss_statistics = {
+                name: {
+                    "simulations": 0,
+                    "result_counts": {flag: 0 for flag in RESULT_FLAGS},
+                    "flagship_sinks": 0,
+                    "supply_totals": {key: 0.0 for key in supply_keys},
+                }
+                for name in boss_node_names
+            }
             cleared = 0
             boss_battles = 0
             boss_flagship_sinks = 0
@@ -787,7 +802,36 @@ class MapSimulationManager(SimulationManager):
                         boss_flagship_sinks += int(battle_result.get("boss_flagship_sunk", False))
 
                 for key in supply_totals:
-                    supply_totals[key] += float(report.get("supply", {}).get(key, 0))
+                    value = (
+                        report.get("dcitem", 0)
+                        if key == "dcitem"
+                        else report.get("supply", {}).get(key, 0)
+                    )
+                    supply_totals[key] += float(value)
+
+                ending_boss_name = str(report.get("end_with", ""))
+                ending_boss = boss_statistics.get(ending_boss_name)
+                if ending_boss is not None:
+                    boss_result = next((
+                        item for item in reversed(report.get("map_battles", []))
+                        if str(item.get("name", "")) == ending_boss_name
+                        and item.get("boss", False)
+                    ), None)
+                    if boss_result is not None:
+                        result = str(boss_result.get("result", "D"))
+                        result = result if result in RESULT_FLAGS else "D"
+                        ending_boss["simulations"] += 1
+                        ending_boss["result_counts"][result] += 1
+                        ending_boss["flagship_sinks"] += int(
+                            boss_result.get("boss_flagship_sunk", False)
+                        )
+                        for key in supply_totals:
+                            value = (
+                                report.get("dcitem", 0)
+                                if key == "dcitem"
+                                else report.get("supply", {}).get(key, 0)
+                            )
+                            ending_boss["supply_totals"][key] += float(value)
                 if not first_record:
                     first_record = str(report.get("record", ""))
 
@@ -795,12 +839,14 @@ class MapSimulationManager(SimulationManager):
                     summary = self._build_map_summary(
                         completed, cleared, boss_battles, boss_flagship_sinks,
                         node_statistics, friend_ship_names, supply_totals, first_record,
+                        boss_statistics,
                     )
                     self._publish_map("running", completed, epoch, summary, log_prefix)
 
             summary = self._build_map_summary(
                 completed, cleared, boss_battles, boss_flagship_sinks,
                 node_statistics, friend_ship_names, supply_totals, first_record,
+                boss_statistics,
             )
             self._publish_map("complete", completed, epoch, summary, log_prefix)
         except Exception as exc:
@@ -822,8 +868,20 @@ class MapSimulationManager(SimulationManager):
         friend_ship_names: list[str],
         supply_totals: dict[str, float],
         first_record: str,
+        boss_statistics: dict[str, dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         divisor = max(completed, 1)
+        boss_statistics = boss_statistics or {}
+
+        def boss_ship_damage_rates(name: str, key: str) -> list[float | None]:
+            statistics = node_statistics.get(name, {})
+            battle_count = int(statistics.get("battles", 0))
+            values = statistics.get(key, np.zeros(len(friend_ship_names), dtype=float))
+            return [
+                float(rate / battle_count * 100) if battle_count else None
+                for rate in values
+            ]
+
         return {
             "clear_rate": cleared / divisor * 100,
             "boss_flagship_sink_rate": boss_flagship_sinks / max(boss_battles, 1) * 100,
@@ -837,6 +895,53 @@ class MapSimulationManager(SimulationManager):
                 for key, value in supply_totals.items()
             },
             "friend_ship_names": friend_ship_names.copy(),
+            "boss_statistics": [
+                {
+                    "name": name,
+                    "simulations": values["simulations"],
+                    "clear_rate": (
+                        (values["result_counts"]["SS"] + values["result_counts"]["S"])
+                        / values["simulations"] * 100
+                        if values["simulations"] else None
+                    ),
+                    "result_rates": {
+                        flag: (
+                            values["result_counts"][flag] / values["simulations"] * 100
+                            if values["simulations"] else None
+                        )
+                        for flag in RESULT_FLAGS
+                    },
+                    "flagship_sink_rate": (
+                        values["flagship_sinks"] / values["simulations"] * 100
+                        if values["simulations"] else None
+                    ),
+                    "resource_total": (
+                        values["supply_totals"]["oil"]
+                        + values["supply_totals"]["ammo"]
+                        + values["supply_totals"]["steel"]
+                        + 3 * values["supply_totals"]["almn"]
+                    ) / max(values["simulations"], 1),
+                    "supply": {
+                        key: value / max(values["simulations"], 1)
+                        for key, value in values["supply_totals"].items()
+                    },
+                    "average_bucket": (
+                        values["supply_totals"]["repeat"]
+                        / max(values["simulations"], 1)
+                    ),
+                    "average_dcitem": (
+                        values["supply_totals"]["dcitem"]
+                        / max(values["simulations"], 1)
+                    ),
+                    "friend_mid_damage_rates": boss_ship_damage_rates(
+                        name, "mid_damage_by_ship",
+                    ),
+                    "friend_heavy_damage_rates": boss_ship_damage_rates(
+                        name, "heavy_damage_by_ship",
+                    ),
+                }
+                for name, values in boss_statistics.items()
+            ],
             "node_statistics": [
                 {
                     "name": name,

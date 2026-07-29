@@ -70,6 +70,14 @@ const environmentFixedPickerCount = environmentSelectPickers.length;
 const mapSaveConfirmDialog = document.querySelector('#map-save-confirm');
 const mapSaveConfirmMessage = document.querySelector('#map-save-confirm-message');
 const detailNote = document.querySelector('#detail-note');
+const historyTitle = document.querySelector('#history-title');
+const exportHistoryButton = document.querySelector('#export-history');
+const historyTabs = [...document.querySelectorAll('[data-history-view]')];
+const historyPanels = [...document.querySelectorAll('[data-history-panel]')];
+const battleHistoryTable = document.querySelector('#battle-history-table');
+const mapHistoryTable = document.querySelector('#map-history-table');
+const battleHistoryEmpty = document.querySelector('#battle-history-empty');
+const mapHistoryEmpty = document.querySelector('#map-history-empty');
 
 document.addEventListener('pointerdown', event => {
   if (!(event.target instanceof Node)) return;
@@ -106,6 +114,10 @@ let healthLimitRequest = 0;
 let mapFleetEditorContext = null;
 let mapFleetEditorSuspended = false;
 let environmentOptionData = null;
+let activeHistoryView = 'battle';
+let battleHistoryRecorded = false;
+const battleHistory = [];
+const mapHistory = [];
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, character => ({
@@ -350,6 +362,181 @@ function formatNumber(value, digits = 0) {
   const number = Number(value);
   if (!Number.isFinite(number)) return '—';
   return number.toLocaleString('zh-CN', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+}
+
+const historyResultFlags = ['SS', 'S', 'A', 'B', 'C', 'D'];
+
+function historyRate(value) {
+  return Number.isFinite(Number(value)) ? `${Number(value).toFixed(2)}%` : '—';
+}
+
+function resultRates(summary, divisor) {
+  return historyResultFlags.map(flag => {
+    const count = Number(summary.result_counts?.[flag] || 0);
+    return divisor > 0 ? `${(count / divisor * 100).toFixed(2)}%` : '0.00%';
+  });
+}
+
+function buildHistoryTable(container, headers, rows) {
+  if (!rows.length) {
+    container.replaceChildren();
+    return;
+  }
+  const table = document.createElement('table');
+  table.className = 'history-table';
+  const headRow = document.createElement('tr');
+  headRow.append(...headers.map(label => {
+    const cell = document.createElement('th');
+    cell.scope = 'col';
+    cell.textContent = label;
+    return cell;
+  }));
+  const thead = document.createElement('thead');
+  thead.append(headRow);
+  const tbody = document.createElement('tbody');
+  rows.forEach(values => {
+    const row = document.createElement('tr');
+    row.append(...values.map(value => {
+      const cell = document.createElement('td');
+      cell.textContent = String(value ?? '—');
+      return cell;
+    }));
+    tbody.append(row);
+  });
+  table.append(thead, tbody);
+  container.replaceChildren(table);
+}
+
+function battleHistoryData() {
+  const headers = [
+    '编号', '模拟次数',
+    ...Array.from({ length: 6 }, (_, index) => `舰船${index + 1}`),
+    '综合胜率',
+    ...historyResultFlags.map(flag => `${flag}概率`),
+    '旗舰击沉率', '平均伤害',
+    '燃油消耗', '弹药消耗', '钢材消耗', '铝材消耗', '平均桶耗',
+  ];
+  const rows = battleHistory.map(entry => {
+    const summary = entry.summary;
+    const completed = Number(entry.completed || 0);
+    const ships = Array.from(
+      { length: 6 },
+      (_, index) => summary.ship_damage?.[index]?.name || '——',
+    );
+    return [
+      entry.id,
+      completed,
+      ...ships,
+      historyRate(summary.win_rate),
+      ...resultRates(summary, completed),
+      historyRate(summary.flagship_sink_rate),
+      Number(summary.average_damage || 0).toFixed(2),
+      Number(summary.supply?.oil || 0).toFixed(1),
+      Number(summary.supply?.ammo || 0).toFixed(1),
+      Number(summary.supply?.steel || 0).toFixed(1),
+      Number(summary.supply?.almn || 0).toFixed(1),
+      Number(summary.average_bucket || 0).toFixed(2),
+    ];
+  });
+  return { headers, rows };
+}
+
+function mapHistoryData(includeDamageRates = false) {
+  const headers = [
+    '编号', '模拟次数',
+    ...Array.from({ length: 6 }, (_, index) => `舰船${index + 1}`),
+    '通关率',
+    ...historyResultFlags.map(flag => `${flag}概率`),
+    '旗舰击沉率',
+    '燃油消耗', '弹药消耗', '钢材消耗', '铝材消耗',
+    '平均桶耗', '平均损管',
+    ...(includeDamageRates
+      ? Array.from({ length: 6 }, (_, index) => `舰船${index + 1}中破率`)
+      : []),
+    ...(includeDamageRates
+      ? Array.from({ length: 6 }, (_, index) => `舰船${index + 1}大破率`)
+      : []),
+  ];
+  const rows = mapHistory.flatMap(entry => {
+    const ships = Array.from(
+      { length: 6 },
+      (_, index) => entry.summary.friend_ship_names?.[index] || '——',
+    );
+    return (entry.summary.boss_statistics || [])
+      .filter(boss => Number(boss.simulations || 0) > 0)
+      .map(boss => {
+        const damageRates = includeDamageRates
+          ? [
+            ...Array.from(
+              { length: 6 },
+              (_, index) => historyRate(boss.friend_mid_damage_rates?.[index]),
+            ),
+            ...Array.from(
+              { length: 6 },
+              (_, index) => historyRate(boss.friend_heavy_damage_rates?.[index]),
+            ),
+          ]
+          : [];
+        return [
+        `${entry.id}-${boss.name}`,
+        Number(boss.simulations || 0),
+        ...ships,
+        historyRate(boss.clear_rate),
+        ...historyResultFlags.map(flag => historyRate(boss.result_rates?.[flag])),
+        historyRate(boss.flagship_sink_rate),
+        Number(boss.supply?.oil || 0).toFixed(1),
+        Number(boss.supply?.ammo || 0).toFixed(1),
+        Number(boss.supply?.steel || 0).toFixed(1),
+        Number(boss.supply?.almn || 0).toFixed(1),
+        Number(boss.average_bucket || 0).toFixed(2),
+        Number(boss.average_dcitem || 0).toFixed(2),
+        ...damageRates,
+      ];
+      });
+  });
+  return { headers, rows };
+}
+
+function renderHistory() {
+  const battleData = battleHistoryData();
+  const mapData = mapHistoryData();
+  buildHistoryTable(battleHistoryTable, battleData.headers, battleData.rows);
+  buildHistoryTable(mapHistoryTable, mapData.headers, mapData.rows);
+  battleHistoryEmpty.hidden = battleData.rows.length > 0;
+  mapHistoryEmpty.hidden = mapData.rows.length > 0;
+  const activeRows = activeHistoryView === 'battle' ? battleData.rows : mapData.rows;
+  exportHistoryButton.disabled = activeRows.length === 0;
+}
+
+function switchHistoryView(view = 'battle') {
+  if (!['battle', 'map'].includes(view)) return;
+  activeHistoryView = view;
+  historyTabs.forEach(tab => {
+    const selected = tab.dataset.historyView === view;
+    tab.classList.toggle('active', selected);
+    tab.setAttribute('aria-selected', String(selected));
+  });
+  historyPanels.forEach(panel => {
+    const selected = panel.dataset.historyPanel === view;
+    panel.hidden = !selected;
+    panel.classList.toggle('active', selected);
+  });
+  historyTitle.textContent = view === 'battle' ? '单点模拟汇总' : '地图模拟汇总';
+  renderHistory();
+}
+
+function recordBattleHistory(status) {
+  if (battleHistoryRecorded || !status?.summary) return;
+  if (!['complete', 'stopped'].includes(status.state)) return;
+  const completed = Number(status.completed || 0);
+  if (completed <= 0) return;
+  battleHistory.push({
+    id: battleHistory.length + 1,
+    completed,
+    summary: cloneConfig(status.summary),
+  });
+  battleHistoryRecorded = true;
+  renderHistory();
 }
 
 function fillSelect(select, options, selectedValue = '', emptyLabel = null) {
@@ -1530,6 +1717,7 @@ function renderSummary(summary) {
 }
 
 function renderSimulationStatus(status) {
+  recordBattleHistory(status);
   if (simulationDisplayFrozen) return;
   latestSimulation = status;
   const wasStopping = simulationState === 'stopping';
@@ -1583,6 +1771,8 @@ async function pollSimulation() {
 async function startSimulation() {
   try {
     simulationDisplayFrozen = false;
+    battleHistoryRecorded = false;
+    latestSimulation = null;
     removePendingShips();
     const epoch = Number(epochValue.value) || 1;
     simulationState = 'running';
@@ -1628,10 +1818,17 @@ async function toggleSimulation() {
     return;
   }
   try {
+    const frozenStatus = latestSimulation;
     freezeSimulationDisplay();
     simulationState = 'stopping';
     const status = await api('/api/simulation/stop', { method: 'POST', body: '{}' });
     simulationState = status.state;
+    recordBattleHistory({
+      ...status,
+      state: 'stopped',
+      completed: frozenStatus?.live_completed ?? frozenStatus?.completed ?? status.completed,
+      summary: frozenStatus?.summary || status.summary,
+    });
   } catch {
     // The display is deliberately already frozen.  A later start request can retry safely.
     simulationState = 'stopped';
@@ -1797,42 +1994,81 @@ function csvCell(value) {
   return `"${String(value ?? '').replace(/"/g, '""')}"`;
 }
 
-function buildSummaryCsv(simulation) {
-  const summary = simulation.summary;
+function buildBattleReportsCsv(reports) {
   const resultFlags = ['SS', 'S', 'A', 'B', 'C', 'D'];
-  const resultCounts = resultFlags.map(flag => Number(summary.result_counts?.[flag]) || 0);
-  const totalResults = resultCounts.reduce((sum, value) => sum + value, 0);
-  const winRates = resultCounts.map(value => totalResults ? `${(value / totalResults * 100).toFixed(2)}%` : '0.00%');
-  const ships = Array.from({ length: 6 }, (_, index) => summary.ship_damage?.[index]?.name || '——');
-  const phaseHeaders = (summary.phase_damage || []).map(item => item.name);
-  const phaseValues = (summary.phase_damage || []).map(item => Number(item.value || 0).toFixed(2));
-  const midRates = Array.from({ length: 6 }, (_, index) => summary.friend_mid_damage_rates?.[index]?.rate);
-  const heavyRates = Array.from({ length: 6 }, (_, index) => summary.friend_heavy_damage_rates?.[index]?.rate);
+  const phaseHeaders = [];
+  reports.forEach(report => {
+    (report.summary?.phase_damage || []).forEach(item => {
+      if (!phaseHeaders.includes(item.name)) phaseHeaders.push(item.name);
+    });
+  });
   const headers = [
     '编号', '模拟次数',
-    ...ships.map((_, index) => `舰船${index + 1}名称`),
-    ...resultFlags.map(flag => `${flag}胜率`),
-    '平均伤害',
+    ...Array.from({ length: 6 }, (_, index) => `舰船${index + 1}名称`),
+    '综合胜率',
+    ...resultFlags.map(flag => `${flag}概率`),
+    '旗舰击沉率', '平均伤害',
     ...phaseHeaders.map(name => `${name}伤害`),
     '燃油消耗', '弹药消耗', '钢材消耗', '铝材消耗', '平均桶耗',
-    ...ships.map((_, index) => `舰船${index + 1}中破率`),
-    ...ships.map((_, index) => `舰船${index + 1}大破率`),
+    ...Array.from({ length: 6 }, (_, index) => `舰船${index + 1}中破率`),
+    ...Array.from({ length: 6 }, (_, index) => `舰船${index + 1}大破率`),
   ];
-  const values = [
-    1, simulation.completed || 0,
-    ...ships,
-    ...winRates,
-    Number(summary.average_damage || 0).toFixed(2),
-    ...phaseValues,
-    Number(summary.supply?.oil || 0).toFixed(1),
-    Number(summary.supply?.ammo || 0).toFixed(1),
-    Number(summary.supply?.steel || 0).toFixed(1),
-    Number(summary.supply?.almn || 0).toFixed(1),
-    Number(summary.average_bucket || 0).toFixed(2),
-    ...midRates.map(value => Number.isFinite(Number(value)) ? `${Number(value).toFixed(2)}%` : '——'),
-    ...heavyRates.map(value => Number.isFinite(Number(value)) ? `${Number(value).toFixed(2)}%` : '——'),
-  ];
-  return `\ufeff${headers.map(csvCell).join(',')}\n${values.map(csvCell).join(',')}\n`;
+  const rows = reports.map((report, reportIndex) => {
+    const summary = report.summary;
+    const completed = Number(report.completed || 0);
+    const resultCounts = resultFlags.map(flag => Number(summary.result_counts?.[flag]) || 0);
+    const totalResults = resultCounts.reduce((sum, value) => sum + value, 0);
+    const winRates = resultCounts.map(value => totalResults
+      ? `${(value / totalResults * 100).toFixed(2)}%`
+      : '0.00%');
+    const ships = Array.from(
+      { length: 6 },
+      (_, index) => summary.ship_damage?.[index]?.name || '——',
+    );
+    const phaseValues = phaseHeaders.map(name => {
+      const phase = (summary.phase_damage || []).find(item => item.name === name);
+      return Number(phase?.value || 0).toFixed(2);
+    });
+    const midRates = Array.from(
+      { length: 6 },
+      (_, index) => summary.friend_mid_damage_rates?.[index]?.rate,
+    );
+    const heavyRates = Array.from(
+      { length: 6 },
+      (_, index) => summary.friend_heavy_damage_rates?.[index]?.rate,
+    );
+    return [
+      report.id ?? reportIndex + 1,
+      completed,
+      ...ships,
+      historyRate(summary.win_rate),
+      ...winRates,
+      historyRate(summary.flagship_sink_rate),
+      Number(summary.average_damage || 0).toFixed(2),
+      ...phaseValues,
+      Number(summary.supply?.oil || 0).toFixed(1),
+      Number(summary.supply?.ammo || 0).toFixed(1),
+      Number(summary.supply?.steel || 0).toFixed(1),
+      Number(summary.supply?.almn || 0).toFixed(1),
+      Number(summary.average_bucket || 0).toFixed(2),
+      ...midRates.map(value => Number.isFinite(Number(value)) ? `${Number(value).toFixed(2)}%` : '——'),
+      ...heavyRates.map(value => Number.isFinite(Number(value)) ? `${Number(value).toFixed(2)}%` : '——'),
+    ];
+  });
+  return `\ufeff${[headers, ...rows].map(row => row.map(csvCell).join(',')).join('\n')}\n`;
+}
+
+function buildSummaryCsv(simulation) {
+  return buildBattleReportsCsv([{
+    id: 1,
+    completed: simulation.completed,
+    summary: simulation.summary,
+  }]);
+}
+
+function buildMapHistoryCsv() {
+  const { headers, rows } = mapHistoryData(true);
+  return `\ufeff${[headers, ...rows].map(row => row.map(csvCell).join(',')).join('\n')}\n`;
 }
 
 const exportReportButton = document.querySelector('#export-report');
@@ -1846,7 +2082,42 @@ exportReportButton.addEventListener('click', () => {
     downloadBlob(latestSimulation.summary.battle_detail || '无\n', 'wsgr_battle_detail.txt', 'text/plain;charset=utf-8');
     return;
   }
-  downloadBlob(buildSummaryCsv(latestSimulation), 'wsgr_battle_report.csv', 'text/csv;charset=utf-8');
+  downloadBlob(buildSummaryCsv(latestSimulation), '战斗模拟战报.csv', 'text/csv;charset=utf-8');
+});
+
+historyTabs.forEach(tab => {
+  tab.addEventListener('click', () => switchHistoryView(tab.dataset.historyView));
+});
+
+exportHistoryButton.addEventListener('click', () => {
+  if (activeHistoryView === 'battle') {
+    if (!battleHistory.length) return;
+    downloadBlob(
+      buildBattleReportsCsv(battleHistory),
+      '单点模拟历史战报.csv',
+      'text/csv;charset=utf-8',
+    );
+    return;
+  }
+  if (!mapHistoryData().rows.length) return;
+  downloadBlob(
+    buildMapHistoryCsv(),
+    '地图模拟历史战报.csv',
+    'text/csv;charset=utf-8',
+  );
+});
+
+window.addEventListener('wsgr:map-history', event => {
+  const summary = event.detail?.summary;
+  const validBosses = (summary?.boss_statistics || [])
+    .filter(boss => Number(boss.simulations || 0) > 0);
+  if (!summary || !validBosses.length) return;
+  mapHistory.push({
+    id: mapHistory.length + 1,
+    mapName: String(event.detail?.mapName || '未命名海图'),
+    summary: cloneConfig(summary),
+  });
+  renderHistory();
 });
 
 const resultTabs = document.querySelectorAll('.result-column .result-tabs button');
@@ -1885,6 +2156,7 @@ const mapFriendToggle = document.querySelector('#toggle-map-friend');
 const mapCanvasViewport = document.querySelector('#canvas-viewport');
 const mapEditorLayout = document.querySelector('#map-editor-layout');
 let mapFriendCollapsed = false;
+let activePrimaryPage = 'battle';
 
 function syncMapWorkspaceWidths() {
   if (!mapWorkspace || mapWorkspace.clientWidth === 0) return;
@@ -1915,6 +2187,10 @@ function setMapFriendCollapsed(collapsed) {
 
 function showPrimaryPage(page) {
   if (!['battle', 'map', 'history'].includes(page)) return;
+  if (page === 'history' && activePrimaryPage !== 'history') {
+    switchHistoryView(activePrimaryPage === 'map' ? 'map' : 'battle');
+  }
+  activePrimaryPage = page;
   primaryPageButtons.forEach(button => button.classList.toggle('active', button.dataset.page === page));
   primaryPagePanels.forEach(panel => { panel.hidden = panel.dataset.pagePanel !== page; });
   primaryPageActions.forEach(button => { button.hidden = button.dataset.pageAction !== page; });
@@ -1949,6 +2225,7 @@ mapCanvasViewport.addEventListener('click', () => {
 window.addEventListener('resize', syncMapWorkspaceWidths);
 setMapFriendCollapsed(true);
 showPrimaryPage('battle');
+switchHistoryView('battle');
 
 async function initialise() {
   try {

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WSGR · 战斗模拟</title>
-  <link rel="stylesheet" href="styles.css?v=map-ui-65">
+  <link rel="stylesheet" href="styles.css?v=map-ui-72">
 </head>
 <body>
   <header class="topbar">
@@ -77,7 +77,9 @@
         <section class="result-view-panel active" data-panel="win">
           <div class="result-summary"><div id="win-chart" class="chart win-chart"><div class="chart-center"><strong id="win-chart-value">—<small>%</small></strong><span>综合胜率</span></div></div><ul id="win-legend" class="legend"><li><i class="ss"></i><span>SS 完胜</span><b>—</b><em>—</em></li><li><i class="s"></i><span>S 胜利</span><b>—</b><em>—</em></li><li><i class="a"></i><span>A 小胜</span><b>—</b><em>—</em></li><li><i class="b"></i><span>B 战术胜利</span><b>—</b><em>—</em></li><li><i class="c"></i><span>C 战术失败</span><b>—</b><em>—</em></li><li><i class="d"></i><span>D 失败</span><b>—</b><em>—</em></li></ul></div>
           <div class="win-prebattle"><article><div><span>索敌成功率</span><strong id="recon-rate-value">—<small>%</small></strong></div><p><span>我方索敌 <b id="friend-recon-value">—</b></span><span>索敌要求 <b id="recon-request-value">—</b></span></p></article><article><div><span>制空结果</span><strong id="air-con-value">—</strong></div><p><span>我方制空 <b id="friend-aerial-value">—</b></span><span>敌方制空 <b id="enemy-aerial-value">—</b></span></p></article></div>
-          <pre id="log" class="result-log shared-result-log">正在载入舰船数据库…</pre>
+          <div class="text-scroll-frame result-log-frame">
+            <pre id="log" class="result-log shared-result-log">正在载入舰船数据库…</pre>
+          </div>
         </section>
 
         <section class="result-view-panel" data-panel="damage" hidden>
@@ -95,7 +97,9 @@
 
         <section class="result-view-panel detail-panel" data-panel="detail" hidden>
           <div class="detail-summary"><article class="detail-result-card"><span>战果</span><strong id="detail-result-value">—</strong></article><article class="detail-status-card"><p><span>索敌结果</span><b id="detail-recon-value">—</b></p><p><span>我方航向</span><b id="detail-direction-value">—</b></p><p><span>制空结果</span><b id="detail-air-con-value">—</b></p></article></div>
-          <pre id="battle-detail" class="detail-log">模拟完成后将在这里显示一场战斗的详细记录。</pre>
+          <div class="text-scroll-frame detail-log-frame">
+            <pre id="battle-detail" class="detail-log">模拟完成后将在这里显示一场战斗的详细记录。</pre>
+          </div>
         </section>
         </article>
       </div>
@@ -173,14 +177,33 @@
       </section>
 
       <section id="map-result-screen" class="map-result-screen" hidden>
-        <article class="panel map-result-panel"><div class="panel-title map-result-title"><h2>地图模拟结果</h2><button id="export-map-report" class="quiet export-report" type="button">导出战报</button></div><div class="map-result-stats"><article><span>通关率</span><strong id="map-clear-rate">—<em>%</em></strong></article><article><span>Boss 击沉</span><strong id="map-boss-sink-rate">—<em>%</em></strong></article><article><span>资源消耗</span><strong id="map-resource-total">—</strong></article><article><span>模拟次数</span><strong id="map-simulation-count">—</strong></article></div><div id="map-result-breakdown" class="map-result-breakdown" hidden><section class="map-statistics-section"><h3>点位战果统计</h3><div id="map-node-results"></div><h3 class="map-resource-heading">资源消耗统计</h3><div id="map-resource-results"></div></section><section class="map-battle-detail-section"><h3>战斗详情</h3><pre id="map-battle-detail" class="map-battle-detail"></pre></section></div><div id="map-result-placeholder" class="map-result-placeholder"><span>◌</span><h2>等待地图模拟</h2><p>完成模拟后将在这里展示各点战果、中大破统计与一场完整战斗详情。</p><button class="quiet" data-map-view="editor">返回地图编辑</button></div></article>
+        <article class="panel map-result-panel"><div class="panel-title map-result-title"><h2>地图模拟结果</h2><button id="export-map-report" class="quiet export-report" type="button">导出战报</button></div><div class="map-result-stats"><article><span>通关率</span><strong id="map-clear-rate">—<em>%</em></strong></article><article><span>Boss 击沉</span><strong id="map-boss-sink-rate">—<em>%</em></strong></article><article><span>资源消耗</span><strong id="map-resource-total">—</strong></article><article><span>模拟次数</span><strong id="map-simulation-count">—</strong></article></div><div id="map-result-breakdown" class="map-result-breakdown" hidden><section class="map-statistics-section"><div class="map-statistics-scroll"><h3>点位战果统计</h3><div id="map-node-results"></div><h3 class="map-resource-heading">资源消耗统计</h3><div id="map-resource-results"></div></div></section><section class="map-battle-detail-section"><h3>战斗详情</h3><pre id="map-battle-detail" class="map-battle-detail"></pre></section></div><div id="map-result-placeholder" class="map-result-placeholder"><span>◌</span><h2>等待地图模拟</h2><p>完成模拟后将在这里展示各点战果、中大破统计与一场完整战斗详情。</p><button class="quiet" data-map-view="editor">返回地图编辑</button></div></article>
       </section>
       </section>
     </section>
   </main>
 
   <main id="history-page" class="history-page" data-page-panel="history" hidden>
-    <article class="panel history-placeholder"><div class="panel-title"><h2>历史战报</h2></div><div><span>◌</span><h2>暂无战报</h2><p>后续可在这里统一查看单点与地图模拟记录。</p></div></article>
+    <section class="history-shell">
+      <article class="panel history-panel">
+        <div class="history-toolbar">
+          <div class="panel-title"><h2 id="history-title">单点模拟汇总</h2></div>
+          <button id="export-history" class="quiet export-report" type="button" disabled>导出历史</button>
+        </div>
+        <section class="history-view active" data-history-panel="battle">
+          <div class="history-table-frame"><div id="battle-history-table" class="history-table-wrap"></div></div>
+          <div id="battle-history-empty" class="history-empty"><span>◌</span><h2>暂无单点模拟记录</h2><p>完成或停止一次有效模拟后，结果会加入这里。</p></div>
+        </section>
+        <section class="history-view" data-history-panel="map" hidden>
+          <div class="history-table-frame"><div id="map-history-table" class="history-table-wrap"></div></div>
+          <div id="map-history-empty" class="history-empty"><span>◌</span><h2>暂无地图模拟记录</h2><p>每个有效 Boss 点会生成一条独立汇总。</p></div>
+        </section>
+      </article>
+      <div class="history-tabs" role="tablist" aria-label="历史战报类型">
+        <button class="active" role="tab" aria-selected="true" data-history-view="battle">单点模拟</button>
+        <button role="tab" aria-selected="false" data-history-view="map">地图模拟</button>
+      </div>
+    </section>
   </main>
 
   <template id="map-fleet-template">
@@ -310,7 +333,7 @@
   <dialog id="clear-confirm" class="confirm-dialog"><form method="dialog"><h2>清空页面？</h2><p>这会移除双方舰队配置，并重置模拟设置与所有统计结果。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="confirm-clear" type="button" class="danger">确认清空</button></div></form></dialog>
   <input id="config-file" type="file" accept=".yaml,.yml,.xml" hidden>
   <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
-  <script src="map-editor.js?v=map-ui-43"></script>
-  <script src="app.js?v=map-ui-23"></script>
+  <script src="map-editor.js?v=map-ui-48"></script>
+  <script src="app.js?v=map-ui-29"></script>
 </body>
 </html>

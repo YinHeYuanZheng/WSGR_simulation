@@ -339,6 +339,66 @@ class MapResultStatisticsTest(unittest.TestCase):
         self.assertIsNone(statistics["mid_damage_rate"])
         self.assertEqual(statistics["mid_damage_ship_rates"], [None])
 
+    def test_multiple_bosses_keep_independent_history_statistics(self):
+        supply_keys = ("oil", "ammo", "steel", "almn", "repeat", "dcitem")
+        boss_statistics = {
+            "B1": {
+                "simulations": 4,
+                "result_counts": {
+                    "SS": 2, "S": 1, "A": 1, "B": 0, "C": 0, "D": 0,
+                },
+                "flagship_sinks": 3,
+                "supply_totals": {
+                    "oil": 40, "ammo": 32, "steel": 8, "almn": 4,
+                    "repeat": 2, "dcitem": 1,
+                },
+            },
+            "B2": {
+                "simulations": 2,
+                "result_counts": {
+                    "SS": 0, "S": 1, "A": 0, "B": 0, "C": 0, "D": 1,
+                },
+                "flagship_sinks": 1,
+                "supply_totals": {
+                    "oil": 24, "ammo": 20, "steel": 4, "almn": 2,
+                    "repeat": 2, "dcitem": 2,
+                },
+            },
+        }
+        node_statistics = {
+            "B1": self._statistics(visits=4, battles=4),
+            "B2": self._statistics(visits=2, battles=2),
+        }
+        node_statistics["B1"]["mid_damage_by_ship"] = np.array([2], dtype=float)
+        node_statistics["B1"]["heavy_damage_by_ship"] = np.array([1], dtype=float)
+        node_statistics["B2"]["mid_damage_by_ship"] = np.array([1], dtype=float)
+        node_statistics["B2"]["heavy_damage_by_ship"] = np.array([1], dtype=float)
+        summary = MapSimulationManager._build_map_summary(
+            completed=10,
+            cleared=4,
+            boss_battles=6,
+            boss_flagship_sinks=4,
+            node_statistics=node_statistics,
+            friend_ship_names=["测试舰"],
+            supply_totals={key: 0 for key in supply_keys},
+            first_record="",
+            boss_statistics=boss_statistics,
+        )
+        bosses = {entry["name"]: entry for entry in summary["boss_statistics"]}
+
+        self.assertEqual(bosses["B1"]["simulations"], 4)
+        self.assertEqual(bosses["B1"]["clear_rate"], 75.0)
+        self.assertEqual(bosses["B1"]["flagship_sink_rate"], 75.0)
+        self.assertEqual(bosses["B1"]["result_rates"]["SS"], 50.0)
+        self.assertEqual(bosses["B1"]["average_bucket"], 0.5)
+        self.assertEqual(bosses["B1"]["average_dcitem"], 0.25)
+        self.assertEqual(bosses["B1"]["friend_mid_damage_rates"], [50.0])
+        self.assertEqual(bosses["B1"]["friend_heavy_damage_rates"], [25.0])
+        self.assertEqual(bosses["B2"]["clear_rate"], 50.0)
+        self.assertEqual(bosses["B2"]["average_dcitem"], 1.0)
+        self.assertEqual(bosses["B2"]["friend_mid_damage_rates"], [50.0])
+        self.assertEqual(bosses["B2"]["friend_heavy_damage_rates"], [50.0])
+
 
 class RoundaboutEndPhaseTest(unittest.TestCase):
     def test_successful_roundabout_skips_every_end_phase_settlement(self):

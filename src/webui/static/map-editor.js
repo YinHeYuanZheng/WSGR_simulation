@@ -1689,6 +1689,7 @@
     let mapSimulationToggleInFlight = false;
     let mapSimulationDisplayFrozen = false;
     let latestMapSummary = null;
+    let mapHistoryRecorded = false;
     let mapDamageFilter = 'all';
     let mapDamagePickerOpen = false;
     const mapSimulationIcon = (icon, retry = false) => retry
@@ -1696,6 +1697,20 @@
       : icon === 'loading'
         ? '<svg class="running-svg" viewBox="0 0 24 24" aria-hidden="true"><g><line x1="12" y1="2.8" x2="12" y2="6.8" opacity="1"/><line x1="18.5" y1="5.5" x2="15.7" y2="8.3" opacity=".86"/><line x1="21.2" y1="12" x2="17.2" y2="12" opacity=".72"/><line x1="18.5" y1="18.5" x2="15.7" y2="15.7" opacity=".58"/><line x1="12" y1="21.2" x2="12" y2="17.2" opacity=".44"/><line x1="5.5" y1="18.5" x2="8.3" y2="15.7" opacity=".3"/><line x1="2.8" y1="12" x2="6.8" y2="12" opacity=".2"/><line x1="5.5" y1="5.5" x2="8.3" y2="8.3" opacity=".12"/></g></svg>'
         : '<svg class="play-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l12-8z"/></svg>';
+    const recordMapHistory = state => {
+      if (mapHistoryRecorded || !state?.summary) return;
+      if (!['complete', 'stopped'].includes(state.state)) return;
+      const hasBossResult = (state.summary.boss_statistics || [])
+        .some(boss => Number(boss.simulations || 0) > 0);
+      if (!hasBossResult) return;
+      window.dispatchEvent(new CustomEvent('wsgr:map-history', {
+        detail: {
+          mapName: currentMap().name || '未命名海图',
+          summary: state.summary,
+        },
+      }));
+      mapHistoryRecorded = true;
+    };
     const setMapSimulationButton = (icon, label, retry = false) => {
       const iconClass = retry ? ' retry-icon' : icon === 'loading' ? ' running-icon' : ' play-icon';
       mapRunButton.innerHTML = `<span class="simulation-content"><span class="simulation-icon${iconClass}">${mapSimulationIcon(icon, retry)}</span><span>${label}</span></span><span class="stop-content" aria-hidden="true"><span class="simulation-icon stop-icon"><svg class="stop-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1"/></svg></span><span>停止模拟</span></span>`;
@@ -1722,20 +1737,26 @@
       ];
       const rate = value => `${Number(value || 0).toFixed(2)}%`;
       const optionalRate = value => value == null ? '—' : rate(value);
+      const bosses = (summary.boss_statistics || [])
+        .filter(entry => Number(entry.simulations || 0) > 0);
+      const overallRows = [
+        ['名称', currentMap().name || '未命名海图', ...bosses.map(entry => entry.name)],
+        ['模拟次数', Number(summary.simulation_count || 0), ...bosses.map(entry => Number(entry.simulations || 0))],
+        ['通关率', rate(summary.clear_rate), ...bosses.map(entry => optionalRate(entry.clear_rate))],
+        ['Boss旗舰击沉率', rate(summary.boss_flagship_sink_rate), ...bosses.map(entry => optionalRate(entry.flagship_sink_rate))],
+        ['资源消耗', Number(summary.resource_total || 0).toFixed(1), ...bosses.map(entry => Number(entry.resource_total || 0).toFixed(1))],
+        ...resourceEntries.map(([label, key, digits]) => [
+          label,
+          Number(summary.supply?.[key] || 0).toFixed(digits),
+          ...bosses.map(entry => Number(entry.supply?.[key] || 0).toFixed(digits)),
+        ]),
+      ];
       const rows = [
-        ['地图名称', currentMap().name || '未命名海图'],
-        ['模拟次数', Number(summary.simulation_count || 0)],
-        ['通关率', rate(summary.clear_rate)],
-        ['Boss旗舰击沉率', rate(summary.boss_flagship_sink_rate)],
-        ['资源消耗', Number(summary.resource_total || 0).toFixed(1)],
-        [],
-        ['资源消耗统计'],
-        resourceEntries.map(([label]) => label),
-        resourceEntries.map(([, key, digits]) => Number(summary.supply?.[key] || 0).toFixed(digits)),
+        ...overallRows,
         [],
         ['点位战果统计'],
         [
-          '点位', '场次', '索敌率', '迂回率', ...resultFlags, '全体中破率', '全体大破率',
+          '点位', '场次', '索敌率', '迂回率', ...resultFlags.map(flag => `${flag}概率`), '全体中破率', '全体大破率',
           ...friendShipNames.flatMap(name => [`${name}中破率`, `${name}大破率`]),
         ],
         ...(summary.node_statistics || [])
@@ -1758,7 +1779,7 @@
           ]),
       ];
       const content = `\ufeff${rows.map(row => row.map(csvCell).join(',')).join('\n')}\n`;
-      const filename = `${String(currentMap().name || 'wsgr_map').replace(/[\\/:*?"<>|]/g, '_')}_战报.csv`;
+      const filename = `${String(currentMap().name || '未命名海图').replace(/[\\/:*?"<>|]/g, '_')}_地图模拟战报.csv`;
       const link = document.createElement('a');
       link.href = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8' }));
       link.download = filename;
@@ -1872,14 +1893,20 @@
       table.append(header, body);
       container.replaceChildren(table);
     };
-    const renderMapResourceStatistics = (container, supply) => {
+    const renderMapResourceStatistics = (container, summary) => {
       const entries = [
         ['燃油', 'oil', 1], ['弹药', 'ammo', 1], ['钢材', 'steel', 1],
         ['铝材', 'almn', 1], ['桶耗', 'repeat', 2], ['损管', 'dcitem', 2],
       ];
+      const rows = [
+        ['总体', summary.supply || {}],
+        ...(summary.boss_statistics || [])
+          .filter(entry => Number(entry.simulations || 0) > 0)
+          .map(entry => [entry.name, entry.supply || {}]),
+      ];
       const table = document.createElement('table');
       table.className = 'map-resource-result-table';
-      table.innerHTML = `<thead><tr>${entries.map(([label]) => `<th>${label}</th>`).join('')}</tr></thead><tbody><tr>${entries.map(([, key, digits]) => `<td>${Number(supply?.[key] || 0).toFixed(digits)}</td>`).join('')}</tr></tbody>`;
+      table.innerHTML = `<thead><tr><th>名称</th>${entries.map(([label]) => `<th>${label}</th>`).join('')}</tr></thead><tbody>${rows.map(([name, supply]) => `<tr><th>${escapeHtml(name)}</th>${entries.map(([, key, digits]) => `<td>${Number(supply?.[key] || 0).toFixed(digits)}</td>`).join('')}</tr>`).join('')}</tbody>`;
       container.replaceChildren(table);
     };
     const renderMapSummary = summary => {
@@ -1896,7 +1923,7 @@
           summary.friend_ship_names || [],
         );
       }
-      renderMapResourceStatistics(document.querySelector('#map-resource-results'), summary.supply || {});
+      renderMapResourceStatistics(document.querySelector('#map-resource-results'), summary);
       document.querySelector('#map-battle-detail').textContent = summary.battle_detail || '等待首场模拟完成…';
       document.querySelector('#map-result-breakdown').hidden = false;
       document.querySelector('#map-result-placeholder').hidden = true;
@@ -1919,6 +1946,7 @@
       setMapSimulationButton('play', '开始模拟');
     };
     const renderMapSimulationState = state => {
+      recordMapHistory(state);
       if (mapSimulationDisplayFrozen) return;
       mapSimulationState = state.state;
       const completed = Number(state.live_completed ?? state.completed ?? 0);
@@ -1962,6 +1990,7 @@
     };
     const startMapSimulation = async () => {
       mapSimulationDisplayFrozen = false;
+      mapHistoryRecorded = false;
       switchMapView('result');
       const epoch = Math.max(1, Number(mapEpochValue.value) || 1);
       renderMapSimulationState({
@@ -2027,6 +2056,7 @@
           body: '{}',
         });
         mapSimulationState = state.state;
+        recordMapHistory({ ...state, state: 'stopped' });
       } catch (error) {
         mapSimulationState = 'stopped';
         throw error;
