@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WSGR · 战斗模拟</title>
-  <link rel="stylesheet" href="styles.css?v=map-ui-77">
+  <link rel="stylesheet" href="styles.css?v=map-ui-81">
 </head>
 <body>
   <header class="topbar">
@@ -130,9 +130,10 @@
         <aside class="map-tool-rail" aria-label="画布工具">
           <button id="add-node" type="button" data-tooltip="添加点位" aria-label="添加点位"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><path d="M12 8.5v7M8.5 12h7"></path></svg></button>
           <button id="connect-nodes" type="button" data-tooltip="连接点位" aria-label="连接点位"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.5" cy="17.5" r="2.5"></circle><circle cx="17.5" cy="6.5" r="2.5"></circle><path class="connect-line" d="m8.5 15.5 7-7"></path></svg></button>
-          <button id="undo-map-edit" type="button" data-tooltip="撤销添加或删除" aria-label="撤销" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 7.2 4.8 11.6 9.2 16"></path><path d="M5.3 11.6h9.1a5.1 5.1 0 0 1 0 10.2h-1.1"></path></svg></button>
-          <button id="import-map" type="button" data-tooltip="加载地图" aria-label="加载地图"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11"></path><path d="m7.8 9.8 4.2 4.2 4.2-4.2"></path><path d="M5 18.5h14"></path></svg></button>
-          <button id="export-map" type="button" data-tooltip="保存地图" aria-label="保存地图"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14V3"></path><path d="m7.8 7.2 4.2-4.2 4.2 4.2"></path><path d="M5 18.5h14"></path></svg></button>
+          <button id="marquee-nodes" type="button" data-tooltip="框选点位" aria-label="框选点位"><svg viewBox="0 0 24 24" aria-hidden="true"><rect class="marquee-icon" x="4" y="5" width="16" height="14" rx="1"></rect></svg></button>
+          <span class="map-tool-tip-host" data-tooltip="撤销添加或删除"><button id="undo-map-edit" type="button" aria-label="撤销" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 7.2 4.8 11.6 9.2 16"></path><path d="M5.3 11.6h9.1a5.1 5.1 0 0 1 0 10.2h-1.1"></path></svg></button></span>
+          <button id="import-map" type="button" data-tooltip="加载地图" aria-label="加载地图"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14V3"></path><path d="m7.8 7.2 4.2-4.2 4.2 4.2"></path><path d="M5 18.5h14"></path></svg></button>
+          <button id="export-map" type="button" data-tooltip="保存地图" aria-label="保存地图"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11"></path><path d="m7.8 9.8 4.2 4.2 4.2-4.2"></path><path d="M5 18.5h14"></path></svg></button>
         </aside>
 
         <section class="map-canvas-panel" aria-label="地图画布">
@@ -145,6 +146,7 @@
               <svg id="route-layer" class="map-route-layer" viewBox="0 0 1000 680" preserveAspectRatio="none" aria-label="路线连接"></svg>
               <div id="route-label-layer" class="map-route-label-layer"></div>
               <div id="node-layer" class="map-node-layer"></div>
+              <div id="node-marquee" class="node-marquee" hidden></div>
             </div>
           </div>
         </section>
@@ -333,7 +335,7 @@
   <dialog id="clear-confirm" class="confirm-dialog"><form method="dialog"><h2>清空页面？</h2><p>这会移除双方舰队配置，并重置模拟设置与所有统计结果。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="confirm-clear" type="button" class="danger">确认清空</button></div></form></dialog>
   <input id="config-file" type="file" accept=".yaml,.yml,.xml" hidden>
   <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
-  <script src="map-editor.js?v=map-ui-51"></script>
+  <script src="map-editor.js?v=map-ui-55"></script>
   <script src="app.js?v=map-ui-30"></script>
 </body>
 </html>

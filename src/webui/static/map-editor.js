@@ -63,6 +63,7 @@
     routeLayer: document.querySelector('#route-layer'),
     routeLabelLayer: document.querySelector('#route-label-layer'),
     nodeLayer: document.querySelector('#node-layer'),
+    nodeMarquee: document.querySelector('#node-marquee'),
     modeTitle: document.querySelector('#mode-title'),
     modeHint: document.querySelector('#mode-hint'),
     emptyInspector: document.querySelector('#empty-inspector'),
@@ -77,6 +78,7 @@
     mapResultScreen: document.querySelector('#map-result-screen'),
     mapViewButtons: document.querySelectorAll('[data-map-view]'),
     undoButton: document.querySelector('#undo-map-edit'),
+    marqueeButton: document.querySelector('#marquee-nodes'),
     strategyDialog: document.querySelector('#map-strategy-dialog'),
     strategyForm: document.querySelector('#map-strategy-form'),
     strategyAllNodes: document.querySelector('#strategy-all-nodes'),
@@ -105,11 +107,13 @@
 
   let mapDocument = createDefaultDocument();
   let selection = { type: 'node', id: 'node-entrance' };
+  const selectedNodeIds = new Set();
   let interactionMode = 'select';
   let connectionSourceId = null;
   let idCounter = 1;
   let toastTimer = 0;
   let suppressNodeClick = false;
+  let suppressCanvasClick = false;
   let activeMapView = 'editor';
   let mapUserRules = createDefaultUserRules();
   let activeStrategyScope = '__default__';
@@ -273,6 +277,7 @@
     const action = undoStack.pop();
     updateUndoButton();
     if (!action) return;
+    selectedNodeIds.clear();
 
     if (action.type === 'add-node') {
       currentMap().nodes = currentMap().nodes.filter(node => node.id !== action.nodeId);
@@ -641,7 +646,10 @@
       button.dataset.id = node.id;
       button.style.left = `${node.position.x / WORLD_WIDTH * 100}%`;
       button.style.top = `${node.position.y / WORLD_HEIGHT * 100}%`;
-      button.classList.toggle('selected', selection.type === 'node' && selection.id === node.id);
+      button.classList.toggle(
+        'selected',
+        selectedNodeIds.has(node.id) || (selection.type === 'node' && selection.id === node.id),
+      );
       button.classList.toggle('connect-source', connectionSourceId === node.id);
       button.classList.toggle('connect-candidate', interactionMode === 'connect' && connectionSourceId !== null);
       const marker = nodeMarker(node);
@@ -678,20 +686,40 @@
     const node = getNode(nodeId);
     if (!node) return;
     event.stopPropagation();
-    const start = { clientX: event.clientX, clientY: event.clientY, x: node.position.x, y: node.position.y };
+    const groupDrag = selectedNodeIds.size > 1 && selectedNodeIds.has(nodeId);
+    const dragNodes = groupDrag
+      ? [...selectedNodeIds].map(getNode).filter(Boolean)
+      : [node];
+    const startPositions = new Map(dragNodes.map(item => [
+      item.id,
+      { x: item.position.x, y: item.position.y },
+    ]));
+    const start = { clientX: event.clientX, clientY: event.clientY };
+    const minimumDx = Math.max(...dragNodes.map(item => 18 - startPositions.get(item.id).x));
+    const maximumDx = Math.min(...dragNodes.map(item => (
+      WORLD_WIDTH - NODE_SIZE - 18 - startPositions.get(item.id).x
+    )));
+    const minimumDy = Math.max(...dragNodes.map(item => 18 - startPositions.get(item.id).y));
+    const maximumDy = Math.min(...dragNodes.map(item => (
+      WORLD_HEIGHT - NODE_SIZE - 32 - startPositions.get(item.id).y
+    )));
     let moved = false;
 
     function onMove(moveEvent) {
-      const dx = (moveEvent.clientX - start.clientX) * WORLD_WIDTH / dom.viewport.clientWidth;
-      const dy = (moveEvent.clientY - start.clientY) * WORLD_HEIGHT / dom.viewport.clientHeight;
+      const rawDx = (moveEvent.clientX - start.clientX) * WORLD_WIDTH / dom.viewport.clientWidth;
+      const rawDy = (moveEvent.clientY - start.clientY) * WORLD_HEIGHT / dom.viewport.clientHeight;
+      const dx = clamp(rawDx, minimumDx, maximumDx);
+      const dy = clamp(rawDy, minimumDy, maximumDy);
       if (Math.abs(dx) + Math.abs(dy) > 2) moved = true;
-      node.position.x = clamp(start.x + dx, 18, WORLD_WIDTH - NODE_SIZE - 18);
-      node.position.y = clamp(start.y + dy, 18, WORLD_HEIGHT - NODE_SIZE - 32);
-      const element = dom.nodeLayer.querySelector(`[data-id="${cssEscape(nodeId)}"]`);
-      if (element) {
-        element.style.left = `${node.position.x / WORLD_WIDTH * 100}%`;
-        element.style.top = `${node.position.y / WORLD_HEIGHT * 100}%`;
-      }
+      dragNodes.forEach(item => {
+        const origin = startPositions.get(item.id);
+        item.position.x = origin.x + dx;
+        item.position.y = origin.y + dy;
+        const element = dom.nodeLayer.querySelector(`[data-id="${cssEscape(item.id)}"]`);
+        if (!element) return;
+        element.style.left = `${item.position.x / WORLD_WIDTH * 100}%`;
+        element.style.top = `${item.position.y / WORLD_HEIGHT * 100}%`;
+      });
       renderRoutes();
     }
 
@@ -700,10 +728,14 @@
       window.removeEventListener('pointerup', onUp);
       suppressNodeClick = moved;
       if (moved) window.setTimeout(() => { suppressNodeClick = false; }, 0);
+      if (moved && !groupDrag) selectedNodeIds.clear();
       selection = { type: 'node', id: nodeId };
       renderInspector();
       dom.nodeLayer.querySelectorAll('.map-node').forEach(item => {
-        item.classList.toggle('selected', item.dataset.id === nodeId);
+        item.classList.toggle(
+          'selected',
+          selectedNodeIds.has(item.dataset.id) || item.dataset.id === nodeId,
+        );
       });
     }
 
@@ -715,6 +747,7 @@
     event.stopPropagation();
     if (suppressNodeClick) return;
     if (interactionMode !== 'connect') {
+      selectedNodeIds.clear();
       selection = { type: 'node', id: nodeId };
       render();
       return;
@@ -826,6 +859,9 @@
   }
 
   function selectRoute(routeId) {
+    if (suppressCanvasClick) return;
+    if (interactionMode === 'marquee') return;
+    selectedNodeIds.clear();
     selection = { type: 'route', id: routeId };
     render();
   }
@@ -839,7 +875,7 @@
     const operator = Object.fromEntries(NUMBER_OPERATORS)[condition.fun] || condition.fun;
     const shipTypeNames = Object.fromEntries(shipTypeOptions());
     if (condition.type === 'leader') {
-      return `旗舰${condition.fun === 'not' ? '不是' : '是'}${shipTypeNames[condition.name] || condition.name}`;
+      return `旗舰${condition.fun === 'not' ? '不为' : '为'}${shipTypeNames[condition.name] || condition.name}`;
     }
     if (condition.type === 'num') {
       const shipType = shipTypeNames[condition.name] || condition.name;
@@ -869,6 +905,8 @@
     autoOption.textContent = `自动（${LEVEL_NAMES[node.level]}）`;
     levelSelect.value = node.level_auto !== false ? 'auto' : String(node.level);
     levelSelect.disabled = node.id === currentMap().entrance;
+    kindSelect._mapPickerRefresh?.();
+    levelSelect._mapPickerRefresh?.();
     const roundaboutInput = document.querySelector('#node-roundabout');
     roundaboutInput.checked = Boolean(node.battle.roundabout);
     roundaboutInput.disabled = !canRoundabout(node);
@@ -1286,6 +1324,7 @@
     );
     currentMap().nodes.push(node);
     pushUndo({ type: 'add-node', nodeId: node.id });
+    selectedNodeIds.clear();
     selection = { type: 'node', id: node.id };
     render();
   }
@@ -1293,7 +1332,10 @@
   function enterConnectMode() {
     interactionMode = 'connect';
     connectionSourceId = null;
+    selectedNodeIds.clear();
     document.querySelector('#connect-nodes').classList.add('active');
+    dom.marqueeButton.classList.remove('active');
+    dom.viewport.classList.remove('marquee-mode');
     setModeCopy('连接点位', '先点击路线起点，再点击路线终点；按 Esc 退出');
     renderNodes();
   }
@@ -1302,8 +1344,102 @@
     interactionMode = 'select';
     connectionSourceId = null;
     document.querySelector('#connect-nodes').classList.remove('active');
+    dom.marqueeButton.classList.remove('active');
+    dom.viewport.classList.remove('marquee-mode');
+    dom.nodeMarquee.hidden = true;
     setModeCopy('选择与拖动', '拖动点位调整布局；点击点位或路线进行编辑');
     renderNodes();
+  }
+
+  function enterMarqueeMode() {
+    interactionMode = 'marquee';
+    connectionSourceId = null;
+    document.querySelector('#connect-nodes').classList.remove('active');
+    dom.marqueeButton.classList.add('active');
+    dom.viewport.classList.add('marquee-mode');
+    setModeCopy('框选点位', '拖动画布框选多个点位；拖动任一已选点位进行整体移动');
+    renderNodes();
+  }
+
+  function exitMarqueeMode() {
+    exitConnectMode();
+  }
+
+  function canvasPointerPosition(event) {
+    const bounds = dom.viewport.getBoundingClientRect();
+    const x = clamp(event.clientX - bounds.left, 0, bounds.width);
+    const y = clamp(event.clientY - bounds.top, 0, bounds.height);
+    return {
+      x,
+      y,
+      worldX: x * WORLD_WIDTH / bounds.width,
+      worldY: y * WORLD_HEIGHT / bounds.height,
+    };
+  }
+
+  function startNodeMarquee(event) {
+    if (
+      interactionMode !== 'marquee'
+      || !event.isPrimary
+      || (event.pointerType === 'mouse' && event.button !== 0)
+      || event.target.closest('.map-node')
+    ) return;
+    event.preventDefault();
+    const start = canvasPointerPosition(event);
+    let current = start;
+    let moved = false;
+    dom.nodeMarquee.hidden = false;
+
+    const drawMarquee = () => {
+      const left = Math.min(start.x, current.x);
+      const top = Math.min(start.y, current.y);
+      dom.nodeMarquee.style.left = `${left}px`;
+      dom.nodeMarquee.style.top = `${top}px`;
+      dom.nodeMarquee.style.width = `${Math.abs(current.x - start.x)}px`;
+      dom.nodeMarquee.style.height = `${Math.abs(current.y - start.y)}px`;
+    };
+
+    function onMove(moveEvent) {
+      current = canvasPointerPosition(moveEvent);
+      moved = moved || Math.abs(current.x - start.x) + Math.abs(current.y - start.y) > 3;
+      drawMarquee();
+    }
+
+    function onUp(upEvent) {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      current = canvasPointerPosition(upEvent);
+      dom.nodeMarquee.hidden = true;
+      selectedNodeIds.clear();
+      if (moved) {
+        const left = Math.min(start.worldX, current.worldX);
+        const right = Math.max(start.worldX, current.worldX);
+        const top = Math.min(start.worldY, current.worldY);
+        const bottom = Math.max(start.worldY, current.worldY);
+        currentMap().nodes.forEach(node => {
+          const centerX = node.position.x + NODE_SIZE / 2;
+          const centerY = node.position.y + NODE_SIZE / 2;
+          if (centerX >= left && centerX <= right && centerY >= top && centerY <= bottom) {
+            selectedNodeIds.add(node.id);
+          }
+        });
+      }
+      const firstSelectedId = selectedNodeIds.values().next().value;
+      selection = firstSelectedId
+        ? { type: 'node', id: firstSelectedId }
+        : { type: null, id: null };
+      suppressCanvasClick = true;
+      window.setTimeout(() => { suppressCanvasClick = false; }, 0);
+      interactionMode = 'select';
+      dom.marqueeButton.classList.remove('active');
+      dom.viewport.classList.remove('marquee-mode');
+      setModeCopy('选择与拖动', '拖动点位调整布局；点击点位或路线进行编辑');
+      render();
+    }
+
+    drawMarquee();
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
   }
 
   function setModeCopy(title, hint) {
@@ -1329,6 +1465,7 @@
     });
     currentMap().nodes = currentMap().nodes.filter(item => item.id !== node.id);
     currentMap().routes = currentMap().routes.filter(route => route.from !== node.id && route.to !== node.id);
+    selectedNodeIds.delete(node.id);
     selection = { type: 'node', id: currentMap().entrance };
     render();
   }
@@ -1395,6 +1532,7 @@
     mapDocument = normalizeDocument(document);
     mapUserRules = createDefaultUserRules();
     clearUndoHistory();
+    selectedNodeIds.clear();
     selection = { type: 'node', id: currentMap().entrance };
     exitConnectMode();
     render();
@@ -2198,6 +2336,7 @@
       mapDocument = createDefaultDocument();
       mapUserRules = createDefaultUserRules();
       clearUndoHistory();
+      selectedNodeIds.clear();
       selection = { type: 'node', id: currentMap().entrance };
       exitConnectMode();
       switchMapView('editor');
@@ -2241,9 +2380,17 @@
       if (interactionMode === 'connect') exitConnectMode();
       else enterConnectMode();
     });
+    dom.marqueeButton.addEventListener('click', () => {
+      if (interactionMode === 'marquee') exitMarqueeMode();
+      else enterMarqueeMode();
+    });
     dom.undoButton.addEventListener('click', undoLastMapEdit);
+    dom.viewport.addEventListener('pointerdown', startNodeMarquee);
     dom.viewport.addEventListener('click', event => {
+      if (suppressCanvasClick) return;
+      if (interactionMode === 'marquee') return;
       if (event.target.closest('.map-node, .route-label, .route-hit')) return;
+      selectedNodeIds.clear();
       selection = { type: null, id: null };
       render();
     });
@@ -2367,8 +2514,9 @@
 
     window.addEventListener('keydown', event => {
       const editing = /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement?.tagName);
-      if (event.key === 'Escape' && interactionMode === 'connect') {
-        exitConnectMode();
+      if (event.key === 'Escape' && (interactionMode === 'connect' || interactionMode === 'marquee')) {
+        if (interactionMode === 'marquee') exitMarqueeMode();
+        else exitConnectMode();
         return;
       }
       if ((event.key === 'Delete' || event.key === 'Backspace') && !editing) {
