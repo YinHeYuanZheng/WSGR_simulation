@@ -379,19 +379,19 @@
     });
   }
 
-  function closeMapEffectSearchPickers(except = null) {
-    document.querySelectorAll('.map-effect-search-picker.open').forEach(picker => {
-      if (picker !== except) picker._mapEffectSearchPicker?.close();
+  function closeMapSearchablePickers(except = null) {
+    document.querySelectorAll('.map-searchable-picker.open').forEach(picker => {
+      if (picker !== except) picker._mapSearchablePicker?.close();
     });
   }
 
-  function setupMapEffectSearchPicker(select) {
-    if (select._mapEffectSearchPicker) {
-      select._mapEffectSearchPicker.sync();
-      return select._mapEffectSearchPicker;
+  function setupMapSearchablePicker(select) {
+    if (select._mapSearchablePicker) {
+      select._mapSearchablePicker.sync();
+      return select._mapSearchablePicker;
     }
     const picker = document.createElement('span');
-    picker.className = 'searchable-picker searchable-select-picker map-effect-search-picker';
+    picker.className = 'searchable-picker searchable-select-picker map-searchable-picker';
     const input = document.createElement('input');
     input.type = 'text';
     input.autocomplete = 'off';
@@ -462,7 +462,7 @@
     const open = () => {
       if (select.disabled) return;
       closeMapSelectPickers();
-      closeMapEffectSearchPickers(picker);
+      closeMapSearchablePickers(picker);
       render();
       picker.classList.add('open');
       input.setAttribute('aria-expanded', 'true');
@@ -476,12 +476,12 @@
       if (select.disabled) close();
       else render();
     };
-    select._mapEffectSearchPicker = {
+    select._mapSearchablePicker = {
       close,
       sync,
       containsTarget: target => picker.contains(target) || menu.contains(target),
     };
-    picker._mapEffectSearchPicker = select._mapEffectSearchPicker;
+    picker._mapSearchablePicker = select._mapSearchablePicker;
     input.addEventListener('focus', open);
     input.addEventListener('input', open);
     input.addEventListener('keydown', event => {
@@ -511,20 +511,24 @@
       close();
     });
     select.addEventListener('change', sync);
-    picker.closest('.map-effect-settings-content')?.addEventListener('scroll', close);
+    picker.closest('.map-effect-settings-content, #route-inspector')?.addEventListener('scroll', close);
     sync();
-    return select._mapEffectSearchPicker;
+    return select._mapSearchablePicker;
   }
 
   document.addEventListener('pointerdown', event => {
     if (!(event.target instanceof Node)) return;
-    document.querySelectorAll('.map-effect-search-picker.open').forEach(picker => {
-      if (!picker._mapEffectSearchPicker?.containsTarget(event.target)) picker._mapEffectSearchPicker.close();
+    document.querySelectorAll('.map-searchable-picker.open').forEach(picker => {
+      if (!picker._mapSearchablePicker?.containsTarget(event.target)) picker._mapSearchablePicker.close();
     });
   });
 
   function enhanceMapSelects(root = dom.mapEditorLayout) {
     root.querySelectorAll('select').forEach(select => {
+      if (select._mapSearchablePicker) {
+        select._mapSearchablePicker.sync();
+        return;
+      }
       if (select._mapPickerRefresh) {
         select._mapPickerRefresh();
         return;
@@ -833,12 +837,13 @@
 
   function conditionSummary(condition) {
     const operator = Object.fromEntries(NUMBER_OPERATORS)[condition.fun] || condition.fun;
+    const shipTypeNames = Object.fromEntries(shipTypeOptions());
     if (condition.type === 'leader') {
-      return `旗舰${condition.fun === 'not' ? '不是' : '是'}${condition.name}`;
+      return `旗舰${condition.fun === 'not' ? '不是' : '是'}${shipTypeNames[condition.name] || condition.name}`;
     }
     if (condition.type === 'num') {
-      const shipType = Object.fromEntries(shipTypeOptions())[condition.name] || condition.name;
-      return `${shipType}数量 ${operator} ${condition.value}`;
+      const shipType = shipTypeNames[condition.name] || condition.name;
+      return `${shipType}${operator}${condition.value}`;
     }
     const statusName = Object.fromEntries(STATUS_FIELDS)[condition.name] || condition.name;
     return `${statusName} ${operator} ${condition.value}`;
@@ -959,7 +964,7 @@
     });
     row.append(index, select, remove);
     dom.mapEffectList.append(row);
-    setupMapEffectSearchPicker(select);
+    setupMapSearchablePicker(select);
     updateMapEffectState();
   }
 
@@ -1003,7 +1008,7 @@
     }
     node.map_effects = effectIds;
     closeMapSelectPickers();
-    closeMapEffectSearchPickers();
+    closeMapSearchablePickers();
     dom.mapEffectDialog.close('saved');
     showToast(`已保存 ${node.name} 的地图效果`);
   }
@@ -1182,7 +1187,7 @@
     container.replaceChildren();
     if (condition.type === 'leader') {
       container.style.gridTemplateColumns = '1.25fr .75fr';
-      const name = selectField('旗舰舰种', shipTypeOptions(), condition.name);
+      const name = selectField('旗舰舰种', shipTypeOptions(), condition.name, true);
       const fun = selectField('判断', [['is', '是'], ['not', '不是']], condition.fun);
       bindConditionSelect(name.select, condition, 'name', route);
       bindConditionSelect(fun.select, condition, 'fun', route);
@@ -1191,7 +1196,12 @@
     }
     container.style.gridTemplateColumns = 'minmax(0, 1.2fr) .8fr .8fr';
     const options = condition.type === 'status' ? STATUS_FIELDS : shipTypeOptions();
-    const name = selectField(condition.type === 'status' ? '舰队属性' : '舰船数量', options, condition.name);
+    const name = selectField(
+      condition.type === 'status' ? '舰队属性' : '舰船数量',
+      options,
+      condition.name,
+      true,
+    );
     const fun = selectField('判断', NUMBER_OPERATORS, condition.fun);
     const valueLabel = document.createElement('label');
     valueLabel.innerHTML = '<span>阈值</span>';
@@ -1221,7 +1231,7 @@
     container.append(name.label, fun.label, valueLabel);
   }
 
-  function selectField(labelText, options, selected) {
+  function selectField(labelText, options, selected, searchable = false) {
     const label = document.createElement('label');
     const span = document.createElement('span');
     span.textContent = labelText;
@@ -1234,6 +1244,7 @@
       select.append(option);
     });
     label.append(span, select);
+    if (searchable) setupMapSearchablePicker(select);
     return { label, select };
   }
 
@@ -2301,7 +2312,7 @@
     document.querySelectorAll('[data-close-map-effects]').forEach(button => {
       button.addEventListener('click', () => {
         closeMapSelectPickers();
-        closeMapEffectSearchPickers();
+        closeMapSearchablePickers();
         dom.mapEffectDialog.close('cancel');
       });
     });
