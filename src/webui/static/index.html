@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WSGR · 战斗模拟</title>
-  <link rel="stylesheet" href="styles.css?v=map-ui-93">
+  <link rel="stylesheet" href="styles.css?v=map-ui-95">
 </head>
 <body>
   <header class="topbar">
@@ -144,6 +144,7 @@
           </div>
           <div id="canvas-viewport" class="map-canvas-viewport">
             <div id="canvas-world" class="map-canvas-world">
+              <div id="canvas-map-name" class="canvas-map-name">未命名海图</div>
               <svg id="route-layer" class="map-route-layer" viewBox="0 0 1000 680" preserveAspectRatio="none" aria-label="路线连接"></svg>
               <div id="route-label-layer" class="map-route-label-layer"></div>
               <div id="node-layer" class="map-node-layer"></div>
@@ -159,7 +160,20 @@
             <div class="map-inspector-title"><div><h2>点位设置</h2></div><div class="map-inspector-actions"><button id="edit-node-effects" class="map-small-action" type="button">地图效果</button><button id="delete-node" class="map-icon-danger" type="button" aria-label="删除点位">删除</button></div></div>
             <div class="map-form-grid">
               <label>点位名称<input id="node-name" maxlength="12"></label>
-              <label>点位类型<select id="node-kind"><option value="entrance" hidden>入口（固定）</option><option value="no_battle">无战斗</option><option value="resource_gain">增加资源</option><option value="resource_loss">扣除资源</option><option value="normal">常规战</option><option value="air">航空战</option><option value="night">夜战</option><option value="elite">精英</option><option value="boss">Boss</option></select></label>
+              <label>点位类型<select id="node-kind">
+                <option value="entrance" hidden>入口（固定）</option>
+                <option value="normal">常规战</option>
+                <option value="air">航空战</option>
+                <option value="night">夜战</option>
+                <option value="elite">精英</option>
+                <option value="boss">Boss</option>
+                <option value="no_battle">无战斗</option>
+                <option value="resource_gain">增加资源</option>
+                <option value="resource_loss">扣除资源</option>
+                <option value="support_air">航空支援</option>
+                <option value="support_land">炮击支援</option>
+                <option value="support_marine">潜艇支援</option>
+              </select></label>
               <label>节点等级<select id="node-level"><option value="auto">自动</option><option value="0">入口</option><option value="1">出门点</option><option value="2">道中点</option><option value="3">门神点</option><option value="4">非 Boss 终点</option><option value="5">Boss</option></select></label>
               <label class="map-compact-switch"><span id="node-roundabout-label">允许迂回</span><input id="node-roundabout" type="checkbox"><select id="node-resource-type" hidden><option value="oil">燃油</option><option value="ammo">弹药</option><option value="steel">钢材</option><option value="almn">铝材</option></select></label>
               <label class="map-compact-switch"><span id="node-support-label">支援攻击</span><input id="node-support" type="checkbox"><input id="node-resource-amount" type="number" min="0" step="1" inputmode="numeric" hidden></label>
@@ -336,7 +350,7 @@
   <dialog id="clear-confirm" class="confirm-dialog"><form method="dialog"><h2>清空页面？</h2><p>这会移除双方舰队配置，并重置模拟设置与所有统计结果。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="confirm-clear" type="button" class="danger">确认清空</button></div></form></dialog>
   <input id="config-file" type="file" accept=".yaml,.yml,.xml" hidden>
   <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
-  <script src="map-editor.js?v=map-ui-63"></script>
+  <script src="map-editor.js?v=map-ui-65"></script>
   <script src="app.js?v=map-ui-30"></script>
 </body>
 </html>

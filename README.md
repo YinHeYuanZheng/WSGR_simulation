@@ -178,8 +178,9 @@ routes:
 
 点位通过唯一的 `name` 被路线引用，不需要点位 `id` 或 Excel 中的 `pid`。地图点位的
 `battle.type` 仅使用 `Entrance`、`MidPoint`、`NormalBattle`、
-`AirBattle` 和 `NightBattle`。精英点与 Boss 点均保存为 `NormalBattle`，其视觉类型
-仍由 `kind` 区分。WebUI 导入、导出的是独立地图 YAML；启动模拟时则使用当前我方舰队、
+`AirBattle` 和 `NightBattle`。精英点、航空支援点、炮击支援点、潜艇支援点与 Boss 点
+均保存为 `NormalBattle`，其视觉类型仍由 `kind` 区分。WebUI 导入、导出的是独立地图
+YAML；启动模拟时则使用当前我方舰队、
 地图 `mapid` 与画布中的地图内容。
 
 路线的 `color` 和 `opacity` 为可选的 WebUI 显示属性：`color` 使用 `#RRGGBB`

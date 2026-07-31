@@ -584,6 +584,7 @@ body.dark .result-tabs button.active { background: linear-gradient(145deg, #1c25
   color-scheme: dark;
 }
 .map-canvas-world { position: absolute; inset: 0; }
+.canvas-map-name { position: absolute; z-index: 4; top: 14px; left: 18px; color: #fff; font-family: inherit; font-size: 22px; font-weight: 750; line-height: 1.25; pointer-events: none; }
 .map-route-layer, .map-route-label-layer, .map-node-layer { position: absolute; inset: 0; width: 100%; height: 100%; }
 .map-route-layer { z-index: 1; overflow: visible; }
 .map-route-label-layer { z-index: 2; pointer-events: none; }
@@ -615,6 +616,9 @@ body.dark .result-tabs button.active { background: linear-gradient(145deg, #1c25
 .map-page .marker-air { background-image: url('./assets/map/air.png'); }
 .map-page .marker-night { background-image: url('./assets/map/night.png'); }
 .map-page .marker-elite { background-image: url('./assets/map/elite.png'); filter: hue-rotate(0deg) saturate(2) brightness(.62); }
+.map-page .marker-support_air { background-image: url('./assets/map/support_air.png'); }
+.map-page .marker-support_land { background-image: url('./assets/map/support_land.png'); }
+.map-page .marker-support_marine { background-image: url('./assets/map/support_marine.png'); }
 .map-page .marker-boss { background-image: url('./assets/map/boss.png'); filter: hue-rotate(0deg) saturate(1.75) brightness(.91); }
 .map-page .roundabout-mark { background: url('./assets/map/round.png') center / contain no-repeat; }
 .map-page .node-name { position: absolute; z-index: 6; top: 23px; left: 50%; min-width: max-content; color: #fff; font-size: 12px; font-weight: 700; line-height: 1.1; pointer-events: none; text-shadow: 0 1px 3px #10212a; transform: translateX(-50%); white-space: nowrap; }

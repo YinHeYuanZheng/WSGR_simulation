@@ -14,17 +14,23 @@
     4: '非 Boss 终点',
     5: 'Boss',
   };
-  const NODE_KINDS = ['no_battle', 'resource_gain', 'resource_loss', 'normal', 'air', 'night', 'elite', 'boss'];
+  const NODE_KINDS = [
+    'no_battle', 'resource_gain', 'resource_loss', 'normal', 'air', 'night',
+    'elite', 'support_air', 'support_land', 'support_marine', 'boss',
+  ];
   const KIND_BATTLE_TYPES = {
     entrance: 'Entrance',
-    no_battle: 'MidPoint',
-    resource_gain: 'ResourcePoint',
-    resource_loss: 'ResourcePoint',
     normal: 'NormalBattle',
     air: 'AirBattle',
     night: 'NightBattle',
     elite: 'NormalBattle',
     boss: 'NormalBattle',
+    no_battle: 'MidPoint',
+    resource_gain: 'ResourcePoint',
+    resource_loss: 'ResourcePoint',
+    support_air: 'NormalBattle',
+    support_land: 'NormalBattle',
+    support_marine: 'NormalBattle',
   };
   const NON_COMBAT_BATTLE_TYPES = new Set(['Entrance', 'MidPoint', 'ResourcePoint']);
   const RESOURCE_TYPES = new Set(['oil', 'ammo', 'steel', 'almn']);
@@ -61,6 +67,7 @@
     mapName: document.querySelector('#map-name'),
     viewport: document.querySelector('#canvas-viewport'),
     world: document.querySelector('#canvas-world'),
+    canvasMapName: document.querySelector('#canvas-map-name'),
     routeLayer: document.querySelector('#route-layer'),
     routeLabelLayer: document.querySelector('#route-label-layer'),
     nodeLayer: document.querySelector('#node-layer'),
@@ -743,6 +750,7 @@
   function render() {
     recalculateNodeLevels();
     dom.mapName.value = currentMap().name;
+    dom.canvasMapName.textContent = currentMap().name;
     renderNodes();
     renderRoutes();
     renderInspector();
@@ -1763,7 +1771,7 @@
       if (fleets.length > 3) throw new Error(`点位 ${name} 的敌方舰队超过 3 个`);
       const kind = String(rawNode.kind || '');
       if (kind !== 'entrance' && !NODE_KINDS.includes(kind)) {
-        throw new Error('点位类型必须是 entrance、no_battle、resource_gain、resource_loss、normal、air、night、elite 或 boss');
+        throw new Error(`点位类型必须是 entrance、${NODE_KINDS.join('、')}`);
       }
       if (kind === 'entrance') {
         if (entrance) throw new Error('地图只能包含一个入口点');
@@ -2118,6 +2126,7 @@
     dom.mapName.addEventListener('input', () => {
       currentMap().name = dom.mapName.value;
       currentMap().mapid = dom.mapName.value;
+      dom.canvasMapName.textContent = dom.mapName.value;
     });
     document.querySelector('#open-map-strategy').addEventListener('click', openStrategyDialog);
     document.querySelector('#close-map-strategy').addEventListener('click', cancelStrategyDialog);
