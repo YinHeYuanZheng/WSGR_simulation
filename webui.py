@@ -159,7 +159,7 @@ class WebUIRequestHandler(SimpleHTTPRequestHandler):
 def main() -> None:
     parser = argparse.ArgumentParser(description="启动 WSGR WebUI")
     parser.add_argument("--host", default="127.0.0.1", help="监听地址，默认仅允许本机访问")
-    parser.add_argument("--port", type=int, default=8765, help="监听端口")
+    parser.add_argument("--port", type=int, default=8760, help="监听端口")
     parser.add_argument("--open", action="store_true", help="启动后自动在默认浏览器中打开")
     args = parser.parse_args()
 

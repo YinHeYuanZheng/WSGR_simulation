@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WSGR · 战斗模拟</title>
-  <link rel="stylesheet" href="styles.css?v=map-ui-81">
+  <link rel="stylesheet" href="styles.css?v=map-ui-93">
 </head>
 <body>
   <header class="topbar">
@@ -131,7 +131,8 @@
           <button id="add-node" type="button" data-tooltip="添加点位" aria-label="添加点位"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><path d="M12 8.5v7M8.5 12h7"></path></svg></button>
           <button id="connect-nodes" type="button" data-tooltip="连接点位" aria-label="连接点位"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.5" cy="17.5" r="2.5"></circle><circle cx="17.5" cy="6.5" r="2.5"></circle><path class="connect-line" d="m8.5 15.5 7-7"></path></svg></button>
           <button id="marquee-nodes" type="button" data-tooltip="框选点位" aria-label="框选点位"><svg viewBox="0 0 24 24" aria-hidden="true"><rect class="marquee-icon" x="4" y="5" width="16" height="14" rx="1"></rect></svg></button>
-          <span class="map-tool-tip-host" data-tooltip="撤销添加或删除"><button id="undo-map-edit" type="button" aria-label="撤销" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 7.2 4.8 11.6 9.2 16"></path><path d="M5.3 11.6h9.1a5.1 5.1 0 0 1 0 10.2h-1.1"></path></svg></button></span>
+          <span class="map-tool-tip-host" data-tooltip="撤销上一步"><button id="undo-map-edit" type="button" aria-label="撤销" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 7.2 4.8 11.6 9.2 16"></path><path d="M5.3 11.6h9.1a5.1 5.1 0 0 1 0 10.2h-1.1"></path></svg></button></span>
+          <span class="map-tool-tip-host" data-tooltip="重做上一步"><button id="redo-map-edit" type="button" aria-label="重做" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.8 7.2 4.4 4.4-4.4 4.4"></path><path d="M18.7 11.6H9.6a5.1 5.1 0 0 0 0 10.2h1.1"></path></svg></button></span>
           <button id="import-map" type="button" data-tooltip="加载地图" aria-label="加载地图"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14V3"></path><path d="m7.8 7.2 4.2-4.2 4.2 4.2"></path><path d="M5 18.5h14"></path></svg></button>
           <button id="export-map" type="button" data-tooltip="保存地图" aria-label="保存地图"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11"></path><path d="m7.8 9.8 4.2 4.2 4.2-4.2"></path><path d="M5 18.5h14"></path></svg></button>
         </aside>
@@ -170,7 +171,7 @@
 
           <section id="route-inspector" hidden>
             <div class="map-inspector-title"><div><h2>路线设置</h2></div><button id="delete-route" class="map-icon-danger" type="button">删除</button></div>
-            <div class="map-form-grid"><label>起点<select id="route-from"></select></label><label>终点<select id="route-to"></select></label><label>随机权重<input id="route-weight" type="number" min="1" max="3" step="1"></label><label>多条件关系<select id="route-relation"><option value="all">全部满足（AND）</option><option value="any">任一满足（OR）</option></select></label></div>
+            <div class="map-form-grid"><label>起点<select id="route-from"></select></label><label>终点<select id="route-to"></select></label><label>随机权重<input id="route-weight" type="number" min="1" max="3" step="1"></label><label>多条件关系<select id="route-relation"><option value="all">全部满足（AND）</option><option value="any">任一满足（OR）</option></select></label><label>线路颜色<span class="route-color-control"><input id="route-color" type="color" value="#e5eef0"><button id="reset-route-color" type="button">恢复默认</button></span></label><label>线路不透明度<span class="route-opacity-control"><input id="route-opacity" type="range" min="0" max="100" step="5" value="100"><output id="route-opacity-value" for="route-opacity">100%</output></span></label></div>
             <div class="map-section-heading map-section-title"><div><h2>带路条件</h2></div><button id="add-condition" class="map-small-action" type="button">＋ 添加条件</button></div>
             <p class="map-section-note">先依次检查有条件的路线；路线权重用于分配比例。</p>
             <div id="condition-list" class="map-condition-list"></div>
@@ -335,7 +336,7 @@
   <dialog id="clear-confirm" class="confirm-dialog"><form method="dialog"><h2>清空页面？</h2><p>这会移除双方舰队配置，并重置模拟设置与所有统计结果。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="confirm-clear" type="button" class="danger">确认清空</button></div></form></dialog>
   <input id="config-file" type="file" accept=".yaml,.yml,.xml" hidden>
   <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
-  <script src="map-editor.js?v=map-ui-55"></script>
+  <script src="map-editor.js?v=map-ui-63"></script>
   <script src="app.js?v=map-ui-30"></script>
 </body>
 </html>

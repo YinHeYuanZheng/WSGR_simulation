@@ -4,6 +4,7 @@
   const WORLD_WIDTH = 1000;
   const WORLD_HEIGHT = 680;
   const NODE_SIZE = 10;
+  const DEFAULT_ROUTE_COLOR = '#e5eef0';
   const FORMATIONS = { 1: '单纵', 2: '复纵', 3: '轮形', 4: '梯形', 5: '单横' };
   const LEVEL_NAMES = {
     0: '入口',
@@ -37,7 +38,7 @@
     ['antisub_recon', '反潜索敌'], ['luck', '幸运合计'], ['level', '等级合计'],
   ];
   const NUMBER_OPERATORS = [
-    ['lt', '<'], ['le', '≤'], ['eq', '='], ['ge', '≥'], ['gt', '>'],
+    ['lt', '＜'], ['le', '≤'], ['eq', '＝'], ['ge', '≥'], ['gt', '＞'],
   ];
   const USER_RULE_DEFAULTS = {
     formation: 2,
@@ -78,6 +79,7 @@
     mapResultScreen: document.querySelector('#map-result-screen'),
     mapViewButtons: document.querySelectorAll('[data-map-view]'),
     undoButton: document.querySelector('#undo-map-edit'),
+    redoButton: document.querySelector('#redo-map-edit'),
     marqueeButton: document.querySelector('#marquee-nodes'),
     strategyDialog: document.querySelector('#map-strategy-dialog'),
     strategyForm: document.querySelector('#map-strategy-form'),
@@ -119,6 +121,7 @@
   let activeStrategyScope = '__default__';
   const strategyDrafts = new Map();
   const undoStack = [];
+  const redoStack = [];
   const MAX_UNDO_STEPS = 50;
   const fleetStatsCache = new Map();
   let mapEffectOptions = null;
@@ -172,7 +175,16 @@
   }
 
   function routeData(id, from, to, weight, conditions = []) {
-    return { id, from, to, weight, relation: 'all', conditions };
+    return {
+      id,
+      from,
+      to,
+      weight,
+      relation: 'all',
+      color: DEFAULT_ROUTE_COLOR,
+      opacity: 1,
+      conditions,
+    };
   }
 
   function currentMap() {
@@ -258,28 +270,38 @@
     });
   }
 
-  function updateUndoButton() {
+  function updateHistoryButtons() {
     dom.undoButton.disabled = undoStack.length === 0;
+    dom.redoButton.disabled = redoStack.length === 0;
   }
 
   function pushUndo(action) {
     undoStack.push(action);
     if (undoStack.length > MAX_UNDO_STEPS) undoStack.shift();
-    updateUndoButton();
+    redoStack.length = 0;
+    updateHistoryButtons();
   }
 
   function clearUndoHistory() {
     undoStack.length = 0;
-    updateUndoButton();
+    redoStack.length = 0;
+    updateHistoryButtons();
   }
 
   function undoLastMapEdit() {
     const action = undoStack.pop();
-    updateUndoButton();
     if (!action) return;
+    redoStack.push(action);
+    if (redoStack.length > MAX_UNDO_STEPS) redoStack.shift();
     selectedNodeIds.clear();
 
     if (action.type === 'add-node') {
+      const node = getNode(action.nodeId);
+      action.node = cloneMapData(node);
+      action.index = currentMap().nodes.indexOf(node);
+      action.routes = cloneMapData(currentMap().routes
+        .map((route, index) => ({ route, index }))
+        .filter(item => item.route.from === action.nodeId || item.route.to === action.nodeId));
       currentMap().nodes = currentMap().nodes.filter(node => node.id !== action.nodeId);
       currentMap().routes = currentMap().routes.filter(route => route.from !== action.nodeId && route.to !== action.nodeId);
       selection = { type: 'node', id: currentMap().entrance };
@@ -291,7 +313,41 @@
           Math.min(item.index, currentMap().routes.length), 0, cloneMapData(item.route),
         ));
       selection = { type: 'node', id: action.node.id };
+    } else if (action.type === 'delete-nodes') {
+      [...action.nodes]
+        .sort((left, right) => left.index - right.index)
+        .forEach(item => currentMap().nodes.splice(
+          Math.min(item.index, currentMap().nodes.length), 0, cloneMapData(item.node),
+        ));
+      [...action.routes]
+        .sort((left, right) => left.index - right.index)
+        .forEach(item => currentMap().routes.splice(
+          Math.min(item.index, currentMap().routes.length), 0, cloneMapData(item.route),
+        ));
+      action.nodes.forEach(item => selectedNodeIds.add(item.node.id));
+      selection = { type: 'node', id: action.nodes[0].node.id };
+    } else if (action.type === 'move-nodes') {
+      action.redoPositions = action.nodes.map(item => {
+        const node = getNode(item.id);
+        return {
+          id: item.id,
+          position: { x: node.position.x, y: node.position.y },
+        };
+      });
+      action.nodes.forEach(item => {
+        const node = getNode(item.id);
+        if (!node) return;
+        node.position.x = item.position.x;
+        node.position.y = item.position.y;
+      });
+      if (action.nodes.length > 1) {
+        action.nodes.forEach(item => selectedNodeIds.add(item.id));
+      }
+      selection = { type: 'node', id: action.nodes[0].id };
     } else if (action.type === 'add-route') {
+      const route = getRoute(action.routeId);
+      action.route = cloneMapData(route);
+      action.index = currentMap().routes.indexOf(route);
       currentMap().routes = currentMap().routes.filter(route => route.id !== action.routeId);
       selection = { type: 'node', id: action.from };
     } else if (action.type === 'delete-route') {
@@ -300,6 +356,62 @@
       );
       selection = { type: 'route', id: action.route.id };
     }
+    updateHistoryButtons();
+    render();
+  }
+
+  function redoLastMapEdit() {
+    const action = redoStack.pop();
+    if (!action) return;
+    selectedNodeIds.clear();
+
+    if (action.type === 'add-node') {
+      currentMap().nodes.splice(
+        Math.min(action.index, currentMap().nodes.length), 0, cloneMapData(action.node),
+      );
+      [...action.routes]
+        .sort((left, right) => left.index - right.index)
+        .forEach(item => currentMap().routes.splice(
+          Math.min(item.index, currentMap().routes.length), 0, cloneMapData(item.route),
+        ));
+      selection = { type: 'node', id: action.nodeId };
+    } else if (action.type === 'delete-node') {
+      currentMap().nodes = currentMap().nodes.filter(node => node.id !== action.node.id);
+      currentMap().routes = currentMap().routes.filter(route => (
+        route.from !== action.node.id && route.to !== action.node.id
+      ));
+      selection = { type: 'node', id: currentMap().entrance };
+    } else if (action.type === 'delete-nodes') {
+      const nodeIds = new Set(action.nodes.map(item => item.node.id));
+      currentMap().nodes = currentMap().nodes.filter(node => !nodeIds.has(node.id));
+      currentMap().routes = currentMap().routes.filter(route => (
+        !nodeIds.has(route.from) && !nodeIds.has(route.to)
+      ));
+      selection = { type: 'node', id: currentMap().entrance };
+    } else if (action.type === 'move-nodes') {
+      action.redoPositions.forEach(item => {
+        const node = getNode(item.id);
+        if (!node) return;
+        node.position.x = item.position.x;
+        node.position.y = item.position.y;
+      });
+      if (action.redoPositions.length > 1) {
+        action.redoPositions.forEach(item => selectedNodeIds.add(item.id));
+      }
+      selection = { type: 'node', id: action.redoPositions[0].id };
+    } else if (action.type === 'add-route') {
+      currentMap().routes.splice(
+        Math.min(action.index, currentMap().routes.length), 0, cloneMapData(action.route),
+      );
+      selection = { type: 'route', id: action.routeId };
+    } else if (action.type === 'delete-route') {
+      currentMap().routes = currentMap().routes.filter(route => route.id !== action.route.id);
+      selection = { type: 'node', id: action.route.from };
+    }
+
+    undoStack.push(action);
+    if (undoStack.length > MAX_UNDO_STEPS) undoStack.shift();
+    updateHistoryButtons();
     render();
   }
 
@@ -726,6 +838,21 @@
     function onUp() {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
+      const movedNodes = dragNodes
+        .filter(item => {
+          const origin = startPositions.get(item.id);
+          return Math.abs(item.position.x - origin.x) + Math.abs(item.position.y - origin.y) > 0.01;
+        })
+        .map(item => ({
+          id: item.id,
+          position: { ...startPositions.get(item.id) },
+        }));
+      if (movedNodes.length) {
+        pushUndo({
+          type: 'move-nodes',
+          nodes: movedNodes,
+        });
+      }
       suppressNodeClick = moved;
       if (moved) window.setTimeout(() => { suppressNodeClick = false; }, 0);
       if (moved && !groupDrag) selectedNodeIds.clear();
@@ -801,6 +928,8 @@
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', geometry.path);
       path.setAttribute('class', 'route-path');
+      path.style.setProperty('--route-color', route.color || DEFAULT_ROUTE_COLOR);
+      path.style.setProperty('--route-opacity', String(route.opacity ?? 1));
       const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       hit.setAttribute('d', geometry.path);
       hit.setAttribute('class', 'route-hit');
@@ -926,7 +1055,10 @@
     supportInput.hidden = resourceNode;
     resourceType.closest('.map-compact-switch').classList.toggle('map-resource-field', resourceNode);
     resourceAmount.closest('.map-compact-switch').classList.toggle('map-resource-field', resourceNode);
-    document.querySelector('#delete-node').disabled = node.id === currentMap().entrance;
+    const entranceId = currentMap().entrance;
+    const hasDeletableBatchNode = selectedNodeIds.size > 1
+      && [...selectedNodeIds].some(nodeId => nodeId !== entranceId && getNode(nodeId));
+    document.querySelector('#delete-node').disabled = node.id === entranceId && !hasDeletableBatchNode;
     document.querySelector('#edit-node-effects').disabled = false;
     document.querySelector('#add-fleet').disabled = node.enemy_fleets.length >= 3 || !isCombatNode(node);
     renderFleets(node);
@@ -1168,6 +1300,10 @@
     fillNodeSelect(document.querySelector('#route-to'), route.to);
     document.querySelector('#route-weight').value = String(route.weight);
     document.querySelector('#route-relation').value = route.relation;
+    document.querySelector('#route-color').value = route.color || DEFAULT_ROUTE_COLOR;
+    const opacityPercent = Math.round(clamp(Number(route.opacity ?? 1), 0, 1) * 100);
+    document.querySelector('#route-opacity').value = String(opacityPercent);
+    document.querySelector('#route-opacity-value').textContent = `${opacityPercent}%`;
     renderConditions(route);
   }
 
@@ -1448,25 +1584,48 @@
   }
 
   function deleteSelectedNode() {
-    const node = selection.type === 'node' ? getNode(selection.id) : null;
-    if (!node || node.id === currentMap().entrance) {
+    const selectedIds = selectedNodeIds.size > 1
+      ? [...selectedNodeIds]
+      : (selection.type === 'node' ? [selection.id] : []);
+    const entranceId = currentMap().entrance;
+    const nodeIds = new Set(selectedIds.filter(nodeId => nodeId !== entranceId && getNode(nodeId)));
+    if (!nodeIds.size) {
       showToast('入口节点不能删除', true);
       return;
     }
-    const nodeIndex = currentMap().nodes.indexOf(node);
-    const connectedRoutes = currentMap().routes
-      .map((route, index) => ({ route, index }))
-      .filter(item => item.route.from === node.id || item.route.to === node.id);
-    pushUndo({
-      type: 'delete-node',
-      node: cloneMapData(node),
-      index: nodeIndex,
-      routes: cloneMapData(connectedRoutes),
-    });
-    currentMap().nodes = currentMap().nodes.filter(item => item.id !== node.id);
-    currentMap().routes = currentMap().routes.filter(route => route.from !== node.id && route.to !== node.id);
-    selectedNodeIds.delete(node.id);
-    selection = { type: 'node', id: currentMap().entrance };
+
+    if (nodeIds.size === 1) {
+      const node = getNode(nodeIds.values().next().value);
+      const nodeIndex = currentMap().nodes.indexOf(node);
+      const connectedRoutes = currentMap().routes
+        .map((route, index) => ({ route, index }))
+        .filter(item => item.route.from === node.id || item.route.to === node.id);
+      pushUndo({
+        type: 'delete-node',
+        node: cloneMapData(node),
+        index: nodeIndex,
+        routes: cloneMapData(connectedRoutes),
+      });
+    } else {
+      const nodes = currentMap().nodes
+        .map((node, index) => ({ node, index }))
+        .filter(item => nodeIds.has(item.node.id));
+      const connectedRoutes = currentMap().routes
+        .map((route, index) => ({ route, index }))
+        .filter(item => nodeIds.has(item.route.from) || nodeIds.has(item.route.to));
+      pushUndo({
+        type: 'delete-nodes',
+        nodes: cloneMapData(nodes),
+        routes: cloneMapData(connectedRoutes),
+      });
+    }
+
+    currentMap().nodes = currentMap().nodes.filter(node => !nodeIds.has(node.id));
+    currentMap().routes = currentMap().routes.filter(route => (
+      !nodeIds.has(route.from) && !nodeIds.has(route.to)
+    ));
+    selectedNodeIds.clear();
+    selection = { type: 'node', id: entranceId };
     render();
   }
 
@@ -1675,12 +1834,20 @@
       if (!from || !to) throw new Error(`路线 ${index + 1} 引用了不存在的点位名称`);
       if (from === to) throw new Error(`路线 ${index + 1} 的起点和终点相同`);
       const conditions = Array.isArray(rawRoute?.conditions) ? rawRoute.conditions : [];
+      const color = String(rawRoute?.color ?? DEFAULT_ROUTE_COLOR).trim().toLowerCase();
+      if (!/^#[0-9a-f]{6}$/.test(color)) {
+        throw new Error(`路线 ${index + 1} 的 color 必须是 #RRGGBB 格式`);
+      }
+      const rawOpacity = Number(rawRoute?.opacity ?? 1);
+      const opacity = clamp(Number.isFinite(rawOpacity) ? rawOpacity : 1, 0, 1);
       return {
         id,
         from,
         to,
         weight: clamp(Math.round(Number(rawRoute?.weight) || 1), 1, 3),
         relation: rawRoute?.relation === 'any' || rawRoute?.relation === 'or' ? 'any' : 'all',
+        color,
+        opacity,
         conditions: conditions.map(raw => {
           const type = ['num', 'leader', 'status'].includes(raw?.type) ? raw.type : 'num';
           const defaults = defaultCondition(type);
@@ -1762,6 +1929,8 @@
         to: nodeNameById.get(route.to),
         weight: route.weight,
         relation: route.relation,
+        color: route.color || DEFAULT_ROUTE_COLOR,
+        opacity: clamp(Number(route.opacity ?? 1), 0, 1),
         conditions: route.conditions.map(condition => ({ ...condition })),
       })),
       ...(Object.keys(buffs).length ? { buffs } : {}),
@@ -2385,6 +2554,7 @@
       else enterMarqueeMode();
     });
     dom.undoButton.addEventListener('click', undoLastMapEdit);
+    dom.redoButton.addEventListener('click', redoLastMapEdit);
     dom.viewport.addEventListener('pointerdown', startNodeMarquee);
     dom.viewport.addEventListener('click', event => {
       if (suppressCanvasClick) return;
@@ -2481,6 +2651,30 @@
         renderRoutes();
       }
     });
+    document.querySelector('#route-color').addEventListener('input', event => {
+      const route = getRoute(selection.id);
+      if (route) {
+        route.color = event.target.value.toLowerCase();
+        renderRoutes();
+      }
+    });
+    document.querySelector('#reset-route-color').addEventListener('click', () => {
+      const route = getRoute(selection.id);
+      if (route) {
+        route.color = DEFAULT_ROUTE_COLOR;
+        document.querySelector('#route-color').value = DEFAULT_ROUTE_COLOR;
+        renderRoutes();
+      }
+    });
+    document.querySelector('#route-opacity').addEventListener('input', event => {
+      const route = getRoute(selection.id);
+      if (route) {
+        const opacityPercent = clamp(Math.round(Number(event.target.value) || 0), 0, 100);
+        route.opacity = opacityPercent / 100;
+        document.querySelector('#route-opacity-value').textContent = `${opacityPercent}%`;
+        renderRoutes();
+      }
+    });
     document.querySelector('#delete-route').addEventListener('click', deleteSelectedRoute);
     document.querySelector('#add-condition').addEventListener('click', addCondition);
 
@@ -2525,7 +2719,12 @@
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z' && !editing) {
         event.preventDefault();
-        undoLastMapEdit();
+        if (event.shiftKey) redoLastMapEdit();
+        else undoLastMapEdit();
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'y' && !editing) {
+        event.preventDefault();
+        redoLastMapEdit();
       }
     });
   }
@@ -2564,7 +2763,7 @@
   };
 
   bindStaticEvents();
-  updateUndoButton();
+  updateHistoryButtons();
   switchMapView(activeMapView);
   render();
 }());

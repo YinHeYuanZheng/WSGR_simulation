@@ -171,6 +171,8 @@ routes:
     to: B
     weight: 1
     relation: all
+    color: '#e5eef0'
+    opacity: 1.0
     conditions: []
 ```
 
@@ -179,6 +181,9 @@ routes:
 `AirBattle` 和 `NightBattle`。精英点与 Boss 点均保存为 `NormalBattle`，其视觉类型
 仍由 `kind` 区分。WebUI 导入、导出的是独立地图 YAML；启动模拟时则使用当前我方舰队、
 地图 `mapid` 与画布中的地图内容。
+
+路线的 `color` 和 `opacity` 为可选的 WebUI 显示属性：`color` 使用 `#RRGGBB`
+格式，`opacity` 的范围为 `0` 至 `1`。省略时分别使用默认线路颜色和完全不透明。
 
 `buffs` 是可选字段，用于为指定点位配置地图效果。键必须是已定义点位的 `name`；值可写为
 单个效果编号，或由多个效果编号组成的列表。效果编号对应
