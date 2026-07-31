@@ -82,6 +82,8 @@
     toast: document.querySelector('#map-notice'),
     yamlFile: document.querySelector('#map-yaml-file'),
     confirmDialog: document.querySelector('#map-confirm-dialog'),
+    overwriteConfirmDialog: document.querySelector('#map-overwrite-confirm'),
+    overwriteConfirmMessage: document.querySelector('#map-overwrite-confirm-message'),
     mapEditorLayout: document.querySelector('#map-editor-layout'),
     mapResultScreen: document.querySelector('#map-result-screen'),
     mapViewButtons: document.querySelectorAll('[data-map-view]'),
@@ -1705,17 +1707,40 @@
     render();
   }
 
+  function confirmMapOverwrite(filename) {
+    return new Promise(resolve => {
+      dom.overwriteConfirmMessage.textContent = `“${filename}”已经存在，是否覆盖原文件？`;
+      dom.overwriteConfirmDialog.addEventListener('close', () => {
+        resolve(dom.overwriteConfirmDialog.returnValue === 'overwrite');
+      }, { once: true });
+      dom.overwriteConfirmDialog.showModal();
+    });
+  }
+
+  async function persistMapDocument(map, overwrite = false) {
+    const response = await fetch('/api/map/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ map, overwrite }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || '保存地图失败');
+    return payload;
+  }
+
   async function saveMapDocument() {
     try {
       const map = serializeDocument(normalizeDocument(serializeDocument(mapDocument)));
-      const response = await fetch('/api/map/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ map }),
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.error || '保存地图失败');
-      showToast(`地图已保存为 ${payload.filename}`);
+      let payload = await persistMapDocument(map);
+      if (payload.requires_overwrite) {
+        const confirmed = await confirmMapOverwrite(payload.filename);
+        if (!confirmed) return;
+        payload = await persistMapDocument(map, true);
+      }
+      if (!payload.saved) throw new Error('地图未保存');
+      showToast(payload.overwritten
+        ? `地图已覆盖：${payload.filename}`
+        : `地图已保存为 ${payload.filename}`);
     } catch (error) {
       showToast(error.message, true);
     }

@@ -83,7 +83,12 @@ class WebUIRequestHandler(SimpleHTTPRequestHandler):
                 self._send_json(self.service.load_uploaded_map_document(payload["content"]))
                 return
             if path == "/api/map/save":
-                self._send_json(self.service.save_map_document(payload["map"]))
+                self._send_json(
+                    self.service.save_map_document(
+                        payload["map"],
+                        overwrite=bool(payload.get("overwrite", False)),
+                    )
+                )
                 return
             if path == "/api/simulation/start":
                 config = self.service.prepare_simulation_config(payload["config"])

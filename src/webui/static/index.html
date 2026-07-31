@@ -232,6 +232,7 @@
   </template>
 
   <dialog id="map-confirm-dialog" class="confirm-dialog"><form method="dialog"><h2>清空地图？</h2><p>这会移除当前地图中的所有点位、路线与敌方舰队，并恢复为单个入口节点。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="map-confirm-action" value="default" class="danger">确认清空</button></div></form></dialog>
+  <dialog id="map-overwrite-confirm" class="confirm-dialog"><form method="dialog"><h2>覆盖同名地图？</h2><p id="map-overwrite-confirm-message"></p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button value="overwrite" class="danger">确认覆盖</button></div></form></dialog>
   <dialog id="map-save-confirm" class="confirm-dialog"><form method="dialog"><h2>地图尚未保存</h2><p id="map-save-confirm-message"></p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button value="save" class="run">保存地图并继续</button></div></form></dialog>
   <dialog id="map-strategy-dialog" class="map-strategy-dialog">
     <form id="map-strategy-form" method="dialog">
@@ -350,7 +351,7 @@
   <dialog id="clear-confirm" class="confirm-dialog"><form method="dialog"><h2>清空页面？</h2><p>这会移除双方舰队配置，并重置模拟设置与所有统计结果。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="confirm-clear" type="button" class="danger">确认清空</button></div></form></dialog>
   <input id="config-file" type="file" accept=".yaml,.yml,.xml" hidden>
   <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
-  <script src="map-editor.js?v=map-ui-65"></script>
+  <script src="map-editor.js?v=map-ui-66"></script>
   <script src="app.js?v=map-ui-30"></script>
 </body>
 </html>

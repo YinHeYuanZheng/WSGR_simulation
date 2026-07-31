@@ -1194,13 +1194,31 @@ class WebUIService:
         return {"map": map_document}
 
     @classmethod
-    def save_map_document(cls, map_document: dict[str, Any]) -> dict[str, Any]:
+    def save_map_document(
+        cls,
+        map_document: dict[str, Any],
+        *,
+        overwrite: bool = False,
+    ) -> dict[str, Any]:
         """Persist the editor's complete standalone map document in depend/map."""
         mapid = cls.validate_map_document(map_document)
         path = Path(map_yaml_path(mapid, str(MAP_DIR)))
+        existed = path.is_file()
+        if existed and not overwrite:
+            return {
+                "mapid": mapid,
+                "filename": path.name,
+                "saved": False,
+                "requires_overwrite": True,
+            }
         with path.open("w", encoding="utf-8") as file:
             yaml.safe_dump(map_document, file, allow_unicode=True, sort_keys=False)
-        return {"mapid": mapid, "filename": path.name}
+        return {
+            "mapid": mapid,
+            "filename": path.name,
+            "saved": True,
+            "overwritten": existed,
+        }
 
     def prepare_simulation_config(self, config: dict[str, Any]) -> dict[str, Any]:
         """Drop redundant full-health overrides before a simulation starts."""
