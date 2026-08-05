@@ -182,12 +182,11 @@ class Ship(Time):
 
     def get_air_con_flag(self):
         """制空结果, 从空确到空丧分别为1-5"""
-        if self.timer.air_con_flag is None:
-            raise ValueError('Air control flag not defined!')
+        air_con_flag = 3 if self.timer.air_con_flag is None else self.timer.air_con_flag
         if self.side:
-            return self.timer.air_con_flag
+            return air_con_flag
         else:
-            return 6 - self.timer.air_con_flag
+            return 6 - air_con_flag
 
     def set_cid(self, cid):
         """设置舰船编号"""

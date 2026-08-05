@@ -955,7 +955,11 @@ function strategyDetails(shipConfig) {
   const selected = { attack: null, defense: null, special: null };
   (shipConfig.strategy || []).forEach(item => {
     const detail = strategyMap.get(String(item.stid));
-    if (detail) selected[detail.category] = { ...detail, level: Number(item.level) || 3 };
+    const level = Number(item.level);
+    if (detail) selected[detail.category] = {
+      ...detail,
+      level: Number.isFinite(level) ? Math.max(0, Math.min(3, level)) : 3,
+    };
   });
   return selected;
 }
@@ -1157,6 +1161,24 @@ function updateFriendEditorFields(config = null) {
   });
 }
 
+function retainedFriendEditorConfig() {
+  return {
+    equipment: equipmentEditors.flatMap((input, index) => {
+      const eid = selectedEquipmentId(input.value);
+      return input.disabled || !eid ? [] : [{ loc: index + 1, eid }];
+    }),
+    strategy: Object.keys(strategyEditors).flatMap(category => {
+      const stid = strategyEditors[category].value;
+      if (!stid) return [];
+      const level = Number(strategyLevelEditors[category].value);
+      return [{
+        stid,
+        level: Number.isFinite(level) ? Math.max(0, Math.min(3, level)) : 0,
+      }];
+    }),
+  };
+}
+
 function editorFriendPreview() {
   if (!currentEditing || currentEditing.dataset.side !== 'friend') return null;
   if (!editorShipLabels.has(editorName.value.trim())) return null;
@@ -1235,7 +1257,7 @@ function syncEditorShipSelection() {
     editorHealth.removeAttribute('max');
     return;
   }
-  updateFriendEditorFields();
+  updateFriendEditorFields(retainedFriendEditorConfig());
   scheduleEditorHealthLimitRefresh(true);
 }
 

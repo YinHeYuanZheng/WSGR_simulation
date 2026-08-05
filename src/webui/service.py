@@ -671,7 +671,7 @@ class SimulationManager:
         recon_rate, friend_recon, recon_request = report["recon"]
         air_con_flag, aerial_friend, aerial_enemy = report["aerial"]
         if air_con_flag is None:
-            air_con_text = "未进行航空战"
+            air_con_text = "无"
         else:
             air_con_info = ["空确", "空优", "均势", "劣势", "丧失"]
             air_con_text = air_con_info[int(air_con_flag) - 1]
