@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WSGR · 战斗模拟</title>
-  <link rel="stylesheet" href="styles.css?v=map-ui-95">
+  <link rel="stylesheet" href="styles.css?v=map-ui-97">
 </head>
 <body>
   <header class="topbar">
@@ -300,6 +300,14 @@
     <form method="dialog">
       <div class="dialog-heading"><div class="panel-title"><h2>全局增益设定</h2></div><button type="button" data-close-environment-settings aria-label="关闭">×</button></div>
       <div class="environment-settings-content">
+        <section class="environment-section recon-section">
+          <h3>索敌状态</h3>
+          <div id="environment-recon-state" class="environment-recon-state" data-value="none" role="radiogroup" aria-label="索敌状态">
+            <button type="button" data-recon-state="false" role="radio" aria-checked="false">索敌失败</button>
+            <button type="button" data-recon-state="none" role="radio" aria-checked="true">默认</button>
+            <button type="button" data-recon-state="true" role="radio" aria-checked="false">索敌成功</button>
+          </div>
+        </section>
         <section class="environment-section engineering-section">
           <div><h3>工程局</h3><p>开启后，工程局工作表中标记为"生效"的增益生效。</p></div>
           <button id="environment-engineering-toggle" class="environment-toggle" type="button" aria-pressed="true"><span class="environment-toggle-track" aria-hidden="true"><span class="environment-toggle-thumb"></span></span><span class="environment-toggle-label">已开启</span></button>
@@ -352,6 +360,6 @@
   <input id="config-file" type="file" accept=".yaml,.yml,.xml" hidden>
   <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
   <script src="map-editor.js?v=map-ui-66"></script>
-  <script src="app.js?v=map-ui-31"></script>
+  <script src="app.js?v=map-ui-32"></script>
 </body>
 </html>

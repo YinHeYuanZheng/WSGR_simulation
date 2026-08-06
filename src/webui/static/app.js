@@ -52,6 +52,8 @@ const clearWorkspaceButton = document.querySelector('#clear-workspace');
 const clearConfirmDialog = document.querySelector('#clear-confirm');
 const environmentSettingsButton = document.querySelector('#environment-settings-button');
 const environmentSettingsDialog = document.querySelector('#environment-settings-dialog');
+const environmentReconState = document.querySelector('#environment-recon-state');
+const environmentReconButtons = [...environmentReconState.querySelectorAll('[data-recon-state]')];
 const environmentEngineeringToggle = document.querySelector('#environment-engineering-toggle');
 const environmentCollectionSelects = [...document.querySelectorAll('.environment-collection')];
 const environmentDish = document.querySelector('#environment-dish');
@@ -162,6 +164,16 @@ function setEngineeringEnabled(enabled) {
   environmentEngineeringToggle.querySelector('.environment-toggle-label').textContent = enabled ? '已开启' : '已关闭';
 }
 
+function setEnvironmentReconState(value) {
+  const state = value === true || value === 'true'
+    ? 'true'
+    : value === false || value === 'false' ? 'false' : 'none';
+  environmentReconState.dataset.value = state;
+  environmentReconButtons.forEach(button => {
+    button.setAttribute('aria-checked', String(button.dataset.reconState === state));
+  });
+}
+
 function syncEnvironmentCarCountry() {
   const enabled = Boolean(environmentCar.value);
   environmentCarCountry.disabled = !enabled;
@@ -211,6 +223,7 @@ function addEnvironmentExtra(selected = '') {
 function renderEnvironmentSettings(payload) {
   environmentOptionData = payload.options;
   const settings = payload.settings;
+  setEnvironmentReconState(settings.recon);
   setEngineeringEnabled(settings.engineering);
   environmentCollectionSelects.forEach((select, index) => {
     fillEnvironmentSelect(
@@ -245,6 +258,9 @@ function collectEnvironmentSettings() {
   const country = environmentCarCountry.value.trim();
   if (carName && !country) throw new Error('选择赛车增益后必须填写国籍');
   return {
+    recon: environmentReconState.dataset.value === 'true'
+      ? true
+      : environmentReconState.dataset.value === 'false' ? false : null,
     engineering: environmentEngineeringToggle.getAttribute('aria-pressed') === 'true',
     collections: selectedUniqueValues(environmentCollectionSelects, '摆件'),
     dish: environmentDish.value || null,
@@ -1996,6 +2012,9 @@ document.querySelector('#load-config').addEventListener('click', () => {
   configFileInput.click();
 });
 clearWorkspaceButton.addEventListener('click', () => clearConfirmDialog.showModal());
+environmentReconButtons.forEach(button => {
+  button.addEventListener('click', () => setEnvironmentReconState(button.dataset.reconState));
+});
 environmentEngineeringToggle.addEventListener('click', () => {
   setEngineeringEnabled(
     environmentEngineeringToggle.getAttribute('aria-pressed') !== 'true',

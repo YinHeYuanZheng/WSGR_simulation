@@ -52,7 +52,7 @@ class PreparePhase(AllPhase):
     """准备阶段"""
 
     def start(self):
-        # 索敌(注意！不受技能索敌影响！)
+        # 索敌(技能索敌已经在friend_init/enemy_init结算过，不要再次结算！)
         self.compare_recon()
 
         point = self.timer.point
@@ -61,7 +61,7 @@ class PreparePhase(AllPhase):
             if self.timer.map_retreat:
                 return
 
-        # 迂回(注意！不受技能航速影响！)
+        # 迂回(技能航速已经在friend_init/enemy_init结算过，不要再次结算！)
         if point is not None and self.timer.recon_flag:  # 索敌成功才可迂回
             round_rate = self.get_roundabout_rate()
             if point.user_rules.should_attempt_round(point, round_rate):

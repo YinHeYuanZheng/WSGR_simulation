@@ -55,6 +55,7 @@ ENV_CID_EXPR_RE = re.compile(r'Cid\((.*)\)')
 def default_user_settings():
     """Return settings that preserve the simulator's previous behaviour."""
     return {
+        'recon': None,
         'engineering': True,
         'collections': [],
         'dish': None,
@@ -155,6 +156,10 @@ def normalise_user_settings(settings, file_path):
         for key, rows in sheets.items()
     }
     result = default_user_settings()
+    recon = settings.get('recon', result['recon'])
+    if recon is not None and not isinstance(recon, bool):
+        raise ValueError('索敌状态必须为 true、null 或 false')
+    result['recon'] = recon
     engineering = settings.get('engineering', result['engineering'])
     if isinstance(engineering, str):
         engineering = engineering.strip().lower() not in ('', '0', 'false', 'off', 'no')
@@ -377,10 +382,32 @@ def create_skill_class(cls, config):
     return type(cls, (PrepSkill,), {"__init__": wrapped_init})
 
 
+def create_recon_skill_class(recon):
+    """Create the forced recon-state skill selected in user settings."""
+    side = 1 if recon is True else 0
+
+    def recon_init(cls, timer):
+        super(cls.__class__, cls).__init__(timer, master=None)
+        cls.target = LocTarget(side=side, loc=[1])
+        cls.buff = [
+            StatusBuff(
+                timer=timer,
+                name='recon',
+                phase=AllPhase,
+                value=9999,
+                bias_or_weight=0,
+            )
+        ]
+
+    class_name = 'EnvironmentFriendRecon' if recon is True else 'EnvironmentEnemyRecon'
+    return type(class_name, (PrepSkill,), {'__init__': recon_init})
+
+
 def load_env_buffs(file_path, settings_path=None):
     """从Excel读取并返回技能实例列表"""
     sheets = _read_environment_sheets(file_path)
     selected_configs = []
+    settings = default_user_settings()
     if settings_path is None or not os.path.exists(settings_path):
         for rows in sheets.values():
             selected_configs.extend(
@@ -418,6 +445,8 @@ def load_env_buffs(file_path, settings_path=None):
             selected_configs.append(copy.deepcopy(extras_by_name[name]))
 
     env_skills = []
+    if settings['recon'] is not None:
+        env_skills.append(create_recon_skill_class(settings['recon']))
     for i, config in enumerate(selected_configs):
         name = config.get('name', f'DynamicSkill_{i+1}').replace(' ', '_')
         # 过滤非法字符确保符合Python类名规范(支持字符：字母、数字、下划线)

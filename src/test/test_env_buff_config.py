@@ -5,7 +5,8 @@ import unittest
 from unittest.mock import patch
 
 import src.utils.envBuffUtil as env_buff_util
-from src.utils.envBuffUtil import _build_environment_target
+from src.utils.envBuffUtil import _build_environment_target, create_recon_skill_class
+from src.wsgr.wsgrTimer import timer
 
 
 def ship(cid, country='X'):
@@ -13,6 +14,17 @@ def ship(cid, country='X'):
 
 
 class EnvironmentTargetTest(unittest.TestCase):
+    def test_recon_setting_targets_selected_flagship(self):
+        friend_skill = create_recon_skill_class(True)(timer())
+        enemy_skill = create_recon_skill_class(False)(timer())
+        friend = [SimpleNamespace(loc=1), SimpleNamespace(loc=2)]
+        enemy = [SimpleNamespace(loc=1), SimpleNamespace(loc=2)]
+
+        self.assertEqual(friend_skill.target.get_target(friend, enemy), [friend[0]])
+        self.assertEqual(enemy_skill.target.get_target(friend, enemy), [enemy[0]])
+        self.assertEqual(friend_skill.buff[0].name, 'recon')
+        self.assertEqual(friend_skill.buff[0].value, 9999)
+
     def test_short_cid_targets_friend_variants(self):
         target = _build_environment_target({
             'name': '指定舰船',

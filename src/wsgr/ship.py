@@ -1700,7 +1700,7 @@ class Fleet(Time):
         if self.side:
             self.timer.run_prepare_skill(friend=self, enemy=[])
         else:
-            self.timer.run_prepare_skill(friend=[], enemy=enemy)
+            self.timer.run_prepare_skill(friend=[], enemy=self)
 
         # 结算影响队友航速、索敌的技能，不结算让巴尔
         for tmp_ship in self.ship:
