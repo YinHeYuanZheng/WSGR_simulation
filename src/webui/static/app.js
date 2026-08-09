@@ -50,6 +50,8 @@ const configFileInput = document.querySelector('#config-file');
 const notice = document.querySelector('#notice');
 const clearWorkspaceButton = document.querySelector('#clear-workspace');
 const clearConfirmDialog = document.querySelector('#clear-confirm');
+const clearHistoryButton = document.querySelector('#clear-history');
+const clearHistoryConfirmDialog = document.querySelector('#history-clear-confirm');
 const environmentSettingsButton = document.querySelector('#environment-settings-button');
 const environmentSettingsDialog = document.querySelector('#environment-settings-dialog');
 const environmentReconState = document.querySelector('#environment-recon-state');
@@ -1156,8 +1158,15 @@ function populateStrategySelect(category, selected = '', level = 0) {
 }
 
 function updateFriendEditorFields(config = null) {
+  if (!editorShipLabels.has(editorName.value.trim())) {
+    Object.keys(strategyEditors).forEach(category => populateStrategySelect(category));
+    equipmentEditors.forEach((input, index) => {
+      input.value = '';
+      equipmentPickers[index].setDisabled(true);
+    });
+    return;
+  }
   const ship = selectedEditorShip('friend');
-  if (!editorShipLabels.has(editorName.value.trim())) return;
   fillSelect(
     editorSkill,
     ship.skills.map(item => ({ value: item.id, label: item.name })),
@@ -2012,6 +2021,7 @@ document.querySelector('#load-config').addEventListener('click', () => {
   configFileInput.click();
 });
 clearWorkspaceButton.addEventListener('click', () => clearConfirmDialog.showModal());
+clearHistoryButton.addEventListener('click', () => clearHistoryConfirmDialog.showModal());
 environmentReconButtons.forEach(button => {
   button.addEventListener('click', () => setEnvironmentReconState(button.dataset.reconState));
 });
@@ -2055,6 +2065,12 @@ saveEnvironmentSettingsButton.addEventListener('click', async () => {
 document.querySelector('#confirm-clear').addEventListener('click', () => {
   clearConfirmDialog.close('confirmed');
   void clearWorkspace();
+});
+document.querySelector('#confirm-clear-history').addEventListener('click', () => {
+  battleHistory.length = 0;
+  mapHistory.length = 0;
+  renderHistory();
+  clearHistoryConfirmDialog.close('confirmed');
 });
 document.querySelectorAll('.fleet-load').forEach(button => button.addEventListener('click', () => {
   loadTarget = button.dataset.side;

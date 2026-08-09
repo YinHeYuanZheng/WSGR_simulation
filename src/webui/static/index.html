@@ -11,7 +11,7 @@
     <a class="brand" href="#top"><b aria-hidden="true"><img src="assets/anchor-solid.png" alt=""></b><span>WSGR<small>SIMULATION</small></span></a>
     <nav aria-label="主功能"><button class="active" data-page="battle">战斗模拟</button><button data-page="map">地图模拟</button><button data-page="history">历史战报</button></nav>
     <div class="top-actions">
-      <button id="load-config" class="plain">加载配置</button><button id="save-config" class="plain">保存配置</button><button id="clear-workspace" class="plain" data-page-action="battle">清空</button><button id="reset-map" class="plain" data-page-action="map" hidden>清空</button><button id="environment-settings-button" class="plain">设定</button>
+      <button id="load-config" class="plain">加载配置</button><button id="save-config" class="plain">保存配置</button><button id="clear-workspace" class="plain" data-page-action="battle">清空</button><button id="reset-map" class="plain" data-page-action="map" hidden>清空</button><button id="clear-history" class="plain" data-page-action="history" hidden>清空</button><button id="environment-settings-button" class="plain">设定</button>
       <button id="mode-switch" class="mode-switch" aria-label="切换深色模式" aria-pressed="false"><i class="mode-thumb"></i><span>☼</span><span>☾</span></button>
     </div>
   </header>
@@ -356,10 +356,11 @@
       <div class="dialog-actions environment-actions"><span></span><button type="button" data-close-map-effects class="quiet">取消</button><button id="save-map-effects" type="button" class="run">保存设定</button></div>
     </form>
   </dialog>
-  <dialog id="clear-confirm" class="confirm-dialog"><form method="dialog"><h2>清空页面？</h2><p>这会移除双方舰队配置，并重置模拟设置与所有统计结果。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="confirm-clear" type="button" class="danger">确认清空</button></div></form></dialog>
+  <dialog id="clear-confirm" class="confirm-dialog"><form method="dialog"><h2>清空战斗配置？</h2><p>这会移除双方舰队配置，并重置模拟设置与本页统计结果。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="confirm-clear" type="button" class="danger">确认清空</button></div></form></dialog>
+  <dialog id="history-clear-confirm" class="confirm-dialog"><form method="dialog"><h2>清空历史战报？</h2><p>这只会移除单点模拟与地图模拟的全部历史记录，不影响其他页面。</p><div class="confirm-actions"><button value="cancel" class="quiet">取消</button><button id="confirm-clear-history" type="button" class="danger">确认清空</button></div></form></dialog>
   <input id="config-file" type="file" accept=".yaml,.yml,.xml" hidden>
   <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
   <script src="map-editor.js?v=map-ui-66"></script>
-  <script src="app.js?v=map-ui-32"></script>
+  <script src="app.js?v=map-ui-33"></script>
 </body>
 </html>

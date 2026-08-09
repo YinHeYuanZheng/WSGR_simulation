@@ -34,7 +34,8 @@ def main(infile, epoch, battle_num, fun, **kwargs):
     #     ship.status['total_health'] = 450
     #     ship.status['antiair'] = 100
     #     ship.status['recon'] = 100
-    battle.friend.ship[0].status['input_health'] = 29
+    # fire = kwargs.pop('fire') if 'fire' in kwargs else 0
+    # battle.friend.ship[4].status['fire'] += fire
     set_supply(battle, battle_num)
     prebattle_info(battle)
     fun(battle, epoch, **kwargs)
@@ -56,7 +57,6 @@ if __name__ == '__main__':
     # configFile = os.path.join(configDir, r'config.xml')
     main(configFile, epoch, battle_num, fun)
 
-    # for num in ['01', '02']:
-    #     configFile = os.path.join(configDir, rf'config_map_{num}.xml')
-    #     main(configFile, epoch, battle_num, fun)
+    # for fire in range(10, 40, 10):
+    #     main(configFile, epoch, battle_num, fun, fire=fire)
     #     print('\n')

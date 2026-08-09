@@ -1,0 +1,1588 @@
+mapid: 7-4
+name: 7-4
+nodes:
+- name: 入口
+  kind: entrance
+  level: 0
+  level_auto: true
+  position:
+    x: 861.8730040342821
+    y: 207.02242897917785
+  battle:
+    type: Entrance
+    roundabout: false
+    support: false
+  enemy_fleets: []
+- name: A
+  kind: normal
+  level: 1
+  level_auto: true
+  position:
+    x: 826.7151239057481
+    y: 340.7575359037853
+  battle:
+    type: NormalBattle
+    roundabout: false
+    support: false
+  enemy_fleets:
+  - name: 敌方编队 1
+    formation: 1
+    ships:
+    - loc: 1
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00085
+      name: 战列Ψ级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00093
+      name: 轻巡ei级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00093
+      name: 轻巡ei级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+  - name: 敌方编队 2
+    formation: 1
+    ships:
+    - loc: 1
+      cid: '00045'
+      name: 战列Λ级Ⅲ型
+      level: 41
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00089
+      name: 重巡Ω级Ⅰ型
+      level: 41
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00093
+      name: 轻巡ei级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00077'
+      name: 潜艇Φ级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+  - name: 敌方编队 3
+    formation: 1
+    ships:
+    - loc: 1
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00094
+      name: 轻巡ei级Ⅱ型
+      level: 63
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00089
+      name: 重巡Ω级Ⅰ型
+      level: 41
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00093
+      name: 轻巡ei级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+- name: B
+  kind: normal
+  level: 1
+  level_auto: true
+  position:
+    x: 692.5591538654288
+    y: 138.3714037164217
+  battle:
+    type: NormalBattle
+    roundabout: false
+    support: false
+  enemy_fleets:
+  - name: 敌方编队 1
+    formation: 1
+    ships:
+    - loc: 1
+      cid: '00045'
+      name: 战列Λ级Ⅲ型
+      level: 41
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00093
+      name: 轻巡ei级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00093
+      name: 轻巡ei级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+  - name: 敌方编队 2
+    formation: 1
+    ships:
+    - loc: 1
+      cid: '00045'
+      name: 战列Λ级Ⅲ型
+      level: 41
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00089
+      name: 重巡Ω级Ⅰ型
+      level: 41
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: '00066'
+      name: 战巡Κ级Ⅱ型
+      level: 32
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00077'
+      name: 潜艇Φ级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00077'
+      name: 潜艇Φ级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+  - name: 敌方编队 3
+    formation: 1
+    ships:
+    - loc: 1
+      cid: '00045'
+      name: 战列Λ级Ⅲ型
+      level: 41
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00093
+      name: 轻巡ei级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00093
+      name: 轻巡ei级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00093
+      name: 轻巡ei级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+- name: C
+  kind: normal
+  level: 2
+  level_auto: true
+  position:
+    x: 742.4425214076145
+    y: 448.7127313572963
+  battle:
+    type: NormalBattle
+    roundabout: false
+    support: false
+  enemy_fleets:
+  - name: 敌方编队 1
+    formation: 2
+    ships:
+    - loc: 1
+      cid: 00086
+      name: 战列Ψ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00067'
+      name: 战巡Κ级Ⅲ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00093
+      name: 轻巡ei级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: 00093
+      name: 轻巡ei级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+  - name: 敌方编队 2
+    formation: 4
+    ships:
+    - loc: 1
+      cid: 00086
+      name: 战列Ψ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00067'
+      name: 战巡Κ级Ⅲ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00094
+      name: 轻巡ei级Ⅱ型
+      level: 63
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00078
+      name: 潜艇Φ级Ⅱ型
+      level: 61
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00077'
+      name: 潜艇Φ级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+  - name: 敌方编队 3
+    formation: 4
+    ships:
+    - loc: 1
+      cid: 00086
+      name: 战列Ψ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00067'
+      name: 战巡Κ级Ⅲ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00077'
+      name: 潜艇Φ级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+- name: D
+  kind: normal
+  level: 2
+  level_auto: true
+  position:
+    x: 581.7168967468112
+    y: 286.58876436854683
+  battle:
+    type: NormalBattle
+    roundabout: true
+    support: false
+  enemy_fleets:
+  - name: 敌方编队 1
+    formation: 2
+    ships:
+    - loc: 1
+      cid: '00045'
+      name: 战列Λ级Ⅲ型
+      level: 41
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00045'
+      name: 战列Λ级Ⅲ型
+      level: 41
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: '00045'
+      name: 战列Λ级Ⅲ型
+      level: 41
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00094
+      name: 轻巡ei级Ⅱ型
+      level: 63
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+  - name: 敌方编队 2
+    formation: 4
+    ships:
+    - loc: 1
+      cid: '00045'
+      name: 战列Λ级Ⅲ型
+      level: 41
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00045'
+      name: 战列Λ级Ⅲ型
+      level: 41
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00094
+      name: 轻巡ei级Ⅱ型
+      level: 63
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00077'
+      name: 潜艇Φ级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+  - name: 敌方编队 3
+    formation: 1
+    ships:
+    - loc: 1
+      cid: '00045'
+      name: 战列Λ级Ⅲ型
+      level: 41
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00077'
+      name: 潜艇Φ级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+- name: E
+  kind: normal
+  level: 2
+  level_auto: true
+  position:
+    x: 521.6260518033492
+    y: 172.8226033673682
+  battle:
+    type: NormalBattle
+    roundabout: false
+    support: false
+  enemy_fleets:
+  - name: 敌方编队 1
+    formation: 2
+    ships:
+    - loc: 1
+      cid: 00086
+      name: 战列Ψ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00094
+      name: 轻巡ei级Ⅱ型
+      level: 63
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00078
+      name: 潜艇Φ级Ⅱ型
+      level: 61
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00077'
+      name: 潜艇Φ级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+  - name: 敌方编队 2
+    formation: 4
+    ships:
+    - loc: 1
+      cid: 00086
+      name: 战列Ψ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00094
+      name: 轻巡ei级Ⅱ型
+      level: 63
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+  - name: 敌方编队 3
+    formation: 1
+    ships:
+    - loc: 1
+      cid: 00086
+      name: 战列Ψ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: '00102'
+      name: 导驱au级Ⅲ型
+      level: 75
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: '00075'
+      name: 驱逐Τ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00094
+      name: 轻巡ei级Ⅱ型
+      level: 63
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: 00093
+      name: 轻巡ei级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+- name: F
+  kind: normal
+  level: 2
+  level_auto: true
+  position:
+    x: 609.5390211788041
+    y: 522.7198633288458
+  battle:
+    type: NormalBattle
+    roundabout: false
+    support: false
+  enemy_fleets:
+  - name: 敌方编队 1
+    formation: 2
+    ships:
+    - loc: 1
+      cid: 00086
+      name: 战列Ψ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00086
+      name: 战列Ψ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00078
+      name: 潜艇Φ级Ⅱ型
+      level: 61
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00077'
+      name: 潜艇Φ级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+  - name: 敌方编队 2
+    formation: 4
+    ships:
+    - loc: 1
+      cid: 00018
+      name: 航母Ο级Ⅲ型
+      level: 47
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00086
+      name: 战列Ψ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00094
+      name: 轻巡ei级Ⅱ型
+      level: 63
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00093
+      name: 轻巡ei级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+  - name: 敌方编队 3
+    formation: 3
+    ships:
+    - loc: 1
+      cid: 00018
+      name: 航母Ο级Ⅲ型
+      level: 47
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00086
+      name: 战列Ψ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00094
+      name: 轻巡ei级Ⅱ型
+      level: 63
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00093
+      name: 轻巡ei级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+- name: G
+  kind: resource_gain
+  level: 2
+  level_auto: true
+  position:
+    x: 410.11189328916333
+    y: 275.9969598746971
+  battle:
+    type: ResourcePoint
+    roundabout: false
+    support: false
+    resource: ammo
+    amount: 115
+  enemy_fleets: []
+- name: H
+  kind: resource_gain
+  level: 3
+  level_auto: true
+  position:
+    x: 392.21186127136343
+    y: 133.18709998374644
+  battle:
+    type: ResourcePoint
+    roundabout: false
+    support: false
+    resource: oil
+    amount: 115
+  enemy_fleets: []
+- name: I
+  kind: normal
+  level: 4
+  level_auto: true
+  position:
+    x: 474.22613188706214
+    y: 543.1973027779924
+  battle:
+    type: NormalBattle
+    roundabout: false
+    support: false
+  enemy_fleets:
+  - name: 敌方编队 1
+    formation: 2
+    ships:
+    - loc: 1
+      cid: 00018
+      name: 航母Ο级Ⅲ型
+      level: 47
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00087
+      name: 战列Ψ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00091
+      name: 重巡Ω级Ⅲ型
+      level: 72
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: 00089
+      name: 重巡Ω级Ⅰ型
+      level: 41
+      affection: 50
+      skill: 1
+  - name: 敌方编队 2
+    formation: 4
+    ships:
+    - loc: 1
+      cid: 00018
+      name: 航母Ο级Ⅲ型
+      level: 47
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00091
+      name: 重巡Ω级Ⅲ型
+      level: 72
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00091
+      name: 重巡Ω级Ⅲ型
+      level: 72
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00095
+      name: 轻巡ei级Ⅲ型
+      level: 73
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00074'
+      name: 驱逐Τ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00101'
+      name: 导驱au级Ⅱ型
+      level: 60
+      affection: 50
+      skill: 1
+  - name: 敌方编队 3
+    formation: 1
+    ships:
+    - loc: 1
+      cid: 00087
+      name: 战列Ψ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00087
+      name: 战列Ψ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00091
+      name: 重巡Ω级Ⅲ型
+      level: 72
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00095
+      name: 轻巡ei级Ⅲ型
+      level: 73
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00078
+      name: 潜艇Φ级Ⅱ型
+      level: 61
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00101'
+      name: 导驱au级Ⅱ型
+      level: 60
+      affection: 50
+      skill: 1
+- name: J
+  kind: normal
+  level: 2
+  level_auto: true
+  position:
+    x: 366.7415019014613
+    y: 459.51113481577795
+  battle:
+    type: NormalBattle
+    roundabout: false
+    support: false
+  enemy_fleets:
+  - name: 敌方编队 1
+    formation: 2
+    ships:
+    - loc: 1
+      cid: 00087
+      name: 战列Ψ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00087
+      name: 战列Ψ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00018
+      name: 航母Ο级Ⅲ型
+      level: 47
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: 00078
+      name: 潜艇Φ级Ⅱ型
+      level: 61
+      affection: 50
+      skill: 1
+  - name: 敌方编队 2
+    formation: 3
+    ships:
+    - loc: 1
+      cid: 00018
+      name: 航母Ο级Ⅲ型
+      level: 47
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00018
+      name: 航母Ο级Ⅲ型
+      level: 47
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00018
+      name: 航母Ο级Ⅲ型
+      level: 47
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00101'
+      name: 导驱au级Ⅱ型
+      level: 60
+      affection: 50
+      skill: 1
+  - name: 敌方编队 3
+    formation: 1
+    ships:
+    - loc: 1
+      cid: 00087
+      name: 战列Ψ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00087
+      name: 战列Ψ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: '00102'
+      name: 导驱au级Ⅲ型
+      level: 75
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: 00078
+      name: 潜艇Φ级Ⅱ型
+      level: 61
+      affection: 50
+      skill: 1
+- name: K
+  kind: normal
+  level: 3
+  level_auto: true
+  position:
+    x: 282.22842702706197
+    y: 368.4702252863694
+  battle:
+    type: NormalBattle
+    roundabout: false
+    support: false
+  enemy_fleets:
+  - name: 敌方编队 1
+    formation: 2
+    ships:
+    - loc: 1
+      cid: 00087
+      name: 战列Ψ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00091
+      name: 重巡Ω级Ⅲ型
+      level: 72
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00095
+      name: 轻巡ei级Ⅲ型
+      level: 73
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00095
+      name: 轻巡ei级Ⅲ型
+      level: 73
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00094
+      name: 轻巡ei级Ⅱ型
+      level: 63
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00101'
+      name: 导驱au级Ⅱ型
+      level: 60
+      affection: 50
+      skill: 1
+  - name: 敌方编队 2
+    formation: 1
+    ships:
+    - loc: 1
+      cid: 00087
+      name: 战列Ψ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00087
+      name: 战列Ψ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: '00075'
+      name: 驱逐Τ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: '00075'
+      name: 驱逐Τ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00078
+      name: 潜艇Φ级Ⅱ型
+      level: 61
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00101'
+      name: 导驱au级Ⅱ型
+      level: 60
+      affection: 50
+      skill: 1
+  - name: 敌方编队 2 副本
+    formation: 3
+    ships:
+    - loc: 1
+      cid: 00087
+      name: 战列Ψ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00091
+      name: 重巡Ω级Ⅲ型
+      level: 72
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00091
+      name: 重巡Ω级Ⅲ型
+      level: 72
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00095
+      name: 轻巡ei级Ⅲ型
+      level: 73
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00078
+      name: 潜艇Φ级Ⅱ型
+      level: 61
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00101'
+      name: 导驱au级Ⅱ型
+      level: 60
+      affection: 50
+      skill: 1
+- name: L
+  kind: normal
+  level: 3
+  level_auto: true
+  position:
+    x: 288.8372407597376
+    y: 224.9311683007117
+  battle:
+    type: NormalBattle
+    roundabout: true
+    support: false
+  enemy_fleets:
+  - name: 敌方编队 1
+    formation: 2
+    ships:
+    - loc: 1
+      cid: 00087
+      name: 战列Ψ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00018
+      name: 航母Ο级Ⅲ型
+      level: 47
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00086
+      name: 战列Ψ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00095
+      name: 轻巡ei级Ⅲ型
+      level: 73
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00078
+      name: 潜艇Φ级Ⅱ型
+      level: 61
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: 00078
+      name: 潜艇Φ级Ⅱ型
+      level: 61
+      affection: 50
+      skill: 1
+  - name: 敌方编队 2
+    formation: 1
+    ships:
+    - loc: 1
+      cid: 00087
+      name: 战列Ψ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00087
+      name: 战列Ψ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00086
+      name: 战列Ψ级Ⅱ型
+      level: 59
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: 00089
+      name: 重巡Ω级Ⅰ型
+      level: 41
+      affection: 50
+      skill: 1
+  - name: 敌方编队 3
+    formation: 4
+    ships:
+    - loc: 1
+      cid: 00018
+      name: 航母Ο级Ⅲ型
+      level: 47
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00018
+      name: 航母Ο级Ⅲ型
+      level: 47
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00091
+      name: 重巡Ω级Ⅲ型
+      level: 72
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00094
+      name: 轻巡ei级Ⅱ型
+      level: 63
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: 00093
+      name: 轻巡ei级Ⅰ型
+      level: 42
+      affection: 50
+      skill: 1
+- name: M
+  kind: boss
+  level: 5
+  level_auto: true
+  position:
+    x: 119.81109831444815
+    y: 222.82416381969128
+  battle:
+    type: NormalBattle
+    roundabout: false
+    support: false
+  enemy_fleets:
+  - name: 敌方编队 1
+    formation: 2
+    ships:
+    - loc: 1
+      cid: 00019
+      name: 航母Ο级Ⅳ型
+      level: 71
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00087
+      name: 战列Ψ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00087
+      name: 战列Ψ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00091
+      name: 重巡Ω级Ⅲ型
+      level: 72
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: '00102'
+      name: 导驱au级Ⅲ型
+      level: 75
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00102'
+      name: 导驱au级Ⅲ型
+      level: 75
+      affection: 50
+      skill: 1
+  - name: 敌方编队 2
+    formation: 1
+    ships:
+    - loc: 1
+      cid: 00088
+      name: 战列Ψ级Ⅳ型
+      level: 92
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00087
+      name: 战列Ψ级Ⅲ型
+      level: 77
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00018
+      name: 航母Ο级Ⅲ型
+      level: 47
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00091
+      name: 重巡Ω级Ⅲ型
+      level: 72
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00079
+      name: 潜艇Φ级Ⅲ型
+      level: 75
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: '00101'
+      name: 导驱au级Ⅱ型
+      level: 60
+      affection: 50
+      skill: 1
+  - name: 敌方编队 3
+    formation: 3
+    ships:
+    - loc: 1
+      cid: 00019
+      name: 航母Ο级Ⅳ型
+      level: 71
+      affection: 50
+      skill: 1
+    - loc: 2
+      cid: 00019
+      name: 航母Ο级Ⅳ型
+      level: 71
+      affection: 50
+      skill: 1
+    - loc: 3
+      cid: 00018
+      name: 航母Ο级Ⅲ型
+      level: 47
+      affection: 50
+      skill: 1
+    - loc: 4
+      cid: 00091
+      name: 重巡Ω级Ⅲ型
+      level: 72
+      affection: 50
+      skill: 1
+    - loc: 5
+      cid: 00090
+      name: 重巡Ω级Ⅱ型
+      level: 54
+      affection: 50
+      skill: 1
+    - loc: 6
+      cid: 00095
+      name: 轻巡ei级Ⅲ型
+      level: 73
+      affection: 50
+      skill: 1
+routes:
+- from: 入口
+  to: B
+  weight: 1
+  relation: all
+  color: '#e5eef0'
+  opacity: 1
+  conditions:
+  - type: num
+    name: CA
+    fun: ge
+    value: 2
+- from: B
+  to: E
+  weight: 1
+  relation: all
+  color: '#e5eef0'
+  opacity: 1
+  conditions: []
+- from: E
+  to: D
+  weight: 1
+  relation: all
+  color: '#e5eef0'
+  opacity: 1
+  conditions: []
+- from: 入口
+  to: A
+  weight: 1
+  relation: all
+  color: '#e5eef0'
+  opacity: 1
+  conditions:
+  - type: leader
+    name: CV
+    fun: is
+    value: ''
+- from: A
+  to: C
+  weight: 1
+  relation: all
+  color: '#e5eef0'
+  opacity: 1
+  conditions: []
+- from: C
+  to: D
+  weight: 3
+  relation: all
+  color: '#e5eef0'
+  opacity: 1
+  conditions: []
+- from: C
+  to: F
+  weight: 2
+  relation: all
+  color: '#e5eef0'
+  opacity: 1
+  conditions:
+  - type: num
+    name: AV
+    fun: ge
+    value: 1
+- from: F
+  to: I
+  weight: 1
+  relation: all
+  color: '#e5eef0'
+  opacity: 1
+  conditions: []
+- from: D
+  to: G
+  weight: 1
+  relation: all
+  color: '#e5eef0'
+  opacity: 1
+  conditions: []
+- from: G
+  to: L
+  weight: 3
+  relation: all
+  color: '#e5eef0'
+  opacity: 1
+  conditions: []
+- from: G
+  to: K
+  weight: 2
+  relation: all
+  color: '#e5eef0'
+  opacity: 1
+  conditions:
+  - type: num
+    name: BC
+    fun: ge
+    value: 2
+- from: L
+  to: H
+  weight: 3
+  relation: all
+  color: '#e5eef0'
+  opacity: 1
+  conditions: []
+- from: H
+  to: M
+  weight: 1
+  relation: all
+  color: '#e5eef0'
+  opacity: 1
+  conditions: []
+- from: L
+  to: M
+  weight: 2
+  relation: all
+  color: '#e5eef0'
+  opacity: 1
+  conditions:
+  - type: num
+    name: BB
+    fun: ge
+    value: 2
+- from: K
+  to: M
+  weight: 1
+  relation: all
+  color: '#e5eef0'
+  opacity: 1
+  conditions: []
