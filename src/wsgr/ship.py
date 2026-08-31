@@ -1410,12 +1410,18 @@ class DefMissileShip(MissileShip):
     def __init__(self, timer):
         super().__init__(timer)
         self.act_phase_flag.update({
+            'LongMissilePhase': False,  # 可拦截不可攻击
+            'FirstMissilePhase': False,  # 可拦截不可攻击
             'SecondTorpedoPhase': False,  # 大巡可参与
-            'SecondMissilePhase': True,
+            'SecondMissilePhase': True,  # 可攻击
         })
 
         self.act_phase_indicator.update({
-            'SecondMissilePhase': lambda x:
+            'LongMissilePhase': lambda x:  # 检查能否参与拦截
+                (x.damaged < 3) and x.check_missile(),
+            'FirstMissilePhase': lambda x:  # 检查能否参与拦截
+                (x.damaged < 3) and x.check_missile(),
+            'SecondMissilePhase': lambda x:  # 检查能否参与攻击
                 (x.damaged < 3) and x.check_missile(),
         })
 
@@ -1625,7 +1631,7 @@ class Tuning(Aircraft, AtkMissileShip, DefMissileShip, SmallShip, MainShip):
             from src.wsgr.formulas import NormalAtk, AntiSubAtk
             self.normal_atk = NormalAtk
             self.anti_sub_atk = AntiSubAtk
-        super().raise_atk(target_fleet)
+        return super().raise_atk(target_fleet)
 
 
 class Fleet(Time):
@@ -1784,27 +1790,22 @@ class Fleet(Time):
 
     def get_member_inphase(self):
         """确定舰队中参与当前阶段的成员(不论是否可以行动，以满足炮序计算需求)"""
-        member = []
-        for tmp_ship in self.ship:
-            if tmp_ship.get_act_flag():
-                member.append(tmp_ship)
+        member = [tmp_ship for tmp_ship in self.ship
+                  if tmp_ship.get_act_flag()]
         return member
 
     def get_act_member_inphase(self):
         """确定舰队中在当前阶段可行动的成员"""
-        member = []
-        for tmp_ship in self.ship:
-            if tmp_ship.get_act_flag() and tmp_ship.get_act_indicator():
-                member.append(tmp_ship)
+        member = [tmp_ship for tmp_ship in self.ship
+                  if tmp_ship.get_act_flag() and tmp_ship.get_act_indicator()]
         return member
 
     def get_atk_target(self, atk_type=None):
         """确定舰队中可被指定攻击方式选中的成员"""
         target = []
         if atk_type is not None:
-            for tmp_ship in self.ship:
-                if tmp_ship.can_be_atk(atk_type):
-                    target.append(tmp_ship)
+            target = [tmp_ship for tmp_ship in self.ship
+                      if tmp_ship.can_be_atk(atk_type)]
         return target
 
     def count(self, shiptype):
