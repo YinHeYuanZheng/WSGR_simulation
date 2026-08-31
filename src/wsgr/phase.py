@@ -455,6 +455,8 @@ class MissilePhase(DaytimePhase):
         """获取反舰导弹"""
         from src.wsgr.ship import AtkMissileShip
         msl_list = []
+        shiplist = [ship for ship in shiplist
+                    if ship.get_act_flag() and ship.get_act_indicator()]
         for tmp_ship in shiplist:
             if isinstance(tmp_ship, AtkMissileShip) and tmp_ship.check_missile():
                 for tmp_equip in tmp_ship.equipment:
@@ -469,6 +471,8 @@ class MissilePhase(DaytimePhase):
         """获取防空导弹"""
         from src.wsgr.ship import DefMissileShip
         msl_list = []
+        shiplist = [ship for ship in shiplist
+                    if ship.get_act_flag() and ship.get_act_indicator()]
         for tmp_ship in shiplist:
             if isinstance(tmp_ship, DefMissileShip) and tmp_ship.check_missile():
                 assert tmp_ship.damaged < 4
@@ -481,6 +485,8 @@ class MissilePhase(DaytimePhase):
         """获取远程反舰导弹"""
         from src.wsgr.ship import KP, SSG
         msl_list = []
+        shiplist = [ship for ship in shiplist
+                    if ship.get_act_flag() and ship.get_act_indicator()]
         for tmp_ship in shiplist:
             if isinstance(tmp_ship, KP) and tmp_ship.check_missile():
                 for tmp_equip in tmp_ship.equipment:

@@ -1248,54 +1248,6 @@ class BBV(Aircraft, LargeShip, MainShip):
         from src.wsgr.formulas import AirAntiSubAtk
         self.anti_sub_atk = AirAntiSubAtk  # 反潜攻击
 
-    def raise_atk(self, target_fleet):
-        # 技能限制无法进行普通攻击
-        for tmp_buff in self.temper_buff:
-            if tmp_buff.name == 'no_normal_atk' and tmp_buff.is_active():
-                return
-
-        # 技能优先攻击特定船型
-        prior = self.get_prior_type_target(target_fleet)
-        if prior is not None:
-            atk = self.normal_atk(
-                timer=self.timer,
-                source=self,
-                def_list=prior,
-            )
-            yield atk
-            return
-
-        # 次轮炮击优先反潜
-        atk = None
-        if self.check_anti_sub():
-            def_list = target_fleet.get_atk_target(atk_type=self.anti_sub_atk)
-            if len(def_list):
-                atk = self.anti_sub_atk(
-                    timer=self.timer,
-                    source=self,
-                    def_list=def_list,
-                )
-
-        # 普通炮击
-        if atk is None:  # 无反潜
-            def_list = target_fleet.get_atk_target(atk_type=self.normal_atk)
-            if len(def_list):
-                atk = self.normal_atk(
-                    timer=self.timer,
-                    source=self,
-                    def_list=def_list,
-                )
-        if atk is None:  # 无普通炮击
-            return
-
-        # 技能发动特殊攻击
-        for tmp_buff in self.active_buff:
-            if tmp_buff.is_active(atk_type=type(atk), enemy=target_fleet):
-                yield from tmp_buff.active_start(atk=atk, enemy=target_fleet)
-                return
-
-        yield atk
-
     def check_anti_sub(self) -> bool:
         """航战次轮优先反潜"""
         from src.wsgr.phase import SecondShellingPhase
@@ -1641,7 +1593,7 @@ class Tuning(Aircraft, AtkMissileShip, DefMissileShip, SmallShip, MainShip):
             'FirstMissilePhase':
                 lambda x: (x.damaged < 3) and x.check_missile(),
             'AntiSubPhase':
-                lambda x: False,
+                lambda x: (x.get_form() == 5) and (x.damaged < 4),
             'FirstTorpedoPhase':
                 lambda x: (x.level > 10) and (x.damaged < 3),
             'FirstShellingPhase':
@@ -1657,12 +1609,23 @@ class Tuning(Aircraft, AtkMissileShip, DefMissileShip, SmallShip, MainShip):
         }  # 可行动标准
 
         from src.wsgr.formulas import \
-            NormalAtk, NightFireTorpedoAtk, TorpedoAtk
+            NormalAtk, AntiSubAtk, NightAntiSubAtk, NightFireTorpedoAtk, TorpedoAtk
         self.normal_atk = NormalAtk  # 普通炮击
         self.torpedo_atk = TorpedoAtk
-        self.anti_sub_atk = None  # 反潜攻击
-        self.night_atk = NightFireTorpedoAtk  # 夜战普通炮击
-        self.night_anti_sub_atk = None  # 夜战反潜攻击
+        self.anti_sub_atk = AntiSubAtk  # 反潜攻击
+        self.night_atk = NightFireTorpedoAtk  # 夜战火雷连击
+        self.night_anti_sub_atk = NightAntiSubAtk  # 夜战反潜攻击
+
+    def raise_atk(self, target_fleet):
+        if self.check_atk_plane_load():
+            from src.wsgr.formulas import AirNormalAtk, AirAntiSubAtk
+            self.normal_atk = AirNormalAtk
+            self.anti_sub_atk = AirAntiSubAtk
+        else:
+            from src.wsgr.formulas import NormalAtk, AntiSubAtk
+            self.normal_atk = NormalAtk
+            self.anti_sub_atk = AntiSubAtk
+        super().raise_atk(target_fleet)
 
 
 class Fleet(Time):
